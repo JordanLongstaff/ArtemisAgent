@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/themeTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/theme"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/themeSelector"
+        app:layout_constraintEnd_toStartOf="@id/themeSelector"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/themeSelector"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/themeSelector" />
+    <RadioGroup
+        android:id="@+id/themeSelector"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="4"
+        app:layout_constraintLeft_toRightOf="@id/themeTitle"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/themeTitle"
+        app:layout_constraintTop_toTopOf="parent">
+        <RadioButton
+            android:id="@+id/themeDefaultButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/paddingSmall"
+            android:text="@string/default_setting"
+            android:theme="@style/Widget.ArtemisAgent.Button.Default" />
+        <RadioButton
+            android:id="@+id/themeRedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:theme="@style/Widget.ArtemisAgent.Button.Red" />
+        <RadioButton
+            android:id="@+id/themeGreenButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:theme="@style/Widget.ArtemisAgent.Button.Green" />
+        <RadioButton
+            android:id="@+id/themeYellowButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:theme="@style/Widget.ArtemisAgent.Button.Yellow" />
+        <RadioButton
+            android:id="@+id/themeBlueButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:theme="@style/Widget.ArtemisAgent.Button.Blue" />
+        <RadioButton
+            android:id="@+id/themePurpleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:theme="@style/Widget.ArtemisAgent.Button.Purple" />
+    </RadioGroup>
+    <View
+        android:id="@+id/themeDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/themeSelector" />
+    <TextView
+        android:id="@+id/threeDigitDirectionsTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        android:text="@string/three_digit_directions"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/threeDigitDirectionsButton"
+        app:layout_constraintEnd_toStartOf="@id/threeDigitDirectionsLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/threeDigitDirectionsLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/threeDigitDirectionsButton" />
+    <ToggleButton
+        android:id="@+id/threeDigitDirectionsButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/themeDivider" />
+    <TextView
+        android:id="@+id/threeDigitDirectionsLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="@string/direction"
+        app:layout_constraintBottom_toBottomOf="@id/threeDigitDirectionsButton"
+        app:layout_constraintEnd_toStartOf="@id/threeDigitDirectionsButton"
+        app:layout_constraintRight_toLeftOf="@id/threeDigitDirectionsButton"
+        app:layout_constraintTop_toTopOf="@id/threeDigitDirectionsButton" />
+    <View
+        android:id="@+id/threeDigitDirectionsDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/threeDigitDirectionsButton" />
+    <TextView
+        android:id="@+id/soundVolumeTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sound_volume"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/soundVolumeBar"
+        app:layout_constraintEnd_toStartOf="@id/soundVolumeLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/soundVolumeLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/soundVolumeBar" />
+    <SeekBar
+        android:id="@+id/soundVolumeBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/soundVolumeLabel"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/soundVolumeLabel"
+        app:layout_constraintTop_toBottomOf="@id/threeDigitDirectionsDivider" />
+    <TextView
+        android:id="@+id/soundVolumeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|end"
+        android:minEms="2"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/soundVolumeBar"
+        app:layout_constraintEnd_toStartOf="@id/soundVolumeBar"
+        app:layout_constraintLeft_toRightOf="@id/soundVolumeTitle"
+        app:layout_constraintRight_toLeftOf="@id/soundVolumeBar"
+        app:layout_constraintStart_toEndOf="@id/soundVolumeTitle"
+        app:layout_constraintTop_toTopOf="@id/soundVolumeBar" />
+    <View
+        android:id="@+id/soundVolumeDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/soundVolumeBar" />
+</androidx.constraintlayout.widget.ConstraintLayout>

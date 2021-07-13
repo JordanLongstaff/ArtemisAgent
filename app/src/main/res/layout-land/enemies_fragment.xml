@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/enemyNavigator"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+    <View
+        android:id="@+id/leftDivider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintLeft_toRightOf="@id/enemyNavigator"
+        app:layout_constraintStart_toEndOf="@id/enemyNavigator" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/enemyList"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintEnd_toStartOf="@id/rightDivider"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintLeft_toRightOf="@id/leftDivider"
+        app:layout_constraintRight_toLeftOf="@id/rightDivider"
+        app:layout_constraintStart_toEndOf="@id/leftDivider" />
+    <View
+        android:id="@+id/rightDivider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintEnd_toStartOf="@id/enemyIntelLabel"
+        app:layout_constraintLeft_toRightOf="@id/enemyList"
+        app:layout_constraintRight_toLeftOf="@id/enemyIntelLabel"
+        app:layout_constraintStart_toEndOf="@id/enemyList" />
+    <TextView
+        android:id="@+id/selectedEnemyLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="@id/tauntList"
+        app:layout_constraintLeft_toLeftOf="@id/enemyIntelLabel"
+        app:layout_constraintRight_toRightOf="@id/tauntList"
+        app:layout_constraintStart_toStartOf="@id/enemyIntelLabel"
+        app:layout_constraintTop_toTopOf="parent" />
+    <View
+        android:id="@+id/selectedEnemyDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintEnd_toEndOf="@id/selectedEnemyLabel"
+        app:layout_constraintLeft_toLeftOf="@id/selectedEnemyLabel"
+        app:layout_constraintRight_toRightOf="@id/selectedEnemyLabel"
+        app:layout_constraintStart_toStartOf="@id/selectedEnemyLabel"
+        app:layout_constraintTop_toBottomOf="@id/selectedEnemyLabel" />
+    <TextView
+        android:id="@+id/enemyIntelLabel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/enemyIntelDivider"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintLeft_toRightOf="@id/rightDivider"
+        app:layout_constraintRight_toLeftOf="@id/enemyIntelDivider"
+        app:layout_constraintStart_toEndOf="@id/rightDivider"
+        app:layout_constraintTop_toBottomOf="@id/selectedEnemyDivider" />
+    <View
+        android:id="@+id/enemyIntelDivider"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toBottomOf="@id/enemyIntelLabel"
+        app:layout_constraintEnd_toStartOf="@id/tauntList"
+        app:layout_constraintLeft_toRightOf="@id/enemyIntelLabel"
+        app:layout_constraintRight_toLeftOf="@id/tauntList"
+        app:layout_constraintStart_toEndOf="@id/enemyIntelLabel"
+        app:layout_constraintTop_toTopOf="@id/enemyIntelLabel" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/tauntList"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="4"
+        app:layout_constraintLeft_toRightOf="@id/enemyIntelDivider"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/enemyIntelDivider"
+        app:layout_constraintTop_toBottomOf="@id/selectedEnemyDivider" />
+    <TextView
+        android:id="@+id/noEnemiesLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:gravity="center"
+        android:text="@string/no_enemies"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

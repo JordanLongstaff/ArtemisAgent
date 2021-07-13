@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent">
+    <View
+        android:id="@+id/leftDivider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/allyNameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/paddingSmall"
+        android:minWidth="@dimen/horizontalAllyEntryWidth"
+        android:textSize="20sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/allyFrontShieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/paddingSmall"
+        app:layout_constraintBottom_toTopOf="@id/allyRearShieldLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyNameLabel"
+        app:layout_constraintVertical_chainStyle="packed" />
+    <TextView
+        android:id="@+id/allyRearShieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/allyDescriptionLabel"
+        app:layout_constraintLeft_toLeftOf="@id/allyFrontShieldLabel"
+        app:layout_constraintStart_toStartOf="@id/allyFrontShieldLabel"
+        app:layout_constraintTop_toBottomOf="@id/allyFrontShieldLabel" />
+    <TextView
+        android:id="@+id/allyDirectionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@id/allyNameLabel"
+        app:layout_constraintRight_toRightOf="@id/allyNameLabel"
+        app:layout_constraintTop_toTopOf="@id/allyFrontShieldLabel" />
+    <TextView
+        android:id="@+id/allyRangeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/allyRearShieldLabel"
+        app:layout_constraintEnd_toEndOf="@id/allyDirectionLabel"
+        app:layout_constraintRight_toRightOf="@id/allyDirectionLabel" />
+    <Button
+        android:id="@+id/allyHailButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/hail"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/allyCommandButton"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/allyCommandButton"
+        app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/allyDescriptionLabel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/paddingSmall"
+        app:autoSizeMaxTextSize="@dimen/baseTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toTopOf="@id/allyHailButton"
+        app:layout_constraintEnd_toEndOf="@id/allyCommandButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@id/allyCommandButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyRangeLabel" />
+    <Button
+        android:id="@+id/allyCommandButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/command"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/rightDivider"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintLeft_toRightOf="@id/allyHailButton"
+        app:layout_constraintRight_toRightOf="@id/rightDivider"
+        app:layout_constraintStart_toEndOf="@id/allyHailButton" />
+    <View
+        android:id="@+id/rightDivider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/paddingSmall"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintStart_toEndOf="@id/allyNameLabel"
+        app:layout_constraintLeft_toRightOf="@id/allyNameLabel" />
+</androidx.constraintlayout.widget.ConstraintLayout>

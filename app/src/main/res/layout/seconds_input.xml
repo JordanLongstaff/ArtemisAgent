@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/minutes"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintEnd_toEndOf="@id/minutesUpButton"
+        app:layout_constraintLeft_toLeftOf="@id/minutesUpButton"
+        app:layout_constraintRight_toRightOf="@id/minutesUpButton"
+        app:layout_constraintStart_toStartOf="@id/minutesUpButton"
+        app:layout_constraintTop_toBottomOf="@id/minutesUpButton" />
+    <ImageButton
+        android:id="@+id/minutesUpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/arrow_up_float" />
+    <ImageButton
+        android:id="@+id/minutesDownButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/minutes"
+        app:srcCompat="@android:drawable/arrow_down_float" />
+    <TextView
+        android:id="@+id/colon"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/colon"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/minutes"
+        app:layout_constraintLeft_toRightOf="@id/minutes"
+        app:layout_constraintStart_toEndOf="@id/minutes"
+        app:layout_constraintTop_toTopOf="@id/minutes" />
+    <TextView
+        android:id="@+id/secondsTen"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintEnd_toEndOf="@id/secondsTenUpButton"
+        app:layout_constraintLeft_toLeftOf="@id/secondsTenUpButton"
+        app:layout_constraintRight_toRightOf="@id/secondsTenUpButton"
+        app:layout_constraintStart_toStartOf="@id/secondsTenUpButton"
+        app:layout_constraintTop_toBottomOf="@id/secondsTenUpButton" />
+    <ImageButton
+        android:id="@+id/secondsTenUpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toRightOf="@id/colon"
+        app:layout_constraintStart_toEndOf="@id/colon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/arrow_up_float" />
+    <ImageButton
+        android:id="@+id/secondsTenDownButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toRightOf="@id/colon"
+        app:layout_constraintStart_toEndOf="@id/colon"
+        app:layout_constraintTop_toBottomOf="@id/secondsTen"
+        app:srcCompat="@android:drawable/arrow_down_float" />
+    <TextView
+        android:id="@+id/secondsOne"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintEnd_toEndOf="@id/secondsOneUpButton"
+        app:layout_constraintLeft_toLeftOf="@id/secondsOneUpButton"
+        app:layout_constraintRight_toRightOf="@id/secondsOneUpButton"
+        app:layout_constraintStart_toStartOf="@id/secondsOneUpButton"
+        app:layout_constraintTop_toBottomOf="@id/secondsOneUpButton" />
+    <ImageButton
+        android:id="@+id/secondsOneUpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toRightOf="@id/secondsTenUpButton"
+        app:layout_constraintStart_toEndOf="@id/secondsTenUpButton"
+        app:layout_constraintTop_toTopOf="@id/secondsTenUpButton"
+        app:srcCompat="@android:drawable/arrow_up_float" />
+    <ImageButton
+        android:id="@+id/secondsOneDownButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toRightOf="@id/secondsTenDownButton"
+        app:layout_constraintStart_toEndOf="@id/secondsTenDownButton"
+        app:layout_constraintTop_toBottomOf="@id/secondsOne"
+        app:srcCompat="@android:drawable/arrow_down_float" />
+</androidx.constraintlayout.widget.ConstraintLayout>

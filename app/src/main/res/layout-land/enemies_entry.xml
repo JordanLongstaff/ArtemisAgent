@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <View
+        android:id="@+id/topDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/enemyNameLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="@id/topDivider" />
+    <TextView
+        android:id="@+id/enemyDirectionLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/direction"
+        app:layout_constraintTop_toBottomOf="@id/enemyTauntsLabel" />
+    <TextView
+        android:id="@+id/enemyRangeLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/range"
+        app:layout_constraintTop_toBottomOf="@id/enemyDirectionLabel" />
+    <TextView
+        android:id="@+id/enemyStatusLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        app:layout_constraintTop_toBottomOf="@id/enemyNameLabel" />
+    <TextView
+        android:id="@+id/enemyTauntsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        app:layout_constraintTop_toBottomOf="@id/enemyStatusLabel" />
+    <Button
+        android:id="@+id/enemySurrenderButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/surrender"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/enemyRangeLabel" />
+    <Button
+        android:id="@+id/enemyTauntButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/taunt"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/enemySurrenderButton" />
+    <View
+        android:id="@+id/bottomDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

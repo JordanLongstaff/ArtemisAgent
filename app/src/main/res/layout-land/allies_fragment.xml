@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RadioGroup
+        android:id="@+id/alliesListSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent">
+        <RadioButton
+            android:id="@+id/aliveAlliesButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/alive" />
+        <RadioButton
+            android:id="@+id/destroyedAlliesButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/destroyed" />
+    </RadioGroup>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/alliesListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/alliesListSelector"
+        app:layout_constraintBottom_toBottomOf="parent" />
+    <include
+        android:id="@+id/allyInfoLayout"
+        layout="@layout/allies_entry"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ScrollView
+        android:id="@+id/allyCommandsScroller"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layout_constraintLeft_toRightOf="@id/allyInfoLayout"
+        app:layout_constraintStart_toEndOf="@id/allyInfoLayout">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/allyTurnToLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/paddingSmall"
+                android:text="@string/turn_to_heading"
+                android:textSize="@dimen/baseTextSize"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:id="@+id/allyTurnLeftLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/paddingSmall"
+                android:gravity="center_horizontal"
+                android:text="@string/left"
+                android:textAllCaps="true"
+                android:textSize="@dimen/baseTextSize"
+                app:layout_constraintBottom_toTopOf="@id/allyTurnLeft10"
+                app:layout_constraintEnd_toEndOf="@id/allyTurnLeft10"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="@id/allyTurnLeft10"
+                app:layout_constraintStart_toStartOf="parent" />
+            <Button
+                android:id="@+id/allyTurnLeft10"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                android:text="@string/adjust_10_degrees"
+                app:layout_constraintBottom_toTopOf="@id/allyTurnLeft25"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:ignore="DuplicateSpeakableTextCheck" />
+            <Button
+                android:id="@+id/allyTurnLeft25"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                android:text="@string/adjust_25_degrees"
+                app:layout_constraintBottom_toBottomOf="@id/allyTurnTo180"
+                app:layout_constraintLeft_toLeftOf="@id/allyTurnLeft10"
+                app:layout_constraintStart_toStartOf="@id/allyTurnLeft10"
+                tools:ignore="DuplicateSpeakableTextCheck" />
+            <TextView
+                android:id="@+id/allyTurnRightLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/paddingSmall"
+                android:gravity="center_horizontal"
+                android:text="@string/right"
+                android:textAllCaps="true"
+                android:textSize="@dimen/baseTextSize"
+                app:layout_constraintBottom_toTopOf="@id/allyTurnRight10"
+                app:layout_constraintEnd_toEndOf="@id/allyTurnRight10"
+                app:layout_constraintLeft_toRightOf="@id/allyTurnLeftLabel"
+                app:layout_constraintRight_toRightOf="@id/allyTurnRight10"
+                app:layout_constraintStart_toEndOf="@id/allyTurnLeftLabel" />
+            <Button
+                android:id="@+id/allyTurnRight10"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                android:text="@string/adjust_10_degrees"
+                app:layout_constraintBottom_toTopOf="@id/allyTurnRight25"
+                app:layout_constraintLeft_toRightOf="@id/allyTurnLeft10"
+                app:layout_constraintStart_toEndOf="@id/allyTurnLeft10" />
+            <Button
+                android:id="@+id/allyTurnRight25"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                android:text="@string/adjust_25_degrees"
+                app:layout_constraintBottom_toBottomOf="@id/allyTurnTo180"
+                app:layout_constraintLeft_toLeftOf="@id/allyTurnRight10"
+                app:layout_constraintStart_toStartOf="@id/allyTurnRight10" />
+            <Button
+                android:id="@+id/allyTurnTo270"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                app:layout_constraintLeft_toRightOf="@id/allyTurnRight25"
+                app:layout_constraintStart_toEndOf="@id/allyTurnRight25"
+                app:layout_constraintTop_toBottomOf="@id/allyTurnTo0" />
+            <Button
+                android:id="@+id/allyTurnTo90"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                app:layout_constraintLeft_toRightOf="@id/allyTurnTo270"
+                app:layout_constraintStart_toEndOf="@id/allyTurnTo270"
+                app:layout_constraintTop_toBottomOf="@id/allyTurnTo0" />
+            <Button
+                android:id="@+id/allyTurnTo0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                app:layout_constraintEnd_toEndOf="@id/allyTurnTo90"
+                app:layout_constraintLeft_toLeftOf="@id/allyTurnTo270"
+                app:layout_constraintRight_toRightOf="@id/allyTurnTo90"
+                app:layout_constraintStart_toStartOf="@id/allyTurnTo270"
+                app:layout_constraintTop_toTopOf="parent" />
+            <Button
+                android:id="@+id/allyTurnTo180"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/directionButtonWidth"
+                app:layout_constraintEnd_toEndOf="@id/allyTurnTo90"
+                app:layout_constraintLeft_toLeftOf="@id/allyTurnTo270"
+                app:layout_constraintRight_toRightOf="@id/allyTurnTo90"
+                app:layout_constraintStart_toStartOf="@id/allyTurnTo270"
+                app:layout_constraintTop_toBottomOf="@id/allyTurnTo90" />
+            <Button
+                android:id="@+id/allyProceedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/proceed_to_your_destination"
+                app:layout_constraintEnd_toEndOf="@id/allyTurnTo90"
+                app:layout_constraintLeft_toRightOf="@id/allyAttackButton"
+                app:layout_constraintRight_toRightOf="@id/allyTurnTo90"
+                app:layout_constraintStart_toEndOf="@id/allyAttackButton"
+                app:layout_constraintTop_toBottomOf="@id/allyMoreCommandsLabel" />
+            <Button
+                android:id="@+id/allyAttackButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/attack_nearest_enemy"
+                app:layout_constraintEnd_toStartOf="@id/allyProceedButton"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/allyProceedButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/allyMoreCommandsLabel" />
+            <TextView
+                android:id="@+id/allyMoreCommandsLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/paddingSmall"
+                android:text="@string/more_commands"
+                android:textSize="@dimen/baseTextSize"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/allyTurnTo180" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+    <TextView
+        android:id="@+id/allyGoDefendLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/paddingSmall"
+        android:text="@string/go_defend"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintLeft_toRightOf="@id/defendLeftDivider"
+        app:layout_constraintStart_toEndOf="@id/defendLeftDivider"
+        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/allyDefendList"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/defendLeftDivider"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/defendLeftDivider"
+        app:layout_constraintTop_toBottomOf="@id/allyGoDefendLabel" />
+    <View
+        android:id="@+id/defendLeftDivider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/paddingSmall"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintLeft_toRightOf="@id/allyCommandsScroller"
+        app:layout_constraintStart_toEndOf="@id/allyCommandsScroller" />
+</androidx.constraintlayout.widget.ConstraintLayout>

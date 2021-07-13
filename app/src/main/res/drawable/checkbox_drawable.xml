@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <stroke android:width="3dp" android:color="?attr/colorButtonNormal" />
+    <solid android:color="@color/checkbox_fill" />
+    <size android:width="@dimen/checkBoxSize" android:height="@dimen/checkBoxSize" />
+</shape>

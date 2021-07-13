@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/vesselDataTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/vessel_data_xml_location"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <RadioGroup
+        android:id="@+id/vesselDataOptions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/vesselDataTitle" >
+        <RadioButton
+            android:id="@+id/vesselDataDefault"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/default_setting" />
+        <RadioButton
+            android:id="@+id/vesselDataInternalStorage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/vessel_data_internal" />
+        <RadioButton
+            android:id="@+id/vesselDataExternalStorage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/vessel_data_external" />
+    </RadioGroup>
+    <View
+        android:id="@+id/vesselDataDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/vesselDataOptions" />
+    <TextView
+        android:id="@+id/serverPortTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/serverPortField"
+        android:text="@string/server_port"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/serverPortField"
+        app:layout_constraintEnd_toStartOf="@id/serverPortField"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/serverPortField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/serverPortField" />
+    <EditText
+        android:id="@+id/serverPortField"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:ems="5"
+        android:gravity="center_vertical|end"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLength="5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vesselDataDivider" />
+    <View
+        android:id="@+id/serverPortDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/serverPortField" />
+    <TextView
+        android:id="@+id/addressLimitTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/addressLimitField"
+        android:text="@string/recent_address_limit"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/addressLimitEnableButton"
+        app:layout_constraintEnd_toStartOf="@id/addressLimitField"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/addressLimitField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/addressLimitEnableButton" />
+    <EditText
+        android:id="@+id/addressLimitField"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:ems="4"
+        android:gravity="center_vertical|end"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        app:layout_constraintBottom_toBottomOf="@id/addressLimitEnableButton"
+        app:layout_constraintEnd_toStartOf="@id/addressLimitEnableButton"
+        app:layout_constraintRight_toLeftOf="@id/addressLimitEnableButton"
+        app:layout_constraintTop_toTopOf="@id/addressLimitEnableButton" />
+    <ToggleButton
+        android:id="@+id/addressLimitEnableButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/serverPortDivider" />
+    <TextView
+        android:id="@+id/addressLimitInfinity"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        android:text="@string/infinity"
+        android:textSize="48sp"
+        app:layout_constraintBottom_toBottomOf="@id/addressLimitEnableButton"
+        app:layout_constraintEnd_toStartOf="@id/addressLimitEnableButton"
+        app:layout_constraintRight_toLeftOf="@id/addressLimitEnableButton"
+        app:layout_constraintTop_toTopOf="@id/addressLimitEnableButton" />
+    <View
+        android:id="@+id/addressLimitDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/addressLimitEnableButton" />
+    <TextView
+        android:id="@+id/updateIntervalTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/updateIntervalField"
+        android:text="@string/update_interval"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/updateIntervalField"
+        app:layout_constraintEnd_toStartOf="@id/updateIntervalField"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/updateIntervalField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/updateIntervalField" />
+    <EditText
+        android:id="@+id/updateIntervalField"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="3"
+        android:gravity="center_vertical|end"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLength="3"
+        app:layout_constraintEnd_toStartOf="@id/updateIntervalMilliseconds"
+        app:layout_constraintRight_toLeftOf="@id/updateIntervalMilliseconds"
+        app:layout_constraintTop_toBottomOf="@id/addressLimitDivider" />
+    <TextView
+        android:id="@+id/updateIntervalMilliseconds"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/milliseconds"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/updateIntervalField"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/updateIntervalField" />
+    <View
+        android:id="@+id/updateIntervalDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/updateIntervalField" />
+</androidx.constraintlayout.widget.ConstraintLayout>

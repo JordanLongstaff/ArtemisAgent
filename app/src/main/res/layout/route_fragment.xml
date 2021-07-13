@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RadioGroup
+        android:id="@+id/routeObjectiveSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent">
+        <RadioButton
+            android:id="@+id/routeTasksButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tasks" />
+        <RadioButton
+            android:id="@+id/routeSuppliesButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/supplies" />
+    </RadioGroup>
+    <View
+        android:id="@+id/routeSuppliesSelectorBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/abc_button_inset_horizontal_material"
+        android:layout_marginVertical="@dimen/abc_button_inset_vertical_material"
+        android:background="?attr/colorPrimaryDark"
+        app:layout_constraintBottom_toBottomOf="@id/routeSuppliesSelector"
+        app:layout_constraintEnd_toEndOf="@id/routeSuppliesSelector"
+        app:layout_constraintLeft_toLeftOf="@id/routeSuppliesSelector"
+        app:layout_constraintRight_toRightOf="@id/routeSuppliesSelector"
+        app:layout_constraintStart_toStartOf="@id/routeSuppliesSelector"
+        app:layout_constraintTop_toTopOf="@id/routeSuppliesSelector" />
+    <TextView
+        android:id="@+id/routeSuppliesData"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/paddingMedium"
+        android:gravity="end|center_vertical"
+        app:layout_constraintBottom_toBottomOf="@id/routeSuppliesSelectorBackground"
+        app:layout_constraintEnd_toEndOf="@id/routeSuppliesSelectorBackground"
+        app:layout_constraintLeft_toLeftOf="@id/routeSuppliesSelectorBackground"
+        app:layout_constraintRight_toRightOf="@id/routeSuppliesSelectorBackground"
+        app:layout_constraintStart_toStartOf="@id/routeSuppliesSelectorBackground"
+        app:layout_constraintTop_toTopOf="@id/routeSuppliesSelectorBackground" />
+    <TextView
+        android:id="@+id/routeSuppliesSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_drawable"
+        android:gravity="center_vertical"
+        android:minHeight="48dip"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/routeObjectiveSelector" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/routeListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/routeSuppliesSelector" />
+</androidx.constraintlayout.widget.ConstraintLayout>

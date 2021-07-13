@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/enemySortingTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/ally_sorting_methods"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/enemySortingDefaultButtonGroup"
+        app:layout_constraintEnd_toStartOf="@id/enemySortingDefaultButtonGroup"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/enemySortingDefaultButtonGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/enemySortingDefaultButtonGroup" />
+    <RadioGroup
+        android:id="@+id/enemySortingDefaultButtonGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" >
+        <RadioButton
+            android:id="@+id/enemySortingDefaultOffButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+        <RadioButton
+            android:id="@+id/enemySortingDefaultButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_setting" />
+    </RadioGroup>
+    <ToggleButton
+        android:id="@+id/enemySortingSurrenderButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/surrender"
+        app:layout_constraintEnd_toStartOf="@id/enemySortingRaceButton"
+        app:layout_constraintHorizontal_weight="11"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/enemySortingRaceButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/enemySortingDefaultButtonGroup" />
+    <ToggleButton
+        android:id="@+id/enemySortingRaceButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_race"
+        app:layout_constraintEnd_toStartOf="@id/enemySortingNameButton"
+        app:layout_constraintHorizontal_weight="6"
+        app:layout_constraintLeft_toRightOf="@id/enemySortingSurrenderButton"
+        app:layout_constraintRight_toLeftOf="@id/enemySortingNameButton"
+        app:layout_constraintStart_toEndOf="@id/enemySortingSurrenderButton"
+        app:layout_constraintTop_toTopOf="@id/enemySortingSurrenderButton" />
+    <ToggleButton
+        android:id="@+id/enemySortingNameButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_name"
+        app:layout_constraintEnd_toStartOf="@id/enemySortingRangeButton"
+        app:layout_constraintHorizontal_weight="6"
+        app:layout_constraintLeft_toRightOf="@id/enemySortingRaceButton"
+        app:layout_constraintRight_toLeftOf="@id/enemySortingRangeButton"
+        app:layout_constraintStart_toEndOf="@id/enemySortingRaceButton"
+        app:layout_constraintTop_toTopOf="@id/enemySortingSurrenderButton" />
+    <ToggleButton
+        android:id="@+id/enemySortingRangeButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_range"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="7"
+        app:layout_constraintLeft_toRightOf="@id/enemySortingNameButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/enemySortingNameButton"
+        app:layout_constraintTop_toTopOf="@id/enemySortingSurrenderButton" />
+    <TextView
+        android:id="@+id/reverseRaceSortTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/reverse_sorting_by_race"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/reverseRaceSortButton"
+        app:layout_constraintEnd_toStartOf="@id/reverseRaceSortButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/reverseRaceSortButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/reverseRaceSortButton" />
+    <ToggleButton
+        android:id="@+id/reverseRaceSortButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/enemySortingSurrenderButton" />
+    <View
+        android:id="@+id/enemySortingDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/reverseRaceSortButton" />
+    <TextView
+        android:id="@+id/surrenderRangeTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/surrenderRangeField"
+        android:text="@string/surrender_range"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintEnd_toStartOf="@id/surrenderRangeField"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/surrenderRangeField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/surrenderRangeEnableButton" />
+    <EditText
+        android:id="@+id/surrenderRangeField"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:ems="5"
+        android:gravity="center_vertical|end"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintEnd_toStartOf="@id/surrenderRangeKm"
+        app:layout_constraintRight_toLeftOf="@id/surrenderRangeKm"
+        app:layout_constraintTop_toTopOf="@id/surrenderRangeEnableButton" />
+    <TextView
+        android:id="@+id/surrenderRangeKm"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/kilometres"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintEnd_toStartOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintRight_toLeftOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintTop_toTopOf="@id/surrenderRangeEnableButton" />
+    <ToggleButton
+        android:id="@+id/surrenderRangeEnableButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/enemySortingDivider" />
+    <TextView
+        android:id="@+id/surrenderRangeInfinity"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        android:text="@string/infinity"
+        android:textSize="48sp"
+        app:layout_constraintBottom_toBottomOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintEnd_toStartOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintRight_toLeftOf="@id/surrenderRangeEnableButton"
+        app:layout_constraintTop_toTopOf="@id/surrenderRangeEnableButton" />
+    <View
+        android:id="@+id/surrenderRangeDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/surrenderRangeEnableButton" />
+    <TextView
+        android:id="@+id/showIntelTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/show_intel"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/showIntelButton"
+        app:layout_constraintEnd_toStartOf="@id/showIntelButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/showIntelButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/showIntelButton" />
+    <ToggleButton
+        android:id="@+id/showIntelButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/surrenderRangeDivider" />
+    <View
+        android:id="@+id/showIntelDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/showIntelButton" />
+    <TextView
+        android:id="@+id/showTauntStatusTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/show_taunt_status"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/showTauntStatusButton"
+        app:layout_constraintEnd_toStartOf="@id/showTauntStatusButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/showTauntStatusButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/showTauntStatusButton" />
+    <ToggleButton
+        android:id="@+id/showTauntStatusButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/showIntelDivider" />
+    <View
+        android:id="@+id/showTauntStatusDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/showTauntStatusButton" />
+    <TextView
+        android:id="@+id/disableIneffectiveTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/disable_ineffective_taunts"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/disableIneffectiveButton"
+        app:layout_constraintEnd_toStartOf="@id/disableIneffectiveButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/disableIneffectiveButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/disableIneffectiveButton" />
+    <ToggleButton
+        android:id="@+id/disableIneffectiveButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/showTauntStatusDivider" />
+    <View
+        android:id="@+id/disableIneffectiveDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/disableIneffectiveButton" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,710 @@
+<resources>
+    <string name="actions">Actions</string>
+    <string name="active">Active</string>
+    <string name="address">Address</string>
+    <string name="adjust_10_degrees">10</string>
+    <string name="adjust_25_degrees">25</string>
+    <string name="agent">Agent</string>
+    <string name="alert">Alert</string>
+    <string name="all">All</string>
+    <string name="ally_sorting">Ally sorting</string>
+    <string name="ally_sorting_methods">Sort methods</string>
+    <string name="ally_status_ambassador_for_pirate">
+        Pirate boss on board. Send shuttle to rescue.
+    </string>
+    <string name="ally_status_ambassador_for_tsn">
+        Ambassador on board. Send shuttle to rescue.
+    </string>
+    <string name="ally_status_blind">Flying blind. Guide to a station.</string>
+    <string name="ally_status_commandeered_in_nebula">
+        Commandeered. Approach in nebula to liberate crew.
+    </string>
+    <string name="ally_status_commandeered_not_in_nebula">
+        Commandeered. Do not approach now, or it will self-destruct. Wait until it enters a nebula,
+        then approach.
+    </string>
+    <string name="ally_status_contraband_for_pirate">
+        Pirate contraband detected. Keep warships away.
+    </string>
+    <string name="ally_status_contraband_for_tsn">
+        Pirate contraband detected. Send a warship to intercept.
+    </string>
+    <string name="ally_status_data_for_pirate">Secure data detected. Do not approach.</string>
+    <string name="ally_status_data_for_tsn">
+        Secure data detected. Do not permit enemy ships to intercept.
+    </string>
+    <string name="ally_status_deep_strike">Friendly ship, ready to assist in Deep Strike.</string>
+    <string name="ally_status_fighter_trap">
+        Fighter trap. Do not approach under any circumstances.
+    </string>
+    <string name="ally_status_hostage">
+        Crew taken hostage. Captors demand 900 energy units in ransom.
+    </string>
+    <string name="ally_status_malfunction">
+        Onboard computer is malfunctioning. Use EMP to reset it.
+    </string>
+    <string name="ally_status_mine_trap">
+        Mine trap. Do not approach under any circumstances.
+    </string>
+    <string name="ally_status_needs_damcon">
+        Damages detected. Requesting DamCon team member to conduct repairs.
+    </string>
+    <string name="ally_status_needs_energy">
+        Out of energy. Requesting 100 units to start moving.
+    </string>
+    <string name="ally_status_normal">Friendly ship, ready to accept orders.</string>
+    <string name="ally_status_repairing">Friendly ship, currently undergoing repairs.</string>
+    <string name="ally_status_reward">
+        Friendly ship, en route to a station to deliver a reward for your assistance.
+    </string>
+    <string name="alive">Alive</string>
+    <string name="artemis_version_not_supported">Artemis %1$s not supported</string>
+    <string name="attack_nearest_enemy">Attack</string>
+    <string name="audio">Audio</string>
+    <string name="auto_dismissal">Auto-dismissal</string>
+    <string name="available_servers">Available servers</string>
+    <string name="avoid_all">Avoid/Ignore All</string>
+    <string name="avoidance_black_hole">Black holes</string>
+    <string name="avoidance_mine">Mines</string>
+    <string name="avoidance_typhon">Typhons</string>
+    <string name="avoidances">Avoidances</string>
+    <string-array name="avoidance_entries">
+        <item>Black holes</item>
+        <item>Mines</item>
+        <item>Typhons</item>
+    </string-array>
+    <string-array name="avoidance_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string name="back">Back</string>
+    <string name="biomech_rage">Status: %1$s</string>
+    <string name="biomechs">Biomechs</string>
+    <string name="biomech_cannot_freeze">Freeze limit reached; cannot freeze again</string>
+    <string name="biomech_frozen">Frozen - reanimation estimated in %1$d:%2$02d</string>
+    <string name="biomech_moving">Mobile; touch to freeze</string>
+    <string name="biomech_notification">Reanimation imminent.</string>
+    <string name="biomech_will_move">Frozen - reanimation imminent</string>
+    <string name="border_war_status">Border War: %1$s</string>
+    <string name="build">Build</string>
+    <string name="build_timer">ready in %1$d:%2$02d</string>
+    <string name="building">Building:</string>
+    <string name="cancel">Cancel</string>
+    <string name="cannot_taunt">Cannot taunt</string>
+    <string name="channel_allies_deep_string">Deep Strike production</string>
+    <string name="channel_biomech_moving">Reanimation alert</string>
+    <string name="channel_connection">Connection</string>
+    <string name="channel_game_info">Game info</string>
+    <string name="channel_game_over">Game over</string>
+    <string name="channel_group_allies">Allies</string>
+    <string name="channel_group_biomechs">Biomechs</string>
+    <string name="channel_group_important">Important</string>
+    <string name="channel_group_missions">Missions</string>
+    <string name="channel_group_stations">Stations</string>
+    <string name="channel_mission_completed">Mission completed</string>
+    <string name="channel_mission_progress">Mission progress</string>
+    <string name="channel_mission_new">New mission</string>
+    <string name="channel_station_destroyed">Station destroyed</string>
+    <string name="channel_station_production">Missile production</string>
+    <string name="channel_station_attack">Station under attack</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="click_scan">Press Scan to listen for broadcasting servers.</string>
+    <string name="closest_station">Closest: %1$s</string>
+    <string name="colon">:</string>
+    <string name="command">Command</string>
+    <string name="completed">Completed</string>
+    <string name="completed_mission_dismissal">Completed mission auto-dismissal</string>
+    <string name="connect">Connect</string>
+    <string name="connect_timeout">Connect timeout</string>
+    <string name="connected">Connected!</string>
+    <string name="connecting">Connecting…</string>
+    <string name="connection_closed">Connection closed</string>
+    <string name="connection_lost">Connection lost, trying to reconnect…</string>
+    <string name="connection_timeout">Connection timeout</string>
+    <string name="currently_moving_to_attack">Currently moving to attack %1$s.</string>
+    <string name="currently_moving_to_heading">Currently moving to heading %1$s.</string>
+    <string name="currently_moving_toward">Currently moving toward %1$s.</string>
+    <string name="default_setting">Default</string>
+    <string name="destroyed">Destroyed</string>
+    <string name="direction">DIR %1$s</string>
+    <string name="disable_ineffective_taunts">Disable ineffective taunts</string>
+    <string name="disconnect_io_error">
+        An I/O error has occurred. You have been disconnected from the server.
+    </string>
+    <string name="disconnect_parse">
+        An unexpected error has occurred. You have been disconnected from the server.
+    </string>
+    <string name="disconnect_remote">The server has been terminated.</string>
+    <string name="disconnect_unsupported_version_old">
+        Artemis Agent only supports Artemis version %1$s or higher. You have been disconnected from
+        the server because its version of Artemis is too old (%2$s).
+    </string>
+    <string name="disconnect_unsupported_version_new">
+        You have been disconnected from the server because it runs Artemis version %1$s, which is
+        beyond what Artemis Agent currently supports. An update to Artemis Agent is recommended.
+    </string>
+    <string name="dismiss">Dismiss</string>
+    <string name="displayed_rewards">Displayed rewards</string>
+    <string name="docked">Docked</string>
+    <string name="docking">Docking</string>
+    <string name="enable_routing">Enable routing</string>
+    <string name="enable_sound_effects">Enable sound effects</string>
+    <string name="enemy">Enemy</string>
+    <string name="enemy_status_brave">Brave</string>
+    <string name="enemy_status_cowardly">Cowardly</string>
+    <string name="enemy_status_duplicitous">Duplicitous</string>
+    <string name="enemy_status_easily_offended">Easily offended</string>
+    <string name="enemy_status_no_intel">No intel; second scan required</string>
+    <string name="enemy_status_normal">Normal</string>
+    <string name="exit_message">You will be disconnected from the server. Confirm exit?</string>
+    <string name="failed_to_connect">Failed to connect</string>
+    <string name="fighters">Fighters</string>
+    <string name="freeze_duration">Freeze duration</string>
+    <string name="friendly">Friendly</string>
+    <string name="front_shield">F %1$.0f/%2$.0f</string>
+    <string name="game">Game</string>
+    <string name="go_defend">Go defend:</string>
+    <string name="hail">Hail</string>
+    <string name="has_energy">Has energy.</string>
+    <string name="has_ordnance">Has ordnance.</string>
+    <string name="heartbeat_timeout">Heartbeat timeout</string>
+    <string name="help">Help</string>
+    <string-array name="help_contents_about">
+        <item>
+            Written by Jordan Longstaff\n
+        </item>
+        <item>
+            Special thanks to Robert J. Walker for writing the IAN (Interface for Artemis
+            Networking) library, without which this app could not exist. IAN is available on GitHub.
+            \n
+        </item>
+        <item>
+            \u00a9 Copyright 2024. All rights reserved.
+        </item>
+    </string-array>
+    <string-array name="help_contents_allies">
+        <item>
+            The Allies page shows the statuses of all of the ally ships in the currently running
+            simulation. This includes their shield strengths, direction and range of their
+            locations, side missions, and any other important information.\n
+        </item>
+        <item>
+            \nLike stations, ally ships communicate their statuses to Artemis Agent through Comms
+            messages. The app automatically sends a status requests to all ally ships when the
+            simulation starts, or if the app connects to a simulation in progress. You can also
+            manually request status by pressing the Hail button.
+        </item>
+        <item>
+            \nYou can also send commands to an ally ship by pressing the Command button. Commands
+            include turning to a specific direction, attacking the nearest targest, and moving to
+            defend or rendezvous with another station or ally ship. You can also return to the list
+            of ally ships by pressing the Cancel button. Sending a command will return you to the
+            list automatically, unless the "Manually return from commands" setting is turned on.
+        </item>
+    </string-array>
+    <string-array name="help_contents_basics">
+        <item>
+            After you have selected your ship, you will be moved to the Game page. This page shows
+            all of the in-game information relevant to the app. Most of it is split among multiple
+            subpages, and you can choose which page is shown using the page selector located below
+            the ship\'s name.\n
+        </item>
+        <item>
+            \nAside from this information, there are three important controls on this page. The
+            first is the Inventory button, which opens a dialog showing the ship\'s current ordnance
+            stocks and single-seat craft inventory. The second is the Alert button, which toggles
+            the ship\'s \"red alert\" status. The third is the Agent button.\n
+        </item>
+        <item>
+            In order to use the Agent button, the player ship must acquire secret code cases, which
+            can be used to force an enemy ship to surrender. You can activate one of those secret
+            code cases by pressing the Agent button, and it will remain active for five minutes, or
+            until it is used to make an enemy ship surrender. Only one secret code case may be
+            active at a time.
+        </item>
+    </string-array>
+    <string-array name="help_contents_biomechs">
+        <item>
+            The Biomechs page shows the statuses of Biomech ships. Biomechs are generally neutral,
+            but can occasionally turn aggressive and attack something nearby on a whim. If they are
+            attacked, they will turn hostile and attack the player ship or ally ships more often.\n
+        </item>
+        <item>
+            \nYou can stop a Biomech from moving or attacking anything by freezing it. To freeze a
+            Biomech, simply tap it in the list in the page. The effects of freezing a Biomech will
+            last for only a few minutes; the exact amount of time is determined by the server, but
+            seems to vary slightly and is not communicated to the app, so therefore the app has to
+            estimate it. You can specify the estimated duration in the Settings page. Biomechs can
+            only be frozen a maximum of three times.
+        </item>
+    </string-array>
+    <string-array name="help_contents_enemies">
+        <item>
+            The Enemies page is for communications with enemy ships.\n
+        </item>
+        <item>
+            \nEnemies are hostile and must be defeated as swiftly as possible. Destroying them will
+            suffice, but convincing them to surrender may be preferred. Enemies are identified when
+            they are scanned by the Science officer; however, a second scan is required to obtain
+            intel. Press the Show button to access any intel obtained, as well as the selection of
+            taunts.\n
+        </item>
+        <item>
+            \nIf an enemy has been sufficiently damaged, they may surrender. To do that, you must
+            send a message asking for a surrender by pressing the Surrender button. Surrender
+            messages are only effective within a certain range; you can configure the app to disable
+            the Surrender button against an enemy that is too far away in the Settings page.
+        </item>
+        <item>
+            \nTaunts are used to provoke an enemy to attack the player ship, thus luring it away
+            from another target (e.g. a friendly station). Unlike surrenders, taunts are not
+            restricted by distance. However, not all taunts will work; intel obtained by Science
+            includes which of the taunts, dependent on the enemy\'s race, will not work. If that
+            taunt is used, the enemy will ignore it and all subsequent attempts to taunt. The other
+            taunts will work, but generally only once each.
+        </item>
+        <item>
+            \nThe Settings page has several options to organize the list of enemies. In certain
+            combinations, they can be organized by race, name, distance, and whether or not they\'ve
+            surrendered. You can use the category buttons at the top to quickly scroll through the
+            list. The info displayed in the list for an enemy includes its direction, range, number
+            of successful taunts, and a brief summary of intel about the captain of the enemy ship,
+            which may be one of the following, assuming intel has been obtained (note that this does
+            not include information relevant to taunts):\n
+        </item>
+        <item>
+            \u2022 Normal: No outstanding characteristics.\n
+        </item>
+        <item>
+            \u2022 Brave: Less likely to surrender.\n
+        </item>
+        <item>
+            \u2022 Cowardly: More likely to surrender.\n
+        </item>
+        <item>
+            \u2022 Duplicitous: Surrenders are not permanent.\n
+        </item>
+        <item>
+            \u2022 Easily offended: Taunts will work more than once, possibly including ones that
+            normally wouldn\'t work at all.
+        </item>
+    </string-array>
+    <string-array name="help_contents_getting_started">
+        <item>
+            Welcome to Artemis Agent! If this is your first time using this app, this tutorial will
+            teach you all you need to know about how to use it.\n
+        </item>
+        <item>
+            Artemis Agent is a Comms client app designed to be used with Artemis Spaceship Bridge
+            Simulator, developed by Thom Robertson. It will be your assistant in managing side
+            missions, ally ships, stations and more.\n
+        </item>
+        <item>
+            Before you can use Artemis Agent, you must have an Artemis server running. Open Artemis
+            on your computer and click \"Start Server\". After that, enter the server\'s address
+            into the Address bar at the top of the screen, then touch the Connect button on the
+            right to connect to the server. If the server version is 2.7.0 or greater, you can scan
+            for the presence of the server by pressing the Scan button.\n
+        </item>
+        <item>
+            \nAfter the app has connected to the server, you must select a ship. The Ships page
+            shows the list of ships to choose from with complete descriptions. Once you select a
+            ship, the app will join that ship as a Comms client.\n
+        </item>
+        <item>
+            \nIf you press the Home button on your device, Artemis Agent will continue to run in the
+            background. It will continue to receive information via a Comms service and display it
+            in notifications on your device. In general, you can return to Artemis Agent by tapping
+            any of the notifications.\n
+        </item>
+        <item>
+            If the Artemis server has a mod, you will need to provide a vessel data XML file that
+            matches that of the server. By default, Artemis Agent provides a vessel data file for
+            the stock version of Artemis. If you need to use a different set of vessel data, you
+            can specify the file\'s location in the Settings page. The location that you set will
+            point to either the app\'s internal assets, your device\'s internal storage, or, if
+            applicable, an SD card. Keep in mind that changing this value while the app is connected
+            to a server will automatically terminate the connection.
+        </item>
+    </string-array>
+    <string-array name="help_contents_missions">
+        <item>
+            The Missions page shows all currently active side missions. Side missions occur during a
+            running simulation and offer the player an opportunity to acquire various bonuses that
+            last for the remainder of the simulation. These side missions are issued to the Comms
+            officer by an ally ship or station, and include instructions to visit another ship or
+            station before going there to receive a reward. For example, Comms may receive a message
+            like this:\n
+        </item>
+        <item>
+            \nThis message gives you the following information:\n
+        </item>
+        <item>
+            1. First, you are being told to go to Y27 (a friendly ship) and rendezvous with it. To
+            rendezvous with a friendly ship means to pass within 500 metres of it.\n
+        </item>
+        <item>
+            2. Second, after that, you must go to DS3, the sender of the message, and dock there.\n
+        </item>
+        <item>
+            3. Finally, your reward is that DS3 will double its production speed.\n
+        </item>
+        <item>
+            The Missions page shows all such missions received in a list, also listing the two
+            destination points in the order that they must be visited, as well as the direction and
+            range to the next one. Although each side mission only offers one reward, the list will
+            be compressed as much as possible by merging entries with the same waypoints. In this
+            way, a single entry in the list may show multiple rewards. If a reward would be received
+            more than once, a \"x2\" or similar multiplier will by shown for that reward. Be sure to
+            pay attention to all rewards shown within a single entry.\n
+        </item>
+        <item>
+            \nThe rewards you receive for completing side missions are as
+            follows:\n
+        </item>
+        <item>
+            \u2022 Battery Charge: Your ship will receive some additional energy.\n
+        </item>
+        <item>
+            \u2022 Extra Coolant: Engineering will receive two additional units of coolant.\n
+        </item>
+        <item>
+            \u2022 Nuke Torpedoes: Your ship will receive two additional Nuke torpedoes.\n
+        </item>
+        <item>
+            \u2022 Production Speed: The station that issued the side mission will speed up its
+            production of ordnances.\n
+        </item>
+        <item>
+            \u2022 Shield Boost: The front and rear shield capacities of your ship will increase.
+        </item>
+    </string-array>
+    <string-array name="help_contents_routing">
+        <item>
+            The Routing page shows routing information. Artemis Agent calculates optimized routes to
+            various destinations in the background. When helping ally ships, completing side
+            missions or going to restock ordnances at a station, it is useful to know the order in
+            which to visit them that maximizes rewards while minimizing travel time.\n
+        </item>
+        <item>
+            \nMultiple types of objectives can be chosen, determining what destinations are shown,
+            what order they are shown in, what the order means, and what information is shown for
+            each that is relevant to the chosen objective. If the Tasks objective is selected, the
+            route shown will be the optimal order of destinations to visit to complete all of the
+            listed objectives, which include both side missions and ally ships in need of help.\n
+        </item>
+        <item>
+            \nIf the Supplies objective is selected, the route shown will not be a singular route,
+            but rather a list of all stations organized in order of convenience. Convenience in this
+            case means both availability of the desired supplies and the optimal distance calculated
+            to reach the station. You can also select which supplies you want; they can be any type
+            of ordnance or replacement fighters. Your current stock and capacity of each supply is
+            listed when you go to select them. It is recommended that you only choose supplies where
+            your current stock is less than the maximum capacity, as these are supplies that you
+            actually need.\n
+        </item>
+        <item>
+            Regardless of objective, optimized routes are calculated with certain dangerous objects
+            taken into account. These dangerous objects include black holes, mines and Typhon space
+            monsters. You can disable or adjust these avoidances in Settings. Note that having
+            avoidances taken into consideration means more work for the routing algorithm. Also note
+            that avoidances are not considered for player ships with jump drives. Finally, keep in
+            mind that due to the complex nature of the routing process, an heuristic algorithm is
+            used for efficiency, and therefore the route shown will not necessarily be optimal; it
+            is expected that the Science officer uses the displayed order and cross-references it
+            against their map to determine the optimal route.
+        </item>
+    </string-array>
+    <string-array name="help_contents_stations">
+        <item>
+            The Stations page shows information about all of the docking stations in the currently
+            running simulation. This includes shield strengths, direction and range of their
+            locations, production speeds, side missions, stores of replacement fighters, and current
+            ordnance stocks.\n
+        </item>
+        <item>
+            \nOnly one friendly station at a time is shown, but you can use the selector at the top
+            to choose which one is currently being displayed. You can also press the Closest Station
+            button at the bottom to switch to the station that is closest to the ship\'s current
+            location.\n
+        </item>
+        <item>
+            Ordnance and replacement fighter stock information is received from the server via Comms
+            messages. Artemis Agent frequently sends messages to each station requesting status
+            updates; the following are examples of circumstances where requests are sent:\n
+        </item>
+        <item>
+            \u2022 when the simulation starts;\n
+        </item>
+        <item>
+            \u2022 when the app connects to a simulation in progress;\n
+        </item>
+        <item>
+            \u2022 when the station finishes building ordnance;\n
+        </item>
+        <item>
+            \u2022 when the station receives a request to build ordnance of a specific type; or\n
+        </item>
+        <item>
+            \u2022 when the user manually requests a status update by pressing the Status button.\n
+        </item>
+        <item>
+            Pressing the Standby button will send a request to the station to stand by for docking.
+            This is recommended when the player ship intends to dock at the station, which is
+            typically done to refuel, recharge shields and restock ordnances, because having a
+            station prepare itself ahead of time makes these recovery operations more efficient.\n
+        </item>
+        <item>
+            As stations continually build more ordnances, that information is also displayed. At the
+            bottom of the page, you can both see and choose what type of ordnance the station is
+            currently building, along with the amount of time before the station is expected to
+            finish building it. This amount of time is calculated based on the type of ordnance and
+            the station\'s production speed, which varies based on the type of station and increases
+            whenever a Production Speed side mission is completed.\n
+        </item>
+        <item>
+            In a Deep Strike or Border War simulation, the Stations page is also able to show enemy
+            stations. These stations simply appear in a list and only show shield strength and
+            location information. There is also a separate list that shows all the names of stations
+            that have been destroyed.
+        </item>
+    </string-array>
+    <string name="help_topics_about">About</string>
+    <string name="help_topics_allies">Allies</string>
+    <string name="help_topics_basics">Basics</string>
+    <string name="help_topics_biomechs">Biomechs</string>
+    <string name="help_topics_enemies">Enemies</string>
+    <string name="help_topics_getting_started">Getting started</string>
+    <string name="help_topics_missions">Missions</string>
+    <string name="help_topics_routing">Routing</string>
+    <string name="help_topics_stations">Stations</string>
+    <string name="include_all">Include/Exclude All</string>
+    <string name="included_incentives">Included incentives</string>
+    <string name="infinity">\u221E</string>
+    <string name="inventory">Inv</string>
+    <string name="io_parse_error">I/O parse error</string>
+    <string name="io_write_error">I/O write error</string>
+    <string name="kilometres">km</string>
+    <string name="left">Left</string>
+    <string name="manually_return_from_commands">Manually return from commands</string>
+    <string name="manufacturing_torpedoes">Torpedoes will be ready in %1$d:%2$02d.</string>
+    <string name="manufacturing_torpedoes_ready">Torpedoes ready.</string>
+    <string name="milliseconds">ms</string>
+    <string name="mission_battery">Battery</string>
+    <string name="mission_completed">Mission completed</string>
+    <string name="mission_coolant">Coolant</string>
+    <string name="mission_display">Mission Display</string>
+    <string name="mission_nuke">Nuke</string>
+    <string name="mission_production">Production</string>
+    <string name="mission_shield">Shield</string>
+    <string name="mission_will_be_removed">Will be removed in %1$ds</string>
+    <string name="more_commands">More commands:</string>
+    <string name="network">Network</string>
+    <string name="next_to">Next: %1$s %2$s %3$s</string>
+    <string name="no">No</string>
+    <string name="no_enemies">Scanned enemies will be displayed here.</string>
+    <string name="no_servers_found">Could not find any local servers.</string>
+    <string name="no_ships">Connect to a server.</string>
+    <string name="no_ship_selected">Select a ship.</string>
+    <string name="no_stations">No stations.</string>
+    <string name="none">None</string>
+    <string name="not_connected">Not connected</string>
+    <string-array name="object_sort_entries">
+        <item>Default</item>
+        <item>Name</item>
+        <item>Class</item>
+        <item>Status</item>
+        <item>Class, then name</item>
+        <item>Status, then name</item>
+        <item>Class, then status</item>
+        <item>Status, then class</item>
+        <item>Class, status, name</item>
+        <item>Status, class, name</item>
+    </string-array>
+    <string-array name="object_sort_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+    <string name="off">Off</string>
+    <string name="on">On</string>
+    <string name="ordnance_stock">%1$s: %2$d/%3$d</string>
+    <string name="personal_settings">Personal settings</string>
+    <string name="play">Play</string>
+    <string name="prioritize_energy">Prioritize energy</string>
+    <string name="prioritize_energy_summary_off">Allies will be sorted as usual.</string>
+    <string name="prioritize_energy_summary_on">
+        Allies with energy to offer will be placed higher in the list.
+    </string>
+    <string name="proceed_to_your_destination">Proceed</string>
+    <string name="range">RANGE %1$.0f</string>
+    <string name="rear_shield">R %1$.0f/%2$.0f</string>
+    <string name="reason_ambassador">pick up ambassador</string>
+    <string name="reason_commandeered">liberate commandeered ship</string>
+    <string name="reason_has_energy">receive energy</string>
+    <string name="reason_hostage">rescue hostages</string>
+    <string name="reason_malfunction">reset broken computer</string>
+    <string name="reason_needs_damcon">transfer DamCon personnel</string>
+    <string name="reason_needs_energy">deliver energy</string>
+    <string name="reason_pirate_boss">pick up boss</string>
+    <string name="recent_address_limit">Recent address limit</string>
+    <string name="refreeze">Re-freeze</string>
+    <string name="rendezvous_with">Rendezvous with:</string>
+    <string name="restore_default_settings">Restore defaults</string>
+    <string name="reverse_sorting_by_race">Reverse sorting by race</string>
+    <string name="rewards">Rewards: %1$s</string>
+    <string-array name="reward_type_entries">
+        <item>Battery Charge</item>
+        <item>Extra Coolant</item>
+        <item>Nuke Torpedoes</item>
+        <item>Production Speed</item>
+        <item>Shield Boost</item>
+    </string-array>
+    <string-array name="reward_type_ordinals">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+    <string name="right">Right</string>
+    <string name="route_for_supplies">Route for supplies</string>
+    <string name="route_incentive_missions">Missions</string>
+    <string name="route_incentive_needs_damcon">Needs DamCon</string>
+    <string name="route_incentive_needs_energy">Needs energy</string>
+    <string name="route_incentive_has_energy">Has energy</string>
+    <string name="route_incentive_malfunction">Malfunction</string>
+    <string name="route_incentive_ambassador">Ambassador</string>
+    <string name="route_incentive_hostage">Hostage</string>
+    <string name="route_incentive_commandeered">Commandeered</string>
+    <string name="routing">Routing</string>
+    <string-array name="routing_incentive_entries">
+        <item>Ally needs energy</item>
+        <item>Ally needs DamCon team</item>
+        <item>Ally computer malfunction</item>
+        <item>Ally ambassador pickup</item>
+        <item>Ally taken hostage</item>
+        <item>Ally commandeered</item>
+        <item>Ally has energy</item>
+    </string-array>
+    <string-array name="routing_incentive_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
+    <string name="scan">Scan</string>
+    <string name="scan_timeout">Scan timeout</string>
+    <string name="seconds">sec</string>
+    <string name="selected">Selected</string>
+    <string name="selected_enemy">Selected: %s</string>
+    <string name="send">Send</string>
+    <string name="server_port">Server port</string>
+    <string name="server_timeout">Server timeout</string>
+    <string name="settings">Settings</string>
+    <string name="settings_menu_client">Client settings</string>
+    <string name="settings_menu_connection">Connection settings</string>
+    <string name="settings_menu_missions">Mission settings</string>
+    <string name="settings_menu_allies">Ally settings</string>
+    <string name="settings_menu_enemies">Enemy settings</string>
+    <string name="settings_menu_biomechs">Biomech settings</string>
+    <string name="settings_menu_routing">Routing settings</string>
+    <string name="settings_menu_personal">Personal settings</string>
+    <string name="setup">Setup</string>
+    <string name="ship_number">Ship %1$d</string>
+    <string name="ships">Ships</string>
+    <string name="show_destroyed_allies">Show destroyed allies</string>
+    <string name="show_hide_all">Show/Hide All</string>
+    <string name="show_intel">Show intel</string>
+    <string name="show_taunt_status">Show taunt status</string>
+    <string name="single_seat_craft_docked">%1$d single-seat craft docked</string>
+    <string name="single_seat_craft_launched">%1$d single-seat craft launched</string>
+    <string name="single_seat_craft_lost">%1$d single-seat craft lost</string>
+    <string name="some_incentives">Side missions + %1$d more</string>
+    <string name="sort_class">Class</string>
+    <string name="sort_energy">En</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_race">Race</string>
+    <string name="sort_range">Range</string>
+    <string name="sort_status">Status</string>
+    <string name="sound_volume">Sound volume</string>
+    <string name="sound_volume_summary">Minimum is 0, maximum is 100.</string>
+    <string name="standby">Standby</string>
+    <string name="station_shield">SHLD %1$.0f/%2$.0f</string>
+    <string name="station_speed">Speed factor %1$.1f</string>
+    <string name="status">Status</string>
+    <string name="stock_of_ordnance">%1$d of %2$s</string>
+    <string name="supplies">Supplies</string>
+    <string name="surrender">Surrender</string>
+    <string name="surrender_range">Surrender range</string>
+    <string name="surrendered">Surrendered</string>
+    <string name="surrendered_duplicitous">Surrendered; duplicitous</string>
+    <string name="tap_to_dismiss">Tap to dismiss</string>
+    <string name="tasks">Tasks</string>
+    <string name="taunt">Taunt</string>
+    <string name="taunts_many">Taunted %d times</string>
+    <string name="taunts_one">Taunted once</string>
+    <string name="taunts_two">Taunted twice</string>
+    <string name="taunts_zero">Has not been taunted</string>
+    <string name="theme">Theme</string>
+    <string-array name="theme_pref_entries">
+        <item>Default</item>
+        <item>Red</item>
+        <item>Green</item>
+        <item>Yellow</item>
+        <item>Blue</item>
+        <item>Purple</item>
+    </string-array>
+    <string-array name="theme_pref_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+    <string name="then_to">Then: %1$s %2$s %3$s</string>
+    <string name="three_digit_directions">Three-digit directions</string>
+    <string name="three_digit_directions_summary_on">
+        DIR numbers will be padded with zeroes.
+    </string>
+    <string name="three_digit_directions_summary_off">DIR numbers will be shown normally.</string>
+    <string name="turn_to_heading">Turn to:</string>
+    <string name="update_interval">Update interval</string>
+    <string name="vessel_data">Vessel data</string>
+    <string name="vessel_data_external">External</string>
+    <string name="vessel_data_internal">Internal</string>
+    <string-array name="vessel_data_pref_entries">
+        <item>Default</item>
+        <item>Internal storage</item>
+        <item>External storage</item>
+    </string-array>
+    <string-array name="vessel_data_pref_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string name="vessel_data_xml_location">Vessel data XML location</string>
+    <string name="xml_error">XML Error</string>
+    <string name="xml_error_message">
+        Vessel data could not be loaded. There is an error in the XML file. The setting has been
+        reverted. Either resolve the error or delete the XML file.\n\nError: %1$s
+    </string>
+    <string name="xml_location">XML location</string>
+    <string name="xml_location_warning">
+        WARNING: There is an active connection to an Artemis server. The connection will be
+        terminated if you change the vessel data. Proceed?
+    </string>
+    <string name="yes">Yes</string>
+</resources>

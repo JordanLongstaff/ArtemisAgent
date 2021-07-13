@@ -1,0 +1,157 @@
+<resources>
+    <style name="Theme.ArtemisAgent" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/backgroundBlack</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorButtonNormal">@color/textDefault</item>
+        <item name="android:windowBackground">@color/backgroundBlack</item>
+        <item name="android:textColorPrimary">@color/textDefault</item>
+        <item name="android:textColorHint">?attr/colorAccent</item>
+        <item name="fontFamily">@font/oxanium</item>
+        <item name="android:fontFamily">@font/oxanium</item>
+        <item name="android:textAppearance">@style/TextAppearance.ArtemisAgent</item>
+        <item name="android:textAppearanceButton">@style/TextAppearance.ArtemisAgent.Button</item>
+        <item name="android:listChoiceIndicatorSingle">@drawable/checkbox_drawable</item>
+        <item name="android:listChoiceIndicatorMultiple">@drawable/checkbox_drawable</item>
+        <item name="buttonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:buttonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:buttonStyleToggle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="radioButtonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:radioButtonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:textViewStyle">@style/Widget.ArtemisAgent.TextView</item>
+        <item name="editTextStyle">@style/Widget.ArtemisAgent.EditText</item>
+        <item name="android:editTextStyle">@style/Widget.ArtemisAgent.EditText</item>
+        <item name="autoCompleteTextViewStyle">@style/Widget.ArtemisAgent.AutoCompleteTextView</item>
+        <item name="android:autoCompleteTextViewStyle">@style/Widget.ArtemisAgent.AutoCompleteTextView</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.ArtemisAgent.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.ArtemisAgent.AlertDialog</item>
+        <item name="seekBarStyle">@style/Widget.ArtemisAgent.SeekBar</item>
+        <item name="android:seekBarStyle">@style/Widget.ArtemisAgent.SeekBar</item>
+    </style>
+
+    <style name="Theme.ArtemisAgent.Red">
+        <item name="colorPrimary">@color/colorPrimaryRed</item>
+        <item name="colorPrimaryDark">@color/backgroundRed</item>
+        <item name="colorAccent">@color/colorAccentRed</item>
+        <item name="android:windowBackground">@color/backgroundRed</item>
+        <item name="android:textColorPrimary">@color/textRed</item>
+        <item name="colorButtonNormal">@color/colorPrimaryRed</item>
+    </style>
+
+    <style name="Theme.ArtemisAgent.Green">
+        <item name="colorPrimary">@color/colorPrimaryGreen</item>
+        <item name="colorPrimaryDark">@color/backgroundGreen</item>
+        <item name="colorAccent">@color/colorAccentGreen</item>
+        <item name="android:windowBackground">@color/backgroundGreen</item>
+        <item name="android:textColorPrimary">@color/textGreen</item>
+        <item name="colorButtonNormal">@color/colorPrimaryGreen</item>
+    </style>
+
+    <style name="Theme.ArtemisAgent.Yellow">
+        <item name="colorPrimary">@color/colorPrimaryYellow</item>
+        <item name="colorPrimaryDark">@color/backgroundYellow</item>
+        <item name="colorAccent">@color/colorAccentYellow</item>
+        <item name="android:windowBackground">@color/backgroundYellow</item>
+        <item name="android:textColorPrimary">@color/textYellow</item>
+        <item name="colorButtonNormal">@color/colorPrimaryYellow</item>
+    </style>
+
+    <style name="Theme.ArtemisAgent.Blue">
+        <item name="colorPrimary">@color/colorPrimaryBlue</item>
+        <item name="colorPrimaryDark">@color/backgroundBlue</item>
+        <item name="colorAccent">@color/colorAccentBlue</item>
+        <item name="android:windowBackground">@color/backgroundBlue</item>
+        <item name="android:textColorPrimary">@color/textBlue</item>
+        <item name="colorButtonNormal">@color/colorPrimaryBlue</item>
+    </style>
+
+    <style name="Theme.ArtemisAgent.Purple">
+        <item name="colorPrimary">@color/colorPrimaryPurple</item>
+        <item name="colorPrimaryDark">@color/backgroundPurple</item>
+        <item name="colorAccent">@color/colorAccentPurple</item>
+        <item name="android:windowBackground">@color/backgroundPurple</item>
+        <item name="android:textColorPrimary">@color/textPurple</item>
+        <item name="colorButtonNormal">@color/colorPrimaryPurple</item>
+    </style>
+
+    <style name="ThemeOverlay.ArtemisAgent.AlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:scrollbars">none</item>
+        <item name="android:windowBackground">@drawable/button_drawable</item>
+        <item name="android:windowAnimationStyle">@anim/appear</item>
+    </style>
+
+    <style name="TextAppearance.ArtemisAgent" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/baseTextSize</item>
+    </style>
+
+    <style name="TextAppearance.ArtemisAgent.Button" parent="TextAppearance.AppCompat.Button">
+        <item name="android:textSize">@dimen/baseTextSize</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.AutoCompleteTextView" parent="Widget.AppCompat.AutoCompleteTextView">
+        <item name="background">@drawable/button_drawable</item>
+        <item name="android:background">@drawable/button_drawable</item>
+        <item name="android:popupAnimationStyle">@anim/appear</item>
+        <item name="android:popupBackground">@drawable/button_drawable</item>
+        <item name="android:textCursorDrawable">@drawable/text_cursor</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/button_drawable</item>
+        <item name="android:textColor">@color/button_text_color</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button.Default">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button.Red">
+        <item name="colorPrimary">@color/colorPrimaryRed</item>
+        <item name="colorAccent">@color/colorAccentRed</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button.Green">
+        <item name="colorPrimary">@color/colorPrimaryGreen</item>
+        <item name="colorAccent">@color/colorAccentGreen</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button.Yellow">
+        <item name="colorPrimary">@color/colorPrimaryYellow</item>
+        <item name="colorAccent">@color/colorAccentYellow</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button.Blue">
+        <item name="colorPrimary">@color/colorPrimaryBlue</item>
+        <item name="colorAccent">@color/colorAccentBlue</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button.Purple">
+        <item name="colorPrimary">@color/colorPrimaryPurple</item>
+        <item name="colorAccent">@color/colorAccentPurple</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.EditText" parent="Widget.AppCompat.EditText">
+        <item name="background">@drawable/button_drawable</item>
+        <item name="android:background">@drawable/button_drawable</item>
+        <item name="android:textCursorDrawable">@drawable/text_cursor</item>
+        <item name="android:textColorHint">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.SeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="background">@drawable/slider_drawable</item>
+        <item name="android:background">@drawable/slider_drawable</item>
+        <item name="android:progressDrawable">@drawable/slider_drawable</item>
+        <item name="android:thumb">@drawable/text_cursor</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="WindowAnimation" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/appear</item>
+        <item name="android:windowExitAnimation">@anim/appear</item>
+    </style>
+</resources>

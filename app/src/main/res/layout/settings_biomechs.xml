@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/biomechSortingTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/ally_sorting_methods"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/biomechSortingDefaultButtonGroup"
+        app:layout_constraintEnd_toStartOf="@id/biomechSortingDefaultButtonGroup"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/biomechSortingDefaultButtonGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/biomechSortingDefaultButtonGroup" />
+    <RadioGroup
+        android:id="@+id/biomechSortingDefaultButtonGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" >
+        <RadioButton
+            android:id="@+id/biomechSortingDefaultOffButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+        <RadioButton
+            android:id="@+id/biomechSortingDefaultButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_setting" />
+    </RadioGroup>
+    <ToggleButton
+        android:id="@+id/biomechSortingClassButton1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_class"
+        app:layout_constraintEnd_toStartOf="@id/biomechSortingStatusButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/biomechSortingStatusButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/biomechSortingDefaultButtonGroup" />
+    <ToggleButton
+        android:id="@+id/biomechSortingStatusButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_status"
+        app:layout_constraintEnd_toStartOf="@id/biomechSortingClassButton2"
+        app:layout_constraintLeft_toRightOf="@id/biomechSortingClassButton1"
+        app:layout_constraintRight_toLeftOf="@id/biomechSortingClassButton2"
+        app:layout_constraintStart_toEndOf="@id/biomechSortingClassButton1"
+        app:layout_constraintTop_toTopOf="@id/biomechSortingClassButton1" />
+    <ToggleButton
+        android:id="@+id/biomechSortingClassButton2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_class"
+        app:layout_constraintEnd_toStartOf="@id/biomechSortingNameButton"
+        app:layout_constraintLeft_toRightOf="@id/biomechSortingStatusButton"
+        app:layout_constraintRight_toLeftOf="@id/biomechSortingNameButton"
+        app:layout_constraintStart_toEndOf="@id/biomechSortingStatusButton"
+        app:layout_constraintTop_toTopOf="@id/biomechSortingClassButton1" />
+    <ToggleButton
+        android:id="@+id/biomechSortingNameButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/biomechSortingClassButton2"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/biomechSortingClassButton2"
+        app:layout_constraintTop_toTopOf="@id/biomechSortingClassButton1" />
+    <View
+        android:id="@+id/biomechSortingDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/biomechSortingNameButton" />
+    <TextView
+        android:id="@+id/freezeDurationTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/freeze_duration"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/freezeDurationTimeInput"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/freezeDurationTimeInput" />
+    <include
+        android:id="@+id/freezeDurationTimeInput"
+        layout="@layout/seconds_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/biomechSortingDivider" />
+    <View
+        android:id="@+id/freezeDurationDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/freezeDurationTimeInput" />
+</androidx.constraintlayout.widget.ConstraintLayout>

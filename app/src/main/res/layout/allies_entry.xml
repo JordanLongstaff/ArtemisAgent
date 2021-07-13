@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <View
+        android:id="@+id/topDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/allyNameLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintTop_toTopOf="@id/topDivider" />
+    <TextView
+        android:id="@+id/allyFrontShieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/allyRearShieldLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyNameLabel"
+        app:layout_constraintVertical_chainStyle="packed" />
+    <TextView
+        android:id="@+id/allyRearShieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/allyDescriptionLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyFrontShieldLabel" />
+    <TextView
+        android:id="@+id/allyDirectionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        app:layout_constraintEnd_toStartOf="@id/allyHailButton"
+        app:layout_constraintRight_toLeftOf="@id/allyHailButton"
+        app:layout_constraintTop_toTopOf="@id/allyFrontShieldLabel" />
+    <TextView
+        android:id="@+id/allyRangeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@id/allyRearShieldLabel"
+        app:layout_constraintEnd_toEndOf="@id/allyDirectionLabel"
+        app:layout_constraintRight_toRightOf="@id/allyDirectionLabel" />
+    <Button
+        android:id="@+id/allyHailButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hail"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyNameLabel" />
+    <TextView
+        android:id="@+id/allyDescriptionLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintEnd_toStartOf="@id/allyCommandButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/allyCommandButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyHailButton" />
+    <Button
+        android:id="@+id/allyCommandButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/command"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyHailButton" />
+    <View
+        android:id="@+id/bottomDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

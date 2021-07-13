@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#726EF1</color>
+    <color name="colorAccent">#8885F8</color>
+    <color name="backgroundBlack">#000000</color>
+    <color name="textDefault">#FFFC6F</color>
+
+    <color name="colorPrimaryRed">#C30E1E</color>
+    <color name="colorAccentRed">#E10721</color>
+    <color name="backgroundRed">#300101</color>
+    <color name="textRed">#FFC3C3</color>
+
+    <color name="colorPrimaryGreen">#0AA604</color>
+    <color name="colorAccentGreen">#0DAE0F</color>
+    <color name="backgroundGreen">#001E00</color>
+    <color name="textGreen">#6FFF71</color>
+
+    <color name="colorPrimaryYellow">#DAD73C</color>
+    <color name="colorAccentYellow">#F1EF4B</color>
+    <color name="backgroundYellow">#1B1A01</color>
+    <color name="textYellow">#FBF98D</color>
+
+    <color name="colorPrimaryBlue">#6264F8</color>
+    <color name="colorAccentBlue">#7E80FF</color>
+    <color name="backgroundBlue">#020220</color>
+    <color name="textBlue">#CBCCFF</color>
+
+    <color name="colorPrimaryPurple">#F82BFF</color>
+    <color name="colorAccentPurple">#FA74FF</color>
+    <color name="backgroundPurple">#190122</color>
+    <color name="textPurple">#FFB9F0</color>
+
+    <color name="colorPrimaryDisabled">#A4A4B8</color>
+    <color name="colorAccentDisabled">#B0B2C5</color>
+
+    <color name="notConnected">@android:color/transparent</color>
+    <color name="connecting">#0000FF</color>
+    <color name="failedToConnect">#FF0000</color>
+    <color name="connected">#008000</color>
+    <color name="heartbeatLost">#C55A11</color>
+
+    <color name="allyStatusBackgroundBlue">#601155FF</color>
+    <color name="allyStatusBackgroundOrange">#9FFF7519</color>
+    <color name="allyStatusBackgroundYellow">#A8FFC000</color>
+    <color name="allyStatusBackgroundRed">#DFBF0000</color>
+
+    <color name="stationShieldFull">#5000FF00</color>
+    <color name="stationShieldDamaged">#687FFF00</color>
+    <color name="stationShieldModerate">#7FFFFF00</color>
+    <color name="stationShieldSevere">#97FF7F00</color>
+    <color name="stationShieldCritical">#AFFF0000</color>
+
+    <color name="stationSelectorFull">#A700FF00</color>
+    <color name="stationSelectorDamaged">#B37FFF00</color>
+    <color name="stationSelectorModerate">#BFFFFF00</color>
+    <color name="stationSelectorSevere">#CBFF7F00</color>
+    <color name="stationSelectorCritical">#D7FF0000</color>
+
+    <color name="completedMissionGreen">#006000</color>
+    <color name="enemyRed">#9F0000</color>
+    <color name="duplicitousOrange">#B65E00</color>
+    <color name="surrenderedYellow">#9CA10B</color>
+    <color name="biomechNeutral">#C55A11</color>
+</resources>

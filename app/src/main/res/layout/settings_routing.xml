@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/incentivesTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/included_incentives"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/incentivesNoneButton"
+        app:layout_constraintEnd_toStartOf="@id/incentivesAllButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/incentivesAllButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/incentivesNoneButton" />
+    <Button
+        android:id="@+id/incentivesAllButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/all"
+        app:layout_constraintEnd_toStartOf="@id/incentivesNoneButton"
+        app:layout_constraintRight_toLeftOf="@id/incentivesNoneButton"
+        app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/incentivesNoneButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ToggleButton
+        android:id="@+id/incentivesMissionsButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_missions"
+        app:layout_constraintEnd_toStartOf="@id/incentivesNeedsDamConButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/incentivesNeedsDamConButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/incentivesNoneButton" />
+    <ToggleButton
+        android:id="@+id/incentivesHasEnergyButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_has_energy"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/incentivesNeedsEnergyButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/incentivesNeedsEnergyButton"
+        app:layout_constraintTop_toTopOf="@id/incentivesMissionsButton" />
+    <ToggleButton
+        android:id="@+id/incentivesNeedsEnergyButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_needs_energy"
+        app:layout_constraintEnd_toStartOf="@id/incentivesHasEnergyButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/incentivesHasEnergyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/incentivesMissionsButton" />
+    <ToggleButton
+        android:id="@+id/incentivesNeedsDamConButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_needs_damcon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/incentivesMissionsButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/incentivesMissionsButton"
+        app:layout_constraintTop_toTopOf="@id/incentivesNeedsEnergyButton" />
+    <ToggleButton
+        android:id="@+id/incentivesMalfunctionButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_malfunction"
+        app:layout_constraintEnd_toStartOf="@id/incentivesAmbassadorButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/incentivesAmbassadorButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/incentivesNeedsEnergyButton" />
+    <ToggleButton
+        android:id="@+id/incentivesAmbassadorButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_ambassador"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/incentivesMalfunctionButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/incentivesMalfunctionButton"
+        app:layout_constraintTop_toTopOf="@id/incentivesMalfunctionButton" />
+    <ToggleButton
+        android:id="@+id/incentivesHostageButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_hostage"
+        app:layout_constraintEnd_toStartOf="@id/incentivesCommandeeredButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/incentivesCommandeeredButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/incentivesMalfunctionButton" />
+    <ToggleButton
+        android:id="@+id/incentivesCommandeeredButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/route_incentive_commandeered"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/incentivesHostageButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/incentivesHostageButton"
+        app:layout_constraintTop_toTopOf="@id/incentivesHostageButton" />
+    <View
+        android:id="@+id/incentivesDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/incentivesHostageButton" />
+    <TextView
+        android:id="@+id/avoidancesTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/avoidances"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/avoidancesNoneButton"
+        app:layout_constraintEnd_toStartOf="@id/avoidancesAllButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/avoidancesAllButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/avoidancesNoneButton" />
+    <Button
+        android:id="@+id/avoidancesAllButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/all"
+        app:layout_constraintEnd_toStartOf="@id/avoidancesNoneButton"
+        app:layout_constraintRight_toLeftOf="@id/avoidancesNoneButton"
+        app:layout_constraintTop_toTopOf="@id/avoidancesNoneButton" />
+    <Button
+        android:id="@+id/avoidancesNoneButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/incentivesDivider" />
+    <TextView
+        android:id="@+id/blackHolesTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/blackHolesClearanceField"
+        android:text="@string/avoidance_black_hole"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/blackHolesButton"
+        app:layout_constraintEnd_toStartOf="@id/blackHolesClearanceField"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/blackHolesClearanceField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/blackHolesButton" />
+    <EditText
+        android:id="@+id/blackHolesClearanceField"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:ems="5"
+        android:gravity="center_vertical|end"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@id/blackHolesButton"
+        app:layout_constraintEnd_toStartOf="@id/blackHolesClearanceKm"
+        app:layout_constraintRight_toLeftOf="@id/blackHolesClearanceKm"
+        app:layout_constraintTop_toTopOf="@id/blackHolesButton" />
+    <TextView
+        android:id="@+id/blackHolesClearanceKm"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/kilometres"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/blackHolesButton"
+        app:layout_constraintEnd_toStartOf="@id/blackHolesButton"
+        app:layout_constraintRight_toLeftOf="@id/blackHolesButton"
+        app:layout_constraintTop_toTopOf="@id/blackHolesButton" />
+    <ToggleButton
+        android:id="@+id/blackHolesButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/avoidancesNoneButton" />
+    <TextView
+        android:id="@+id/minesTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/minesClearanceField"
+        android:text="@string/avoidance_mine"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/minesButton"
+        app:layout_constraintEnd_toStartOf="@id/minesClearanceField"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/minesClearanceField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/minesButton" />
+    <EditText
+        android:id="@+id/minesClearanceField"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:ems="5"
+        android:gravity="center_vertical|end"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@id/minesButton"
+        app:layout_constraintEnd_toStartOf="@id/minesClearanceKm"
+        app:layout_constraintRight_toLeftOf="@id/minesClearanceKm"
+        app:layout_constraintTop_toTopOf="@id/minesButton" />
+    <TextView
+        android:id="@+id/minesClearanceKm"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/kilometres"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/minesButton"
+        app:layout_constraintEnd_toStartOf="@id/minesButton"
+        app:layout_constraintRight_toLeftOf="@id/minesButton"
+        app:layout_constraintTop_toTopOf="@id/minesButton" />
+    <ToggleButton
+        android:id="@+id/minesButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/blackHolesButton" />
+    <TextView
+        android:id="@+id/typhonsTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/typhonsClearanceField"
+        android:text="@string/avoidance_typhon"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/typhonsButton"
+        app:layout_constraintEnd_toStartOf="@id/typhonsClearanceField"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/typhonsClearanceField"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/typhonsButton" />
+    <EditText
+        android:id="@+id/typhonsClearanceField"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:ems="5"
+        android:gravity="center_vertical|end"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLength="5"
+        app:layout_constraintBottom_toBottomOf="@id/typhonsButton"
+        app:layout_constraintEnd_toStartOf="@id/typhonsClearanceKm"
+        app:layout_constraintRight_toLeftOf="@id/typhonsClearanceKm"
+        app:layout_constraintTop_toTopOf="@id/typhonsButton" />
+    <TextView
+        android:id="@+id/typhonsClearanceKm"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/kilometres"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/typhonsButton"
+        app:layout_constraintEnd_toStartOf="@id/typhonsButton"
+        app:layout_constraintRight_toLeftOf="@id/typhonsButton"
+        app:layout_constraintTop_toTopOf="@id/typhonsButton" />
+    <ToggleButton
+        android:id="@+id/typhonsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/minesButton" />
+    <View
+        android:id="@+id/avoidancesDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/typhonsButton" />
+</androidx.constraintlayout.widget.ConstraintLayout>

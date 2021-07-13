@@ -1,0 +1,7 @@
+<resources>
+    <string name="permission_rationale">
+        Artemis Agent can push notifications to your device, letting you stay informed about all
+        messages delivered from a connected Artemis server while it runs in the background. Are you
+        sure you want to disable this?
+    </string>
+</resources>

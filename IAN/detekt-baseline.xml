@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:PacketReader.kt$PacketReader$@Throws(ArtemisPacketException::class) suspend fun readPacket(): ParseResult</ID>
+    <ID>LongMethod:PacketReader.kt$PacketReader$@Throws(ArtemisPacketException::class) suspend fun readPacket(): ParseResult</ID>
+    <ID>LongParameterList:Vessel.kt$Vessel$( /** * Returns the Vessel's ID. */ val id: Int, /** * Returns the Vessel's Faction ID. */ val side: Int, /** * Returns this Vessel's name. */ val name: String, broadType: String, /** * Returns the maximum capacity of storage of each ordnance type on this Vessel. */ val ordnanceStorage: Map&lt;OrdnanceType, Int&gt;, /** * Returns the base production coefficient. This value affects how quickly * the base produces new ordnance. */ val productionCoefficient: Float, /** * Returns the number of fighter bays on this Vessel. */ val bayCount: Int, /** * Returns a short description of this Vessel. */ val description: String, )</ID>
+    <ID>LoopWithTooManyJumpStatements:PacketReader.kt$PacketReader$while</ID>
+    <ID>MagicNumber:JamCrc.kt$JamCrc$0xff</ID>
+    <ID>MagicNumber:JamCrc.kt$JamCrc$24</ID>
+    <ID>MagicNumber:JamCrc.kt$JamCrc$256</ID>
+    <ID>MagicNumber:JamCrc.kt$JamCrc$31</ID>
+    <ID>MagicNumber:JamCrc.kt$JamCrc$8</ID>
+    <ID>MagicNumber:OrdnanceType.kt$OrdnanceType.EMP$5</ID>
+    <ID>MagicNumber:OrdnanceType.kt$OrdnanceType.MINE$4</ID>
+    <ID>MagicNumber:OrdnanceType.kt$OrdnanceType.NUKE$10</ID>
+    <ID>MagicNumber:OrdnanceType.kt$OrdnanceType.PSHOCK$10</ID>
+    <ID>MagicNumber:OrdnanceType.kt$OrdnanceType.TORPEDO$3</ID>
+    <ID>MagicNumber:PrivateNetworkType.kt$PrivateNetworkType.SIXTEEN_BIT_BLOCK$64</ID>
+    <ID>MagicNumber:PrivateNetworkType.kt$PrivateNetworkType.SIXTEEN_BIT_BLOCK$88</ID>
+    <ID>MagicNumber:PrivateNetworkType.kt$PrivateNetworkType.TWENTY_BIT_BLOCK$16</ID>
+    <ID>MagicNumber:PrivateNetworkType.kt$PrivateNetworkType.TWENTY_BIT_BLOCK$31</ID>
+    <ID>MagicNumber:PrivateNetworkType.kt$PrivateNetworkType.TWENTY_BIT_BLOCK$44</ID>
+    <ID>MagicNumber:PrivateNetworkType.kt$PrivateNetworkType.TWENTY_FOUR_BIT_BLOCK$10</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Anomaly$4</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Anomaly$6</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Asteroid$3</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Asteroid$4</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Drone$4</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Drone$9</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Engineering$4</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.GenericMesh$12</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.GenericMesh$3</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.GenericMesh$4</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.GenericMesh$6</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Nebula$4</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Nebula$6</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Torpedo$4</ID>
+    <ID>MagicNumber:UnobservedObjectParser.kt$UnobservedObjectParser.Torpedo$8</ID>
+    <ID>NestedBlockDepth:PacketReader.kt$PacketReader$@Throws(ArtemisPacketException::class) suspend fun readPacket(): ParseResult</ID>
+    <ID>NestedBlockDepth:PrivateNetworkAddress.kt$PrivateNetworkAddress.Companion$@Throws(IOException::class) fun findAll(): List&lt;PrivateNetworkAddress&gt;</ID>
+    <ID>SpreadOperator:Version.kt$Version$(*version.split(".").map(String::toInt).toIntArray())</ID>
+    <ID>ThrowsCount:PacketReader.kt$PacketReader$@Throws(ArtemisPacketException::class) suspend fun readPacket(): ParseResult</ID>
+    <ID>TooGenericExceptionCaught:AbstractProtocol.kt$AbstractProtocol.Factory$ex: Exception</ID>
+    <ID>TooManyFunctions:KtorArtemisNetworkInterface.kt$KtorArtemisNetworkInterface : ArtemisNetworkInterfaceCoroutineScope</ID>
+    <ID>TooManyFunctions:PacketReader.kt$PacketReader</ID>
+  </CurrentIssues>
+</SmellBaseline>

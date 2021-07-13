@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <View
+        android:id="@+id/topDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/destNameLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/paddingSmall"
+        android:ellipsize="end"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toStartOf="@id/destRangeLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/destRangeLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/destDirectionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/direction"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/destRangeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/range"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/destDirectionLabel" />
+    <TextView
+        android:id="@+id/destReasonsLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="bottom"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/destAllyCommandButton"
+        app:layout_constraintEnd_toStartOf="@id/destBuildTimeLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/destBuildTimeLabel"
+        app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/destBuildTimeLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/destAllyCommandButton"
+        app:layout_constraintEnd_toStartOf="@id/destBuildButton"
+        app:layout_constraintLeft_toRightOf="@id/destReasonsLabel"
+        app:layout_constraintRight_toLeftOf="@id/destBuildButton"
+        app:layout_constraintStart_toEndOf="@id/destReasonsLabel" />
+    <Button
+        android:id="@+id/destBuildButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/build"
+        app:layout_constraintEnd_toStartOf="@id/destStandbyButton"
+        app:layout_constraintRight_toLeftOf="@id/destStandbyButton"
+        app:layout_constraintTop_toBottomOf="@id/destRangeLabel" />
+    <Button
+        android:id="@+id/destStandbyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/standby"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/destRangeLabel" />
+    <Button
+        android:id="@+id/destAllyCommandButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/command"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/destRangeLabel" />
+    <View
+        android:id="@+id/bottomDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/routeEntryMinimumHeight"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/destRangeLabel" />
+</androidx.constraintlayout.widget.ConstraintLayout>

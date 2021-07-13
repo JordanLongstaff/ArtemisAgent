@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ArtemisAgent" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/backgroundBlack</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorButtonNormal">@color/textDefault</item>
+        <item name="android:windowBackground">@color/backgroundBlack</item>
+        <item name="android:textColorPrimary">@color/textDefault</item>
+        <item name="android:textColorHint">?attr/colorAccent</item>
+        <item name="fontFamily">@font/oxanium</item>
+        <item name="android:fontFamily">@font/oxanium</item>
+        <item name="android:textAppearance">@style/TextAppearance.ArtemisAgent</item>
+        <item name="android:textAppearanceButton">@style/TextAppearance.ArtemisAgent.Button</item>
+        <item name="android:listChoiceIndicatorSingle">@drawable/checkbox_drawable</item>
+        <item name="android:listChoiceIndicatorMultiple">@drawable/checkbox_drawable</item>
+        <item name="buttonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:buttonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:buttonStyleToggle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="radioButtonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:radioButtonStyle">@style/Widget.ArtemisAgent.Button</item>
+        <item name="android:textViewStyle">@style/Widget.ArtemisAgent.TextView</item>
+        <item name="editTextStyle">@style/Widget.ArtemisAgent.EditText</item>
+        <item name="android:editTextStyle">@style/Widget.ArtemisAgent.EditText</item>
+        <item name="autoCompleteTextViewStyle">@style/Widget.ArtemisAgent.AutoCompleteTextView
+        </item>
+        <item name="android:autoCompleteTextViewStyle">
+            @style/Widget.ArtemisAgent.AutoCompleteTextView
+        </item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.ArtemisAgent.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.ArtemisAgent.AlertDialog</item>
+        <item name="android:navigationBarColor">?attr/colorPrimaryDark</item>
+        <item name="seekBarStyle">@style/Widget.ArtemisAgent.SeekBar</item>
+        <item name="android:seekBarStyle">@style/Widget.ArtemisAgent.SeekBar</item>
+    </style>
+</resources>

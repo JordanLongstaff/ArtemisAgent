@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <View
+        android:id="@+id/stationSelectorBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/abc_button_inset_horizontal_material"
+        android:layout_marginVertical="@dimen/abc_button_inset_vertical_material"
+        android:background="?attr/colorPrimaryDark"
+        app:layout_constraintBottom_toBottomOf="@id/stationSelectorButton"
+        app:layout_constraintEnd_toEndOf="@id/stationSelectorButton"
+        app:layout_constraintLeft_toLeftOf="@id/stationSelectorButton"
+        app:layout_constraintRight_toRightOf="@id/stationSelectorButton"
+        app:layout_constraintStart_toStartOf="@id/stationSelectorButton"
+        app:layout_constraintTop_toTopOf="@id/stationSelectorButton" />
+    <View
+        android:id="@+id/stationSelectorFlash"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/stationSelectorBackground"
+        app:layout_constraintEnd_toEndOf="@id/stationSelectorBackground"
+        app:layout_constraintLeft_toLeftOf="@id/stationSelectorBackground"
+        app:layout_constraintRight_toRightOf="@id/stationSelectorBackground"
+        app:layout_constraintStart_toStartOf="@id/stationSelectorBackground"
+        app:layout_constraintTop_toTopOf="@id/stationSelectorBackground" />
+    <TextView
+        android:id="@+id/stationSelectorButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:textAllCaps="true"
+        android:textSize="22sp"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/stationShieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:text="@string/station_shield"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationSelectorButton" />
+    <TextView
+        android:id="@+id/stationHeadingLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/direction"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationShieldLabel" />
+    <TextView
+        android:id="@+id/stationRangeLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/range"
+        app:layout_constraintEnd_toStartOf="@id/stationStatusLabel"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/stationStatusLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationHeadingLabel" />
+    <TextView
+        android:id="@+id/stationSpeedLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/station_speed"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/stationShieldLabel" />
+    <TextView
+        android:id="@+id/stationFightersLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationSpeedLabel" />
+    <TextView
+        android:id="@+id/stationMissionsLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintLeft_toRightOf="@id/stationStatusLabel"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/stationStatusLabel"
+        app:layout_constraintTop_toBottomOf="@id/stationFightersLabel" />
+    <TextView
+        android:id="@+id/stationStatusLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        app:layout_constraintEnd_toStartOf="@id/stationMissionsLabel"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintLeft_toRightOf="@id/stationRangeLabel"
+        app:layout_constraintRight_toLeftOf="@id/stationMissionsLabel"
+        app:layout_constraintStart_toEndOf="@id/stationRangeLabel"
+        app:layout_constraintTop_toBottomOf="@id/stationFightersLabel" />
+    <Button
+        android:id="@+id/requestStatusButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/status"
+        app:layout_constraintEnd_toStartOf="@id/requestStandbyButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/requestStandbyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationStatusLabel" />
+    <Button
+        android:id="@+id/requestStandbyButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/standby"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/requestStatusButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/requestStatusButton"
+        app:layout_constraintTop_toTopOf="@id/requestStatusButton" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/requestStatusButton" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationOrdnanceLabel1" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationOrdnanceLabel2" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationOrdnanceLabel3" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/requestStandbyButton" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationOrdnanceLabel5" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationOrdnanceLabel6" />
+    <TextView
+        android:id="@+id/stationOrdnanceLabel8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stock_of_ordnance"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stationOrdnanceLabel7" />
+    <TextView
+        android:id="@+id/stationBuildingLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/building"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@id/closestStationButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/stationBuildSelector" />
+    <View
+        android:id="@+id/stationBuildSelectorBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/abc_button_inset_horizontal_material"
+        android:layout_marginVertical="@dimen/abc_button_inset_vertical_material"
+        android:background="?attr/colorPrimaryDark"
+        app:layout_constraintBottom_toBottomOf="@id/stationBuildSelector"
+        app:layout_constraintEnd_toEndOf="@id/stationBuildSelector"
+        app:layout_constraintLeft_toLeftOf="@id/stationBuildSelector"
+        app:layout_constraintRight_toRightOf="@id/stationBuildSelector"
+        app:layout_constraintStart_toStartOf="@id/stationBuildSelector"
+        app:layout_constraintTop_toTopOf="@id/stationBuildSelector" />
+    <TextView
+        android:id="@+id/stationBuildSelector"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_drawable"
+        android:gravity="center_vertical"
+        android:minHeight="48dip"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/closestStationButton"
+        app:layout_constraintEnd_toStartOf="@id/stationBuildTimeLabel"
+        app:layout_constraintLeft_toRightOf="@id/stationBuildingLabel"
+        app:layout_constraintRight_toLeftOf="@id/stationBuildTimeLabel"
+        app:layout_constraintStart_toEndOf="@id/stationBuildingLabel" />
+    <TextView
+        android:id="@+id/stationBuildTimeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/build_timer"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@id/closestStationButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/stationBuildSelector" />
+    <Button
+        android:id="@+id/closestStationButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
+    <TextView
+        android:id="@+id/noStationsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:gravity="center"
+        android:text="@string/no_stations"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

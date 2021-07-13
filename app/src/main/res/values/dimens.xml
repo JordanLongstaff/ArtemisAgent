@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="paddingSmall">5dp</dimen>
+    <dimen name="paddingMedium">9dp</dimen>
+    <dimen name="checkBoxSize">16dp</dimen>
+    <dimen name="horizontalAllyEntryWidth">180dip</dimen>
+    <dimen name="horizontalEnemyEntryWidth">150dip</dimen>
+    <dimen name="horizontalRouteEntryWidth">200dip</dimen>
+    <dimen name="directionButtonWidth">60dip</dimen>
+    <dimen name="routeEntryMinimumHeight">47dp</dimen>
+
+    <dimen name="baseTextSize">16sp</dimen>
+    <dimen name="mediumTextSize">22sp</dimen>
+</resources>

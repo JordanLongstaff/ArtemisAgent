@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package artemis.agent;
+
+message UserSettings {
+    enum VesselDataLocation {
+        VESSEL_DATA_LOCATION_DEFAULT = 0;
+        VESSEL_DATA_LOCATION_INTERNAL_STORAGE = 1;
+        VESSEL_DATA_LOCATION_EXTERNAL_STORAGE = 2;
+    }
+
+    VesselDataLocation vessel_data_location = 1;
+    int32 server_port = 2;
+    int32 connection_timeout_seconds = 3;
+    int32 server_timeout_seconds = 4;
+    int32 scan_timeout_seconds = 5;
+    int32 recent_address_limit = 6;
+    bool recent_address_limit_enabled = 7;
+    repeated string recent_servers = 8;
+    int32 update_interval = 9;
+
+    bool display_reward_battery = 10;
+    bool display_reward_coolant = 11;
+    bool display_reward_nukes = 12;
+    bool display_reward_production = 13;
+    bool display_reward_shield = 14;
+    int32 completed_mission_dismissal_seconds = 15;
+    bool completed_mission_dismissal_enabled = 16;
+
+    bool ally_sort_energy_first = 17;
+    bool ally_sort_class_first = 18;
+    bool ally_sort_status = 19;
+    bool ally_sort_class_second = 20;
+    bool ally_sort_name = 21;
+    bool show_destroyed_allies = 22;
+    bool ally_command_manual_return = 23;
+
+    bool biomech_sort_class_first = 24;
+    bool biomech_sort_status = 25;
+    bool biomech_sort_class_second = 26;
+    bool biomech_sort_name = 27;
+    int32 freeze_duration_seconds = 28;
+
+    bool route_missions = 29;
+    bool route_needs_energy = 30;
+    bool route_needs_damcon = 31;
+    bool route_has_energy = 32;
+    bool route_malfunction = 33;
+    bool route_ambassador = 34;
+    bool route_hostage = 35;
+    bool route_commandeered = 36;
+    bool avoid_black_holes = 37;
+    int32 black_hole_clearance = 38;
+    bool avoid_mines = 39;
+    int32 mine_clearance = 40;
+    bool avoid_typhon = 41;
+    int32 typhon_clearance = 42;
+
+    enum Theme {
+        THEME_DEFAULT = 0;
+        THEME_RED = 1;
+        THEME_GREEN = 2;
+        THEME_YELLOW = 3;
+        THEME_BLUE = 4;
+        THEME_PURPLE = 5;
+    }
+
+    Theme theme = 43;
+    bool three_digit_directions = 44;
+    int32 sound_volume = 45;
+
+    bool missions_enabled = 46;
+    bool allies_enabled = 47;
+    bool biomechs_enabled = 48;
+    bool routing_enabled = 49;
+    bool enemies_enabled = 50;
+
+    bool enemy_sort_faction = 51;
+    bool enemy_sort_faction_reversed = 52;
+    bool enemy_sort_name = 53;
+    bool enemy_sort_distance = 54;
+    bool enemy_sort_surrendered = 55;
+    int32 surrender_range = 56;
+    bool surrender_range_enabled = 57;
+    bool show_enemy_intel = 58;
+    bool show_taunt_statuses = 59;
+    bool disable_ineffective_taunts = 60;
+}

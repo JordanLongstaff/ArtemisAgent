@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <AutoCompleteTextView
+        android:id="@+id/addressBar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:completionThreshold="1"
+        android:hint="@string/address"
+        android:inputType="textUri"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/connectButton"
+        app:layout_constraintEnd_toStartOf="@id/connectButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/connectButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/connectButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/connect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <View
+        android:id="@+id/connectBar"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/connectLabel"
+        app:layout_constraintTop_toTopOf="@id/connectLabel" />
+    <TextView
+        android:id="@+id/connectLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintEnd_toStartOf="@id/connectSpinner"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/connectSpinner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/addressBar" />
+    <ProgressBar
+        android:id="@+id/connectSpinner"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/connectLabel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/connectLabel"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/connectLabel"
+        app:layout_constraintTop_toTopOf="@id/connectLabel" />
+    <TextView
+        android:id="@+id/availableServersLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:text="@string/available_servers"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="@id/scanButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/connectBar" />
+    <Button
+        android:id="@+id/scanButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:text="@string/scan"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/connectBar" />
+    <ProgressBar
+        android:id="@+id/scanSpinner"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/availableServersLabel"
+        app:layout_constraintEnd_toStartOf="@id/scanButton"
+        app:layout_constraintRight_toLeftOf="@id/scanButton"
+        app:layout_constraintTop_toTopOf="@id/availableServersLabel" />
+    <TextView
+        android:id="@+id/noServersLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/click_scan"
+        android:textSize="@dimen/baseTextSize"
+        app:layout_constraintTop_toBottomOf="@id/scanButton" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/serverList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/noServersLabel" />
+</androidx.constraintlayout.widget.ConstraintLayout>

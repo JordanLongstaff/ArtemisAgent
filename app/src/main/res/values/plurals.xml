@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="allies">
+        <item quantity="one">1 ally</item>
+        <item quantity="other">%d allies</item>
+    </plurals>
+    <plurals name="biomechs">
+        <item quantity="one">1 BioMech</item>
+        <item quantity="other">%d BioMechs</item>
+    </plurals>
+    <plurals name="enemy_stations">
+        <item quantity="one">1 enemy station</item>
+        <item quantity="other">%d enemy stations</item>
+    </plurals>
+    <plurals name="friendly_stations">
+        <item quantity="one">1 friendly station</item>
+        <item quantity="other">%d friendly stations</item>
+    </plurals>
+    <plurals name="replacement_fighters">
+        <item quantity="one">1 replacement fighter</item>
+        <item quantity="other">%d replacement fighters</item>
+    </plurals>
+    <plurals name="side_missions">
+        <item quantity="one">1 mission</item>
+        <item quantity="other">%d missions</item>
+    </plurals>
+    <plurals name="side_missions_for_ally">
+        <item quantity="one">Has 1 side mission.</item>
+        <item quantity="other">Has %d side missions.</item>
+    </plurals>
+</resources>

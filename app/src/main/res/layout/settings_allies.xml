@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/allySortingTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/ally_sorting_methods"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/allySortingDefaultButtonGroup"
+        app:layout_constraintEnd_toStartOf="@id/allySortingDefaultButtonGroup"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/allySortingDefaultButtonGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/allySortingDefaultButtonGroup" />
+    <RadioGroup
+        android:id="@+id/allySortingDefaultButtonGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" >
+        <RadioButton
+            android:id="@+id/allySortingDefaultOffButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+        <RadioButton
+            android:id="@+id/allySortingDefaultButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_setting" />
+    </RadioGroup>
+    <ToggleButton
+        android:id="@+id/allySortingClassButton1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_class"
+        app:layout_constraintEnd_toStartOf="@id/allySortingEnergyButton"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/allySortingEnergyButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allySortingDefaultButtonGroup" />
+    <ToggleButton
+        android:id="@+id/allySortingEnergyButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_energy"
+        app:layout_constraintEnd_toStartOf="@id/allySortingStatusButton"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintLeft_toRightOf="@id/allySortingClassButton1"
+        app:layout_constraintRight_toLeftOf="@id/allySortingStatusButton"
+        app:layout_constraintStart_toEndOf="@id/allySortingClassButton1"
+        app:layout_constraintTop_toTopOf="@id/allySortingClassButton1" />
+    <ToggleButton
+        android:id="@+id/allySortingStatusButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_status"
+        app:layout_constraintEnd_toStartOf="@id/allySortingClassButton2"
+        app:layout_constraintHorizontal_weight="4"
+        app:layout_constraintLeft_toRightOf="@id/allySortingEnergyButton"
+        app:layout_constraintRight_toLeftOf="@id/allySortingClassButton2"
+        app:layout_constraintStart_toEndOf="@id/allySortingEnergyButton"
+        app:layout_constraintTop_toTopOf="@id/allySortingClassButton1" />
+    <ToggleButton
+        android:id="@+id/allySortingClassButton2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_class"
+        app:layout_constraintEnd_toStartOf="@id/allySortingNameButton"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintLeft_toRightOf="@id/allySortingStatusButton"
+        app:layout_constraintRight_toLeftOf="@id/allySortingNameButton"
+        app:layout_constraintStart_toEndOf="@id/allySortingStatusButton"
+        app:layout_constraintTop_toTopOf="@id/allySortingClassButton1" />
+    <ToggleButton
+        android:id="@+id/allySortingNameButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sort_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintLeft_toRightOf="@id/allySortingClassButton2"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/allySortingClassButton2"
+        app:layout_constraintTop_toTopOf="@id/allySortingClassButton2" />
+    <View
+        android:id="@+id/allySortingDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/allySortingNameButton" />
+    <TextView
+        android:id="@+id/showDestroyedAlliesTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/show_destroyed_allies"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/showDestroyedAlliesButton"
+        app:layout_constraintEnd_toStartOf="@id/showDestroyedAlliesButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/showDestroyedAlliesButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/showDestroyedAlliesButton" />
+    <ToggleButton
+        android:id="@+id/showDestroyedAlliesButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allySortingDivider" />
+    <View
+        android:id="@+id/showDestroyedAlliesDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/showDestroyedAlliesButton" />
+    <TextView
+        android:id="@+id/manuallyReturnTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/manually_return_from_commands"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/manuallyReturnButton"
+        app:layout_constraintEnd_toStartOf="@id/manuallyReturnButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/manuallyReturnButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/manuallyReturnButton" />
+    <ToggleButton
+        android:id="@+id/manuallyReturnButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/showDestroyedAlliesDivider" />
+    <View
+        android:id="@+id/manuallyReturnDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/manuallyReturnButton" />
+</androidx.constraintlayout.widget.ConstraintLayout>

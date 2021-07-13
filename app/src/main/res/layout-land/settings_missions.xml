@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/rewardsTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/displayed_rewards"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/rewardsNoneButton"
+        app:layout_constraintEnd_toStartOf="@id/rewardsAllButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/rewardsAllButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/rewardsNoneButton" />
+    <Button
+        android:id="@+id/rewardsAllButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/all"
+        app:layout_constraintEnd_toStartOf="@id/rewardsNoneButton"
+        app:layout_constraintRight_toLeftOf="@id/rewardsNoneButton"
+        app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/rewardsNoneButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ToggleButton
+        android:id="@+id/rewardsBatteryButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/mission_battery"
+        app:layout_constraintEnd_toStartOf="@id/rewardsCoolantButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/rewardsCoolantButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rewardsNoneButton" />
+    <ToggleButton
+        android:id="@+id/rewardsCoolantButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/mission_coolant"
+        app:layout_constraintEnd_toStartOf="@id/rewardsNukeButton"
+        app:layout_constraintLeft_toRightOf="@id/rewardsBatteryButton"
+        app:layout_constraintRight_toLeftOf="@id/rewardsNukeButton"
+        app:layout_constraintStart_toEndOf="@id/rewardsBatteryButton"
+        app:layout_constraintTop_toTopOf="@id/rewardsBatteryButton" />
+    <ToggleButton
+        android:id="@+id/rewardsNukeButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/mission_nuke"
+        app:layout_constraintEnd_toStartOf="@id/rewardsProductionButton"
+        app:layout_constraintLeft_toRightOf="@id/rewardsCoolantButton"
+        app:layout_constraintRight_toLeftOf="@id/rewardsProductionButton"
+        app:layout_constraintStart_toEndOf="@id/rewardsCoolantButton"
+        app:layout_constraintTop_toTopOf="@id/rewardsBatteryButton" />
+    <ToggleButton
+        android:id="@+id/rewardsProductionButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/mission_production"
+        app:layout_constraintEnd_toStartOf="@id/rewardsShieldButton"
+        app:layout_constraintLeft_toRightOf="@id/rewardsNukeButton"
+        app:layout_constraintRight_toLeftOf="@id/rewardsShieldButton"
+        app:layout_constraintStart_toEndOf="@id/rewardsNukeButton"
+        app:layout_constraintTop_toTopOf="@id/rewardsBatteryButton" />
+    <ToggleButton
+        android:id="@+id/rewardsShieldButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/mission_shield"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/rewardsProductionButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@id/rewardsProductionButton"
+        app:layout_constraintTop_toTopOf="@id/rewardsProductionButton" />
+    <View
+        android:id="@+id/rewardsDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/rewardsProductionButton" />
+    <TextView
+        android:id="@+id/autoDismissalTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/auto_dismissal"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/autoDismissalButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/autoDismissalButton" />
+    <ToggleButton
+        android:id="@+id/autoDismissalButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintBottom_toBottomOf="@id/autoDismissalTimeInput"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/autoDismissalTimeInput" />
+    <TextView
+        android:id="@+id/autoDismissalSecondsLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/seconds"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/autoDismissalButton"
+        app:layout_constraintEnd_toStartOf="@id/autoDismissalButton"
+        app:layout_constraintRight_toLeftOf="@id/autoDismissalButton"
+        app:layout_constraintTop_toTopOf="@id/autoDismissalButton" />
+    <include
+        android:id="@+id/autoDismissalTimeInput"
+        layout="@layout/seconds_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@id/autoDismissalSecondsLabel"
+        app:layout_constraintRight_toLeftOf="@id/autoDismissalSecondsLabel"
+        app:layout_constraintTop_toBottomOf="@id/rewardsDivider" />
+    <View
+        android:id="@+id/autoDismissalDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/autoDismissalTimeInput" />
+</androidx.constraintlayout.widget.ConstraintLayout>

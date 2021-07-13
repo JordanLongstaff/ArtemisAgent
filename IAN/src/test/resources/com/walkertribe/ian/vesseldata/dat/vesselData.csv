@@ -1,0 +1,58 @@
+0,0,TSN,Light Cruiser,player,player,0,8,2,6,4,4,5,5,5
+1,0,TSN,Scout,player,player,0,6,0,2,2,1,8,8,8
+2,0,TSN,Battleship,player,player,0,8,2,6,4,5,2,2,2
+3,0,TSN,Missile Cruiser,player,player,0,20,8,14,12,6,2,2,2
+4,0,TSN,Dreadnought,player carrier,player,carrier,2,10,4,8,5,4,2,2,2
+5,0,TSN,Carrier,player carrier,player,carrier,5,6,1,4,2,2,2,2,2
+6,0,TSN,Mine Layer,player,player,0,10,0,25,0,0,0,2,0
+7,0,TSN,Juggernaut,player carrier,player,carrier,3,16,7,10,7,6,2,2,2
+8,7,XIMNI,Light Cruiser,player,player,0,8,2,6,4,2,5,5,5
+9,7,XIMNI,Scout,player,player,0,6,0,2,2,1,8,8,8
+10,7,XIMNI,Missile Cruiser,player,player,0,20,8,14,12,6,2,2,2
+11,7,XIMNI,Battleship,player,player,0,8,2,6,4,5,2,2,2
+12,7,XIMNI,Carrier,player carrier,player,carrier,5,6,1,4,2,2,2,2,2
+13,7,XIMNI,Dreadnought,player carrier,player,carrier,2,10,4,8,5,4,2,2,2
+14,8,PIRATE,Strongbow,player,player,0,12,0,2,12,8,2,5,2
+15,8,PIRATE,Longbow,player,player,0,8,0,1,2,1,2,2,2
+16,8,PIRATE,Brigantine,player carrier,player,carrier,4,12,0,4,12,8,2,2,2
+100,0,TSN,TSN Medium Fighter,player singleseat fighter,player,singleseat,fighter,0,3
+101,0,TSN,TSN Bomber,player singleseat fighter,player,singleseat,fighter,0,6
+102,0,TSN,TSN Shuttle,player singleseat shuttle,player,singleseat,shuttle,0
+103,0,TSN,TSN LR Shuttle,player singleseat shuttle,player,singleseat,shuttle,0
+120,7,XIMNI,Zim Fighter,player singleseat fighter,player,singleseat,fighter,0,3
+121,7,XIMNI,Zim Bomber,player singleseat fighter,player,singleseat,fighter,0,6
+122,7,XIMNI,Zim Shuttle,player singleseat shuttle,player,singleseat,shuttle,0
+123,7,XIMNI,Zim LR Shuttle,player singleseat shuttle,player,singleseat,shuttle,0
+130,8,PIRATE,Avenger,player singleseat fighter,player,singleseat,fighter,0,3
+131,8,PIRATE,Adventure,player singleseat shuttle,player,singleseat,shuttle,0
+1000,1,TERRAN,Deep Space Base,base,1,base,0
+1001,1,TERRAN,Civilian Base,base,0.5,base,0
+1002,1,TERRAN,Command Base,base,2,base,0
+1003,1,TERRAN,Industrial Base,base,3,base,0
+1004,1,TERRAN,Science Base,base,0.5,base,0
+1005,2,KRALIEN,Base,base,base,0
+1006,3,ARVONIAN,Base,base carrier,base,carrier,14
+1007,4,TORGOTH,Base,base,base,0
+1008,5,SKARAAN,Base,base,base,0
+1500,1,TERRAN,Escort,small warship,small,warship,0
+1501,1,TERRAN,Destroyer,medium warship,medium,warship,0
+1502,1,TERRAN,Science Vessel,science,science,0
+1503,1,TERRAN,Bulk Cargo,cargo,cargo,0
+1504,1,TERRAN,Luxury Liner,luxury,luxury,0
+1505,1,TERRAN,Transport,transport,transport,0
+2000,2,KRALIEN,Cruiser,small,small,0
+2001,2,KRALIEN,Battleship,medium,medium,0
+2002,2,KRALIEN,Dreadnought,large,large,0
+3000,3,ARVONIAN,Fighter,singleseat,singleseat,0
+3001,3,ARVONIAN,Light Carrier,carrier,carrier,8
+3002,3,ARVONIAN,Carrier,carrier,carrier,12
+4000,4,TORGOTH,Goliath,small,small,0
+4001,4,TORGOTH,Leviathan,medium,medium,0
+4002,4,TORGOTH,Behemoth,large,large,0
+5000,5,SKARAAN,Defiler,small,small,0
+5001,5,SKARAAN,Enforcer,medium,medium,0
+5002,5,SKARAAN,Executor,large,large,0
+6000,6,BIOMECH,Stage 1,small asteroideater,small,asteroideater,0
+6001,6,BIOMECH,Stage 2,medium asteroideater,medium,asteroideater,0
+6002,6,BIOMECH,Stage 3,large asteroideater,large,asteroideater,0
+6003,6,BIOMECH,Type 4,large sentient,large,sentient,0

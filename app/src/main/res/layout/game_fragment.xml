@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ToggleButton
+        android:id="@+id/redAlertButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/alert"
+        android:theme="@style/Widget.ArtemisAgent.Button.Red"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/agentLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/agent"
+        android:textAllCaps="true"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/redAlertButton"
+        app:layout_constraintLeft_toLeftOf="@id/redAlertButton"
+        app:layout_constraintRight_toRightOf="@id/redAlertButton"
+        app:layout_constraintStart_toStartOf="@id/redAlertButton"
+        app:layout_constraintTop_toBottomOf="@id/redAlertButton" />
+    <ToggleButton
+        android:id="@+id/doubleAgentButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="@id/redAlertButton"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toStartOf="@id/redAlertButton"
+        app:layout_constraintTop_toBottomOf="@id/agentLabel" />
+    <Button
+        android:id="@+id/inventoryButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/inventory"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@id/doubleAgentButton"
+        app:layout_constraintRight_toLeftOf="@id/doubleAgentButton"
+        app:layout_constraintTop_toTopOf="@id/doubleAgentButton" />
+    <TextView
+        android:id="@+id/shipNumberLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_ships"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/shipNameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/shipNumberLabel" />
+    <View
+        android:id="@+id/gamePageSelectorFlash"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/abc_button_inset_horizontal_material"
+        android:layout_marginVertical="@dimen/abc_button_inset_vertical_material"
+        android:background="?attr/colorPrimary"
+        android:alpha="0.375"
+        app:layout_constraintBottom_toBottomOf="@id/gamePageSelectorButton"
+        app:layout_constraintEnd_toEndOf="@id/gamePageSelectorButton"
+        app:layout_constraintLeft_toLeftOf="@id/gamePageSelectorButton"
+        app:layout_constraintRight_toRightOf="@id/gamePageSelectorButton"
+        app:layout_constraintStart_toStartOf="@id/gamePageSelectorButton"
+        app:layout_constraintTop_toTopOf="@id/gamePageSelectorButton"/>
+    <TextView
+        android:id="@+id/gamePageSelectorButton"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/selector_drawable"
+        android:gravity="center_vertical"
+        android:textSize="@dimen/baseTextSize"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/inventoryButton"
+        app:layout_constraintBottom_toBottomOf="@id/inventoryButton"
+        app:layout_constraintEnd_toStartOf="@id/inventoryButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/inventoryButton"
+        app:layout_constraintStart_toStartOf="parent" />
+    <View
+        android:id="@+id/borderWarBackground"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/borderWarLabel"
+        app:layout_constraintTop_toTopOf="@id/borderWarLabel" />
+    <TextView
+        android:id="@+id/borderWarLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/border_war_status"
+        android:textSize="@dimen/baseTextSize"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/gamePageSelectorButton" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/gameFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/borderWarBackground"
+        app:layout_goneMarginTop="0dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>
