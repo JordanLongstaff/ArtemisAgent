@@ -2,14 +2,12 @@ package artemis.agent
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PendingIntent
-import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -17,6 +15,7 @@ import android.view.View
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
@@ -30,6 +29,7 @@ import androidx.core.view.children
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.databinding.ActivityMainBinding
 import artemis.agent.game.GameFragment
@@ -38,18 +38,37 @@ import artemis.agent.help.HelpFragment
 import artemis.agent.setup.ConnectFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.VersionString
 import artemis.agent.util.collectLatestWhileStarted
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.InstallException
+import com.google.android.play.core.install.InstallState
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.ActivityResult
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
+import com.jakewharton.processphoenix.ProcessPhoenix
 import com.walkertribe.ian.iface.DisconnectCause
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.asDeferred
 
 /** The main application activity. */
 class MainActivity : AppCompatActivity() {
@@ -77,6 +96,39 @@ class MainActivity : AppCompatActivity() {
 
     private val reviewManager: ReviewManager by lazy { ReviewManagerFactory.create(this) }
     private var shouldAskForReview: Boolean = false
+
+    val updateManager: AppUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
+
+    private val updateResultLauncher: ActivityResultLauncher<IntentSenderRequest> =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            when (result.resultCode) {
+                RESULT_CANCELED -> {
+                    R.string.update_declined_title to R.string.update_declined_message
+                }
+
+                ActivityResult.RESULT_IN_APP_UPDATE_FAILED -> {
+                    R.string.update_failed_title to R.string.update_failed_message
+                }
+
+                else -> null
+            }?.also { (titleId, messageId) ->
+                AlertDialog.Builder(this)
+                    .setTitle(titleId)
+                    .setMessage(messageId)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                        startUpdateFlow()
+                    }
+                    .show()
+            }
+        }
+
+    private var isUpdateReady: Boolean = false
+    @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
 
     private var notificationRequests = STOP_NOTIFICATIONS
 
@@ -431,11 +483,19 @@ class MainActivity : AppCompatActivity() {
         collectLatestWhileStarted(viewModel.gameOverReason) {
             if (shouldAskForReview) askForReview()
             shouldAskForReview = !shouldAskForReview
+            checkForUpdates()
         }
 
         collectLatestWhileStarted(viewModel.jumping) {
             binding.jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
         }
+
+        collectLatestWhileStarted(viewModel.helpTopicIndex) {
+            binding.updateButton.visibility =
+                if (it == HelpFragment.ABOUT_TOPIC_INDEX) View.VISIBLE else View.GONE
+        }
+
+        binding.updateButton.setOnClickListener { checkForUpdates() }
 
         binding.mainPageSelector.children.forEach { view ->
             view.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
@@ -457,6 +517,8 @@ class MainActivity : AppCompatActivity() {
                 binding.gamePageButton.isChecked = true
             }
         }
+
+        checkForUpdates()
     }
 
     /**
@@ -488,10 +550,29 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
+
         if (notificationRequests != STOP_NOTIFICATIONS) {
             unbindService(connection)
             notificationRequests = STOP_NOTIFICATIONS
             notificationManager.reset()
+        }
+
+        updateManager.appUpdateInfo.addOnSuccessListener { updateInfo ->
+            if (updateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                onUpdateReady()
+            }
+
+            if (
+                updateInfo.updateAvailability() ==
+                    UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
+            ) {
+                // Resume immediate update that was in progress
+                updateManager.startUpdateFlowForResult(
+                    updateInfo,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build(),
+                )
+            }
         }
     }
 
@@ -501,6 +582,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+
         val setupPage = intent.getIntExtra(Section.SETUP.name, NO_NAVIGATION)
         if (setupPage >= 0) {
             viewModel.setupFragmentPage.value = SetupFragment.Page.entries[setupPage]
@@ -516,18 +598,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         intent.getStringExtra(GameFragment.Page.STATIONS.name)?.also { station ->
-            with(viewModel) {
-                try {
-                    stationPage.value = StationsFragment.Page.valueOf(station)
-                } catch (_: IllegalArgumentException) {
-                    stationPage.value = StationsFragment.Page.FRIENDLY
-                    if (livingStationNameIndex.containsKey(station)) {
-                        stationName.value = station
-                    }
+            try {
+                viewModel.stationPage.value = StationsFragment.Page.valueOf(station)
+            } catch (_: IllegalArgumentException) {
+                viewModel.stationPage.value = StationsFragment.Page.FRIENDLY
+                if (viewModel.livingStationNameIndex.containsKey(station)) {
+                    viewModel.stationName.value = station
                 }
-                currentGamePage.value = GameFragment.Page.STATIONS
-                binding.mainPageSelector.check(Section.GAME.buttonId)
             }
+            viewModel.currentGamePage.value = GameFragment.Page.STATIONS
+            binding.mainPageSelector.check(Section.GAME.buttonId)
         }
     }
 
@@ -557,11 +637,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupFirebase() {
         Firebase.crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
+        }
+        Firebase.remoteConfig.setConfigSettingsAsync(configSettings)
     }
 
     private fun setupBackPressedCallbacks() {
         val finishCallback =
-            onBackPressedDispatcher.addCallback(this) { supportFinishAfterTransition() }
+            onBackPressedDispatcher.addCallback(this) {
+                if (isUpdateReady) {
+                    updateManager.completeUpdate()
+                } else {
+                    supportFinishAfterTransition()
+                }
+            }
 
         onBackPressedDispatcher.addCallback(this) {
             val dialog =
@@ -644,9 +735,7 @@ class MainActivity : AppCompatActivity() {
                     .setCancelable(true)
                     .apply {
                         if (suggestUpdate) {
-                            setPositiveButton(R.string.check_for_updates) { _, _ ->
-                                openPlayStore()
-                            }
+                            setPositiveButton(R.string.update) { _, _ -> checkForUpdates() }
                         }
                     }
                     .show()
@@ -746,17 +835,120 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openPlayStore() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")))
-        } catch (_: ActivityNotFoundException) {
-            startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=$packageName"),
+    private fun checkForUpdates() {
+        viewModel.viewModelScope.launch {
+            val results =
+                awaitAll(
+                    Firebase.remoteConfig
+                        .fetchAndActivate()
+                        .continueWith { fetchArtemisLatestVersion() }
+                        .asDeferred(),
+                    async {
+                        try {
+                            updateManager.appUpdateInfo.asDeferred().await()
+                        } catch (_: InstallException) {
+                            null
+                        }
+                    },
                 )
-            )
+
+            val maxVersion = results[0] as Version
+            viewModel.maxVersion = maxVersion
+
+            val updateInfo = results[1] as? AppUpdateInfo
+            val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
+
+            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode) ?: return@launch
+
+            val context = this@MainActivity
+
+            AlertDialog.Builder(context)
+                .setTitle(updateAlert.getTitle(context))
+                .setMessage(updateAlert.getMessage(context))
+                .setCancelable(false)
+                .setNegativeButton(R.string.no) { _, _ -> viewModel.playSound(SoundEffect.BEEP_1) }
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                    when (updateAlert) {
+                        is UpdateAlert.Immediate,
+                        is UpdateAlert.ArtemisVersion.Update -> {
+                            updateType = AppUpdateType.IMMEDIATE
+                            startUpdateFlow()
+                        }
+
+                        is UpdateAlert.Flexible -> {
+                            updateType = AppUpdateType.FLEXIBLE
+                            startUpdateFlow()
+                        }
+
+                        is UpdateAlert.ArtemisVersion.Restart -> {
+                            deleteFile(MAX_VERSION_FILE_NAME)
+                            ProcessPhoenix.triggerRebirth(context)
+                        }
+                    }
+                }
+                .show()
         }
+    }
+
+    private fun fetchArtemisLatestVersion(): Version =
+        try {
+                openFileInput(MAX_VERSION_FILE_NAME).use { it.readBytes().decodeToString() }
+            } catch (_: FileNotFoundException) {
+                Firebase.remoteConfig.getString(RemoteConfigKey.artemisLatestVersion).also { ver ->
+                    openFileOutput(MAX_VERSION_FILE_NAME, Context.MODE_PRIVATE).use {
+                        it.write(ver.encodeToByteArray())
+                    }
+                }
+            }
+            .let { VersionString(it).toVersion() }
+
+    private fun startUpdateFlow() {
+        val appUpdateInfoTask = updateManager.appUpdateInfo
+
+        appUpdateInfoTask.addOnSuccessListener { updateInfo ->
+            if (updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                if (updateType == AppUpdateType.FLEXIBLE) {
+                    val listener =
+                        object : InstallStateUpdatedListener {
+                            override fun onStateUpdate(installState: InstallState) {
+                                when (installState.installStatus()) {
+                                    InstallStatus.DOWNLOADED -> onUpdateReady()
+                                    InstallStatus.INSTALLED ->
+                                        updateManager.unregisterListener(this)
+                                    else -> {}
+                                }
+                            }
+                        }
+                    updateManager.registerListener(listener)
+                }
+
+                if (updateInfo.isUpdateTypeAllowed(updateType)) {
+                    updateManager.startUpdateFlowForResult(
+                        updateInfo,
+                        updateResultLauncher,
+                        AppUpdateOptions.newBuilder(updateType).build(),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun onUpdateReady() {
+        isUpdateReady = true
+        AlertDialog.Builder(this@MainActivity)
+            .setTitle(R.string.update_ready_title)
+            .setMessage(R.string.update_ready_message)
+            .setCancelable(false)
+            .setNegativeButton(R.string.update_later) { _, _ ->
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
+            .setPositiveButton(R.string.update_now) { _, _ ->
+                viewModel.playSound(SoundEffect.BEEP_2)
+                isUpdateReady = false
+                updateManager.completeUpdate()
+            }
+            .show()
     }
 
     private fun askForReview() {
@@ -795,6 +987,7 @@ class MainActivity : AppCompatActivity() {
         const val GAME_PAGE_UNSPECIFIED = 6
 
         const val THEME_RES_FILE_NAME = "theme_res.dat"
+        const val MAX_VERSION_FILE_NAME = "max_version.dat"
 
         val PENDING_INTENT_FLAGS =
             PendingIntent.FLAG_UPDATE_CURRENT.or(

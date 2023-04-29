@@ -23,7 +23,7 @@ data class VersionPacketFixture(private val arbVersion: Arb<Version> = Arb.versi
     data class Data(val unknownInt: Int, val legacyFloat: Float, val packetVersion: Version) :
         PacketTestData.Server<VersionPacket> {
         override val version: Version
-            get() = Version.LATEST
+            get() = Version.DEFAULT
 
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(unknownInt)

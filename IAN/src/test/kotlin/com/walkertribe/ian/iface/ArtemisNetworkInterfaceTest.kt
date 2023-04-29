@@ -121,12 +121,12 @@ class ArtemisNetworkInterfaceTest :
             val port = 2010
             val testTimeout = 1.minutes
             val client =
-                KtorArtemisNetworkInterface(debugMode = false).apply {
+                KtorArtemisNetworkInterface(maxVersion = Version.DEFAULT).apply {
                     addListenerModule(TestListener.module)
                     setAutoSendHeartbeat(false)
                 }
             val debugClient =
-                KtorArtemisNetworkInterface(debugMode = true).apply {
+                KtorArtemisNetworkInterface(maxVersion = null).apply {
                     addListenerModule(TestListener.module)
                     setAutoSendHeartbeat(false)
                 }
@@ -196,7 +196,7 @@ class ArtemisNetworkInterfaceTest :
 
                         generator.checkAll { data ->
                             if (shouldSendVersionPacket) {
-                                val version = minOf(Version.LATEST, data.version)
+                                val version = minOf(Version.DEFAULT, data.version)
                                 val versionData = VersionPacketFixture.Data(0, 0f, version)
                                 sendChannel.writePacketWithHeader(
                                     TestPacketTypes.CONNECTED,

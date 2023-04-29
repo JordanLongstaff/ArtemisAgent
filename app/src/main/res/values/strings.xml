@@ -568,6 +568,17 @@
         <item>Bluetooth tethering</item>
         <item>Unknown network</item>
     </string-array>
+    <string name="new_version_restart_message">
+        Artemis version %1$s is now available. In order to support it, you must restart Artemis
+        Agent. If you want to keep using an earlier version of Artemis, you may restart at a later
+        time. Restart now?
+    </string>
+    <string name="new_version_title">Artemis %1$s</string>
+    <string name="new_version_update_message">
+        Artemis version %1$s is now available. In order to support it, Artemis Agent requires an
+        update. You may continue to use Artemis Agent with earlier versions of Artemis, but if you
+        want to connect to Artemis version %1$s, you must update. Update now?
+    </string>
     <string name="next_to">Next: %1$s %2$s %3$s</string>
     <string name="no">No</string>
     <string name="no_enemies">Scanned enemies will be displayed here.</string>
@@ -684,7 +695,32 @@
     <string name="turn_to_heading">Turn to:</string>
     <string name="unknown">Unknown</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="update">Update</string>
+    <string name="update_available_title">Update Required</string>
+    <string name="update_available_message">
+        An update to Artemis Agent is available. Install it now?
+    </string>
+    <string name="update_declined_message">
+        It is recommended that you update Artemis Agent to receive the latest features. Do you want
+        to update?
+    </string>
+    <string name="update_declined_title">Update Declined</string>
+    <string name="update_failed_message">
+        An error occurred while trying to retrieve the update. Try again?
+    </string>
+    <string name="update_failed_title">Update Error</string>
     <string name="update_interval">Update interval</string>
+    <string name="update_later">Later</string>
+    <string name="update_now">Now</string>
+    <string name="update_ready_message">
+        Artemis Agent is ready to update. This requires a restart. When should this happen?
+    </string>
+    <string name="update_ready_title">Update Ready</string>
+    <string name="update_required_title">Update Required</string>
+    <string name="update_required_message">
+        An important update to Artemis Agent is available. It is strongly recommended that you
+        install it now.
+    </string>
     <string name="vessel_data">Vessel data</string>
     <string name="vessel_data_external">External</string>
     <string name="vessel_data_internal">Internal</string>

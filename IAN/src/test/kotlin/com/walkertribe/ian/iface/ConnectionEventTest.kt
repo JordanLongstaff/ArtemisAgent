@@ -68,7 +68,7 @@ class ConnectionEventTest :
                         DisconnectCause.RemoteDisconnect,
                         DisconnectCause.IOError(IOException()),
                         DisconnectCause.PacketParseError(mockk<PacketException>()),
-                        DisconnectCause.UnsupportedVersion(Version.LATEST),
+                        DisconnectCause.UnsupportedVersion(Version.DEFAULT),
                     )
                     .forEach { cause ->
                         describe(cause::class.simpleName ?: cause.toString()) {

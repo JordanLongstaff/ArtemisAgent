@@ -59,7 +59,7 @@ class PacketReader(
      * Returns the server [Version]. Defaults to the latest version, but subject to change if a
      * [VersionPacket] is received.
      */
-    var version = Version.LATEST
+    var version = Version.DEFAULT
 
     private lateinit var payload: Source
 

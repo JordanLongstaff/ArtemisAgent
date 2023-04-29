@@ -32,7 +32,7 @@ import kotlinx.io.IOException
  *   and object updates.
  * * The **sender coroutine**, which writes outgoing packets to the output stream.
  */
-class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
+class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
     ArtemisNetworkInterface, CoroutineScope {
     override val coroutineContext = Dispatchers.IO
 
@@ -54,12 +54,12 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
     private var disconnectCause: DisconnectCause? = DisconnectCause.LocalDisconnect
     private val heartbeatManager = HeartbeatManager(this)
     private val listeners = ListenerRegistry()
-    override var version: Version = Version.LATEST
+    override var version: Version = Version.DEFAULT
         private set(value) {
             if (field == value) return
             field = value
 
-            if (value < Version.MINIMUM || (!debugMode && value > Version.LATEST)) {
+            if (value < Version.MINIMUM || maxVersion?.takeIf { value > it } != null) {
                 disconnectCause = DisconnectCause.UnsupportedVersion(value)
                 stop()
             }

@@ -116,7 +116,7 @@ class AgentViewModel(application: Application) :
     AndroidViewModel(application), ServerDiscoveryRequester.Listener {
     // Connection status
     val networkInterface: ArtemisNetworkInterface by lazy {
-        KtorArtemisNetworkInterface(debugMode = BuildConfig.DEBUG).also {
+        KtorArtemisNetworkInterface(maxVersion = if (BuildConfig.DEBUG) null else maxVersion).also {
             it.addListeners(listeners + cpu.listeners)
         }
     }
@@ -487,8 +487,10 @@ class AgentViewModel(application: Application) :
     val storageDirectories: Array<File> = application.applicationContext.getExternalFilesDirs(null)
 
     // Artemis version
-    var version: Version = Version.LATEST
+    var version: Version = Version.DEFAULT
         private set
+
+    var maxVersion: Version = Version.DEFAULT
 
     // Vessel data
     private val defaultVesselData: VesselData by lazy { VesselData.load(assetsResolver) }

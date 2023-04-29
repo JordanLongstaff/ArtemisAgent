@@ -110,7 +110,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     data object Empty : ObjectParserTestConfig(false) {
         data object Data : PacketTestData.Server<ObjectUpdatePacket> {
             override val version: Version
-                get() = Version.LATEST
+                get() = Version.DEFAULT
 
             override fun buildPayload(): Source = buildObject {}
 
@@ -131,7 +131,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val flags2: BaseFlags2,
         ) : ObjectParserData.Real<ArtemisBase>(objectID, ArtemisBase::class, ObjectType.BASE) {
             override val version: Version
-                get() = Version.LATEST
+                get() = Version.DEFAULT
 
             private val nameFlag = flags1.flag1
             private val shieldsFlag = flags1.flag2
@@ -223,7 +223,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 ObjectType.BLACK_HOLE,
             ) {
             override val version: Version
-                get() = Version.LATEST
+                get() = Version.DEFAULT
 
             private val xFlag = flags.flag1
             private val yFlag = flags.flag2
@@ -419,7 +419,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         class Data internal constructor(objectID: Int, private val flags: PositionFlags) :
             ObjectParserData.Real<ArtemisMine>(objectID, ArtemisMine::class, ObjectType.MINE) {
             override val version: Version
-                get() = Version.LATEST
+                get() = Version.DEFAULT
 
             private val xFlag = flags.flag1
             private val yFlag = flags.flag2
@@ -1181,7 +1181,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 ArtemisPlayer::class,
                 ObjectType.UPGRADES,
             ) {
-            override val version: Version = Version.LATEST
+            override val version: Version = Version.DEFAULT
 
             private val activeFlag: Flag<Byte> = a2.flag1
             private val countFlag: Flag<Byte> = c2.flag5
@@ -1538,7 +1538,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 private val coolFlags: EngineeringByteFlags,
             ) : ObjectParserData.Unobserved(objectID, ObjectType.ENGINEERING_CONSOLE) {
                 override val version: Version
-                    get() = Version.LATEST
+                    get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
                     arrayOf(heatFlags, enFlags, coolFlags).forEach { flags ->
@@ -1699,7 +1699,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             class Data internal constructor(objectID: Int, private val flags: TorpedoFlags) :
                 ObjectParserData.Unobserved(objectID, ObjectType.TORPEDO) {
                 override val version: Version
-                    get() = Version.LATEST
+                    get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
                     writeByte(flags.byteValue)
@@ -1739,7 +1739,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             class Data internal constructor(objectID: Int, private val flags: AsteroidFlags) :
                 ObjectParserData.Unobserved(objectID, ObjectType.ASTEROID) {
                 override val version: Version
-                    get() = Version.LATEST
+                    get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
                     writeByte(flags.byteValue)
@@ -1854,7 +1854,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 private val flags2: DroneFlags2,
             ) : ObjectParserData.Unobserved(objectID, ObjectType.DRONE) {
                 override val version: Version
-                    get() = Version.LATEST
+                    get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
                     arrayOf(flags1, flags2).forEach { writeByte(it.byteValue) }

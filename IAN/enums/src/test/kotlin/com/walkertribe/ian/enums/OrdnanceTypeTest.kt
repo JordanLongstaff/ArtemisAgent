@@ -191,7 +191,7 @@ class OrdnanceTypeTest :
             }
 
             describe("Labels") {
-                val latestVersion = Version.LATEST
+                val latestVersion = Version.DEFAULT
 
                 OrdnanceType.entries.forEach { ordnanceType ->
                     describe(ordnanceType.toString()) {

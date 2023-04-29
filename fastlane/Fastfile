@@ -52,7 +52,6 @@ platform :android do
         upload_to_play_store(
             version_name: "Artemis Agent #{version_name}",
             track: options.fetch(:track, "production"),
-            in_app_update_priority: options.fetch(:priority, 0)
         )
     end
 end

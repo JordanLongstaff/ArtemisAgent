@@ -15,6 +15,7 @@ androidx-test-monitor = "1.7.2"
 androidx-test-runner = "1.6.2"
 androidx-test-orchestrator = "1.5.1"
 app-review = "2.0.2"
+app-update = "2.1.0"
 arcmutate-base = "1.3.2"
 arcmutate-kotlin = "1.3.0"
 barista = "4.3.0"
@@ -53,6 +54,7 @@ okio = "3.10.2"
 pitest = "1.16.1"
 pitest-junit5 = "1.2.1"
 play-services-tasks = "18.2.0"
+process-phoenix = "3.0.0"
 protobuf = "4.29.3"
 protobuf-plugin = "0.9.4"
 task-tree = "4.0.0"
@@ -65,6 +67,7 @@ gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+kotlinx-coroutines-play = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlin-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlin-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlin-datetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlin-io" }
@@ -111,16 +114,20 @@ recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "a
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
 app-review = { module = "com.google.android.play:review", version.ref = "app-review" }
+app-update = { module = "com.google.android.play:app-update", version.ref = "app-update" }
 play-services-tasks = { module = "com.google.android.gms:play-services-tasks", version.ref = "play-services-tasks" }
 
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-config = { module = "com.google.firebase:firebase-config" }
 
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
 
 protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
+
+process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "process-phoenix" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
@@ -174,6 +181,7 @@ classpath = [
 app = [
     "kotlin-stdlib",
     "kotlinx-coroutines",
+    "kotlinx-coroutines-play",
     "kotlinx-datetime",
     "activity",
     "annotation",
@@ -197,7 +205,9 @@ app = [
     "protobuf-javalite",
     "protobuf-kotlin-lite",
     "app-review",
+    "app-update",
     "play-services-tasks",
+    "process-phoenix",
 ]
 app-debug = [
     "leakcanary",
@@ -415,6 +425,7 @@ konsist-runtime = [
 firebase = [
     "firebase-analytics",
     "firebase-crashlytics",
+    "firebase-config",
 ]
 
 arcmutate = [
