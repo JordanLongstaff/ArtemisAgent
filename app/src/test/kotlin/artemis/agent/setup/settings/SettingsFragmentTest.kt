@@ -2,10 +2,6 @@ package artemis.agent.setup.settings
 
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
-import androidx.test.ext.junit.rules.ActivityScenarioRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
@@ -20,12 +16,12 @@ import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItem
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItemChild
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
 
-@RunWith(AndroidJUnit4::class)
-@LargeTest
+@RunWith(RobolectricTestRunner::class)
 class SettingsFragmentTest {
     companion object {
         private val pageTitles = intArrayOf(
@@ -110,7 +106,7 @@ class SettingsFragmentTest {
             val anyEnabled = enabled.any { it }
 
             assertEnabled(allButton)
-            ArtemisAgentTestHelpers.assertEnabled(noneButton, anyEnabled)
+            artemis.agent.ArtemisAgentTestHelpers.assertEnabled(noneButton, anyEnabled)
 
             if (skipToggleTest) return
 
@@ -140,7 +136,7 @@ class SettingsFragmentTest {
         ) {
             clickOn(allButton)
             buttons.forEachIndexed { index, button ->
-                ArtemisAgentTestHelpers.assertChecked(button, checked)
+                artemis.agent.ArtemisAgentTestHelpers.assertChecked(button, checked)
                 ifEnabled?.invoke(index, checked)
             }
             assertEnabled(otherButton)
@@ -149,9 +145,9 @@ class SettingsFragmentTest {
             buttons.forEach { button ->
                 booleanArrayOf(true, false).forEach { on ->
                     clickOn(button)
-                    ArtemisAgentTestHelpers.assertChecked(button, checked != on)
+                    artemis.agent.ArtemisAgentTestHelpers.assertChecked(button, checked != on)
                     assertEnabled(otherButton)
-                    ArtemisAgentTestHelpers.assertEnabled(allButton, on)
+                    artemis.agent.ArtemisAgentTestHelpers.assertEnabled(allButton, on)
                 }
             }
         }
@@ -186,7 +182,7 @@ class SettingsFragmentTest {
             val lastIndex = orderToClick.size - 1
             orderToClick.forEachIndexed { index, id ->
                 clickOn(id)
-                ArtemisAgentTestHelpers.assertChecked(defaultSort, index == lastIndex)
+                artemis.agent.ArtemisAgentTestHelpers.assertChecked(defaultSort, index == lastIndex)
             }
         }
 
@@ -213,16 +209,17 @@ class SettingsFragmentTest {
             scrollTo(dividerId)
             assertDisplayed(titleId, titleText)
             assertDisplayed(buttonId)
-            ArtemisAgentTestHelpers.assertChecked(buttonId, isChecked)
+            artemis.agent.ArtemisAgentTestHelpers.assertChecked(buttonId, isChecked)
         }
     }
 
-    @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
-
     @Test
     fun settingsMenuTest() {
-        openSettingsMenu()
-        assertDisplayed(R.id.settingsReset)
+        Robolectric.buildActivity(MainActivity::class.java).use {
+            it.setup()
+
+            openSettingsMenu()
+            assertDisplayed(R.id.settingsReset)
+        }
     }
 }

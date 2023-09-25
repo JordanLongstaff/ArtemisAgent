@@ -39,6 +39,12 @@ android {
         jvmTarget = javaVersion.toString()
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
     buildTypes {
         configureEach {
             resValue("string", "app_name", appName)
@@ -84,17 +90,20 @@ dependencies {
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
-    androidTestImplementation(libs.bundles.app.androidTest)
+    testImplementation(libs.bundles.app.test)
 
     constraints {
-        androidTestImplementation(libs.jsoup) {
+        testImplementation(libs.jsoup) {
             because("Version 1.14.2 patches a high-level security vulnerability")
         }
-        androidTestImplementation(libs.guava) {
+        testImplementation(libs.guava) {
             because("Version 32.0.0-android patches a moderate security vulnerability")
         }
-        androidTestImplementation(libs.accessibility.test.framework) {
+        testImplementation(libs.accessibility.test.framework) {
             because("Needed to resolve static method registerDefaultInstance")
+        }
+        testImplementation(libs.espresso.core) {
+            because("Needed to bypass IllegalAccessException when running Robolectric tests")
         }
     }
 

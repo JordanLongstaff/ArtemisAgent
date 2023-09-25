@@ -5,7 +5,6 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
@@ -170,10 +169,10 @@ class EnemySettingsFragmentTest {
 
             enemySortingButtonIDs.forEachIndexed { index, id ->
                 assertDisplayed(id, enemySortingLabels[index])
-                ArtemisAgentTestHelpers.assertChecked(id, sortMethods[index])
+                artemis.agent.ArtemisAgentTestHelpers.assertChecked(id, sortMethods[index])
             }
 
-            ArtemisAgentTestHelpers.assertChecked(
+            artemis.agent.ArtemisAgentTestHelpers.assertChecked(
                 R.id.enemySortingDefaultButton,
                 sortMethods.none { it },
             )

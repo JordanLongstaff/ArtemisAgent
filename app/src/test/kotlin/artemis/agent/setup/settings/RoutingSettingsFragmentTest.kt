@@ -5,7 +5,6 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.game.route.RouteTaskIncentive
@@ -151,7 +150,7 @@ class RoutingSettingsFragmentTest {
 
             routingIncentiveButtons.forEachIndexed { index, id ->
                 assertDisplayed(id, routingIncentiveLabels[index])
-                ArtemisAgentTestHelpers.assertChecked(id, incentives[index])
+                artemis.agent.ArtemisAgentTestHelpers.assertChecked(id, incentives[index])
             }
 
             if (incentives.all { it }) {

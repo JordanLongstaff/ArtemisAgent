@@ -5,7 +5,6 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
@@ -136,10 +135,10 @@ class AllySettingsFragmentTest {
 
             allySortingButtonIDs.forEachIndexed { index, id ->
                 assertDisplayed(id, allySortingLabels[index])
-                ArtemisAgentTestHelpers.assertChecked(id, sortMethods[index])
+                artemis.agent.ArtemisAgentTestHelpers.assertChecked(id, sortMethods[index])
             }
 
-            ArtemisAgentTestHelpers.assertChecked(
+            artemis.agent.ArtemisAgentTestHelpers.assertChecked(
                 R.id.allySortingDefaultButton,
                 sortMethods.none { it },
             )
@@ -176,12 +175,12 @@ class AllySettingsFragmentTest {
             ).forEach { (firstButton, energyFirst) ->
                 clickOn(firstButton)
                 assertChecked(R.id.allySortingStatusButton)
-                ArtemisAgentTestHelpers.assertChecked(R.id.allySortingEnergyButton, energyFirst)
+                artemis.agent.ArtemisAgentTestHelpers.assertChecked(R.id.allySortingEnergyButton, energyFirst)
                 assertUnchecked(R.id.allySortingDefaultButton)
 
                 clickOn(R.id.allySortingEnergyButton)
                 assertChecked(R.id.allySortingStatusButton)
-                ArtemisAgentTestHelpers.assertChecked(R.id.allySortingEnergyButton, !energyFirst)
+                artemis.agent.ArtemisAgentTestHelpers.assertChecked(R.id.allySortingEnergyButton, !energyFirst)
 
                 clickOn(R.id.allySortingStatusButton)
                 assertUnchecked(R.id.allySortingStatusButton)

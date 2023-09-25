@@ -44,7 +44,9 @@ pitest-junit5 = "1.2.1"
 play-services-tasks = "18.2.0"
 protobuf = "4.28.0"
 protobuf-plugin = "0.9.4"
+robolectric = "4.13"
 task-tree = "4.0.0"
+truth = "1.4.4"
 
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
@@ -108,8 +110,12 @@ test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" 
 test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
 test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 
+test-fragment = { module = "androidx.fragment:fragment-testing", version.ref = "androidx-fragment" }
+
 barista = { module = "com.adevinta.android:barista", version.ref = "barista" }
+
 junit = { module = "junit:junit", version.ref = "junit" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
 
 kotest-assertions-api = { module = "io.kotest:kotest-assertions-api", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
@@ -123,6 +129,8 @@ kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", versio
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
 
@@ -134,6 +142,7 @@ konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 accessibility-test-framework = { module = "com.google.android.apps.common.testing.accessibility.framework:accessibility-test-framework", version = "latest.release" }
 bouncycastle = { module = "org.bouncycastle:bcpkix-jdk18on", version = "latest.release" }
 commons-compress = { module = "org.apache.commons:commons-compress", version = "latest.release" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
 netty = { module = "io.netty:netty-codec-http2", version = "4.1.+" }
@@ -174,10 +183,13 @@ app = [
 app-debug = [
     "leakcanary",
 ]
-app-androidTest = [
+app-test = [
     "barista",
     "junit",
+    "robolectric",
+    "truth",
     "test-core",
+    "test-fragment",
     "test-junit",
     "test-runner",
 ]
