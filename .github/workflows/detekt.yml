@@ -63,7 +63,7 @@ jobs:
     - name: Find SARIF reports
       id: reports
       run: |
-        echo "reports=$(find . -name detekt.sarif) | jq -R -s -c 'split("\n")[:-1]'" >> $GITHUB_OUTPUT
+        echo "reports=$(find . -name detekt.sarif | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   upload:
     name: Upload SARIF reports
