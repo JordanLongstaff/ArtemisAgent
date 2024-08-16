@@ -32,30 +32,45 @@ permissions:
 jobs:
   # This workflow contains a single job called "scan"
   scan:
-    name: Detekt
+    name: Detekt scan
     # The type of runner that the job will run on
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+
+    # Dynamic matrix for SARIF reports
+    outputs:
+      reports: ${{ steps.reports.outputs.reports }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v4
 
-    # Sets up the detekt cli
-    - name: Setup Detekt
-      uses: ConorMacBride/install-package@v1.1.0
-      with:
-        brew: detekt
+    # Sets up the Gradle wrapper for the Detekt task
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
 
     # Performs static analysis using Detekt
     - name: Run Detekt
       continue-on-error: true
-      run: |
-        detekt --input ${{ github.workspace }} --report sarif:${{ github.workspace }}/detekt.sarif.json
+      run: ./gradlew detekt
 
+    - name: Find SARIF reports
+      id: reports
+      run: |
+        echo "::set-output name=reports::$(find . -name detekt.sarif)"
+
+  upload:
+    name: Upload SARIF reports
+    runs-on: ubuntu-latest
+    needs: scan
+    strategy:
+      matrix: ${{ fromJson(needs.scan.outputs.reports) }}
+
+    steps:
     # Uploads results to GitHub repository using the upload-sarif action
-    - uses: github/codeql-action/upload-sarif@v3
+    - name: Upload ${{ matrix.reports }}
+      uses: github/codeql-action/upload-sarif@v3
       with:
         # Path to SARIF file relative to the root of the repository
-        sarif_file: ${{ github.workspace }}/detekt.sarif.json
+        sarif_file: ${{ matrix.reports }}
         checkout_path: ${{ github.workspace }}

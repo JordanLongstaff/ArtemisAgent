@@ -48,6 +48,12 @@ plugins {
 
 tasks.detekt {
     jvmTarget = javaVersion.toString()
+
+    reports {
+        sarif {
+            required = true
+        }
+    }
 }
 
 tasks.detektBaseline {
