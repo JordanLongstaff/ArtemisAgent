@@ -64,7 +64,7 @@ jobs:
       id: reports
       run: |
         files=$(find . -name detekt.sarif)
-        echo "reports={ 'reports': $(echo $files | jq -R -s -c 'split("\n")[:-1]') }" | tr ' ' ',' >> $GITHUB_OUTPUT
+        echo "reports={ 'reports': $(echo $files | jq -R -s -c 'split("\n")[:-1]') }" >> $GITHUB_OUTPUT
         echo $files | xargs zip sarif-reports.zip
 
     - name: Upload SARIF reports as artifacts
