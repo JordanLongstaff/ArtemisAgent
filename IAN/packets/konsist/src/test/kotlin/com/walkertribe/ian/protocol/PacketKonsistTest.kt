@@ -9,6 +9,7 @@ import com.lemonappdev.konsist.api.ext.list.withParentOf
 import com.lemonappdev.konsist.api.ext.list.withRepresentedTypeOf
 import com.lemonappdev.konsist.api.ext.list.withTopLevel
 import com.lemonappdev.konsist.api.ext.provider.hasAnnotationOf
+import com.lemonappdev.konsist.api.ext.provider.hasParentOf
 import com.lemonappdev.konsist.api.verify.assertFalse
 import com.lemonappdev.konsist.api.verify.assertTrue
 import com.walkertribe.ian.protocol.core.SimpleEventPacket
@@ -56,7 +57,7 @@ class PacketKonsistTest : DescribeSpec({
                 },
                 classes.withAnnotationOf(PacketType::class)
             ) { packetClass ->
-                packetClass.assertTrue { it.hasParentWithName("Packet.Server") }
+                packetClass.assertTrue { it.hasParentOf<Packet.Server>() }
             }
         }
 
