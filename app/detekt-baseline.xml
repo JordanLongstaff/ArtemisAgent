@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
-    <ID>ComplexCondition:RoutingGraph.kt$RoutingGraph.Companion$sourceX.isNaN() || sourceZ.isNaN() || destX.isNaN() || destZ.isNaN()</ID>
     <ID>CyclomaticComplexMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
     <ID>CyclomaticComplexMethod:AlliesFragment.kt$AlliesFragment$override fun onViewCreated(view: View, savedInstanceState: Bundle?)</ID>
     <ID>CyclomaticComplexMethod:AlliesFragment.kt$AlliesFragment.AllyInfoBinder$fun bind(entry: Ally, viewModel: AgentViewModel)</ID>
