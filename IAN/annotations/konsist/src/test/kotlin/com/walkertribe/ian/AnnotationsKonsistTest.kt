@@ -16,7 +16,7 @@ class AnnotationsKonsistTest : DescribeSpec({
         interfaces.shouldBeEmpty()
         objects.shouldBeEmpty()
 
-        withData(nameFn = { it.fullyQualifiedName }, classes) { cls ->
+        withData(nameFn = { it.fullyQualifiedName.toString() }, classes) { cls ->
             cls.assertTrue { it.hasAnnotationModifier }
         }
     }

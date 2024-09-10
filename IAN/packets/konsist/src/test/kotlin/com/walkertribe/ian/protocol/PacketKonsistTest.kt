@@ -41,7 +41,7 @@ class PacketKonsistTest : DescribeSpec({
         describe("Packet.Server subclasses have @PacketType annotation") {
             withData(
                 nameFn = {
-                    classNameRegex.find(it.fullyQualifiedName)?.value?.substring(1) ?: it.name
+                    it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
                 classes.withParentOf(Packet.Server::class),
             ) { packetClass ->
@@ -52,7 +52,7 @@ class PacketKonsistTest : DescribeSpec({
         describe("Packet classes with @PacketType annotation extend Packet.Server") {
             withData(
                 nameFn = {
-                    classNameRegex.find(it.fullyQualifiedName)?.value?.substring(1) ?: it.name
+                    it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
                 classes.withAnnotationOf(PacketType::class),
             ) { packetClass ->
@@ -63,7 +63,7 @@ class PacketKonsistTest : DescribeSpec({
         describe("@PacketType annotations use type from CorePacketType object") {
             withData(
                 nameFn = {
-                    classNameRegex.find(it.fullyQualifiedName)?.value?.substring(1) ?: it.name
+                    it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
                 classes.withAnnotationOf(PacketType::class),
             ) { packetClass ->
@@ -86,7 +86,7 @@ class PacketKonsistTest : DescribeSpec({
         describe("SimpleEventPacket subclasses have @PacketSubtype annotation") {
             withData(
                 nameFn = {
-                    classNameRegex.find(it.fullyQualifiedName)?.value?.substring(1) ?: it.name
+                    it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
                 packetClasses.withParentOf(SimpleEventPacket::class),
             ) { packetClass ->
@@ -97,7 +97,7 @@ class PacketKonsistTest : DescribeSpec({
         describe("Packet classes with @PacketSubtype annotation extend SimpleEventPacket") {
             withData(
                 nameFn = {
-                    classNameRegex.find(it.fullyQualifiedName)?.value?.substring(1) ?: it.name
+                    it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
                 classes.withAnnotationOf(PacketSubtype::class),
             ) { packetClass ->
@@ -110,7 +110,7 @@ class PacketKonsistTest : DescribeSpec({
         describe("@PacketSubtype annotations use subtype from SimpleEventPacket.Subtype object") {
             withData(
                 nameFn = {
-                    classNameRegex.find(it.fullyQualifiedName)?.value?.substring(1) ?: it.name
+                    it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
                 classes.withAnnotationOf(PacketSubtype::class),
             ) { packetClass ->
@@ -137,7 +137,7 @@ class PacketKonsistTest : DescribeSpec({
         describe("Client packet classes have neither @PacketType nor @PacketSubtype") {
             withData(
                 nameFn = {
-                    classNameRegex.find(it.fullyQualifiedName)?.value?.substring(1) ?: it.name
+                    it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
                 classes.withParentOf(Packet.Client::class, indirectParents = true),
             ) { packetClass ->
