@@ -36,6 +36,12 @@ jobs:
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
         dependency-graph: generate-and-submit
 
+    - name: Set up Android Platform-Tools from cache
+      uses: maxim-lobanov/setup-android-tools@v1
+      with:
+        packages: platform-tools
+        cache: true
+
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
