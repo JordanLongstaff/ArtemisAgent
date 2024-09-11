@@ -41,21 +41,6 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v4
 
-    # Sets up the detekt cli
-    - name: Setup Detekt
-      uses: ConorMacBride/install-package@v1.1.0
-      with:
-        brew: detekt
-
     # Performs static analysis using Detekt
     - name: Run Detekt
-      continue-on-error: true
-      run: |
-        detekt --input ${{ github.workspace }} --report sarif:${{ github.workspace }}/detekt.sarif.json
-
-    # Uploads results to GitHub repository using the upload-sarif action
-    - uses: github/codeql-action/upload-sarif@v3
-      with:
-        # Path to SARIF file relative to the root of the repository
-        sarif_file: ${{ github.workspace }}/detekt.sarif.json
-        checkout_path: ${{ github.workspace }}
+      uses: natiginfo/action-detekt-all@1.23.6
