@@ -34,6 +34,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
       with:
         cache-encryption-key: ${{ secrets.GradleEncryptionKey }}
+        cache-read-only: false
         dependency-graph: generate-and-submit
 
     - name: Build with Gradle Wrapper
