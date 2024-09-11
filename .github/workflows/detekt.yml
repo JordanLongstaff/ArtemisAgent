@@ -34,7 +34,7 @@ jobs:
   scan:
     name: Detekt
     # The type of runner that the job will run on
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -43,9 +43,9 @@ jobs:
 
     # Sets up the detekt cli
     - name: Setup Detekt
-      uses: ConorMacBride/install-package@v1.1.0
+      uses: peter-murray/setup-detekt@v2
       with:
-        brew: detekt
+        detekt_version: v1.23.7
 
     # Performs static analysis using Detekt
     - name: Run Detekt
