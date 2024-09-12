@@ -42,7 +42,7 @@ okio = "3.9.0"
 pitest = "1.16.1"
 pitest-junit5 = "1.2.1"
 play-services-tasks = "18.2.0"
-protobuf = "4.28.0"
+protobuf = "4.28.1"
 protobuf-plugin = "0.9.4"
 task-tree = "4.0.0"
 
