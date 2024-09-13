@@ -9,10 +9,9 @@
 # Public documentation: https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review#dependency-review-enforcement
 name: 'Dependency review'
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_run:
+    workflows: [Java CI with Gradle]
+    types: [completed]
 
 # If using a dependency submission action in this workflow this permission will need to be set to:
 #
@@ -21,6 +20,7 @@ on:
 #
 # https://docs.github.com/en/enterprise-cloud@latest/code-security/supply-chain-security/understanding-your-software-supply-chain/using-the-dependency-submission-api
 permissions:
+  actions: read
   contents: write
   # Write permissions for pull-requests are required for using the `comment-summary-in-pr` option, comment out if you aren't using this option
   pull-requests: write
@@ -41,6 +41,11 @@ jobs:
       # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v4
+
+      - name: Download and submit Gradle dependency graph
+        uses: gradle/actions/dependency-submission@v4
+        with:
+          dependency-graph: download-and-submit
 
   dependency-review:
     name: 'Dependency review'

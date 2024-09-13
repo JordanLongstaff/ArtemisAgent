@@ -18,7 +18,7 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
     - uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
-        dependency-graph: generate-and-submit
+        dependency-graph: generate-and-upload
         dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
     - name: Build with Gradle Wrapper
