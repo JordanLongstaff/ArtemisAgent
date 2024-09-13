@@ -34,6 +34,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
       with:
         dependency-graph: generate-and-submit
+        dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
     - name: Build with Gradle Wrapper
       run: ./gradlew build
