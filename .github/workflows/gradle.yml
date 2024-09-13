@@ -28,11 +28,16 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Set up Android SDK Tools
+      uses: android-actions/setup-android@v3.2.1
+
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
+        cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+        cache-read-only: false
         dependency-graph: generate-and-submit
         dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
