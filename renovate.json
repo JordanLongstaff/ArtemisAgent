@@ -2,5 +2,16 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "automerge": true,
+  "ignoreDeps": ["gradle"],
+  "packageRules": [
+    {
+      "groupName": "kotlin and ksp",
+      "matchPackageNames": [
+        "kotlin",
+        "ksp"
+      ]
+    }
   ]
 }
