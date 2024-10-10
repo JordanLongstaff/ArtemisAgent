@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "autoApprove": true,
   "automerge": true,
   "ignoreDeps": ["gradle"],
   "packageRules": [
