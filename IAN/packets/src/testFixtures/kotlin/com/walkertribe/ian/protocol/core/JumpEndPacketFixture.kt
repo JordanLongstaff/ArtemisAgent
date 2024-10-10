@@ -7,9 +7,9 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.map
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class JumpEndPacketFixture(
     arbVersion: Arb<Version> = Arb.version(),
@@ -19,8 +19,8 @@ class JumpEndPacketFixture(
     class Data internal constructor(
         override val version: Version,
     ): PacketTestData.Server<JumpEndPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.JUMP_END.toInt())
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.JUMP_END.toInt())
         }
 
         override fun validate(packet: JumpEndPacket) {

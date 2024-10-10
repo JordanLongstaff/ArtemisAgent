@@ -6,6 +6,7 @@ import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.readShortLittleEndian
+import io.ktor.utils.io.core.readTextExactCharacters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -59,10 +60,10 @@ class ServerDiscoveryRequester(
                         if (ack == Server.ACK) {
                             // only accept data starting with ACK
                             val ipLength = packet.readShortLittleEndian().toInt()
-                            val ip = packet.readTextExact(ipLength)
+                            val ip = packet.readTextExactCharacters(ipLength)
 
                             val hostnameLength = packet.readShortLittleEndian().toInt()
-                            val hostname = packet.readTextExact(hostnameLength)
+                            val hostname = packet.readTextExactCharacters(hostnameLength)
                             listener.onDiscovered(Server(ip, hostname))
                         }
                     } while (true)

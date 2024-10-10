@@ -26,10 +26,8 @@ import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeFully
-import io.ktor.utils.io.core.writeShortLittleEndian
 import io.ktor.utils.io.core.writeText
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -38,6 +36,8 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.io.Source
+import kotlinx.io.writeShortLe
 
 class ServerDiscoveryRequesterTest : DescribeSpec({
     failfast = true
@@ -56,7 +56,7 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
             ) { ip, hostName -> Server(ip, hostName) },
         ).next()
 
-        lateinit var packet: ByteReadPacket
+        lateinit var packet: Source
         val discoveredServers = mutableListOf<Server>()
         var onQuitCalled = false
 
@@ -111,10 +111,10 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
                 }
 
                 it("Datagram contains ENQ byte") {
-                    packet.canRead().shouldBeTrue()
+                    packet.exhausted().shouldBeFalse()
                     val enq = packet.readByte()
                     enq shouldBeEqual Server.ENQ
-                    packet.canRead().shouldBeFalse()
+                    packet.exhausted().shouldBeTrue()
                 }
 
                 it("Discovered all broadcasting servers") {
@@ -130,10 +130,10 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
                                     packet = buildPacket {
                                         writeByte(Server.ACK)
 
-                                        writeShortLittleEndian(ip.length.toShort())
+                                        writeShortLe(ip.length.toShort())
                                         writeText(ip)
 
-                                        writeShortLittleEndian(hostName.length.toShort())
+                                        writeShortLe(hostName.length.toShort())
                                         writeText(hostName)
 
                                         writeByte(0)

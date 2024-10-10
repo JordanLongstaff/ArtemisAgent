@@ -10,7 +10,6 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
-import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +21,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.datetime.Clock
+import kotlinx.io.IOException
 
 /**
  * Default implementation of [ArtemisNetworkInterface] that uses Ktor. When started, it launches
@@ -51,7 +51,7 @@ class KtorArtemisNetworkInterface(
     internal lateinit var connectionListenerJob: Job
 
     internal val sendingChannel = Channel<Packet.Client>(Channel.BUFFERED)
-    internal val parseResultsChannel = Channel<ParseResult>(Channel.BUFFERED)
+    internal val parseResultsChannel = Channel<ParseResult.Success>(Channel.BUFFERED)
     internal val connectionEventChannel = Channel<ConnectionEvent>(Channel.BUFFERED)
     internal var startTime: Long? = null; private set
     private var disconnectCause: DisconnectCause? = DisconnectCause.LocalDisconnect
@@ -142,15 +142,12 @@ class KtorArtemisNetworkInterface(
 
             receiveJob = launch(receiveExceptionHandler) {
                 while (isRunning) {
-                    // read packet
-                    val result = reader.readPacket()
-
-                    if (result is ParseResult.Fail) {
-                        throw result.exception
+                    // read packet and process
+                    when (val result = reader.readPacket()) {
+                        is ParseResult.Success -> parseResultsChannel.send(result)
+                        is ParseResult.Fail -> throw result.exception
+                        else -> { }
                     }
-
-                    // Enqueue to the event dispatch thread
-                    parseResultsChannel.send(result)
                 }
             }
 

@@ -1,7 +1,7 @@
 package com.walkertribe.ian.util
 
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readBytes
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
 
 /**
  * Provides easy reading and writing of bits in a bit field. The bytes are little-endian, so in the
@@ -29,8 +29,8 @@ class BitField(private val bitCount: Int) {
      * Creates a BitField large enough to accommodate the enumerated bits, and
      * stores the indicated bytes in it.
      */
-    internal constructor(bitCount: Int, packet: ByteReadPacket) : this(bitCount) {
-        packet.readBytes(byteCount).copyInto(this.bytes)
+    internal constructor(bitCount: Int, packet: Source) : this(bitCount) {
+        packet.readByteArray(byteCount).copyInto(this.bytes)
     }
 
     /**
@@ -69,4 +69,4 @@ class BitField(private val bitCount: Int) {
  */
 fun countBytes(bitCount: Int): Int = bitCount / Byte.SIZE_BITS + 1
 
-fun ByteReadPacket.readBitField(bitCount: Int): BitField = BitField(bitCount, this)
+fun Source.readBitField(bitCount: Int): BitField = BitField(bitCount, this)

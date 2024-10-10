@@ -12,7 +12,7 @@ import io.kotest.property.arbitrary.nonNegativeInt
 import io.kotest.property.arbitrary.orNull
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
-import io.ktor.utils.io.errors.IOException
+import kotlinx.io.IOException
 
 class DisconnectCauseTest : DescribeSpec({
     describe("DisconnectCause") {

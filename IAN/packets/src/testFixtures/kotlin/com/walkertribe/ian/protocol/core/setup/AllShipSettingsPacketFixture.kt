@@ -26,10 +26,10 @@ import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.numericFloat
 import io.kotest.property.arbitrary.of
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeFloatLittleEndian
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeFloatLe
+import kotlinx.io.writeIntLe
 
 class AllShipSettingsPacketFixture private constructor(
     override val specName: String,
@@ -41,15 +41,15 @@ class AllShipSettingsPacketFixture private constructor(
         val shouldWriteAccentColor: Boolean,
         val ships: List<Pair<Int, Ship>>,
     ) : PacketTestData.Server<AllShipSettingsPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.SHIP_SETTINGS.toInt())
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.SHIP_SETTINGS.toInt())
             ships.forEach { (hasName, ship) ->
-                writeIntLittleEndian(ship.drive.ordinal)
-                writeIntLittleEndian(ship.shipType)
+                writeIntLe(ship.drive.ordinal)
+                writeIntLe(ship.shipType)
                 if (shouldWriteAccentColor) {
-                    writeFloatLittleEndian(ship.accentColor)
+                    writeFloatLe(ship.accentColor)
                 }
-                writeIntLittleEndian(hasName)
+                writeIntLe(hasName)
                 if (hasName != 0) {
                     writeString(ship.name.shouldNotBeNull())
                 }

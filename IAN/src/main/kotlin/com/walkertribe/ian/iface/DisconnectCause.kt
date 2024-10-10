@@ -2,7 +2,7 @@ package com.walkertribe.ian.iface
 
 import com.walkertribe.ian.protocol.PacketException
 import com.walkertribe.ian.util.Version
-import io.ktor.utils.io.errors.IOException
+import kotlinx.io.IOException
 
 /**
  * Indicates the reason that the connection was terminated.

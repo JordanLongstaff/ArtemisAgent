@@ -11,10 +11,10 @@ import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
-import io.ktor.utils.io.errors.IOException
 import io.mockk.clearMocks
 import io.mockk.mockk
 import kotlinx.datetime.Clock
+import kotlinx.io.IOException
 import kotlin.reflect.KClass
 
 class ConnectionEventTest : DescribeSpec({

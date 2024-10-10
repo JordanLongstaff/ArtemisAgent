@@ -9,8 +9,8 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.map
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
 class AudioCommandPacketFixture private constructor(
     audioCommand: AudioCommand,
@@ -27,9 +27,9 @@ class AudioCommandPacketFixture private constructor(
             packet.command shouldBeEqual audioCommand
         }
 
-        override fun validatePayload(payload: ByteReadPacket) {
-            payload.readIntLittleEndian() shouldBeEqual audioID
-            payload.readIntLittleEndian() shouldBeEqual audioCommand.ordinal
+        override fun validatePayload(payload: Source) {
+            payload.readIntLe() shouldBeEqual audioID
+            payload.readIntLe() shouldBeEqual audioCommand.ordinal
         }
     }
 

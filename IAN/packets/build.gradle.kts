@@ -53,6 +53,7 @@ dependencies {
     ksp(libs.ksp.koin)
 
     implementation(libs.kotlin.reflect)
+    implementation(libs.kotlinx.io)
 
     testImplementation(testFixtures(project(":IAN:listener")))
     testImplementation(testFixtures(project(":IAN:vesseldata")))
@@ -63,6 +64,8 @@ dependencies {
     testFixturesApi(project(":IAN:util"))
     testFixturesApi(project(":IAN:vesseldata"))
     testFixturesApi(project(":IAN:world"))
+
+    testFixturesApi(libs.kotlinx.io)
 
     testFixturesImplementation(testFixtures(project(":IAN:enums")))
     testFixturesImplementation(testFixtures(project(":IAN:listener")))

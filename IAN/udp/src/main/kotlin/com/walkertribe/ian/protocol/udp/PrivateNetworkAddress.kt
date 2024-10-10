@@ -1,6 +1,6 @@
 package com.walkertribe.ian.protocol.udp
 
-import io.ktor.utils.io.errors.IOException
+import kotlinx.io.IOException
 import java.net.NetworkInterface
 
 /**

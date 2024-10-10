@@ -13,9 +13,9 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class BiomechRagePacketFixture(
     arbVersion: Arb<Version> = Arb.version(),
@@ -24,9 +24,9 @@ class BiomechRagePacketFixture(
         override val version: Version,
         private val rage: Int,
     ) : PacketTestData.Server<BiomechRagePacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.BIOMECH_STANCE.toInt())
-            writeIntLittleEndian(rage)
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.BIOMECH_STANCE.toInt())
+            writeIntLe(rage)
         }
 
         override fun validate(packet: BiomechRagePacket) {
