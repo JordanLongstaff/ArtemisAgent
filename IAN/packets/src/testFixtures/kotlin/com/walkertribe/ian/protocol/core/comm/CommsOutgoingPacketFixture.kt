@@ -35,8 +35,8 @@ import io.kotest.property.exhaustive.enum
 import io.kotest.property.exhaustive.map
 import io.kotest.property.exhaustive.merge
 import io.kotest.property.exhaustive.of
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
 sealed class CommsOutgoingPacketFixture private constructor(
     val recipientGen: Gen<ArtemisObject<*>>,
@@ -66,12 +66,12 @@ sealed class CommsOutgoingPacketFixture private constructor(
             packet.recipientId shouldBeEqual recipient.id
         }
 
-        override fun validatePayload(payload: ByteReadPacket) {
-            payload.readIntLittleEndian() shouldBeEqual expectedRecipientType.ordinal
-            payload.readIntLittleEndian() shouldBeEqual recipient.id
-            payload.readIntLittleEndian() shouldBeEqual message.id
-            payload.readIntLittleEndian() shouldBeEqual expectedArgument
-            payload.readIntLittleEndian() shouldBeEqual UNKNOWN_ARG_2
+        override fun validatePayload(payload: Source) {
+            payload.readIntLe() shouldBeEqual expectedRecipientType.ordinal
+            payload.readIntLe() shouldBeEqual recipient.id
+            payload.readIntLe() shouldBeEqual message.id
+            payload.readIntLe() shouldBeEqual expectedArgument
+            payload.readIntLe() shouldBeEqual UNKNOWN_ARG_2
         }
     }
 

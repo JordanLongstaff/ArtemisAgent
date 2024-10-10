@@ -36,6 +36,7 @@ detekt {
 
 dependencies {
   api(libs.kotlin.stdlib)
+  api(libs.kotlinx.io)
   implementation(libs.bundles.ian.util)
   testImplementation(libs.bundles.ian.util.test)
   testFixturesImplementation(libs.bundles.ian.util.test.fixtures)

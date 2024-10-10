@@ -13,10 +13,10 @@ import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.float
 import io.kotest.property.arbitrary.int
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeFloatLittleEndian
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeFloatLe
+import kotlinx.io.writeIntLe
 
 data class VersionPacketFixture(
     private val arbVersion: Arb<Version> = Arb.version(),
@@ -28,12 +28,12 @@ data class VersionPacketFixture(
     ) : PacketTestData.Server<VersionPacket> {
         override val version: Version get() = Version.LATEST
 
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(unknownInt)
-            writeFloatLittleEndian(legacyFloat)
-            writeIntLittleEndian(packetVersion.major)
-            writeIntLittleEndian(packetVersion.minor)
-            writeIntLittleEndian(packetVersion.patch)
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(unknownInt)
+            writeFloatLe(legacyFloat)
+            writeIntLe(packetVersion.major)
+            writeIntLe(packetVersion.minor)
+            writeIntLe(packetVersion.patch)
         }
 
         override fun validate(packet: VersionPacket) {

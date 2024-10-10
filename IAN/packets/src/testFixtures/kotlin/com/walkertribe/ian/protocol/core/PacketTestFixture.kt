@@ -7,19 +7,16 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.property.Gen
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.core.BytePacketBuilder
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.writeFully
-import io.ktor.utils.io.core.writeIntLittleEndian
-import io.ktor.utils.io.core.writeShort
-import io.ktor.utils.io.errors.EOFException
-import io.ktor.utils.io.writeIntLittleEndian
-import io.mockk.clearMocks
-import io.mockk.coEvery
-import io.mockk.coJustRun
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
+import io.ktor.utils.io.bits.reverseByteOrder
+import io.ktor.utils.io.core.remaining
+import io.ktor.utils.io.core.writeText
+import io.ktor.utils.io.readInt
+import io.ktor.utils.io.readPacket
+import io.ktor.utils.io.writeInt
+import io.ktor.utils.io.writePacket
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 sealed class PacketTestFixture<T : Packet>(val packetType: Int) {
     abstract class Client<T : Packet.Client>(
@@ -38,8 +35,10 @@ sealed class PacketTestFixture<T : Packet>(val packetType: Int) {
             )
         }
 
-        fun validateHeader(header: List<Int>) {
+        suspend fun readPacket(channel: ByteReadChannel): Source {
+            val header = List(NUM_HEADER_INTS) { channel.readInt().reverseByteOrder() }
             header shouldContainExactly expectedHeader
+            return channel.readPacket(header.last())
         }
     }
 
@@ -60,44 +59,19 @@ sealed class PacketTestFixture<T : Packet>(val packetType: Int) {
     open suspend fun describeMore(scope: DescribeSpecContainerScope) { }
 
     companion object {
-        suspend fun ByteReadChannel.prepare(
-            packetType: Int,
-            payload: ByteReadPacket,
-        ) {
-            val ints = mutableListOf<Int>()
-            val payloadSlot = slot<ByteReadPacket>()
+        private const val NUM_HEADER_INTS = 5
 
-            val sendChannel = mockk<ByteWriteChannel> {
-                coJustRun { writeInt(capture(ints)) }
-                coJustRun { writePacket(capture(payloadSlot)) }
-                every { flush() } answers {
-                    clearMocks(this@prepare)
-                    val packet = payloadSlot.captured
-
-                    coEvery { readInt() } returnsMany ints andThenThrows EOFException()
-                    coEvery { readPacket(packet.remaining.toInt()) } returns packet
-                    every { cancel(any()) } returns true
-                }
-            }
-
-            sendChannel.writePacketWithHeader(packetType, payload)
-            clearMocks(sendChannel)
-        }
-
-        suspend fun ByteWriteChannel.writePacketWithHeader(
-            packetType: Int,
-            payload: ByteReadPacket,
-        ) {
+        suspend fun ByteWriteChannel.writePacketWithHeader(packetType: Int, payload: Source) {
             val payloadSize = payload.remaining.toInt()
 
-            writeIntLittleEndian(Packet.HEADER)
-            writeIntLittleEndian(payloadSize + Packet.PREAMBLE_SIZE)
-            writeIntLittleEndian(Origin.SERVER.value)
-            writeIntLittleEndian(0)
-            writeIntLittleEndian(payloadSize + Int.SIZE_BYTES)
-            writeIntLittleEndian(packetType)
+            writeInt(Packet.HEADER.reverseByteOrder())
+            writeInt((payloadSize + Packet.PREAMBLE_SIZE).reverseByteOrder())
+            writeInt(Origin.SERVER.value.reverseByteOrder())
+            writeInt(0)
+            writeInt((payloadSize + Int.SIZE_BYTES).reverseByteOrder())
+            writeInt(packetType.reverseByteOrder())
 
-            writePacket(payload)
+            payload.use { writePacket(it) }
             flush()
         }
 
@@ -132,9 +106,9 @@ sealed class PacketTestFixture<T : Packet>(val packetType: Int) {
             }
         }
 
-        fun BytePacketBuilder.writeString(str: String) {
-            writeIntLittleEndian(str.length + 1)
-            writeFully(Charsets.UTF_16LE.encode(str))
+        fun Sink.writeString(str: String) {
+            writeIntLe(str.length + 1)
+            writeText(str, charset = Charsets.UTF_16LE)
             writeShort(0)
         }
     }

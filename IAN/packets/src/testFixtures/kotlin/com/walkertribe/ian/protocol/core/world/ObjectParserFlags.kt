@@ -8,12 +8,11 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.boolean
 import io.kotest.property.arbitrary.map
-import io.ktor.utils.io.core.BytePacketBuilder
-import io.ktor.utils.io.core.writeFloatLittleEndian
-import io.ktor.utils.io.core.writeIntLittleEndian
-import io.ktor.utils.io.core.writeShort
-import io.ktor.utils.io.core.writeShortLittleEndian
 import io.ktor.utils.io.core.writeText
+import kotlinx.io.Sink
+import kotlinx.io.writeFloatLe
+import kotlinx.io.writeIntLe
+import kotlinx.io.writeShortLe
 
 internal typealias PositionFlags = FlagByte<Float, Float, Float, *, *, *, *, *>
 
@@ -246,23 +245,23 @@ internal fun <T1, T2, T3, T4, T5, T6, T7, T8> Arb.Companion.flags(
     FlagByte(flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8)
 }
 
-internal fun BytePacketBuilder.writeFloatFlags(vararg flags: Flag<Float>) {
+internal fun Sink.writeFloatFlags(vararg flags: Flag<Float>) {
     flags.forEach {
         if (it.enabled) {
-            writeFloatLittleEndian(it.value)
+            writeFloatLe(it.value)
         }
     }
 }
 
-internal fun BytePacketBuilder.writeIntFlags(vararg flags: Flag<Int>) {
+internal fun Sink.writeIntFlags(vararg flags: Flag<Int>) {
     flags.forEach {
         if (it.enabled) {
-            writeIntLittleEndian(it.value)
+            writeIntLe(it.value)
         }
     }
 }
 
-internal fun <E : Enum<E>> BytePacketBuilder.writeEnumFlags(vararg flags: Flag<E>) {
+internal fun <E : Enum<E>> Sink.writeEnumFlags(vararg flags: Flag<E>) {
     flags.forEach {
         if (it.enabled) {
             writeByte(it.value.ordinal.toByte())
@@ -270,7 +269,7 @@ internal fun <E : Enum<E>> BytePacketBuilder.writeEnumFlags(vararg flags: Flag<E
     }
 }
 
-internal fun BytePacketBuilder.writeByteFlags(vararg flags: Flag<Byte>) {
+internal fun Sink.writeByteFlags(vararg flags: Flag<Byte>) {
     flags.forEach {
         if (it.enabled) {
             writeByte(it.value)
@@ -278,19 +277,19 @@ internal fun BytePacketBuilder.writeByteFlags(vararg flags: Flag<Byte>) {
     }
 }
 
-internal fun BytePacketBuilder.writeShortFlags(vararg flags: Flag<Short>) {
+internal fun Sink.writeShortFlags(vararg flags: Flag<Short>) {
     flags.forEach {
         if (it.enabled) {
-            writeShortLittleEndian(it.value)
+            writeShortLe(it.value)
         }
     }
 }
 
-internal fun BytePacketBuilder.writeStringFlags(vararg flags: Flag<String>) {
+internal fun Sink.writeStringFlags(vararg flags: Flag<String>) {
     flags.forEach {
         if (it.enabled) {
             val str = it.value
-            writeIntLittleEndian(str.length + 1)
+            writeIntLe(str.length + 1)
             writeText(str, charset = Charsets.UTF_16LE)
             writeShort(0)
         }

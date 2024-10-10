@@ -1,7 +1,7 @@
 package com.walkertribe.ian.util
 
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readBytes
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
 
 /**
  * Represents the tri-state values of TRUE, FALSE and UNKNOWN, preserving the original values that
@@ -37,7 +37,6 @@ sealed class BoolState(bytes: ByteArray?) {
  */
 val BoolState?.isKnown get() = this?.boolValue != null
 
-fun ByteReadPacket.readBoolState(byteCount: Int): BoolState =
-    BoolState(readBytes(byteCount).hasNonZero)
+fun Source.readBoolState(byteCount: Int): BoolState = BoolState(readByteArray(byteCount).hasNonZero)
 
 private val ByteArray.hasNonZero: Boolean get() = any { it != 0.toByte() }

@@ -11,6 +11,12 @@ import com.walkertribe.ian.protocol.core.world.ObjectUpdatePacket
 sealed class ParseResult {
     internal class Processing : ParseResult()
 
+    data object Skip : ParseResult() {
+        override fun addListeners(listeners: Iterable<ListenerModule>) {
+            error("Cannot add listeners; packet is not recognized")
+        }
+    }
+
     class Success(
         /**
          * Returns the packet object that was parsed.
@@ -23,7 +29,7 @@ sealed class ParseResult {
             addListeners(prevResult.interestedListeners)
         }
 
-        override fun fireListeners() {
+        fun fireListeners() {
             interestedListeners.forEach(packet::offerTo)
         }
     }
@@ -58,13 +64,4 @@ sealed class ParseResult {
      * but are interested in certain types of objects the packet may contain.
      */
     val isInteresting: Boolean get() = interestedListeners.isNotEmpty()
-
-    /**
-     * Fire the listeners that were interested in this packet or its contents.
-     */
-    open fun fireListeners() {
-        throw UnsupportedOperationException(
-            "${this::class.simpleName} parse result cannot send packet to listeners"
-        )
-    }
 }

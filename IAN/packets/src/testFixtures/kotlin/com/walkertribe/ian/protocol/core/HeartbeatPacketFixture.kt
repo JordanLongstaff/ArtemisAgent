@@ -10,9 +10,9 @@ import io.kotest.property.Exhaustive
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.map
 import io.kotest.property.exhaustive.of
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
 interface HeartbeatPacketFixture {
     data object Client : PacketTestFixture.Client<HeartbeatPacket.Client>(
@@ -20,8 +20,8 @@ interface HeartbeatPacketFixture {
         expectedPayloadSize = Int.SIZE_BYTES,
     ) {
         data object Data : PacketTestData.Client<HeartbeatPacket.Client>(HeartbeatPacket.Client) {
-            override fun validatePayload(payload: ByteReadPacket) {
-                payload.readIntLittleEndian() shouldBeEqual
+            override fun validatePayload(payload: Source) {
+                payload.readIntLe() shouldBeEqual
                     ValueIntPacket.Subtype.CLIENT_HEARTBEAT.toInt()
             }
         }
@@ -35,7 +35,7 @@ interface HeartbeatPacketFixture {
         data class Data(
             override val version: Version,
         ) : PacketTestData.Server<HeartbeatPacket.Server> {
-            override fun buildPayload(): ByteReadPacket = buildPacket { }
+            override fun buildPayload(): Source = buildPacket { }
 
             override fun validate(packet: HeartbeatPacket.Server) {
                 // Nothing to validate
