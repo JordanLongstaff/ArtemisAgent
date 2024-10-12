@@ -69,6 +69,7 @@ ksp-koin = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-an
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 
+korlibs-charset = { module = "com.soywiz:korlibs-charset", version.ref = "korlibs" }
 korlibs-xml = { module = "com.soywiz:korlibs-serialization-xml", version.ref = "korlibs" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
@@ -226,6 +227,7 @@ ian-packets-api = [
     "kotlinx-datetime",
     "koin-annotations",
     "koin-core",
+    "korlibs-charset",
     "ktor-io",
 ]
 ian-packets-test = [
@@ -271,6 +273,7 @@ ian-udp-test = [
 
 ian-util = [
     "kotlinx-coroutines",
+    "korlibs-charset",
     "ktor-io",
     "okio",
 ]
