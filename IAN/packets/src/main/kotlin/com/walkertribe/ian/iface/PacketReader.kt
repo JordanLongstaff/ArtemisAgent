@@ -20,10 +20,8 @@ import io.ktor.utils.io.core.readBytes
 import io.ktor.utils.io.core.readFloatLittleEndian
 import io.ktor.utils.io.core.readIntLittleEndian
 import io.ktor.utils.io.core.readShortLittleEndian
+import io.ktor.utils.io.core.readTextExactCharacters
 import io.ktor.utils.io.readIntLittleEndian
-import korlibs.io.lang.ASCII
-import korlibs.io.lang.UTF16_LE
-import korlibs.io.lang.toString
 import kotlinx.datetime.Clock
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
@@ -318,16 +316,14 @@ class PacketReader(
      * Reads a UTF-16LE String from the current packet's payload.
      */
     fun readString(): String =
-        payload.readBytes(payload.readIntLittleEndian() * 2)
-            .toString(UTF16_LE)
+        payload.readTextExactCharacters(payload.readIntLittleEndian(), Charsets.UTF_16LE)
             .substringBefore(Char(0))
 
     /**
      * Reads an ASCII String from the current packet's payload.
      */
     fun readUsAsciiString(): String =
-        payload.readBytes(payload.readIntLittleEndian())
-            .toString(ASCII)
+        payload.readTextExactCharacters(payload.readIntLittleEndian(), Charsets.US_ASCII)
 
     /**
      * Convenience method for readString(bit.getIndex(version)).

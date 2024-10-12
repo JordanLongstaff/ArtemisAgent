@@ -1,8 +1,5 @@
 package com.walkertribe.ian.util
 
-import korlibs.io.lang.UTF8
-import korlibs.io.lang.toByteArray
-
 /**
  * An implementation of the JamCRC algorithm. These checksums are used to allow Artemis to send an
  * integer instead of a full string.
@@ -36,7 +33,7 @@ object JamCrc {
      * strings are transmitted in UTF-16LE in the Artemis protocol, checksums are computed in UTF-8.
      * Weirdness.
      */
-    fun compute(str: String): Int = compute(str.toByteArray(UTF8))
+    fun compute(str: String): Int = compute(str.toByteArray(Charsets.UTF_8))
 
     private fun reflect(ref: Int, ch: Int): Int = BooleanArray(ch) {
         ref and (1 shl it) != 0
