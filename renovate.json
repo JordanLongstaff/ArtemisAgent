@@ -10,8 +10,12 @@
     {
       "groupName": "kotlin and ksp",
       "matchPackageNames": [
-        "kotlin",
-        "ksp"
+        "org.jetbrains.kotlin:kotlin-gradle-plugin",
+        "org.jetbrains.kotlin:kotlin-stdlib",
+        "org.jetbrains.kotlin:kotlin-reflect",
+        "org.jetbrains.kotlin.android",
+        "com.google.devtools.ksp",
+        "com.google.devtools.ksp:symbol-processing-api"
       ]
     }
   ]
