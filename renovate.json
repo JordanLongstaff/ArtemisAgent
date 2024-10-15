@@ -5,7 +5,7 @@
   ],
   "autoApprove": true,
   "automerge": true,
-  "ignoreDeps": ["gradle"],
+  "ignoreDeps": ["com.android.tools.build:gradle"],
   "packageRules": [
     {
       "groupName": "kotlin and ksp",
