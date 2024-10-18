@@ -45,12 +45,14 @@ pitest-junit5 = "1.2.1"
 play-services-tasks = "18.2.0"
 protobuf = "4.28.2"
 protobuf-plugin = "0.9.4"
+shot = "6.1.0"
 task-tree = "4.0.0"
 
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "gradle-pitest" }
+shot = { module = "com.karumi:shot", version.ref = "shot" }
 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -145,6 +147,7 @@ classpath = [
     "gradle",
     "kotlin-gradle-plugin",
     "gradle-pitest",
+    "shot",
 ]
 
 app = [

@@ -8,18 +8,22 @@ import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnc
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
+import com.karumi.shot.ActivityScenarioUtils.waitForActivity
+import com.karumi.shot.ScreenshotTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class MainActivityTest {
+class MainActivityTest : ScreenshotTest {
     @get:Rule
     val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
     fun radioButtonsTest() {
+        val activity = activityScenarioRule.scenario.waitForActivity()
+
         assertChecked(R.id.setupPageButton)
         assertDisplayed(R.id.setupPageSelector)
 
@@ -28,6 +32,8 @@ class MainActivityTest {
 
         assertUnchecked(R.id.helpPageButton)
         assertNotExist(R.id.helpTopicContent)
+
+        compareScreenshot(activity, name = "setupPage")
 
         clickOn(R.id.gamePageButton)
 
@@ -39,6 +45,8 @@ class MainActivityTest {
 
         assertUnchecked(R.id.helpPageButton)
         assertNotExist(R.id.helpTopicContent)
+
+        compareScreenshot(activity, name = "gamePage")
 
         clickOn(R.id.helpPageButton)
 
@@ -61,5 +69,7 @@ class MainActivityTest {
 
         assertUnchecked(R.id.helpPageButton)
         assertNotExist(R.id.helpTopicContent)
+
+        compareScreenshot(activity, name = "helpPage")
     }
 }
