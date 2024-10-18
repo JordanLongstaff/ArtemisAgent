@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
 class HelpFragmentTest {
     private companion object {
         val helpTopics = arrayOf(
-            R.string.help_topics_getting_started to 8,
+            R.string.help_topics_getting_started to 7,
             R.string.help_topics_basics to 4,
             R.string.help_topics_stations to 12,
             R.string.help_topics_allies to 4,
@@ -27,6 +27,7 @@ class HelpFragmentTest {
             R.string.help_topics_routing to 6,
             R.string.help_topics_enemies to 12,
             R.string.help_topics_biomechs to 3,
+            R.string.help_topics_notifications to 15,
             R.string.help_topics_about to 5,
         )
     }
