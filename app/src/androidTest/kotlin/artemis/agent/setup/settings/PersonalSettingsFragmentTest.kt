@@ -15,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -25,8 +26,12 @@ class PersonalSettingsFragmentTest {
     @Test
     fun personalSettingsTest() {
         val threeDigits = AtomicBoolean()
+        val soundVolume = AtomicInteger()
         activityScenarioRule.scenario.onActivity { activity ->
-            threeDigits.lazySet(activity.viewModels<AgentViewModel>().value.threeDigitDirections)
+            val viewModel = activity.viewModels<AgentViewModel>().value
+
+            threeDigits.lazySet(viewModel.threeDigitDirections)
+            soundVolume.lazySet((viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt())
         }
 
         SettingsFragmentTest.openSettingsMenu()
@@ -35,7 +40,7 @@ class PersonalSettingsFragmentTest {
         scrollTo(R.id.themeDivider)
         assertDisplayed(R.id.themeTitle, R.string.theme)
         assertDisplayed(R.id.themeSelector)
-        assertDisplayed(R.id.themeDefaultButton)
+        assertDisplayed(R.id.themeDefaultButton, R.string.default_setting)
         assertDisplayed(R.id.themeRedButton)
         assertDisplayed(R.id.themeGreenButton)
         assertDisplayed(R.id.themeYellowButton)
@@ -43,15 +48,15 @@ class PersonalSettingsFragmentTest {
         assertDisplayed(R.id.themePurpleButton)
 
         scrollTo(R.id.threeDigitDirectionsDivider)
-        assertDisplayed(R.id.threeDigitDirectionsTitle)
+        assertDisplayed(R.id.threeDigitDirectionsTitle, R.string.three_digit_directions)
         assertDisplayed(R.id.threeDigitDirectionsButton)
         assertDisplayed(R.id.threeDigitDirectionsLabel)
         assertChecked(R.id.threeDigitDirectionsButton, threeDigits.get())
 
         scrollTo(R.id.soundVolumeDivider)
-        assertDisplayed(R.id.soundVolumeTitle)
+        assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
         assertDisplayed(R.id.soundVolumeBar)
-        assertDisplayed(R.id.soundVolumeLabel)
+        assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
 
         SettingsFragmentTest.closeSettingsSubMenu()
         assertNotExist(R.id.themeTitle)
