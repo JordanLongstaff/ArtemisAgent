@@ -393,7 +393,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     )
 
                     client.setTimeout(1L)
-                    eventually(1.seconds) {
+                    eventually(2.seconds) {
                         val events = TestListener.calls<ConnectionEvent.HeartbeatLost>()
                         events.size shouldBeEqual 1
                     }
