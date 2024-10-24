@@ -50,7 +50,6 @@ class ListenerVisitor(
             )
 
         val fileSpecBuilder = FileSpec.builder(packageName, fileName)
-            .addImport(listenerFunctionClass.packageName, listenerFunctionClass.simpleName)
             .addProperty(listenerModuleBuilder.getter(moduleGetterSpec.build()).build())
 
         functions.flatMap { it.parameters }.forEach { param ->

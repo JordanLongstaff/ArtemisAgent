@@ -17,8 +17,6 @@ class ListenerArgumentProcessor(private val codeGenerator: CodeGenerator) : Symb
                 cls.superTypes.any { it.toString() == "ListenerArgument" }
             }
         }
-        if (argumentClasses.none()) return emptyList()
-
         argumentClasses.forEach { it.accept(visitor, Unit) }
 
         return emptyList()
