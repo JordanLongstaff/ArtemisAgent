@@ -1,7 +1,7 @@
 package artemis.agent.game.enemies
 
 import artemis.agent.R
-import artemis.agent.game.buildSortingComparator
+import com.walkertribe.ian.util.buildSortingComparator
 
 data class EnemySorter(
     val sortBySurrendered: Boolean = false,

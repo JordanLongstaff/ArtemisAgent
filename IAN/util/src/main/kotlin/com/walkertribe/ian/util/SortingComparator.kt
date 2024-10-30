@@ -1,4 +1,4 @@
-package artemis.agent.game
+package com.walkertribe.ian.util
 
 inline fun <reified T> buildSortingComparator(
     vararg comparators: Pair<Comparator<T>, Boolean>,
