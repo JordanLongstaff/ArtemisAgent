@@ -1,6 +1,7 @@
 package com.walkertribe.ian.util
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.core.spec.style.scopes.ContainerScope
 import io.kotest.datatest.withData
 import io.kotest.matchers.equals.shouldBeEqual
 
@@ -21,24 +22,35 @@ class SortingComparatorTest : DescribeSpec({
     val thirdComparator = compareBy<Triple<String, Int, Boolean>> { it.third }
 
     describe("buildSortingComparator") {
-        withData(
-            nameFn = { it.first },
-            listOf("Sort first", "Don't sort first").zip(
-                SortingTestCase.entries.partition { it.sortByFirst }.toList()
-            ),
-        ) { (_, firstTestCaseSet) ->
+        suspend fun ContainerScope.testSortingComparators(
+            name: String,
+            testCases: Collection<SortingTestCase>,
+            partitionFn: (SortingTestCase) -> Boolean,
+            testFn: suspend ContainerScope.(List<SortingTestCase>) -> Unit,
+        ) {
             withData(
                 nameFn = { it.first },
-                listOf("Sort second", "Don't sort second").zip(
-                    firstTestCaseSet.partition { it.sortBySecond }.toList()
+                listOf("Sort $name", "Don't sort $name").zip(
+                    testCases.partition(partitionFn).toList()
                 ),
-            ) { (_, secondTestCaseSet) ->
-                withData(
-                    nameFn = { it.first },
-                    listOf("Sort third", "Don't sort third").zip(
-                        secondTestCaseSet.partition { it.sortByThird }.toList()
-                    ),
-                ) { (_, thirdTestCaseSet) ->
+            ) { testFn(it.second) }
+        }
+
+        testSortingComparators(
+            name = "first",
+            testCases = SortingTestCase.entries,
+            partitionFn = { it.sortByFirst },
+        ) { firstTestCaseSet ->
+            testSortingComparators(
+                name = "second",
+                testCases = firstTestCaseSet,
+                partitionFn = { it.sortBySecond },
+            ) { secondTestCaseSet ->
+                testSortingComparators(
+                    name = "third",
+                    testCases = secondTestCaseSet,
+                    partitionFn = { it.sortByThird },
+                ) { thirdTestCaseSet ->
                     thirdTestCaseSet.forEach { sortingTestCase ->
                         val sorter = buildSortingComparator(
                             firstComparator to sortingTestCase.sortByFirst,
