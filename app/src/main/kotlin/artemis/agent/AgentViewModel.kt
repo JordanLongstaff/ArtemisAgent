@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
 import androidx.annotation.StyleRes
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
@@ -465,10 +464,7 @@ class AgentViewModel(application: Application) :
 
     // I/O resolver data
     private val assetsResolver: AssetsResolver = AssetsResolver(application.assets)
-    val storageDirectories: Array<File> = ContextCompat.getExternalFilesDirs(
-        application.applicationContext,
-        null
-    )
+    val storageDirectories: Array<File> = application.applicationContext.getExternalFilesDirs(null)
 
     // Artemis version
     var version: Version = Version.LATEST
