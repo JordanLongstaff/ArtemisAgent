@@ -78,10 +78,8 @@ class EnumsKonsistTest : DescribeSpec({
     }
 
     describe("All inheritors of interfaces are in enums package") {
-        val module = Konsist.scopeFromModule("IAN")
-
         withData(nameFn = { it.name }, interfaces) { int ->
-            val members = module.classes() + module.interfaces() + module.objects()
+            val members = enumsScope.classes() + enumsScope.interfaces() + enumsScope.objects()
             val inheritors = members.withParentInterface {
                 it.fullyQualifiedName == "$enums.${int.name}"
             }
