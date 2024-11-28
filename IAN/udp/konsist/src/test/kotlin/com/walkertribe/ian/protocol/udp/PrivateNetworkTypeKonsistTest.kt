@@ -30,6 +30,15 @@ private enum class NamingConventionTest(val testName: String) {
             type.assertTrue { it.hasNameEndingWith("BIT_BLOCK") }
         }
     },
+    BROADCAST_ADDRESS("Broadcast address property follows naming patterns") {
+        override fun test(type: KoEnumConstantDeclaration) {
+            val prefix = type.name.substringBeforeLast("BLOCK")
+            val broadcastAddress = type.variables.withName("broadcastAddress")
+            broadcastAddress.first().assertTrue { prop ->
+                prop.text.contains("${prefix}BROADCAST")
+            }
+        }
+    },
     CONSTRAINTS("Constraints property follows naming patterns") {
         override fun test(type: KoEnumConstantDeclaration) {
             val prefix = type.name.substringBeforeLast("BLOCK")
