@@ -56,6 +56,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                 connectionTimeoutSeconds = UserSettingsSerializer.DEFAULT_CONNECTION_TIMEOUT
                 serverTimeoutSeconds = UserSettingsSerializer.DEFAULT_HEARTBEAT_TIMEOUT
                 scanTimeoutSeconds = UserSettingsSerializer.DEFAULT_SCAN_TIMEOUT
+                showNetworkInfo = true
             }
         },
         MISSION(

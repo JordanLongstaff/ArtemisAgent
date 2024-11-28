@@ -65,6 +65,15 @@ class ConnectionSettingsFragment : Fragment(R.layout.settings_connection) {
             connectionTimeoutBinder.timeInSeconds = it.connectionTimeoutSeconds
             heartbeatTimeoutBinder.timeInSeconds = it.serverTimeoutSeconds
             scanTimeoutBinder.timeInSeconds = it.scanTimeoutSeconds
+            binding.showNetworkInfoButton.isChecked = it.showNetworkInfo
+        }
+
+        binding.showNetworkInfoButton.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.viewModelScope.launch {
+                view.context.userSettings.updateData {
+                    it.copy { showNetworkInfo = isChecked }
+                }
+            }
         }
     }
 

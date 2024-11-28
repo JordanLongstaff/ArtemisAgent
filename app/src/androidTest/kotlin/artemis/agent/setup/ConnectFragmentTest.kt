@@ -5,8 +5,10 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
+import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
+import artemis.agent.setup.settings.SettingsFragmentTest
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertEnabled
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
@@ -19,6 +21,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
@@ -58,5 +61,34 @@ class ConnectFragmentTest {
 
         writeTo(R.id.addressBar, "127.0.0.1")
         assertEnabled(R.id.connectButton)
+    }
+
+    @Test
+    fun showNetworkInfoTest() {
+        val showingInfo = AtomicBoolean()
+        activityScenarioRule.scenario.onActivity { activity ->
+            showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
+        }
+
+        val infoViews = intArrayOf(
+            R.id.addressLabel,
+            R.id.networkTypeLabel,
+            R.id.networkInfoDivider,
+        )
+
+        val settingValue = showingInfo.get()
+        listOf(settingValue, !settingValue, settingValue).forEachIndexed { index, showing ->
+            if (index != 0) {
+                SettingsFragmentTest.openSettingsMenu()
+                SettingsFragmentTest.openSettingsSubMenu(1)
+
+                clickOn(R.id.showNetworkInfoButton)
+                clickOn(R.id.connectPageButton)
+            }
+
+            infoViews.forEach { resId ->
+                ArtemisAgentTestHelpers.assertDisplayed(resId, showing)
+            }
+        }
     }
 }

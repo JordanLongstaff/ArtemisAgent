@@ -27,6 +27,7 @@ class PrivateNetworkTypeTest : DescribeSpec({
             val arbBytes: Arb<Triple<Byte, Byte, Byte>>,
             val expectedType: PrivateNetworkType,
             val expectedMatches: Triple<Boolean, Boolean, Boolean>,
+            val expectedBroadcastAddress: String,
         )
 
         val allTestSuites = arrayOf(
@@ -36,6 +37,7 @@ class PrivateNetworkTypeTest : DescribeSpec({
                 Arb.triple(Arb.byte(), Arb.byte(), Arb.byte()),
                 PrivateNetworkType.TWENTY_FOUR_BIT_BLOCK,
                 Triple(true, false, false),
+                "10.255.255.255",
             ),
             TestSuite(
                 "20-bit block",
@@ -43,6 +45,7 @@ class PrivateNetworkTypeTest : DescribeSpec({
                 Arb.triple(Arb.byte(min = 16, max = 31), Arb.byte(), Arb.byte()),
                 PrivateNetworkType.TWENTY_BIT_BLOCK,
                 Triple(false, true, false),
+                "172.31.255.255",
             ),
             TestSuite(
                 "16-bit block",
@@ -50,6 +53,7 @@ class PrivateNetworkTypeTest : DescribeSpec({
                 Arb.triple(Arb.of(-88), Arb.byte(), Arb.byte()),
                 PrivateNetworkType.SIXTEEN_BIT_BLOCK,
                 Triple(false, false, true),
+                "192.168.255.255",
             ),
         )
         allTestSuites.map {
@@ -70,6 +74,7 @@ class PrivateNetworkTypeTest : DescribeSpec({
         )
 
         allTestSuites.forEach { suite ->
+            val first = suite.firstByte
             describe(suite.testName) {
                 withData(
                     nameFn = {
@@ -78,23 +83,27 @@ class PrivateNetworkTypeTest : DescribeSpec({
                     allTestSuites.zip(suite.expectedMatches.toList()),
                 ) { (testSuite, shouldMatch) ->
                     suite.arbBytes.checkAll { (second, third, fourth) ->
-                        val bytes = byteArrayOf(suite.firstByte, second, third, fourth)
-                        testSuite.expectedType.match(bytes) shouldBeEqual shouldMatch
+                        val address = byteArrayOf(first, second, third, fourth).joinToString(".")
+                        testSuite.expectedType.match(address) shouldBeEqual shouldMatch
                     }
                 }
 
                 it("Defines correct network type") {
                     suite.arbBytes.checkAll { (second, third, fourth) ->
-                        val bytes = byteArrayOf(suite.firstByte, second, third, fourth)
-                        val networkType = PrivateNetworkType(bytes).shouldNotBeNull()
-                        networkType shouldBeEqual suite.expectedType
+                        val address = byteArrayOf(first, second, third, fourth).joinToString(".")
+                        PrivateNetworkType.of(address).shouldNotBeNull() shouldBeEqual
+                            suite.expectedType
                     }
+                }
+
+                it("Broadcast address: ${suite.expectedBroadcastAddress}") {
+                    suite.expectedType.broadcastAddress shouldBeEqual suite.expectedBroadcastAddress
                 }
 
                 describe("Does not match invalid address") {
                     withData(nameFn = { it.first }, invalidTestSuites) {
                         it.second.checkAll { bytes ->
-                            suite.expectedType.match(bytes).shouldBeFalse()
+                            suite.expectedType.match(bytes.joinToString(".")).shouldBeFalse()
                         }
                     }
                 }
@@ -104,7 +113,7 @@ class PrivateNetworkTypeTest : DescribeSpec({
         describe("Does not exist for invalid address") {
             withData(nameFn = { it.first }, invalidTestSuites) {
                 it.second.checkAll { bytes ->
-                    PrivateNetworkType(bytes).shouldBeNull()
+                    PrivateNetworkType.of(bytes.joinToString(".")).shouldBeNull()
                 }
             }
         }

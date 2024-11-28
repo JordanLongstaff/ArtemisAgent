@@ -29,10 +29,6 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeFully
 import io.ktor.utils.io.core.writeText
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -41,11 +37,6 @@ import kotlinx.io.writeShortLe
 
 class ServerDiscoveryRequesterTest : DescribeSpec({
     failfast = true
-
-    afterSpec {
-        clearAllMocks()
-        unmockkAll()
-    }
 
     describe("ServerDiscoveryRequester") {
         val loopbackAddress = "127.0.0.1"
@@ -77,20 +68,12 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
         it("Throws when initialized with invalid timeout") {
             Arb.long(max = 0L).checkAll {
                 shouldThrow<IllegalArgumentException> {
-                    ServerDiscoveryRequester(
-                        broadcastAddress = loopbackAddress,
-                        listener = listener,
-                        timeoutMs = it,
-                    )
+                    ServerDiscoveryRequester(listener = listener, timeoutMs = it)
                 }
             }
         }
 
-        val requester = ServerDiscoveryRequester(
-            broadcastAddress = loopbackAddress,
-            listener = listener,
-            timeoutMs = 500L,
-        )
+        val requester = ServerDiscoveryRequester(listener = listener, timeoutMs = 500L)
 
         val localAddress = InetSocketAddress(loopbackAddress, ServerDiscoveryRequester.PORT)
 
@@ -102,7 +85,7 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
                 it("Datagram was sent through UDP") {
                     retry(retryConfig) {
                         requesterJob?.join()
-                        requesterJob = launch { requester.run() }
+                        requesterJob = launch { requester.run(loopbackAddress) }
 
                         datagram = socket.receive()
                         packet = datagram.packet
@@ -121,7 +104,7 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
                     retry(retryConfig) {
                         discoveredServers.clear()
                         requesterJob?.join()
-                        requesterJob = launch { requester.run() }
+                        requesterJob = launch { requester.run(loopbackAddress) }
 
                         datagram = socket.receive()
                         testServers.forEach { (ip, hostName) ->
@@ -152,7 +135,7 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
                     retry(retryConfig) {
                         discoveredServers.clear()
                         requesterJob?.join()
-                        requesterJob = launch { requester.run() }
+                        requesterJob = launch { requester.run(loopbackAddress) }
 
                         datagram = socket.receive()
 
@@ -183,25 +166,6 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
 
         it("Quit after timeout") {
             onQuitCalled.shouldBeTrue()
-        }
-
-        describe("Constructor") {
-            it("From discovered broadcast address") {
-                ServerDiscoveryRequester(
-                    listener = listener,
-                    timeoutMs = 500L,
-                )
-            }
-
-            it("From default broadcast address") {
-                mockkObject(PrivateNetworkAddress.Companion)
-                every { PrivateNetworkAddress.guessBest() } returns null
-
-                ServerDiscoveryRequester(
-                    listener = listener,
-                    timeoutMs = 500L,
-                ).broadcastAddress shouldBeEqual PrivateNetworkAddress.DEFAULT.hostAddress
-            }
         }
     }
 })
