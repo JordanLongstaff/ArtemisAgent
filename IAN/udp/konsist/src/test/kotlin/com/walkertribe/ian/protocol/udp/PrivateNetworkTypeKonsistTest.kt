@@ -3,7 +3,6 @@ package com.walkertribe.ian.protocol.udp
 import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.declaration.KoEnumConstantDeclaration
 import com.lemonappdev.konsist.api.ext.list.enumConstants
-import com.lemonappdev.konsist.api.ext.list.withName
 import com.lemonappdev.konsist.api.ext.list.withRepresentedTypeOf
 import com.lemonappdev.konsist.api.verify.assertTrue
 import io.kotest.core.spec.style.DescribeSpec
@@ -33,18 +32,20 @@ private enum class NamingConventionTest(val testName: String) {
     BROADCAST_ADDRESS("Broadcast address property follows naming patterns") {
         override fun test(type: KoEnumConstantDeclaration) {
             val prefix = type.name.substringBeforeLast("BLOCK")
-            val broadcastAddress = type.variables.withName("broadcastAddress")
-            broadcastAddress.first().assertTrue { prop ->
-                prop.text.contains("${prefix}BROADCAST")
+            type.assertTrue {
+                it.hasVariable { prop ->
+                    prop.name == "broadcastAddress" && prop.text.contains("${prefix}BROADCAST")
+                }
             }
         }
     },
     CONSTRAINTS("Constraints property follows naming patterns") {
         override fun test(type: KoEnumConstantDeclaration) {
             val prefix = type.name.substringBeforeLast("BLOCK")
-            val constraints = type.variables.withName("constraints")
-            constraints.first().assertTrue { prop ->
-                prop.text.contains("${prefix}CONSTRAINTS")
+            type.assertTrue {
+                it.hasVariable { prop ->
+                    prop.name == "constraints" && prop.text.contains("${prefix}CONSTRAINTS")
+                }
             }
         }
     };
