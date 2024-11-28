@@ -30,6 +30,7 @@ include(
     ":IAN:packets:konsist",
     ":IAN:processor",
     ":IAN:udp",
+    ":IAN:udp:konsist",
     ":IAN:util",
     ":IAN:vesseldata",
     ":IAN:vesseldata:konsist",
