@@ -24,6 +24,7 @@ gradle-pitest = "1.15.0"
 junit = "4.13.2"
 koin = "4.0.0"
 koin-annotations = "1.4.0"
+konnection = "1.4.3"
 konsist = "0.16.1"
 korlibs = "6.0.0-alpha2"
 kotest = "5.9.1"
@@ -70,6 +71,9 @@ ksp-koin = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-an
 
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+
+konnection = { module = "dev.tmapps:konnection", version.ref = "konnection" }
+konnection-android-debug = { module = "dev.tmapps:konnection-android-debug", version.ref = "konnection" }
 
 korlibs-charset = { module = "com.soywiz:korlibs-charset", version.ref = "korlibs" }
 korlibs-xml = { module = "com.soywiz:korlibs-serialization-xml", version.ref = "korlibs" }
@@ -166,6 +170,7 @@ app = [
     "lifecycle-viewmodel",
     "multidex",
     "recyclerview",
+    "konnection",
     "okio",
     "okio-assets",
     "protobuf-javalite",
@@ -175,6 +180,7 @@ app = [
 ]
 app-debug = [
     "leakcanary",
+    "konnection-android-debug",
 ]
 app-androidTest = [
     "barista",
@@ -271,7 +277,6 @@ ian-udp-test = [
     "kotest-framework-datatest-jvm",
     "kotest-property",
     "mockk",
-    "mockk-dsl",
 ]
 
 ian-util = [

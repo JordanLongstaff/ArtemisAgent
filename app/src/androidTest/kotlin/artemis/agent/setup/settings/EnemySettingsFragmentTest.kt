@@ -158,11 +158,7 @@ class EnemySettingsFragmentTest {
             assertNotExist(R.id.surrenderRangeEnableButton)
             assertNotExist(R.id.surrenderRangeInfinity)
             assertNotExist(R.id.surrenderRangeDivider)
-            enemySingleToggleSettings.forEach {
-                assertNotExist(it.button)
-                assertNotExist(it.divider)
-                assertNotExist(it.text)
-            }
+            enemySingleToggleSettings.forEach { it.testNotExist() }
         }
 
         fun testEnemySubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {

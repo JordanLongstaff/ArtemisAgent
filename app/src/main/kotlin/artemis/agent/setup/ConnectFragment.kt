@@ -21,6 +21,9 @@ import artemis.agent.databinding.ConnectFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
+import com.walkertribe.ian.protocol.udp.PrivateNetworkType
+import dev.tmapps.konnection.Konnection
+import dev.tmapps.konnection.NetworkConnection
 
 class ConnectFragment : Fragment(R.layout.connect_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -47,8 +50,13 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         RecentServersAdapter(binding.root.context)
     }
 
+    private val networkTypes: Array<String> by lazy {
+        binding.root.resources.getStringArray(R.array.network_type_entries)
+    }
+
     private var playSoundsOnTextChange: Boolean = false
     private var playSoundOnScanFinished: Boolean = false
+    private var broadcastAddress: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -60,6 +68,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
             }
         }
 
+        prepareInfoLabels()
         prepareConnectionSection()
         prepareScanningSection()
 
@@ -86,6 +95,25 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         hideKeyboard()
 
         super.onPause()
+    }
+
+    private fun prepareInfoLabels() {
+        val networkInfoVisibility = if (viewModel.showingNetworkInfo) View.VISIBLE else View.GONE
+        binding.addressLabel.visibility = networkInfoVisibility
+        binding.networkTypeLabel.visibility = networkInfoVisibility
+        binding.networkInfoDivider.visibility = networkInfoVisibility
+
+        viewLifecycleOwner.collectLatestWhileStarted(
+            Konnection.instance.observeNetworkConnection()
+        ) {
+            val info = Konnection.instance.getInfo()
+            val connection = info?.connection ?: NetworkConnection.UNKNOWN_CONNECTION_TYPE
+            val address = info?.ipv4
+            broadcastAddress = address?.let(PrivateNetworkType::of)?.broadcastAddress
+
+            binding.networkTypeLabel.text = networkTypes[connection.ordinal]
+            binding.addressLabel.text = address
+        }
     }
 
     private fun prepareConnectionSection() {
@@ -151,7 +179,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         scanButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
             hideKeyboard()
-            viewModel.scanForServers()
+            viewModel.scanForServers(broadcastAddress)
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.discoveredServers) {

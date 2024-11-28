@@ -17,12 +17,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  * continually poll for servers.
  * @author rjwut
  */
-class ServerDiscoveryRequester(
-    internal val broadcastAddress: String =
-        (PrivateNetworkAddress.guessBest() ?: PrivateNetworkAddress.DEFAULT).hostAddress,
-    private val listener: Listener,
-    private val timeoutMs: Long
-) {
+class ServerDiscoveryRequester(private val listener: Listener, private val timeoutMs: Long) {
     /**
      * Interface for an object which is notified when a server is discovered or the discovery
      * process ends.
@@ -39,7 +34,7 @@ class ServerDiscoveryRequester(
         suspend fun onQuit()
     }
 
-    suspend fun run() {
+    suspend fun run(broadcastAddress: String) {
         SelectorManager(Dispatchers.IO).use { selector ->
             aSocket(selector).udp().bind {
                 broadcast = true
@@ -76,6 +71,7 @@ class ServerDiscoveryRequester(
 
     companion object {
         const val PORT = 3100
+        const val DEFAULT_BROADCAST_ADDRESS = "255.255.255.255"
     }
 
     init {

@@ -136,6 +136,8 @@ class AgentViewModel(application: Application) :
     val isScanningUDP: MutableSharedFlow<Boolean> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
+    var showingNetworkInfo: Boolean = true
+        private set
 
     // Saved copy of address bar text in connect fragment
     var addressBarText: String = ""
@@ -806,12 +808,14 @@ class AgentViewModel(application: Application) :
     /**
      * Begins scanning for servers via UDP.
      */
-    fun scanForServers() {
+    fun scanForServers(broadcastAddress: String?) {
         isScanningUDP.tryEmit(true)
         discoveredServers.value = listOf()
         cpu.launch {
             try {
-                serverDiscoveryRequester.run()
+                serverDiscoveryRequester.run(
+                    broadcastAddress ?: ServerDiscoveryRequester.DEFAULT_BROADCAST_ADDRESS
+                )
             } catch (_: Exception) {
                 isScanningUDP.emit(false)
             }
@@ -1446,6 +1450,7 @@ class AgentViewModel(application: Application) :
         connectTimeout = settings.connectionTimeoutSeconds
         scanTimeout = settings.scanTimeoutSeconds
         heartbeatTimeout = settings.serverTimeoutSeconds.toLong()
+        showingNetworkInfo = settings.showNetworkInfo
 
         missionsEnabled = settings.missionsEnabled
         reconcileDisplayedMissions(
@@ -1610,6 +1615,7 @@ class AgentViewModel(application: Application) :
         threeDigitDirections = this@AgentViewModel.threeDigitDirections
         soundVolume = (volume * VOLUME_SCALE).toInt()
         themeValue = ALL_THEMES.indexOf(themeRes)
+        showNetworkInfo = showingNetworkInfo
     }
 
     companion object {

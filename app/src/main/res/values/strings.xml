@@ -544,6 +544,13 @@
     <string name="mission_shield">Shield</string>
     <string name="mission_will_be_removed">Will be removed in %1$ds</string>
     <string name="more_commands">More commands:</string>
+    <string-array name="network_type_entries">
+        <item>Wi-Fi</item>
+        <item>Mobile</item>
+        <item>Ethernet</item>
+        <item>Bluetooth tethering</item>
+        <item>Unknown network</item>
+    </string-array>
     <string name="next_to">Next: %1$s %2$s %3$s</string>
     <string name="no">No</string>
     <string name="no_enemies">Scanned enemies will be displayed here.</string>
@@ -621,6 +628,7 @@
     <string name="ships">Ships</string>
     <string name="show_destroyed_allies">Show destroyed allies</string>
     <string name="show_intel">Show intel</string>
+    <string name="show_network_info">Show network info</string>
     <string name="show_taunt_status">Show taunt status</string>
     <string name="single_seat_craft_docked">%1$d single-seat craft docked</string>
     <string name="single_seat_craft_launched">%1$d single-seat craft launched</string>

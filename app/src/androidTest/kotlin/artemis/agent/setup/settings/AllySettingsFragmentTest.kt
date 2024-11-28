@@ -132,11 +132,7 @@ class AllySettingsFragmentTest {
             assertNotExist(R.id.allySortingDefaultButton)
             allySortMethodSettings.forEach { assertNotExist(it.button) }
             assertNotExist(R.id.allySortingDivider)
-            allySingleToggleSettings.forEach {
-                assertNotExist(it.button)
-                assertNotExist(it.text)
-                assertNotExist(it.divider)
-            }
+            allySingleToggleSettings.forEach { it.testNotExist() }
         }
 
         fun testAllySubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {
