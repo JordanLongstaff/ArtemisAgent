@@ -2,6 +2,7 @@ package artemis.agent.game.missions
 
 import artemis.agent.AgentViewModel
 import artemis.agent.game.ObjectEntry
+import kotlin.time.Duration.Companion.milliseconds
 
 class SideMissionEntry(
     val source: ObjectEntry<*>,
@@ -21,7 +22,7 @@ class SideMissionEntry(
 
     val durationText: String get() {
         val duration = System.currentTimeMillis() - timestamp
-        val totalSeconds = duration / AgentViewModel.SECONDS_TO_MILLIS
+        val totalSeconds = duration.milliseconds.inWholeSeconds
         val (totalMinutes, seconds) = AgentViewModel.getTimer(totalSeconds.toInt())
         val secondsString = seconds.toString().padStart(2, '0')
         val (hours, minutes) = AgentViewModel.getTimer(totalMinutes)

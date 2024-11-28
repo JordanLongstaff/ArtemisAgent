@@ -34,7 +34,7 @@ class ServerDiscoveryRequester(
         suspend fun onDiscovered(server: Server)
 
         /**
-         * Invoked with the [ServerDiscoveryRequester] quits listening for responses.
+         * Invoked when the [ServerDiscoveryRequester] quits listening for responses.
          */
         suspend fun onQuit()
     }

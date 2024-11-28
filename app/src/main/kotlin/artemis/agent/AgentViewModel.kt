@@ -104,6 +104,8 @@ import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The view model containing all running client data and utility functions used by the UI.
@@ -397,9 +399,9 @@ class AgentViewModel(application: Application) :
     internal var avoidTyphons: Boolean = true
 
     // Object clearance variables - modified in Settings
-    internal var mineClearance: Float = DEFAULT_MINE_CLEARANCE.toFloat()
-    internal var blackHoleClearance: Float = DEFAULT_BLACK_HOLE_CLEARANCE.toFloat()
-    internal var typhonClearance: Float = DEFAULT_TYPHON_CLEARANCE.toFloat()
+    internal var mineClearance: Float = DEFAULT_MINE_CLEARANCE
+    internal var blackHoleClearance: Float = DEFAULT_BLACK_HOLE_CLEARANCE
+    internal var typhonClearance: Float = DEFAULT_TYPHON_CLEARANCE
 
     // Lists of obstacles
     internal val mines = ConcurrentHashMap<Int, ArtemisMine>()
@@ -435,31 +437,31 @@ class AgentViewModel(application: Application) :
     val helpTopicIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(HelpFragment.MENU) }
 
     // Various numerical settings
-    var port: Int = DEFAULT_PORT.toInt()
+    var port: Int = DEFAULT_PORT
     var updateObjectsInterval: Int = DEFAULT_UPDATE_INTERVAL
-    var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT.toInt()
-    var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT.toInt()
-    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT.toLong()
+    var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT
+    var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT
+    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT
         set(value) {
             field = value
             ifConnected {
-                networkInterface.setTimeout(field * SECONDS_TO_MILLIS)
+                networkInterface.setTimeout(field.seconds.inWholeMilliseconds)
             }
         }
-    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.toLong() * SECONDS_TO_MILLIS
+    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.seconds.inWholeMilliseconds
         set(value) {
-            field = value * SECONDS_TO_MILLIS
+            field = value.seconds.inWholeMilliseconds
         }
     var autoDismissCompletedMissions: Boolean = true
-    internal var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.toLong() * SECONDS_TO_MILLIS
+    var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.seconds.inWholeMilliseconds
         set(value) {
-            field = value * SECONDS_TO_MILLIS
+            field = value.seconds.inWholeMilliseconds
         }
 
     // UDP server discovery requester
     private val serverDiscoveryRequester: ServerDiscoveryRequester get() = ServerDiscoveryRequester(
         listener = this@AgentViewModel,
-        timeoutMs = scanTimeout.toLong() * SECONDS_TO_MILLIS
+        timeoutMs = scanTimeout.seconds.inWholeMilliseconds,
     )
 
     // I/O resolver data
@@ -748,7 +750,7 @@ class AgentViewModel(application: Application) :
             val connected = networkInterface.connect(
                 host = url,
                 port = port,
-                timeoutMs = connectTimeout.toLong() * SECONDS_TO_MILLIS,
+                timeoutMs = connectTimeout.seconds.inWholeMilliseconds,
             )
             lastAttemptedHost = url
             attemptingConnection = false
@@ -1562,7 +1564,7 @@ class AgentViewModel(application: Application) :
         biomechSortStatus = biomechSorter.sortByStatus
         biomechSortClassSecond = biomechSorter.sortByClassSecond
         biomechSortName = biomechSorter.sortByName
-        freezeDurationSeconds = biomechFreezeTime.toInt() / SECONDS_TO_MILLIS
+        freezeDurationSeconds = biomechFreezeTime.milliseconds.inWholeSeconds.toInt()
 
         routingEnabled = this@AgentViewModel.routingEnabled
         routeMissions = routeIncludesMissions
@@ -1611,21 +1613,20 @@ class AgentViewModel(application: Application) :
     }
 
     companion object {
-        private const val DEFAULT_PORT = "2010"
-        private const val DEFAULT_SCAN_TIMEOUT = "5"
-        private const val DEFAULT_CONNECT_TIMEOUT = "9"
-        private const val DEFAULT_HEARTBEAT_TIMEOUT = "15"
-        private const val DEFAULT_FREEZE_TIME = "220"
-        private const val DEFAULT_COMPLETED_DISMISSAL = "3"
+        private const val DEFAULT_PORT = 2010
+        private const val DEFAULT_SCAN_TIMEOUT = 5
+        private const val DEFAULT_CONNECT_TIMEOUT = 9
+        private const val DEFAULT_HEARTBEAT_TIMEOUT = 15L
+        private const val DEFAULT_FREEZE_TIME = 220
+        private const val DEFAULT_COMPLETED_DISMISSAL = 3
 
-        private const val DEFAULT_BLACK_HOLE_CLEARANCE = "500"
-        private const val DEFAULT_MINE_CLEARANCE = "1000"
-        private const val DEFAULT_TYPHON_CLEARANCE = "3000"
+        private const val DEFAULT_BLACK_HOLE_CLEARANCE = 500f
+        private const val DEFAULT_MINE_CLEARANCE = 1000f
+        private const val DEFAULT_TYPHON_CLEARANCE = 3000f
 
         const val DEFAULT_UPDATE_INTERVAL = 50
         const val FLASH_INTERVAL = 500L
         const val SECONDS_TO_MILLIS = 1000
-        const val SECONDS_PER_MINUTE = 60
         private const val PIRATE_SIDE = 8
         private const val DAMAGED_ALPHA = 0.5f
         private const val JUMP_DURATION = 3000L
@@ -1657,16 +1658,13 @@ class AgentViewModel(application: Application) :
         )
 
         fun getTimeToEnd(endTime: Long): Pair<Int, Int> {
-            val timeRemaining = endTime - System.currentTimeMillis() + SECONDS_TO_MILLIS - 1
-            val totalSeconds = (timeRemaining / SECONDS_TO_MILLIS).coerceAtLeast(0L)
+            val timeRemaining = 1.seconds + (endTime - System.currentTimeMillis() - 1).milliseconds
+            val totalSeconds = timeRemaining.inWholeSeconds.coerceAtLeast(0L)
             return getTimer(totalSeconds.toInt())
         }
 
-        fun getTimer(totalSeconds: Int): Pair<Int, Int> {
-            val seconds = totalSeconds % SECONDS_PER_MINUTE
-            val minutes = totalSeconds / SECONDS_PER_MINUTE
-            return Pair(minutes, seconds)
-        }
+        fun getTimer(totalSeconds: Int): Pair<Int, Int> =
+            totalSeconds.seconds.toComponents { minutes, seconds, _ -> minutes.toInt() to seconds }
 
         fun Int.formatString(): String = toString().format(Locale.getDefault())
     }

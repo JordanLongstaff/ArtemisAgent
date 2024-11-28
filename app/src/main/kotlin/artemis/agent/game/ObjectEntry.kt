@@ -17,6 +17,8 @@ import com.walkertribe.ian.world.ArtemisBase
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisShielded
 import java.util.SortedMap
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     val obj: Obj,
@@ -129,7 +131,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         fun setBuildMinutes(minutes: Int) {
             if (firstMissile || setMissile) return
-            endTime = System.currentTimeMillis() + ONE_MINUTE * minutes
+            endTime = System.currentTimeMillis() + minutes.minutes.inWholeMilliseconds
         }
 
         fun recalibrateSpeed(endOfBuild: Long) {
@@ -150,17 +152,17 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
             val normalTime = (builtOrdnanceType.buildTime shl 1) / normalProductionCoefficient
             val predictedTime = normalTime / speedFactor
-            val predictedMinutes = (predictedTime - 1) / ONE_MINUTE + 1
+            val predictedMinutes = (predictedTime - 1).milliseconds.inWholeMinutes + 1
             if (predictedMinutes.toInt() == minutes) return
 
             val estimatedSpeed = ((predictedMinutes - 1) / minutes + 1).toInt()
             val expectedTime = normalTime / estimatedSpeed
-            val expectedMinutes = (expectedTime - 1) / ONE_MINUTE + 1
+            val expectedMinutes = (expectedTime - 1).milliseconds.inWholeMinutes + 1
 
             val actualTime: Long
             if (expectedMinutes < minutes) {
                 speedFactor = estimatedSpeed - 1
-                actualTime = minutes * ONE_MINUTE.toLong()
+                actualTime = minutes.minutes.inWholeMilliseconds
             } else {
                 speedFactor = estimatedSpeed
                 actualTime = expectedTime
@@ -239,8 +241,6 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     abstract val missionStatus: SideMissionStatus
 
     companion object {
-        private const val ONE_MINUTE =
-            AgentViewModel.SECONDS_PER_MINUTE * AgentViewModel.SECONDS_TO_MILLIS
         private const val BASE_SPEED = 0.5f
 
         fun getStationColorForShieldPercent(percent: Float, context: Context): Int =
