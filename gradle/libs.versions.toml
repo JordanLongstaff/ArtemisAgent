@@ -277,7 +277,6 @@ ian-udp-test = [
     "kotest-framework-datatest-jvm",
     "kotest-property",
     "mockk",
-    "mockk-dsl",
 ]
 
 ian-util = [
