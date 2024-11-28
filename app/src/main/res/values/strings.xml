@@ -305,7 +305,7 @@
             will be listed below. When you select one of the listed servers, the app will attempt to
             connect to that server. By default, the app only scans for servers on the local network.
             If you are having trouble finding servers, you can scan publicly by activating the
-            \"Always scan publicly\" option in the client settings.\n
+            \"Always scan publicly\" option in the connection settings.\n
         </item>
         <item>
             \nAfter the app has connected to the server, you must select a ship. The Ships page

@@ -29,7 +29,6 @@ class ClientSettingsFragmentTest {
         val expectedUpdateInterval = AtomicInteger()
         val externalVesselDataCount = AtomicInteger()
         val showingInfo = AtomicBoolean()
-        val alwaysPublic = AtomicBoolean()
 
         activityScenarioRule.scenario.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
@@ -37,7 +36,6 @@ class ClientSettingsFragmentTest {
             expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
             externalVesselDataCount.lazySet(viewModel.storageDirectories.size)
             showingInfo.lazySet(viewModel.showingNetworkInfo)
-            alwaysPublic.lazySet(viewModel.alwaysScanPublicBroadcasts)
         }
 
         SettingsFragmentTest.openSettingsMenu()
@@ -47,7 +45,6 @@ class ClientSettingsFragmentTest {
             expectedPort.toString(),
             expectedUpdateInterval.toString(),
             showingInfo.get(),
-            alwaysPublic.get(),
         )
 
         SettingsFragmentTest.closeSettingsSubMenu()
@@ -55,19 +52,11 @@ class ClientSettingsFragmentTest {
     }
 
     private companion object {
-        val clientSingleToggleSettings = arrayOf(
-            SingleToggleButtonSetting(
-                R.id.showNetworkInfoDivider,
-                R.id.showNetworkInfoTitle,
-                R.string.show_network_info,
-                R.id.showNetworkInfoButton,
-            ),
-            SingleToggleButtonSetting(
-                R.id.alwaysScanPublicDivider,
-                R.id.alwaysScanPublicTitle,
-                R.string.always_scan_publicly,
-                R.id.alwaysScanPublicButton,
-            )
+        val showNetworkInfoToggleSetting = SingleToggleButtonSetting(
+            R.id.showNetworkInfoDivider,
+            R.id.showNetworkInfoTitle,
+            R.string.show_network_info,
+            R.id.showNetworkInfoButton,
         )
 
         fun testClientSubMenuOpen(
@@ -75,7 +64,6 @@ class ClientSettingsFragmentTest {
             expectedPort: String,
             expectedUpdateInterval: String,
             showingInfo: Boolean,
-            alwaysPublic: Boolean,
         ) {
             scrollTo(R.id.vesselDataDivider)
             assertDisplayed(R.id.vesselDataTitle, R.string.vessel_data_xml_location)
@@ -93,9 +81,7 @@ class ClientSettingsFragmentTest {
                 }
             }
 
-            clientSingleToggleSettings.zip(
-                listOf(showingInfo, alwaysPublic),
-            ).forEach { (setting, isChecked) -> setting.testSingleToggle(isChecked) }
+            showNetworkInfoToggleSetting.testSingleToggle(showingInfo)
 
             scrollTo(R.id.serverPortDivider)
             assertDisplayed(R.id.serverPortTitle, R.string.server_port)
@@ -121,7 +107,7 @@ class ClientSettingsFragmentTest {
             assertNotExist(R.id.serverPortTitle)
             assertNotExist(R.id.serverPortField)
             assertNotExist(R.id.serverPortDivider)
-            clientSingleToggleSettings.forEach { it.testNotExist() }
+            showNetworkInfoToggleSetting.testNotExist()
             assertNotExist(R.id.addressLimitTitle)
             assertNotExist(R.id.addressLimitEnableButton)
             assertNotExist(R.id.addressLimitInfinity)

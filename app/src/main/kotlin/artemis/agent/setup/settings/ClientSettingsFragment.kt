@@ -44,7 +44,6 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             vesselDataOptionButtons[it.vesselDataLocationValue].isChecked = true
 
             binding.showNetworkInfoButton.isChecked = it.showNetworkInfo
-            binding.alwaysScanPublicButton.isChecked = it.alwaysScanPublic
 
             val addressLimitEnabled = it.recentAddressLimitEnabled
             binding.addressLimitEnableButton.isChecked = addressLimitEnabled
@@ -64,7 +63,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         }
 
         prepareServerPortSettingField()
-        prepareScanSettingToggles()
+        prepareShowNetworkInfoSettingToggle()
         prepareAddressLimitSettingField()
 
         binding.updateIntervalField.setOnFocusChangeListener { _, hasFocus ->
@@ -148,7 +147,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         }
     }
 
-    private fun prepareScanSettingToggles() {
+    private fun prepareShowNetworkInfoSettingToggle() {
         binding.showNetworkInfoButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
         }
@@ -157,18 +156,6 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
                     it.copy { showNetworkInfo = isChecked }
-                }
-            }
-        }
-
-        binding.alwaysScanPublicButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.alwaysScanPublicButton.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.viewModelScope.launch {
-                binding.root.context.userSettings.updateData {
-                    it.copy { alwaysScanPublic = isChecked }
                 }
             }
         }
