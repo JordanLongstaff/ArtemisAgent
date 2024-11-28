@@ -263,8 +263,8 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         const val IMAGE = 0
         const val TEXT = 1
 
-        private const val INDEX_PREVIEW_CONNECT = 3
-        private const val INDEX_PREVIEW_SHIP = 5
+        private const val INDEX_PREVIEW_CONNECT = 4
+        private const val INDEX_PREVIEW_SHIP = 6
 
         private const val INDEX_PREVIEW_COMMS_MESSAGE = 1
         private const val INDEX_PREVIEW_MISSION = 7

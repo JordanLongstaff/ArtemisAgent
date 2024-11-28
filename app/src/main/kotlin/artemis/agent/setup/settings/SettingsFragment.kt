@@ -43,6 +43,8 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             override fun reset(settings: UserSettings): UserSettings = settings.copy {
                 vesselDataLocation = UserSettings.VesselDataLocation.VESSEL_DATA_LOCATION_DEFAULT
                 serverPort = UserSettingsSerializer.DEFAULT_SERVER_PORT
+                showNetworkInfo = true
+                alwaysScanPublic = false
                 recentAddressLimit = UserSettingsSerializer.DEFAULT_ADDRESS_LIMIT
                 recentAddressLimitEnabled = false
                 updateInterval = UserSettingsSerializer.DEFAULT_UPDATE_INTERVAL
@@ -56,7 +58,6 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                 connectionTimeoutSeconds = UserSettingsSerializer.DEFAULT_CONNECTION_TIMEOUT
                 serverTimeoutSeconds = UserSettingsSerializer.DEFAULT_HEARTBEAT_TIMEOUT
                 scanTimeoutSeconds = UserSettingsSerializer.DEFAULT_SCAN_TIMEOUT
-                showNetworkInfo = true
             }
         },
         MISSION(

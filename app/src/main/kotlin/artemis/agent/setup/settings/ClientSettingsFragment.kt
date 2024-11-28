@@ -43,6 +43,9 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             vesselDataOptionButtons[it.vesselDataLocationValue].isChecked = true
 
+            binding.showNetworkInfoButton.isChecked = it.showNetworkInfo
+            binding.alwaysScanPublicButton.isChecked = it.alwaysScanPublic
+
             val addressLimitEnabled = it.recentAddressLimitEnabled
             binding.addressLimitEnableButton.isChecked = addressLimitEnabled
             if (addressLimitEnabled) {
@@ -61,6 +64,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         }
 
         prepareServerPortSettingField()
+        prepareScanSettingToggles()
         prepareAddressLimitSettingField()
 
         binding.updateIntervalField.setOnFocusChangeListener { _, hasFocus ->
@@ -139,6 +143,32 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
                     } else {
                         it.copy { serverPort = text.toInt() }
                     }
+                }
+            }
+        }
+    }
+
+    private fun prepareScanSettingToggles() {
+        binding.showNetworkInfoButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        binding.showNetworkInfoButton.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.viewModelScope.launch {
+                binding.root.context.userSettings.updateData {
+                    it.copy { showNetworkInfo = isChecked }
+                }
+            }
+        }
+
+        binding.alwaysScanPublicButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        binding.alwaysScanPublicButton.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.viewModelScope.launch {
+                binding.root.context.userSettings.updateData {
+                    it.copy { alwaysScanPublic = isChecked }
                 }
             }
         }

@@ -6,6 +6,7 @@
     <string name="adjust_25_degrees">25</string>
     <string name="agent">Agent</string>
     <string name="alert">Alert</string>
+    <string name="alive">Alive</string>
     <string name="all">All</string>
     <string name="ally_status_ambassador_for_pirate">
         Pirate boss on board. Send shuttle to rescue.
@@ -55,7 +56,7 @@
     <string name="ally_status_reward">
         Friendly ship, en route to a station to deliver a reward for your assistance.
     </string>
-    <string name="alive">Alive</string>
+    <string name="always_scan_publicly">Always scan publicly</string>
     <string name="artemis_version_not_supported">Artemis %1$s not supported</string>
     <string name="attack_nearest_enemy">Attack</string>
     <string name="audio">Audio</string>
@@ -296,8 +297,15 @@
             Before you can use Artemis Agent, you must have an Artemis server running. Open Artemis
             on your computer and click \"Start Server\". After that, enter the server\'s address
             into the Address bar at the top of the screen, then touch the Connect button on the
-            right to connect to the server. If the server version is 2.7.0 or greater, you can scan
-            for the presence of the server by pressing the Scan button.\n
+            right to connect to the server.\n
+        </item>
+        <item>
+            You can also scan for servers by pressing the Scan button. Servers running Artemis
+            version 2.7.0 or higher broadcast their presence, and any servers detected by the app
+            will be listed below. When you select one of the listed servers, the app will attempt to
+            connect to that server. By default, the app only scans for servers on the local network.
+            If you are having trouble finding servers, you can scan publicly by activating the
+            \"Always scan publicly\" option in the client settings.\n
         </item>
         <item>
             \nAfter the app has connected to the server, you must select a ship. The Ships page

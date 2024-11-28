@@ -80,7 +80,7 @@ class ConnectFragmentTest {
         listOf(settingValue, !settingValue, settingValue).forEachIndexed { index, showing ->
             if (index != 0) {
                 SettingsFragmentTest.openSettingsMenu()
-                SettingsFragmentTest.openSettingsSubMenu(1)
+                SettingsFragmentTest.openSettingsSubMenu(0)
 
                 clickOn(R.id.showNetworkInfoButton)
                 clickOn(R.id.connectPageButton)

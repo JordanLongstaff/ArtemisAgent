@@ -106,33 +106,4 @@
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintTop_toBottomOf="@id/scanTimeoutTimeInput" />
-    <TextView
-        android:id="@+id/showNetworkInfoTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/show_network_info"
-        android:textSize="@dimen/mediumTextSize"
-        app:autoSizeTextType="uniform"
-        app:autoSizeStepGranularity="2sp"
-        app:layout_constraintBottom_toBottomOf="@id/showNetworkInfoButton"
-        app:layout_constraintEnd_toStartOf="@id/showNetworkInfoButton"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/showNetworkInfoButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/showNetworkInfoButton" />
-    <ToggleButton
-        android:id="@+id/showNetworkInfoButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textOff="@string/off"
-        android:textOn="@string/on"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scanTimeoutDivider" />
-    <View
-        android:id="@+id/showNetworkInfoDivider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toBottomOf="@id/showNetworkInfoButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

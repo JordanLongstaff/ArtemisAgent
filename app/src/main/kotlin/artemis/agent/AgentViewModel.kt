@@ -138,6 +138,8 @@ class AgentViewModel(application: Application) :
     }
     var showingNetworkInfo: Boolean = true
         private set
+    var alwaysScanPublicBroadcasts: Boolean = true
+        private set
 
     // Saved copy of address bar text in connect fragment
     var addressBarText: String = ""
@@ -258,6 +260,7 @@ class AgentViewModel(application: Application) :
 
     // Allies page UI data
     var allySorter: AllySorter = AllySorter()
+        private set
     var showAllySelector = false
         set(value) {
             field = value
@@ -814,7 +817,8 @@ class AgentViewModel(application: Application) :
         cpu.launch {
             try {
                 serverDiscoveryRequester.run(
-                    broadcastAddress ?: ServerDiscoveryRequester.DEFAULT_BROADCAST_ADDRESS
+                    broadcastAddress?.takeUnless { alwaysScanPublicBroadcasts } ?:
+                    ServerDiscoveryRequester.DEFAULT_BROADCAST_ADDRESS
                 )
             } catch (_: Exception) {
                 isScanningUDP.emit(false)
@@ -1451,6 +1455,7 @@ class AgentViewModel(application: Application) :
         scanTimeout = settings.scanTimeoutSeconds
         heartbeatTimeout = settings.serverTimeoutSeconds.toLong()
         showingNetworkInfo = settings.showNetworkInfo
+        alwaysScanPublicBroadcasts = settings.alwaysScanPublic
 
         missionsEnabled = settings.missionsEnabled
         reconcileDisplayedMissions(
@@ -1616,6 +1621,7 @@ class AgentViewModel(application: Application) :
         soundVolume = (volume * VOLUME_SCALE).toInt()
         themeValue = ALL_THEMES.indexOf(themeRes)
         showNetworkInfo = showingNetworkInfo
+        alwaysScanPublic = alwaysScanPublicBroadcasts
     }
 
     companion object {

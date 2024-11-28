@@ -87,4 +87,5 @@ message UserSettings {
     bool disable_ineffective_taunts = 60;
 
     bool show_network_info = 61;
+    bool always_scan_public = 62;
 }

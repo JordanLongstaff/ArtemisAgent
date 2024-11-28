@@ -124,5 +124,6 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         soundVolume = DEFAULT_SOUND_VOLUME
 
         showNetworkInfo = true
+        alwaysScanPublic = false
     }
 }
