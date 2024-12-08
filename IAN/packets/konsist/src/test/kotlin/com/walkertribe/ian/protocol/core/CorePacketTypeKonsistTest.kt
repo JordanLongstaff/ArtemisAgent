@@ -31,7 +31,7 @@ class CorePacketTypeKonsistTest : DescribeSpec({
 
                 it("$name = \"$expectedValue\"") {
                     decl.assertTrue {
-                        it.hasConstModifier && it.hasValModifier && it.value == expectedValue
+                        it.hasConstModifier && it.isVal && it.value == expectedValue
                     }
                 }
             }
