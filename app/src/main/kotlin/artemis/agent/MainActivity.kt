@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import androidx.activity.addCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -23,6 +24,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
@@ -423,6 +427,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+
         with(viewModel) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 //                onBackInvokedDispatcher.registerOnBackInvokedCallback(
@@ -611,6 +617,15 @@ class MainActivity : AppCompatActivity() {
                         isThemeChanged.value = false
                         recreate()
                     }
+                }
+
+                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+                    val insets = windowInsets.getInsets(
+                        WindowInsetsCompat.Type.systemBars() or
+                                WindowInsetsCompat.Type.displayCutout()
+                    )
+                    view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
+                    WindowInsetsCompat.CONSUMED
                 }
 
                 collectLatestWhileStarted(jumping) {
