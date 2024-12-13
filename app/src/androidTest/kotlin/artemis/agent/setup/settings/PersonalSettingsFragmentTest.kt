@@ -62,14 +62,11 @@ class PersonalSettingsFragmentTest {
         assertProgress(R.id.soundVolumeBar, soundVolume.get())
         assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
 
-        repeat(PROGRESS_TEST_COUNT) {
-            val progress = Random.nextInt(MAX_SOUND_VOLUME)
-            setProgressTo(R.id.soundVolumeBar, progress)
-            assertDisplayed(R.id.soundVolumeLabel, progress.toString())
+        val volumeTests = List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume.get()
+        volumeTests.forEach { volume ->
+            setProgressTo(R.id.soundVolumeBar, volume)
+            assertDisplayed(R.id.soundVolumeLabel, volume.toString())
         }
-
-        setProgressTo(R.id.soundVolumeBar, soundVolume.get())
-        assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
 
         SettingsFragmentTest.closeSettingsSubMenu()
         assertNotExist(R.id.themeTitle)
@@ -92,7 +89,7 @@ class PersonalSettingsFragmentTest {
     }
 
     private companion object {
-        const val PROGRESS_TEST_COUNT = 10
-        const val MAX_SOUND_VOLUME = 101
+        const val VOLUME_TEST_COUNT = 20
+        const val MAX_VOLUME = 101
     }
 }
