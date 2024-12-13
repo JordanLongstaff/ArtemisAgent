@@ -8,14 +8,17 @@ import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers.assertChecked
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaProgressBarAssertions.assertProgress
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.BaristaSeekBarInteractions.setProgressTo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -56,6 +59,16 @@ class PersonalSettingsFragmentTest {
         scrollTo(R.id.soundVolumeDivider)
         assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
         assertDisplayed(R.id.soundVolumeBar)
+        assertProgress(R.id.soundVolumeBar, soundVolume.get())
+        assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
+
+        repeat(PROGRESS_TEST_COUNT) {
+            val progress = Random.nextInt(MAX_SOUND_VOLUME)
+            setProgressTo(R.id.soundVolumeBar, progress)
+            assertDisplayed(R.id.soundVolumeLabel, progress.toString())
+        }
+
+        setProgressTo(R.id.soundVolumeBar, soundVolume.get())
         assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
 
         SettingsFragmentTest.closeSettingsSubMenu()
@@ -76,5 +89,10 @@ class PersonalSettingsFragmentTest {
         assertNotExist(R.id.soundVolumeBar)
         assertNotExist(R.id.soundVolumeLabel)
         assertNotExist(R.id.soundVolumeDivider)
+    }
+
+    private companion object {
+        const val PROGRESS_TEST_COUNT = 10
+        const val MAX_SOUND_VOLUME = 101
     }
 }
