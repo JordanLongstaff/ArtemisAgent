@@ -21,7 +21,7 @@ class ArtemisObjectKonsistTest : DescribeSpec({
             it.assertTrue { objectClass ->
                 objectClass.hasObject { inner ->
                     inner.hasNameEndingWith("Dsl") && inner.hasParent { parent ->
-                        parent.hasNameEndingWith("Dsl")
+                        parent.hasNameEndingWith("Dsl<${objectClass.name}>")
                     }
                 }
             }
