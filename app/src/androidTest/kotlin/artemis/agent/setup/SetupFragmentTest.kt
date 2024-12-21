@@ -1,8 +1,8 @@
 package artemis.agent.setup
 
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import artemis.agent.ActivityScenarioManager
 import artemis.agent.MainActivity
 import artemis.agent.R
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 @LargeTest
 class SetupFragmentTest {
     @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun radioButtonsTest() {

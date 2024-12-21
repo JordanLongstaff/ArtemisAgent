@@ -1,9 +1,9 @@
 package artemis.agent.setup
 
 import androidx.activity.viewModels
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
@@ -31,12 +31,12 @@ import java.util.concurrent.atomic.AtomicInteger
 @LargeTest
 class ConnectFragmentTest {
     @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun scanTest() {
         val scanTimeout = AtomicInteger()
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioManager.onActivity { activity ->
             scanTimeout.lazySet(activity.viewModels<AgentViewModel>().value.scanTimeout)
         }
 
@@ -102,7 +102,7 @@ class ConnectFragmentTest {
     @Test
     fun showNetworkInfoTest() = runTest {
         val showingInfo = AtomicBoolean()
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioManager.onActivity { activity ->
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
         }
 
