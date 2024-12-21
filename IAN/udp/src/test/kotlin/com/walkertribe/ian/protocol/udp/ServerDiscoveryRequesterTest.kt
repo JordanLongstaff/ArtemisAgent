@@ -88,8 +88,7 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
                         requesterJob = launch { requester.run(loopbackAddress) }
 
                         datagram = socket.receive()
-                        packet = datagram.packet
-                        packet.shouldNotBeNull()
+                        packet = datagram.packet.shouldNotBeNull()
                     }
                 }
 
