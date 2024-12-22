@@ -1,5 +1,6 @@
 package artemis.agent.setup
 
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -79,6 +80,8 @@ class ConnectFragmentTest {
             connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
         }
 
+        val networkConnection = Konnection.instance.getCurrentNetworkConnection()
+        Log.i("ConnectFragmentTest", "Connection type: $networkConnection")
         val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
         assertDisplayed(R.id.connectLabel, R.string.not_connected)
