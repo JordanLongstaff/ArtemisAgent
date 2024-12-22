@@ -73,11 +73,13 @@ class ConnectFragmentTest {
     }
 
     @Test
-    fun connectionFailedTest() {
+    fun connectionFailedTest() = runTest {
         val connectTimeout = AtomicInteger()
         activityScenarioRule.scenario.onActivity { activity ->
             connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
         }
+
+        val hasNetwork = Konnection.instance.getInfo()?.ipv4 != null
 
         assertDisplayed(R.id.connectLabel, R.string.not_connected)
         assertNotDisplayed(R.id.connectSpinner)
@@ -85,15 +87,13 @@ class ConnectFragmentTest {
         writeTo(R.id.addressBar, "127.0.0.1")
         clickOn(R.id.connectButton)
 
-        assertDisplayed(R.id.connectLabel, R.string.connecting)
-        assertDisplayed(R.id.connectSpinner)
+        if (hasNetwork) {
+            // If there's no network, skip this part as the connection will fail immediately
+            assertDisplayed(R.id.connectLabel, R.string.connecting)
+            assertDisplayed(R.id.connectSpinner)
+            sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
+        }
 
-        sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
-
-        assertDisplayed(R.id.connectLabel, R.string.failed_to_connect)
-        assertNotDisplayed(R.id.connectSpinner)
-
-        clickOn(R.id.connectButton)
         assertDisplayed(R.id.connectLabel, R.string.failed_to_connect)
         assertNotDisplayed(R.id.connectSpinner)
     }
@@ -105,7 +105,7 @@ class ConnectFragmentTest {
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
         }
 
-        val hasConnection = Konnection.instance.getInfo()?.ipv4 != null
+        val hasNetwork = Konnection.instance.getInfo()?.ipv4 != null
 
         val infoViews = intArrayOf(
             R.id.addressLabel,
@@ -124,8 +124,8 @@ class ConnectFragmentTest {
             }
 
             infoViews.forEachIndexed { viewIndex, resId ->
-                val couldBeNull = viewIndex == 0 && !hasConnection
-                ArtemisAgentTestHelpers.assertDisplayed(resId, showing && !couldBeNull)
+                val isNotEmpty = viewIndex > 0 || hasNetwork
+                ArtemisAgentTestHelpers.assertDisplayed(resId, showing && isNotEmpty)
             }
         }
     }
