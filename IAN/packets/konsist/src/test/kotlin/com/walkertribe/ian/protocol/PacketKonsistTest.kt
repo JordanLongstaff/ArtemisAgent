@@ -2,12 +2,12 @@ package com.walkertribe.ian.protocol
 
 import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.ext.list.withAnnotationOf
+import com.lemonappdev.konsist.api.ext.list.withExternalParentNamed
 import com.lemonappdev.konsist.api.ext.list.withNameEndingWith
 import com.lemonappdev.konsist.api.ext.list.withParentOf
 import com.lemonappdev.konsist.api.ext.list.withRepresentedTypeOf
 import com.lemonappdev.konsist.api.ext.list.withTopLevel
 import com.lemonappdev.konsist.api.ext.provider.hasAnnotationOf
-import com.lemonappdev.konsist.api.ext.provider.hasParentOf
 import com.lemonappdev.konsist.api.verify.assertFalse
 import com.lemonappdev.konsist.api.verify.assertTrue
 import com.walkertribe.ian.protocol.core.HeartbeatPacket
@@ -43,7 +43,7 @@ class PacketKonsistTest : DescribeSpec({
                 nameFn = {
                     it.fullyQualifiedName?.let(classNameRegex::find)?.value?.substring(1) ?: it.name
                 },
-                classes.withParentOf(Packet.Server::class),
+                classes.withExternalParentNamed("Packet.Server"),
             ) { packetClass ->
                 packetClass.assertTrue { it.hasAnnotationOf<PacketType>() }
             }
@@ -56,7 +56,7 @@ class PacketKonsistTest : DescribeSpec({
                 },
                 classes.withAnnotationOf(PacketType::class),
             ) { packetClass ->
-                packetClass.assertTrue { it.hasParentOf<Packet.Server>() }
+                packetClass.assertTrue { it.hasExternalParentWithName("Packet.Server") }
             }
         }
 
