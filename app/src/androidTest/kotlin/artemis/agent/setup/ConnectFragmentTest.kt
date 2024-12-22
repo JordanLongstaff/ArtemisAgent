@@ -79,7 +79,7 @@ class ConnectFragmentTest {
             connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
         }
 
-        val hasNetwork = Konnection.instance.getInfo()?.ipv4 != null
+        val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
         assertDisplayed(R.id.connectLabel, R.string.not_connected)
         assertNotDisplayed(R.id.connectSpinner)
@@ -91,8 +91,9 @@ class ConnectFragmentTest {
             // If there's no network, skip this part as the connection will fail immediately
             assertDisplayed(R.id.connectLabel, R.string.connecting)
             assertDisplayed(R.id.connectSpinner)
-            sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
         }
+
+        sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
 
         assertDisplayed(R.id.connectLabel, R.string.failed_to_connect)
         assertNotDisplayed(R.id.connectSpinner)
@@ -105,7 +106,7 @@ class ConnectFragmentTest {
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
         }
 
-        val hasNetwork = Konnection.instance.getInfo()?.ipv4 != null
+        val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
         val infoViews = intArrayOf(
             R.id.addressLabel,
