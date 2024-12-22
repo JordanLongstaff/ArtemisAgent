@@ -22,8 +22,8 @@ android {
         applicationId = "artemis.agent"
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 8
+        versionName = "1.0.2"
 
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

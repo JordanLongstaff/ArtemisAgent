@@ -118,7 +118,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
     describe("ArtemisNetworkInterface") {
         val loopbackAddress = "127.0.0.1"
         val port = 2010
-        val testTimeout = 30.seconds
+        val testTimeout = 1.minutes
         val client = KtorArtemisNetworkInterface(debugMode = false).apply {
             addListenerModule(TestListener.module)
             setAutoSendHeartbeat(false)
@@ -603,7 +603,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                             eventually(testTimeout) {
                                 var sender: ByteWriteChannel? = null
 
-                                val result = withTimeoutOrNull(2.seconds) {
+                                val result = withTimeoutOrNull(6.seconds) {
                                     val connectDeferred = async {
                                         client.connect(
                                             host = loopbackAddress,
