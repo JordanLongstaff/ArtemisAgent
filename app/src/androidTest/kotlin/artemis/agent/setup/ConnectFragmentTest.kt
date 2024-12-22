@@ -75,7 +75,7 @@ class ConnectFragmentTest {
     @Test
     fun connectionFailedTest() = runTest {
         val connectTimeout = AtomicInteger()
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioManager.onActivity { activity ->
             connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
         }
 
