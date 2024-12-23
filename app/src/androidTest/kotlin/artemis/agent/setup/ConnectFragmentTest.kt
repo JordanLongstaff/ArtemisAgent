@@ -135,6 +135,14 @@ class ConnectFragmentTest {
     }
 
     companion object {
-        private val isEmulator by lazy { Build.DEVICE.startsWith("generic") }
+        private val isEmulator by lazy {
+            Build.DEVICE.startsWith("generic", ignoreCase = true) ||
+                Build.DEVICE.startsWith("emulator", ignoreCase = true) ||
+                Build.PRODUCT.startsWith("sdk", ignoreCase = true) ||
+                Build.MODEL.contains("google_sdk", ignoreCase = true) ||
+                Build.MODEL.contains("emulator", ignoreCase = true) ||
+                Build.BRAND.startsWith("generic", ignoreCase = true) ||
+                Build.FINGERPRINT.contains("generic", ignoreCase = true)
+        }
     }
 }
