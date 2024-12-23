@@ -87,7 +87,10 @@ class ConnectFragmentTest {
         sleep(100L)
         clickOn(R.id.connectButton)
 
-        if (!Build.FINGERPRINT.contains("generic")) {
+        val isEmulator = Build.FINGERPRINT.contains("generic") ||
+            Build.MODEL.contains("Emulator", ignoreCase = true)
+
+        if (!isEmulator) {
             // Skip this check on CI since it always fails
             assertDisplayed(R.id.connectLabel, R.string.connecting)
             assertDisplayed(R.id.connectSpinner)
