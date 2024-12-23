@@ -88,7 +88,8 @@ class ConnectFragmentTest {
         clickOn(R.id.connectButton)
 
         val isEmulator = Build.FINGERPRINT.contains("generic") ||
-            Build.MODEL.contains("Emulator", ignoreCase = true)
+            Build.MODEL.contains("Emulator", ignoreCase = true) ||
+            Build.DEVICE.contains("emulator", ignoreCase = true)
 
         if (!isEmulator) {
             // Skip this check on CI since it always fails
