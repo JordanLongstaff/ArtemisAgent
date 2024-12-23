@@ -48,6 +48,7 @@ class ConnectFragmentTest {
         assertRecyclerViewItemCount(R.id.serverList, 0)
 
         clickOn(R.id.scanButton)
+        sleep(100L)
 
         assertDisabled(R.id.scanButton)
         assertDisplayed(R.id.scanSpinner)
