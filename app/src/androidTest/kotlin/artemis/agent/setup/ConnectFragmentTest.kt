@@ -89,6 +89,10 @@ class ConnectFragmentTest {
 
         val isEmulator = Build.FINGERPRINT.contains("generic") ||
             Build.MODEL.contains("Emulator", ignoreCase = true) ||
+            Build.MODEL.contains("google_sdk", ignoreCase = true) ||
+            Build.PRODUCT.contains("sdk", ignoreCase = true) ||
+            Build.PRODUCT.contains("google_sdk", ignoreCase = true) ||
+            Build.PRODUCT.contains("sdk_x86", ignoreCase = true) ||
             Build.DEVICE.contains("emulator", ignoreCase = true)
 
         if (!isEmulator) {
