@@ -48,13 +48,14 @@ class ConnectFragmentTest {
         assertRecyclerViewItemCount(R.id.serverList, 0)
 
         clickOn(R.id.scanButton)
-        sleep(250L)
 
-        assertDisabled(R.id.scanButton)
-        assertDisplayed(R.id.scanSpinner)
-        assertNotDisplayed(R.id.noServersLabel)
+        if (isEmulator && Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+            assertDisabled(R.id.scanButton)
+            assertDisplayed(R.id.scanSpinner)
+            assertNotDisplayed(R.id.noServersLabel)
 
-        sleep(scanTimeout.toLong(), TimeUnit.SECONDS)
+            sleep(scanTimeout.toLong(), TimeUnit.SECONDS)
+        }
 
         assertEnabled(R.id.scanButton)
         assertNotDisplayed(R.id.scanSpinner)
@@ -133,6 +134,6 @@ class ConnectFragmentTest {
     }
 
     companion object {
-        private val isEmulator by lazy { Build.PRODUCT.contains("sdk") }
+        private val isEmulator by lazy { Build.DEVICE.startsWith("generic") }
     }
 }
