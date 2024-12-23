@@ -133,8 +133,6 @@ class ConnectFragmentTest {
     }
 
     companion object {
-        private val EMULATOR_PRODUCTS by lazy { setOf("sdk", "google_sdk", "sdk_x86") }
-
-        private val isEmulator by lazy { Build.PRODUCT in EMULATOR_PRODUCTS }
+        private val isEmulator by lazy { Build.PRODUCT.contains("sdk") }
     }
 }
