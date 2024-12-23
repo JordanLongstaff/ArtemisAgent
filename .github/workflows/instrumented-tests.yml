@@ -24,16 +24,10 @@ jobs:
         sudo udevadm trigger --name-match=kvm
 
     - name: Get Public IP
-      id: ip
       uses: haythem/public-ip@v1.3
 
-    - name: Echo Public IP
-      run: |
-        echo "IPv4: " ${{ steps.ip.outputs.ipv4 }}
-        echo "IPv6: " ${{ steps.ip.outputs.ipv6 }}
-
     - name: Echo IP config
-      run: ipconfig
+      run: ip -4 a
 
     - name: Set up JDK 21
       uses: actions/setup-java@v4
