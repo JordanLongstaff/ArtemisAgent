@@ -109,6 +109,9 @@ class ConnectFragmentTest {
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
         }
 
+        // Wait a bit for the connection info to load
+        sleep(250L)
+
         val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
         val infoViews = intArrayOf(
