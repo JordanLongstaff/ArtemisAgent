@@ -85,6 +85,7 @@ class ConnectFragmentTest {
         assertNotDisplayed(R.id.connectSpinner)
 
         writeTo(R.id.addressBar, "127.0.0.1")
+        sleep(100L)
         clickOn(R.id.connectButton)
 
         // On CI, wait 0.1 seconds in case that's why it's failing
