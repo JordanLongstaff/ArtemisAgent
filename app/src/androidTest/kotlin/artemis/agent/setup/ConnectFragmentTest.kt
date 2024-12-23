@@ -79,20 +79,19 @@ class ConnectFragmentTest {
             connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
         }
 
-        val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
+        val ipv4 = Konnection.instance.getInfo()?.ipv4
 
         assertDisplayed(R.id.connectLabel, R.string.not_connected)
         assertNotDisplayed(R.id.connectSpinner)
 
-        writeTo(R.id.addressBar, "127.0.0.1")
+        writeTo(R.id.addressBar, ipv4 ?: "127.0.0.1")
         sleep(100L)
         clickOn(R.id.connectButton)
 
-        // On CI, wait 0.1 seconds in case that's why it's failing
-        sleep(100L)
-
-        if (hasNetwork) {
+        if (!ipv4.isNullOrBlank()) {
             // If there's no network, skip this part as the connection will fail immediately
+            assertNotDisplayed(R.id.connectLabel, R.string.not_connected)
+            assertNotDisplayed(R.id.connectLabel, R.string.failed_to_connect)
             assertDisplayed(R.id.connectLabel, R.string.connecting)
             assertDisplayed(R.id.connectSpinner)
 
