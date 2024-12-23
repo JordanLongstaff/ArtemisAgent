@@ -10,7 +10,7 @@ import com.walkertribe.ian.iface.PacketReader
 import com.walkertribe.ian.iface.ParseResult
 import com.walkertribe.ian.iface.TestListener
 import com.walkertribe.ian.protocol.core.PacketTestData
-import com.walkertribe.ian.protocol.core.PacketTestFixture.Companion.prepare
+import com.walkertribe.ian.protocol.core.PacketTestFixture.Companion.writePacketWithHeader
 import com.walkertribe.ian.protocol.core.TestPacketTypes
 import com.walkertribe.ian.protocol.core.world.WeaponsParser.OrdnanceCountBit
 import com.walkertribe.ian.protocol.core.world.WeaponsParser.TubeContentsBit
@@ -42,6 +42,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
 import io.kotest.property.Gen
+import io.kotest.property.PropertyTesting
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.byte
 import io.kotest.property.arbitrary.choose
@@ -55,13 +56,11 @@ import io.kotest.property.arbitrary.short
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.of
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.BytePacketBuilder
-import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
-import io.mockk.every
-import io.mockk.mockk
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
@@ -98,11 +97,11 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             }
         }
 
-        abstract fun BytePacketBuilder.buildObject()
+        abstract fun Sink.buildObject()
 
-        override fun buildPayload(): ByteReadPacket = buildObject {
+        override fun buildPayload(): Source = buildObject {
             writeByte(objectType.id)
-            writeIntLittleEndian(objectID)
+            writeIntLe(objectID)
             buildObject()
         }
     }
@@ -111,7 +110,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         data object Data : PacketTestData.Server<ObjectUpdatePacket> {
             override val version: Version get() = Version.LATEST
 
-            override fun buildPayload(): ByteReadPacket = buildObject { }
+            override fun buildPayload(): Source = buildObject { }
 
             override fun validate(packet: ObjectUpdatePacket) {
                 packet.objects.shouldBeEmpty()
@@ -138,7 +137,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val yFlag = flags1.flag7
             private val zFlag = flags1.flag8
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 arrayOf(flags1, flags2).forEach {
                     writeByte(it.byteValue)
                 }
@@ -228,7 +227,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val yFlag = flags.flag2
             private val zFlag = flags.flag3
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 writeByte(flags.byteValue)
                 writeFloatFlags(xFlag, yFlag, zFlag)
             }
@@ -280,6 +279,8 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val UNK_3_1 = Arb.byte()
             private val UNK_3_2 = Arb.int()
 
+            private const val CREATURE_TYPE_BIT = 0x80
+
             private fun arbData(
                 arbVersion: Arb<Version>,
                 arbCreatureType: Arb<Int>,
@@ -312,9 +313,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val zFlag = flags1.flag3
             private val creatureTypeFlag = flags1.flag8
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 var flagByte1 = flags1.byteValue.toInt()
-                if (forceCreatureType) flagByte1 = flagByte1 or 0x80
+                if (forceCreatureType) flagByte1 = flagByte1 or CREATURE_TYPE_BIT
                 writeByte(flagByte1.toByte())
 
                 arrayOf(flags2, flags3).forEach {
@@ -326,7 +327,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 writeFloatFlags(flags1.flag5, flags1.flag6, flags1.flag7)
 
                 if (creatureTypeFlag.enabled || forceCreatureType) {
-                    writeIntLittleEndian(creatureTypeFlag.value)
+                    writeIntLe(creatureTypeFlag.value)
                 }
 
                 writeIntFlags(
@@ -371,8 +372,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             }
         }
 
-        data object V1 : CreatureParser("Before 2.6.0", Arb.version(2, 3..5))
-        data object V2 : CreatureParser("Since 2.6.0", Arb.version(2, Arb.int(min = 6)))
+        data object V1 : CreatureParser(
+            "Before 2.6.0",
+            Arb.version(major = 2, minorRange = 3..5),
+        )
+
+        data object V2 : CreatureParser(
+            "Since 2.6.0",
+            Arb.version(major = 2, minorArb = Arb.int(min = 6)),
+        )
 
         override val parserName: String = "Creature"
         override val dataGenerator: Gen<Data> = arbData(versionArb, Arb.of(0), Arb.of(false))
@@ -385,14 +393,14 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         override suspend fun describeMore(scope: DescribeSpecContainerScope) {
             scope.it("Rejects non-typhons") {
-                val readChannel = mockk<ByteReadChannel>()
+                val readChannel = ByteChannel()
                 val reader = PacketReader(
                     readChannel,
                     ListenerRegistry().apply { register(TestListener.module) }
                 )
 
                 nonTyphonDataGenerator.checkAll {
-                    readChannel.prepare(
+                    readChannel.writePacketWithHeader(
                         TestPacketTypes.OBJECT_BIT_STREAM,
                         it.buildPayload(),
                     )
@@ -409,7 +417,6 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     reader.isAcceptingCurrentObject.shouldBeFalse()
                 }
 
-                every { readChannel.cancel(any()) } returns true
                 reader.close()
             }
         }
@@ -430,7 +437,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val yFlag = flags.flag2
             private val zFlag = flags.flag3
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 writeByte(flags.byteValue)
                 writeFloatFlags(xFlag, yFlag, zFlag)
             }
@@ -534,10 +541,10 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             
             internal abstract val allFlagBytes: Array<AnyFlagByte>
 
-            abstract fun BytePacketBuilder.writeInNebulaFlag()
-            abstract fun BytePacketBuilder.writeRemainingFlags()
+            abstract fun Sink.writeInNebulaFlag()
+            abstract fun Sink.writeRemainingFlags()
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 allFlagBytes.forEach { writeByte(it.byteValue) }
 
                 writeStringFlags(nameFlag)
@@ -656,11 +663,11 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 )
                 override val inNebulaFlag: Flag<Short> = flags2.flag8
 
-                override fun BytePacketBuilder.writeInNebulaFlag() {
+                override fun Sink.writeInNebulaFlag() {
                     writeShortFlags(inNebulaFlag)
                 }
 
-                override fun BytePacketBuilder.writeRemainingFlags() {
+                override fun Sink.writeRemainingFlags() {
                     writeFloatFlags(
                         flags5.flag1,
                         flags5.flag2,
@@ -684,8 +691,8 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val dataGenerator: Gen<Data> = Arb.bind(
                 ID,
                 Arb.choose(
-                    3 to Arb.version(2, 6, 0..2),
-                    997 to Arb.version(2, 3..5),
+                    3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
+                    997 to Arb.version(major = 2, minorRange = 3..5),
                 ),
                 Arb.flags(NAME, IMPULSE, UNK_1_3, UNK_1_4, UNK_1_5, IS_ENEMY, HULL_ID, X),
                 Arb.flags(Y, Z, UNK_2_3, UNK_2_4, UNK_2_5, UNK_2_6, SURRENDERED, IN_NEBULA_OLD),
@@ -720,11 +727,11 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 )
                 override val inNebulaFlag: Flag<Short> = flags2.flag8
 
-                override fun BytePacketBuilder.writeInNebulaFlag() {
+                override fun Sink.writeInNebulaFlag() {
                     writeShortFlags(inNebulaFlag)
                 }
 
-                override fun BytePacketBuilder.writeRemainingFlags() {
+                override fun Sink.writeRemainingFlags() {
                     writeFloatFlags(flags5.flag1, flags5.flag2)
                     writeByteFlags(flags5.flag3, flags5.flag4)
                     writeFloatFlags(
@@ -747,7 +754,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             override val dataGenerator: Gen<Data> = Arb.bind(
                 ID,
-                Arb.version(2, 6, Arb.int(min = 3)),
+                Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
                 Arb.flags(NAME, IMPULSE, UNK_1_3, UNK_1_4, UNK_1_5, IS_ENEMY, HULL_ID, X),
                 Arb.flags(Y, Z, UNK_2_3, UNK_2_4, UNK_2_5, UNK_2_6, SURRENDERED, IN_NEBULA_OLD),
                 Arb.flags(FRONT, FRONT_MAX, REAR, REAR_MAX, UNK_3_5, UNK_3_6, UNK_3_7, UNK_3_8),
@@ -782,11 +789,11 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 )
                 override val inNebulaFlag: Flag<Byte> = flags2.flag8
 
-                override fun BytePacketBuilder.writeInNebulaFlag() {
+                override fun Sink.writeInNebulaFlag() {
                     writeByteFlags(inNebulaFlag)
                 }
 
-                override fun BytePacketBuilder.writeRemainingFlags() {
+                override fun Sink.writeRemainingFlags() {
                     writeFloatFlags(flags5.flag1, flags5.flag2)
                     writeByteFlags(flags5.flag3, flags5.flag4)
                     writeFloatFlags(
@@ -976,7 +983,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             ) : Data(objectID, version, flags1, flags2, flags3, flags4, flags5, flags6) {
                 override val nebulaTypeFlag: Flag<Short> = flags3.flag3
 
-                override fun BytePacketBuilder.writeNebulaTypeFlag() {
+                override fun Sink.writeNebulaTypeFlag() {
                     writeShortFlags(nebulaTypeFlag)
                 }
             }
@@ -993,14 +1000,14 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             ) : Data(objectID, version, flags1, flags2, flags3, flags4, flags5, flags6) {
                 override val nebulaTypeFlag: Flag<Byte> = flags3.flag3
 
-                override fun BytePacketBuilder.writeNebulaTypeFlag() {
+                override fun Sink.writeNebulaTypeFlag() {
                     writeByteFlags(nebulaTypeFlag)
                 }
             }
 
-            abstract fun BytePacketBuilder.writeNebulaTypeFlag()
+            abstract fun Sink.writeNebulaTypeFlag()
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 arrayOf(flags1, flags2, flags3, flags4, flags5, flags6).forEach {
                     writeByte(it.byteValue)
                 }
@@ -1152,22 +1159,22 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         data object V1 : PlayerShipParser(
             "Before 2.4.0",
-            Arb.version(2, 3),
+            Arb.version(major = 2, minor = 3),
         )
         data object V2 : PlayerShipParser(
             "From 2.4.0 until 2.6.3",
             Arb.choose(
-                3 to Arb.version(2, 6, 0..2),
-                997 to Arb.version(2, 4..5),
+                3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
+                997 to Arb.version(major = 2, minorRange = 4..5),
             ),
         )
         data object V3 : PlayerShipParser(
             "From 2.6.3 until 2.7.0",
-            Arb.version(2, 6, Arb.int(min = 3)),
+            Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
         )
         data object V4 : PlayerShipParser(
             "Since 2.7.0",
-            Arb.version(2, Arb.int(min = 7)),
+            Arb.version(major = 2, minorArb = Arb.int(min = 7)),
         ) {
             override val dataGenerator: Gen<Data> = Arb.bind(
                 ID,
@@ -1208,7 +1215,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val countFlag: Flag<Byte> = c2.flag5
             private val timeFlag: Flag<Short> = t2.flag1
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 arrayOf(a1, a2, a3, ac, c2, c3, c4, t1, t2, t3, t4).forEach {
                     writeByte(it.byteValue)
                 }
@@ -1320,7 +1327,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             internal abstract val allFlagBytes: Array<AnyFlagByte>
 
-            override fun BytePacketBuilder.buildObject() {
+            override fun Sink.buildObject() {
                 allFlagBytes.forEach {
                     writeByte(it.byteValue)
                 }
@@ -1438,8 +1445,8 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val dataGenerator: Gen<Data> = Arb.bind(
                 ID,
                 Arb.choose(
-                    3 to Arb.version(2, 6, 0..2),
-                    997 to Arb.version(2, 3..5),
+                    3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
+                    997 to Arb.version(major = 2, minorRange = 3..5),
                 ),
                 Arb.flags(COUNT, COUNT, COUNT, COUNT, COUNT, UNKNOWN, TIME, TIME),
                 Arb.flags(TIME, TIME, TIME, TIME, STATUS, STATUS, STATUS, STATUS),
@@ -1510,8 +1517,10 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val dataGenerator: Gen<Data> = Arb.bind(
                 ID,
                 Arb.choose(
-                    1 to Arb.version(2, 6, Arb.int(min = 3)),
-                    999 to Arb.version(2, Arb.int(min = 7)),
+                    1 to
+                        Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
+                    PropertyTesting.defaultIterationCount - 1 to
+                        Arb.version(major = 2, minorArb = Arb.int(min = 7)),
                 ),
                 Arb.flags(COUNT, COUNT, COUNT, COUNT, COUNT, COUNT, COUNT, COUNT),
                 Arb.flags(TIME, TIME, TIME, TIME, TIME, TIME, STATUS, STATUS),
@@ -1560,7 +1569,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             ) : ObjectParserData.Unobserved(objectID, ObjectType.ENGINEERING_CONSOLE) {
                 override val version: Version get() = Version.LATEST
 
-                override fun BytePacketBuilder.buildObject() {
+                override fun Sink.buildObject() {
                     arrayOf(heatFlags, enFlags, coolFlags).forEach { flags ->
                         writeByte(flags.byteValue)
                     }
@@ -1613,7 +1622,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 override val version: Version,
                 private val flags: AnomalyFlags,
             ) : ObjectParserData.Unobserved(objectID, ObjectType.ANOMALY) {
-                override fun BytePacketBuilder.buildObject() {
+                override fun Sink.buildObject() {
                     val beaconVersion = version >= Version.BEACON
 
                     writeByte(flags.byteValue)
@@ -1631,16 +1640,18 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             data object V1 : Anomaly(
                 "Before 2.6.3",
                 Arb.choose(
-                    3 to Arb.version(2, 6, 0..2),
-                    997 to Arb.version(2, 3..5),
+                    3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
+                    997 to Arb.version(major = 2, minorRange = 3..5),
                 ),
             )
 
             data object V2 : Anomaly(
                 "Since 2.6.3",
                 Arb.choose(
-                    1 to Arb.version(2, 6, Arb.int(min = 3)),
-                    999 to Arb.version(2, Arb.int(min = 7)),
+                    1 to
+                        Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
+                    PropertyTesting.defaultIterationCount - 1 to
+                        Arb.version(major = 2, minorArb = Arb.int(min = 7)),
                 ),
             )
 
@@ -1671,7 +1682,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 override val version: Version,
                 private val flags: NebulaFlags,
             ) : ObjectParserData.Unobserved(objectID, ObjectType.NEBULA) {
-                override fun BytePacketBuilder.buildObject() {
+                override fun Sink.buildObject() {
                     writeByte(flags.byteValue)
 
                     writeFloatFlags(
@@ -1689,8 +1700,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 }
             }
 
-            data object V1 : Nebula("Before 2.7.0", Arb.version(2, 3..6))
-            data object V2 : Nebula("Since 2.7.0", Arb.version(2, Arb.int(min = 7)))
+            data object V1 : Nebula(
+                "Before 2.7.0",
+                Arb.version(major = 2, minorRange = 3..6),
+            )
+
+            data object V2 : Nebula(
+                "Since 2.7.0",
+                Arb.version(major = 2, minorArb = Arb.int(min = 7)),
+            )
 
             override val parserName: String = "Nebula"
             override val dataGenerator: Gen<Data> = Arb.bind(
@@ -1716,7 +1734,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             ) : ObjectParserData.Unobserved(objectID, ObjectType.TORPEDO) {
                 override val version: Version get() = Version.LATEST
 
-                override fun BytePacketBuilder.buildObject() {
+                override fun Sink.buildObject() {
                     writeByte(flags.byteValue)
                     writeByte(0)
 
@@ -1756,7 +1774,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             ) : ObjectParserData.Unobserved(objectID, ObjectType.ASTEROID) {
                 override val version: Version get() = Version.LATEST
 
-                override fun BytePacketBuilder.buildObject() {
+                override fun Sink.buildObject() {
                     writeByte(flags.byteValue)
 
                     writeFloatFlags(flags.flag1, flags.flag2, flags.flag3)
@@ -1787,7 +1805,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 private val flags3: GenericMeshFlags3,
                 private val flags4: GenericMeshFlags4,
             ) : ObjectParserData.Unobserved(objectID, ObjectType.GENERIC_MESH) {
-                override fun BytePacketBuilder.buildObject() {
+                override fun Sink.buildObject() {
                     arrayOf(flags1, flags2, flags3, flags4).forEach {
                         writeByte(it.byteValue)
                     }
@@ -1822,8 +1840,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 }
             }
 
-            data object V1 : GenericMesh("Before 2.7.0", Arb.version(2, 3..6))
-            data object V2 : GenericMesh("Since 2.7.0", Arb.version(2, Arb.int(min = 7)))
+            data object V1 : GenericMesh(
+                "Before 2.7.0",
+                Arb.version(major = 2, minorRange = 3..6),
+            )
+
+            data object V2 : GenericMesh(
+                "Since 2.7.0",
+                Arb.version(major = 2, minorArb = Arb.int(min = 7)),
+            )
 
             override val parserName: String = "Generic mesh"
             override val dataGenerator: Gen<Data> = Arb.bind(
@@ -1876,7 +1901,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             ) : ObjectParserData.Unobserved(objectID, ObjectType.DRONE) {
                 override val version: Version get() = Version.LATEST
 
-                override fun BytePacketBuilder.buildObject() {
+                override fun Sink.buildObject() {
                     arrayOf(flags1, flags2).forEach {
                         writeByte(it.byteValue)
                     }
@@ -1935,9 +1960,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         val Y = Arb.numericFloat()
         val Z = Arb.numericFloat()
 
-        fun buildObject(block: BytePacketBuilder.() -> Unit): ByteReadPacket = buildPacket {
+        fun buildObject(block: Sink.() -> Unit): Source = buildPacket {
             block()
-            writeIntLittleEndian(0)
+            writeIntLe(0)
         }
 
         fun testHasPosition(obj: ArtemisObject<*>, xFlag: Flag<Float>, zFlag: Flag<Float>) {

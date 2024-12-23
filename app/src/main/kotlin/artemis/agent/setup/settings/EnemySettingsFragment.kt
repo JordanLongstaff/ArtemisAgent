@@ -79,26 +79,27 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
             playSoundsOnTextChange = true
         }
 
+        prepareDefaultSortMethodButton(enemySortMethodButtons)
+        prepareEnemySortMethodButtons(enemySortMethodButtons)
+        prepareReverseRaceSortButton()
+        bindSurrenderRangeField()
+        bindToggleSettingButtons(enemyToggleButtons)
+    }
+
+    override fun onPause() {
+        clearFocus()
+        super.onPause()
+    }
+
+    private fun prepareDefaultSortMethodButton(enemySortMethodButtons: ToggleButtonMap) {
         binding.enemySortingDefaultButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        enemySortMethodButtons.keys.forEach { button ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
-        }
-
-        binding.reverseRaceSortButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.surrenderRangeEnableButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
         }
 
         binding.enemySortingDefaultButton.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked) return@setOnCheckedChangeListener
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                binding.root.context.userSettings.updateData {
                     it.copy {
                         enemySortMethodButtons.values.forEach { setting ->
                             setting.set(this, false)
@@ -107,11 +108,19 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
                 }
             }
         }
+    }
+
+    private fun prepareEnemySortMethodButtons(enemySortMethodButtons: ToggleButtonMap) {
+        val context = binding.root.context
+
+        enemySortMethodButtons.keys.forEach { button ->
+            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        }
 
         binding.enemySortingSurrenderButton.setOnCheckedChangeListener { _, isChecked ->
             binding.enemySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         enemySortSurrendered = isChecked
                     }
@@ -122,19 +131,9 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         binding.enemySortingRaceButton.setOnCheckedChangeListener { _, isChecked ->
             binding.enemySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         enemySortFaction = isChecked
-                    }
-                }
-            }
-        }
-
-        binding.reverseRaceSortButton.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
-                    it.copy {
-                        enemySortFactionReversed = isChecked
                     }
                 }
             }
@@ -143,7 +142,7 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         binding.enemySortingNameButton.setOnCheckedChangeListener { _, isChecked ->
             binding.enemySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         enemySortName = isChecked
                         if (isChecked && enemySortDistance) enemySortDistance = false
@@ -155,7 +154,7 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         binding.enemySortingRangeButton.setOnCheckedChangeListener { _, isChecked ->
             binding.enemySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         enemySortDistance = isChecked
                         if (isChecked && enemySortName) enemySortName = false
@@ -163,7 +162,25 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
                 }
             }
         }
+    }
 
+    private fun prepareReverseRaceSortButton() {
+        binding.reverseRaceSortButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        binding.reverseRaceSortButton.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.viewModelScope.launch {
+                binding.root.context.userSettings.updateData {
+                    it.copy {
+                        enemySortFactionReversed = isChecked
+                    }
+                }
+            }
+        }
+    }
+
+    private fun bindSurrenderRangeField() {
         binding.surrenderRangeField.addTextChangedListener {
             if (playSoundsOnTextChange) {
                 viewModel.playSound(SoundEffect.BEEP_2)
@@ -182,7 +199,7 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
 
             val text = binding.surrenderRangeField.text?.toString()
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                binding.root.context.userSettings.updateData {
                     it.copy {
                         surrenderRange = if (text.isNullOrBlank()) {
                             0
@@ -201,28 +218,25 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
 
         binding.surrenderRangeEnableButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                binding.root.context.userSettings.updateData {
                     it.copy { surrenderRangeEnabled = isChecked }
-                }
-            }
-        }
-
-        enemyToggleButtons.entries.forEach { (button, setting) ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
-
-            button.setOnCheckedChangeListener { _, isChecked ->
-                viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy { setting.set(this, isChecked) }
-                    }
                 }
             }
         }
     }
 
-    override fun onPause() {
-        clearFocus()
-        super.onPause()
+    private fun bindToggleSettingButtons(enemyToggleButtons: ToggleButtonMap) {
+        enemyToggleButtons.entries.forEach { (button, setting) ->
+            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+
+            button.setOnCheckedChangeListener { _, isChecked ->
+                viewModel.viewModelScope.launch {
+                    binding.root.context.userSettings.updateData {
+                        it.copy { setting.set(this, isChecked) }
+                    }
+                }
+            }
+        }
     }
 
     private fun clearFocus() {

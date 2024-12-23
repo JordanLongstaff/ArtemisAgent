@@ -4,20 +4,6 @@ import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import artemis.agent.R
 
-enum class AllySortIndex {
-    HOSTAGE,
-    COMMANDEERED,
-    NEED_ENERGY,
-    NEED_DAMCON,
-    MALFUNCTION,
-    FLYING_BLIND,
-    AMBASSADOR,
-    CONTRABAND,
-    SECURE_DATA,
-    NORMAL,
-    TRAP
-}
-
 enum class AllyStatus(
     val sortIndex: AllySortIndex,
     @StringRes val description: Int,
@@ -26,7 +12,7 @@ enum class AllyStatus(
     HOSTAGE(
         AllySortIndex.HOSTAGE,
         R.string.ally_status_hostage,
-        R.color.allyStatusBackgroundOrange
+        R.color.allyStatusBackgroundOrange,
     ),
     COMMANDEERED(
         AllySortIndex.COMMANDEERED,
@@ -41,77 +27,77 @@ enum class AllyStatus(
     NEED_ENERGY(
         AllySortIndex.NEED_ENERGY,
         R.string.ally_status_needs_energy,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     NEED_DAMCON(
         AllySortIndex.NEED_DAMCON,
         R.string.ally_status_needs_damcon,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     MALFUNCTION(
         AllySortIndex.MALFUNCTION,
         R.string.ally_status_malfunction,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     FLYING_BLIND(
         AllySortIndex.FLYING_BLIND,
         R.string.ally_status_blind,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     AMBASSADOR(
         AllySortIndex.AMBASSADOR,
         R.string.ally_status_ambassador_for_tsn,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     PIRATE_BOSS(
         AllySortIndex.AMBASSADOR,
         R.string.ally_status_ambassador_for_pirate,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     CONTRABAND(
         AllySortIndex.CONTRABAND,
         R.string.ally_status_contraband_for_tsn,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     PIRATE_SUPPLIES(
         AllySortIndex.CONTRABAND,
         R.string.ally_status_contraband_for_pirate,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     SECURE_DATA(
         AllySortIndex.SECURE_DATA,
         R.string.ally_status_data_for_tsn,
-        R.color.allyStatusBackgroundYellow
+        R.color.allyStatusBackgroundYellow,
     ),
     PIRATE_DATA(
         AllySortIndex.SECURE_DATA,
         R.string.ally_status_data_for_pirate,
-        R.color.allyStatusBackgroundRed
+        R.color.allyStatusBackgroundRed,
     ),
     NORMAL(
         AllySortIndex.NORMAL,
         R.string.ally_status_normal,
-        R.color.allyStatusBackgroundBlue
+        R.color.allyStatusBackgroundBlue,
     ),
     REWARD(
         AllySortIndex.NORMAL,
         R.string.ally_status_reward,
-        R.color.allyStatusBackgroundBlue
+        R.color.allyStatusBackgroundBlue,
     ),
     REPAIRING(
         AllySortIndex.NORMAL,
         R.string.ally_status_repairing,
-        R.color.allyStatusBackgroundBlue
+        R.color.allyStatusBackgroundBlue,
     ),
     FIGHTER_TRAP(
         AllySortIndex.TRAP,
         R.string.ally_status_fighter_trap,
-        R.color.allyStatusBackgroundRed
+        R.color.allyStatusBackgroundRed,
     ),
     MINE_TRAP(
         AllySortIndex.TRAP,
         R.string.ally_status_mine_trap,
-        R.color.allyStatusBackgroundRed
+        R.color.allyStatusBackgroundRed,
     );
 
     fun getPirateSensitiveEquivalent(isPirate: Boolean): AllyStatus {

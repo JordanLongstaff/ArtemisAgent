@@ -15,9 +15,9 @@ import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
 import io.kotest.property.exhaustive.of
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class IncomingAudioPacketFixture private constructor(
     override val specName: String,
@@ -29,15 +29,15 @@ class IncomingAudioPacketFixture private constructor(
         private val audioID: Int,
         private val audioMode: AudioMode,
     ) : PacketTestData.Server<IncomingAudioPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(audioID)
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(audioID)
 
             when (audioMode) {
                 is AudioMode.Playing -> {
-                    writeIntLittleEndian(1)
+                    writeIntLe(1)
                 }
                 is AudioMode.Incoming -> {
-                    writeIntLittleEndian(2)
+                    writeIntLe(2)
                     writeString(audioMode.title)
                     writeString(audioMode.filename)
                 }

@@ -2,6 +2,7 @@ package artemis.agent.setup.settings
 
 import android.os.Bundle
 import android.view.View
+import android.widget.ToggleButton
 import androidx.activity.addCallback
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
@@ -21,6 +22,10 @@ import artemis.agent.copy
 import artemis.agent.databinding.SettingsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import kotlinx.coroutines.launch
+import kotlin.reflect.KMutableProperty1
+
+internal typealias ToggleButtonMap =
+    Map<ToggleButton, KMutableProperty1<UserSettingsKt.Dsl, Boolean>>
 
 class SettingsFragment : Fragment(R.layout.settings_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -38,6 +43,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             override fun reset(settings: UserSettings): UserSettings = settings.copy {
                 vesselDataLocation = UserSettings.VesselDataLocation.VESSEL_DATA_LOCATION_DEFAULT
                 serverPort = UserSettingsSerializer.DEFAULT_SERVER_PORT
+                showNetworkInfo = true
                 recentAddressLimit = UserSettingsSerializer.DEFAULT_ADDRESS_LIMIT
                 recentAddressLimitEnabled = false
                 updateInterval = UserSettingsSerializer.DEFAULT_UPDATE_INTERVAL
@@ -51,6 +57,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                 connectionTimeoutSeconds = UserSettingsSerializer.DEFAULT_CONNECTION_TIMEOUT
                 serverTimeoutSeconds = UserSettingsSerializer.DEFAULT_HEARTBEAT_TIMEOUT
                 scanTimeoutSeconds = UserSettingsSerializer.DEFAULT_SCAN_TIMEOUT
+                alwaysScanPublic = false
             }
         },
         MISSION(

@@ -10,6 +10,7 @@ import korlibs.io.serialization.xml.Xml
  * represents an entire class of ships, not an individual one.
  * @author rjwut
  */
+@Suppress("LongParameterList")
 class Vessel internal constructor(
     /**
      * Returns the Vessel's ID.

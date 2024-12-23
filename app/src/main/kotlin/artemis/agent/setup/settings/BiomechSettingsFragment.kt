@@ -16,6 +16,7 @@ import artemis.agent.copy
 import artemis.agent.databinding.SettingsBiomechsBinding
 import artemis.agent.databinding.fragmentViewBinding
 import kotlinx.coroutines.launch
+import kotlin.reflect.KMutableProperty1
 
 class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -57,32 +58,26 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
             freezeDurationBinder.timeInSeconds = it.freezeDurationSeconds
         }
 
-        binding.biomechSortingDefaultButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        prepareSortMethodButtons(biomechSortMethodButtons)
+        prepareDefaultSortMethodButton(biomechSortMethodButtons)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        freezeDurationBinder.destroy()
+    }
+
+    private fun prepareSortMethodButtons(biomechSortMethodButtons: ToggleButtonMap) {
+        val context = binding.root.context
 
         biomechSortMethodButtons.keys.forEach { button ->
             button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
         }
 
-        binding.biomechSortingDefaultButton.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy {
-                            biomechSortMethodButtons.values.forEach { setting ->
-                                setting.set(this, false)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         binding.biomechSortingClassButton1.setOnCheckedChangeListener { _, isChecked ->
             binding.biomechSortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         biomechSortClassFirst = isChecked
                         if (isChecked) biomechSortClassSecond = false
@@ -94,7 +89,7 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
         binding.biomechSortingStatusButton.setOnCheckedChangeListener { _, isChecked ->
             binding.biomechSortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy { biomechSortStatus = isChecked }
                 }
             }
@@ -103,7 +98,7 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
         binding.biomechSortingClassButton2.setOnCheckedChangeListener { _, isChecked ->
             binding.biomechSortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         biomechSortClassSecond = isChecked
                         if (isChecked) biomechSortClassFirst = false
@@ -115,15 +110,30 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
         binding.biomechSortingNameButton.setOnCheckedChangeListener { _, isChecked ->
             binding.biomechSortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy { biomechSortName = isChecked }
                 }
             }
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        freezeDurationBinder.destroy()
+    private fun prepareDefaultSortMethodButton(biomechSortMethodButtons: ToggleButtonMap) {
+        binding.biomechSortingDefaultButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        binding.biomechSortingDefaultButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                viewModel.viewModelScope.launch {
+                    binding.root.context.userSettings.updateData {
+                        it.copy {
+                            biomechSortMethodButtons.values.forEach { setting ->
+                                setting.set(this, false)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

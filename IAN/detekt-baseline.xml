@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
-  <CurrentIssues>
-    <ID>ReturnCount:KtorArtemisNetworkInterface.kt$KtorArtemisNetworkInterface$override suspend fun connect(host: String, port: Int, timeoutMs: Long): Boolean</ID>
-    <ID>TooManyFunctions:KtorArtemisNetworkInterface.kt$KtorArtemisNetworkInterface : ArtemisNetworkInterfaceCoroutineScope</ID>
-  </CurrentIssues>
-</SmellBaseline>

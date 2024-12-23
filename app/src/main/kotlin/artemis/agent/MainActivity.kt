@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import androidx.activity.addCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -23,6 +24,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
@@ -138,7 +142,6 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
                 }
-                if (strings.isEmpty()) return@collectLatestWhileStarted
 
                 buildNotification(
                     channelId = NotificationManager.CHANNEL_GAME_INFO,
@@ -243,6 +246,21 @@ class MainActivity : AppCompatActivity() {
                             )
                         }
                     }
+                )
+            }
+
+            service.collectLatestWhileStarted(viewModel.destroyedEnemyName) {
+                notificationManager.dismissPerfidyMessage(it)
+            }
+
+            service.collectLatestWhileStarted(viewModel.perfidiousEnemy) { entry ->
+                buildNotification(
+                    channelId = NotificationManager.CHANNEL_PERFIDY,
+                    title = viewModel.getFullNameForShip(entry.enemy),
+                    message = getString(R.string.enemy_perfidy_notification),
+                    onIntent = {
+                        putExtra(Section.GAME.name, GameFragment.Page.ENEMIES.ordinal)
+                    },
                 )
             }
 
@@ -409,6 +427,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+
         with(viewModel) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 //                onBackInvokedDispatcher.registerOnBackInvokedCallback(
@@ -599,6 +619,15 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+                    val insets = windowInsets.getInsets(
+                        WindowInsetsCompat.Type.systemBars() or
+                                WindowInsetsCompat.Type.displayCutout()
+                    )
+                    view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
+                    WindowInsetsCompat.CONSUMED
+                }
+
                 collectLatestWhileStarted(jumping) {
                     jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
                 }
@@ -758,7 +787,7 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         const val STOP_NOTIFICATIONS = -1
         const val NO_NAVIGATION = -1
-        const val GAME_PAGE_UNSPECIFIED = 5
+        const val GAME_PAGE_UNSPECIFIED = 6
 
         const val THEME_RES_FILE_NAME = "theme_res.dat"
 

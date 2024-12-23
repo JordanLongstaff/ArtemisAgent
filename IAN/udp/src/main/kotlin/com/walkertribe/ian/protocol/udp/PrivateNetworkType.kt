@@ -7,46 +7,50 @@ package com.walkertribe.ian.protocol.udp
 enum class PrivateNetworkType {
     TWENTY_FOUR_BIT_BLOCK {
         // 10.x.x.x
-        override val constraints: Array<ByteConstraint> get() = TWENTY_FOUR_BIT_CONSTRAINTS
+        override val broadcastAddress: String get() = TWENTY_FOUR_BIT_BROADCAST
+        override val constraints: Array<IntConstraint> get() = TWENTY_FOUR_BIT_CONSTRAINTS
     },
     TWENTY_BIT_BLOCK {
         // 172.16.x.x - 172.31.x.x
-        override val constraints: Array<ByteConstraint> get() = TWENTY_BIT_CONSTRAINTS
+        override val broadcastAddress: String get() = TWENTY_BIT_BROADCAST
+        override val constraints: Array<IntConstraint> get() = TWENTY_BIT_CONSTRAINTS
     },
     SIXTEEN_BIT_BLOCK {
         // 192.168.x.x
-        override val constraints: Array<ByteConstraint> get() = SIXTEEN_BIT_CONSTRAINTS
+        override val broadcastAddress: String get() = SIXTEEN_BIT_BROADCAST
+        override val constraints: Array<IntConstraint> get() = SIXTEEN_BIT_CONSTRAINTS
     };
 
-    /**
-     * Returns true if the given address matches this private network type.
-     */
-    internal abstract val constraints: Array<ByteConstraint>
+    abstract val broadcastAddress: String
+    internal abstract val constraints: Array<IntConstraint>
 
-    internal fun match(address: ByteArray): Boolean = address.run {
-        size == Int.SIZE_BYTES && zip(constraints).all { (byte, cons) -> cons.check(byte) }
+    internal fun match(address: String): Boolean = address.split('.').run {
+        size == Int.SIZE_BYTES && zip(constraints).all { (byte, cons) -> cons.check(byte.toInt()) }
     }
 
     companion object {
-        private val TWENTY_FOUR_BIT_CONSTRAINTS = arrayOf<ByteConstraint>(
-            ByteConstraint.Equals(10),
+        private const val TWENTY_FOUR_BIT_BROADCAST = "10.255.255.255"
+        private const val TWENTY_BIT_BROADCAST = "172.31.255.255"
+        private const val SIXTEEN_BIT_BROADCAST = "192.168.255.255"
+
+        private val TWENTY_FOUR_BIT_CONSTRAINTS = arrayOf<IntConstraint>(
+            IntConstraint.Equals(10),
         )
 
         private val TWENTY_BIT_CONSTRAINTS = arrayOf(
-            ByteConstraint.Equals(-44),
-            ByteConstraint.Range(16 ..31),
+            IntConstraint.Equals(172),
+            IntConstraint.Range(16 ..31),
         )
 
-        private val SIXTEEN_BIT_CONSTRAINTS = arrayOf<ByteConstraint>(
-            ByteConstraint.Equals(-64),
-            ByteConstraint.Equals(-88),
+        private val SIXTEEN_BIT_CONSTRAINTS = arrayOf<IntConstraint>(
+            IntConstraint.Equals(192),
+            IntConstraint.Equals(168),
         )
 
         /**
          * Returns the private network address type that matches the given address, or null if it's
          * not a private network address.
          */
-        operator fun invoke(address: ByteArray): PrivateNetworkType? =
-            entries.find { it.match(address) }
+        fun of(address: String): PrivateNetworkType? = entries.find { it.match(address) }
     }
 }

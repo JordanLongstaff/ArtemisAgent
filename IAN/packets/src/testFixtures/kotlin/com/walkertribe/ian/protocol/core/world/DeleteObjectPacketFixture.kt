@@ -13,9 +13,9 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class DeleteObjectPacketFixture private constructor(
     arbVersion: Arb<Version>,
@@ -26,9 +26,9 @@ class DeleteObjectPacketFixture private constructor(
         private val targetType: ObjectType,
         private val targetID: Int,
     ) : PacketTestData.Server<DeleteObjectPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
+        override fun buildPayload(): Source = buildPacket {
             writeByte(targetType.id)
-            writeIntLittleEndian(targetID)
+            writeIntLe(targetID)
         }
 
         override fun validate(packet: DeleteObjectPacket) {

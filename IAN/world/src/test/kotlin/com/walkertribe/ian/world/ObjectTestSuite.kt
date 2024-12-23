@@ -7,16 +7,18 @@ import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.enums.TubeState
 import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.util.boolState
+import com.walkertribe.ian.util.shouldBeFalse
 import com.walkertribe.ian.vesseldata.Empty
 import com.walkertribe.ian.vesseldata.TestVessel
 import com.walkertribe.ian.vesseldata.Vessel
 import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.vesseldata.vesselData
 import io.kotest.assertions.throwables.shouldNotThrow
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowUnit
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.describeSpec
 import io.kotest.core.spec.style.scopes.DescribeSpecContainerScope
+import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -57,10 +59,13 @@ import kotlin.reflect.KProperty1
 internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
     protected val objectType: ObjectType,
 ) {
+    class Location(val x: Float, val y: Float, val z: Float)
+
     companion object {
         val X = Arb.numericFloat()
         val Y = Arb.numericFloat()
         val Z = Arb.numericFloat()
+        val LOCATION = Arb.bind(X, Y, Z, ::Location)
 
         suspend fun DescribeSpecContainerScope.describeVesselDataTests(
             arbObject: Gen<BaseArtemisShielded<*>>,
@@ -109,15 +114,11 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         }
     }
 
-    protected abstract class BaseProperties<T : ArtemisObject<T>>(
-        val x: Float,
-        val y: Float,
-        val z: Float,
-    ) {
+    protected abstract class BaseProperties<T : ArtemisObject<T>>(val location: Location) {
         open fun updateDirectly(obj: T) {
-            obj.x.value = x
-            obj.y.value = y
-            obj.z.value = z
+            obj.x.value = location.x
+            obj.y.value = location.y
+            obj.z.value = location.z
         }
         abstract fun createThroughDsl(id: Int, timestamp: Long): T
         abstract fun updateThroughDsl(obj: T)
@@ -158,10 +159,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             private val shields: Float,
             private val shieldsMax: Float,
             private val hullId: Int,
-            x: Float,
-            y: Float,
-            z: Float,
-        ) : BaseProperties<ArtemisBase>(x, y, z) {
+            location: Location,
+        ) : BaseProperties<ArtemisBase>(location) {
             override fun updateDirectly(obj: ArtemisBase) {
                 super.updateDirectly(obj)
                 obj.name.value = name
@@ -176,9 +175,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.shieldsFront = shields
                     it.shieldsFrontMax = shieldsMax
                     it.hullId = hullId
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it.create(id, timestamp).apply { it.shouldBeReset() }
                 }
@@ -189,9 +188,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.shieldsFront = shields
                     it.shieldsFrontMax = shieldsMax
                     it.hullId = hullId
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it updates obj
                 }.shouldBeReset()
@@ -202,9 +201,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     obj.id,
                     objectType,
                     name,
-                    x,
-                    y,
-                    z,
+                    location.x,
+                    location.y,
+                    location.z,
                     hullId,
                     shields,
                     shieldsMax,
@@ -291,7 +290,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 Arb.int(),
                 Arb.long(),
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, X, Y, Z, Base::Properties),
+                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
                     test.testKnownObject(test.createThroughDsl(id, timestamp))
@@ -302,7 +301,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateManually() {
             checkAll(
                 arbObject,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, X, Y, Z, Base::Properties),
+                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
             ) { base, test ->
                 test.updateDirectly(base)
                 test.testKnownObject(base)
@@ -312,7 +311,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateFromDsl() {
             checkAll(
                 arbObject,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, X, Y, Z, Base::Properties),
+                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
             ) { base, test ->
                 test.updateThroughDsl(base)
                 test.testKnownObject(base)
@@ -322,7 +321,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testUnknownObjectDoesNotProvideUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, X, Y, Z, Base::Properties),
+                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
             ) { (oldBase, newBase), test ->
                 test.updateDirectly(oldBase)
                 newBase updates oldBase
@@ -333,7 +332,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testKnownObjectProvidesUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, X, Y, Z, Base::Properties),
+                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
             ) { (oldBase, newBase), test ->
                 test.updateDirectly(newBase)
                 newBase updates oldBase
@@ -344,10 +343,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testDslCannotUpdateKnownObject() {
             checkAll(
                 arbObject,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, X, Y, Z, Base::Properties),
+                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
             ) { base, test ->
                 test.updateDirectly(base)
-                shouldThrow<IllegalArgumentException> { test.updateThroughDsl(base) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(base) }
             }
         }
 
@@ -357,25 +356,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
     }
 
     data object BlackHole : ObjectTestSuite<ArtemisBlackHole>(ObjectType.BLACK_HOLE) {
-        private class Properties(
-            x: Float,
-            y: Float,
-            z: Float,
-        ) : BaseProperties<ArtemisBlackHole>(x, y, z) {
+        private class Properties(location: Location) : BaseProperties<ArtemisBlackHole>(location) {
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisBlackHole =
                 ArtemisBlackHole.Dsl.let {
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it.create(id, timestamp).apply { it.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisBlackHole) {
                 ArtemisBlackHole.Dsl.also {
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it updates obj
                 }.shouldBeReset()
@@ -385,9 +380,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.shouldBeKnownObject(
                     obj.id,
                     objectType,
-                    x,
-                    y,
-                    z,
+                    location.x,
+                    location.y,
+                    location.z,
                 )
             }
         }
@@ -439,7 +434,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 Arb.int(),
                 Arb.long(),
-                Arb.bind(X, Y, Z, BlackHole::Properties),
+                LOCATION.map(::Properties),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
                     test.testKnownObject(test.createThroughDsl(id, timestamp))
@@ -450,7 +445,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateManually() {
             checkAll(
                 arbObject,
-                Arb.bind(X, Y, Z, BlackHole::Properties),
+                LOCATION.map(::Properties),
             ) { blackHole, test ->
                 test.updateDirectly(blackHole)
                 test.testKnownObject(blackHole)
@@ -460,7 +455,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateFromDsl() {
             checkAll(
                 arbObject,
-                Arb.bind(X, Y, Z, BlackHole::Properties),
+                LOCATION.map(::Properties),
             ) { blackHole, test ->
                 test.updateThroughDsl(blackHole)
                 test.testKnownObject(blackHole)
@@ -470,7 +465,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testUnknownObjectDoesNotProvideUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(X, Y, Z, BlackHole::Properties),
+                LOCATION.map(::Properties),
             ) { (oldBlackHole, newBlackHole), test ->
                 test.updateDirectly(oldBlackHole)
                 newBlackHole updates oldBlackHole
@@ -481,7 +476,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testKnownObjectProvidesUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(X, Y, Z, BlackHole::Properties),
+                LOCATION.map(::Properties),
             ) { (oldBlackHole, newBlackHole), test ->
                 test.updateDirectly(newBlackHole)
                 newBlackHole updates oldBlackHole
@@ -492,10 +487,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testDslCannotUpdateKnownObject() {
             checkAll(
                 arbObject,
-                Arb.bind(X, Y, Z, BlackHole::Properties),
+                LOCATION.map(::Properties),
             ) { blackHole, test ->
                 test.updateDirectly(blackHole)
-                shouldThrow<IllegalArgumentException> { test.updateThroughDsl(blackHole) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(blackHole) }
             }
         }
     }
@@ -505,10 +500,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         private class Properties(
             private val isNotTyphon: BoolState,
-            x: Float,
-            y: Float,
-            z: Float,
-        ) : BaseProperties<ArtemisCreature>(x, y, z) {
+            location: Location,
+        ) : BaseProperties<ArtemisCreature>(location) {
             override fun updateDirectly(obj: ArtemisCreature) {
                 super.updateDirectly(obj)
                 obj.isNotTyphon.value = isNotTyphon
@@ -517,9 +510,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisCreature =
                 ArtemisCreature.Dsl.let {
                     ArtemisCreature.Dsl.isNotTyphon = isNotTyphon
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it.create(id, timestamp).apply { it.shouldBeReset() }
                 }
@@ -527,9 +520,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             override fun updateThroughDsl(obj: ArtemisCreature) {
                 ArtemisCreature.Dsl.also {
                     ArtemisCreature.Dsl.isNotTyphon = isNotTyphon
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it updates obj
                 }.shouldBeReset()
@@ -539,9 +532,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.shouldBeKnownObject(
                     obj.id,
                     objectType,
-                    x,
-                    y,
-                    z,
+                    location.x,
+                    location.y,
+                    location.z,
                 )
                 obj.isNotTyphon shouldContainValue isNotTyphon
             }
@@ -605,7 +598,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 Arb.int(),
                 Arb.long(),
-                Arb.bind(IS_NOT_TYPHON, X, Y, Z, Creature::Properties),
+                Arb.bind(IS_NOT_TYPHON, LOCATION, ::Properties),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
                     test.testKnownObject(test.createThroughDsl(id, timestamp))
@@ -616,7 +609,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateManually() {
             checkAll(
                 arbObject,
-                Arb.bind(IS_NOT_TYPHON, X, Y, Z, Creature::Properties),
+                Arb.bind(IS_NOT_TYPHON, LOCATION, ::Properties),
             ) { creature, test ->
                 test.updateDirectly(creature)
                 test.testKnownObject(creature)
@@ -626,7 +619,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateFromDsl() {
             checkAll(
                 arbObject,
-                Arb.bind(IS_NOT_TYPHON, X, Y, Z, Creature::Properties),
+                Arb.bind(IS_NOT_TYPHON, LOCATION, ::Properties),
             ) { creature, test ->
                 test.updateThroughDsl(creature)
                 test.testKnownObject(creature)
@@ -636,7 +629,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testUnknownObjectDoesNotProvideUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(IS_NOT_TYPHON, X, Y, Z, Creature::Properties),
+                Arb.bind(IS_NOT_TYPHON, LOCATION, ::Properties),
             ) { (oldCreature, newCreature), test ->
                 test.updateDirectly(oldCreature)
                 newCreature updates oldCreature
@@ -647,7 +640,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testKnownObjectProvidesUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(IS_NOT_TYPHON, X, Y, Z, Creature::Properties),
+                Arb.bind(IS_NOT_TYPHON, LOCATION, ::Properties),
             ) { (oldCreature, newCreature), test ->
                 test.updateDirectly(newCreature)
                 newCreature updates oldCreature
@@ -658,34 +651,30 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testDslCannotUpdateKnownObject() {
             checkAll(
                 arbObject,
-                Arb.bind(IS_NOT_TYPHON, X, Y, Z, Creature::Properties),
+                Arb.bind(IS_NOT_TYPHON, LOCATION, ::Properties),
             ) { creature, test ->
                 test.updateDirectly(creature)
-                shouldThrow<IllegalArgumentException> { test.updateThroughDsl(creature) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(creature) }
             }
         }
     }
 
     data object Mine : ObjectTestSuite<ArtemisMine>(ObjectType.MINE) {
-        private class Properties(
-            x: Float,
-            y: Float,
-            z: Float,
-        ) : BaseProperties<ArtemisMine>(x, y, z) {
+        private class Properties(location: Location) : BaseProperties<ArtemisMine>(location) {
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisMine =
                 ArtemisMine.Dsl.let {
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it.create(id, timestamp).apply { it.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisMine) {
                 ArtemisMine.Dsl.also {
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it updates obj
                 }.shouldBeReset()
@@ -695,9 +684,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.shouldBeKnownObject(
                     obj.id,
                     objectType,
-                    x,
-                    y,
-                    z,
+                    location.x,
+                    location.y,
+                    location.z,
                 )
             }
         }
@@ -749,7 +738,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 Arb.int(),
                 Arb.long(),
-                Arb.bind(X, Y, Z, Mine::Properties),
+                LOCATION.map(::Properties),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
                     test.testKnownObject(test.createThroughDsl(id, timestamp))
@@ -760,7 +749,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateManually() {
             checkAll(
                 arbObject,
-                Arb.bind(X, Y, Z, Mine::Properties),
+                LOCATION.map(::Properties),
             ) { mine, test ->
                 test.updateDirectly(mine)
                 test.testKnownObject(mine)
@@ -770,7 +759,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateFromDsl() {
             checkAll(
                 arbObject,
-                Arb.bind(X, Y, Z, Mine::Properties),
+                LOCATION.map(::Properties),
             ) { mine, test ->
                 test.updateThroughDsl(mine)
                 test.testKnownObject(mine)
@@ -780,7 +769,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testUnknownObjectDoesNotProvideUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(X, Y, Z, Mine::Properties),
+                LOCATION.map(::Properties),
             ) { (oldMine, newMine), test ->
                 test.updateDirectly(oldMine)
                 newMine updates oldMine
@@ -791,7 +780,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testKnownObjectProvidesUpdates() {
             Arb.pair(
                 arbObject,
-                Arb.bind(X, Y, Z, Mine::Properties),
+                LOCATION.map(::Properties),
             ).flatMap { (mine, test) ->
                 Arb.long().filter { it != mine.timestamp }.map { timestamp ->
                     val otherMine = ArtemisMine(mine.id, timestamp)
@@ -811,10 +800,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testDslCannotUpdateKnownObject() {
             checkAll(
                 arbObject,
-                Arb.bind(X, Y, Z, Mine::Properties),
+                LOCATION.map(::Properties),
             ) { mine, test ->
                 test.updateDirectly(mine)
-                shouldThrow<IllegalArgumentException> { test.updateThroughDsl(mine) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(mine) }
             }
         }
     }
@@ -847,10 +836,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             private val inNebula: BoolState,
             private val scanBits: Int,
             private val side: Byte,
-            x: Float,
-            y: Float,
-            z: Float,
-        ) : BaseProperties<ArtemisNpc>(x, y, z) {
+            location: Location,
+        ) : BaseProperties<ArtemisNpc>(location) {
             override fun updateDirectly(obj: ArtemisNpc) {
                 super.updateDirectly(obj)
                 obj.name.value = name
@@ -881,9 +868,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     ArtemisNpc.Dsl.isInNebula = inNebula
                     ArtemisNpc.Dsl.scanBits = scanBits
                     it.side = side
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it.create(id, timestamp).apply { it.shouldBeReset() }
                 }
@@ -902,9 +889,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     ArtemisNpc.Dsl.isInNebula = inNebula
                     ArtemisNpc.Dsl.scanBits = scanBits
                     it.side = side
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
 
                     it updates obj
                 }.shouldBeReset()
@@ -915,9 +902,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     obj.id,
                     objectType,
                     name,
-                    x,
-                    y,
-                    z,
+                    location.x,
+                    location.y,
+                    location.z,
                     hullId,
                     shields.first.first,
                     shields.first.second,
@@ -1093,10 +1080,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     IN_NEBULA,
                     SCAN_BITS,
                     SIDE,
-                    X,
-                    Y,
-                    Z,
-                    Npc::Properties,
+                    LOCATION,
+                    ::Properties,
                 ),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
@@ -1118,10 +1103,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     IN_NEBULA,
                     SCAN_BITS,
                     SIDE,
-                    X,
-                    Y,
-                    Z,
-                    Npc::Properties,
+                    LOCATION,
+                    ::Properties,
                 ),
             ) { npc, test ->
                 test.updateDirectly(npc)
@@ -1142,10 +1125,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     IN_NEBULA,
                     SCAN_BITS,
                     SIDE,
-                    X,
-                    Y,
-                    Z,
-                    Npc::Properties,
+                    LOCATION,
+                    ::Properties,
                 ),
             ) { npc, test ->
                 test.updateThroughDsl(npc)
@@ -1166,10 +1147,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     IN_NEBULA,
                     SCAN_BITS,
                     SIDE,
-                    X,
-                    Y,
-                    Z,
-                    Npc::Properties,
+                    LOCATION,
+                    ::Properties,
                 ),
             ) { (oldNpc, newNpc), test ->
                 test.updateDirectly(oldNpc)
@@ -1191,10 +1170,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     IN_NEBULA,
                     SCAN_BITS,
                     SIDE,
-                    X,
-                    Y,
-                    Z,
-                    Npc::Properties,
+                    LOCATION,
+                    ::Properties,
                 ),
             ) { (oldNpc, newNpc), test ->
                 test.updateDirectly(newNpc)
@@ -1216,14 +1193,12 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     IN_NEBULA,
                     SCAN_BITS,
                     SIDE,
-                    X,
-                    Y,
-                    Z,
-                    Npc::Properties,
+                    LOCATION,
+                    ::Properties,
                 ),
             ) { npc, test ->
                 test.updateDirectly(npc)
-                shouldThrow<IllegalArgumentException> { test.updateThroughDsl(npc) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(npc) }
             }
         }
 
@@ -1321,7 +1296,6 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             DOUBLE_AGENT_COUNT,
             DOUBLE_AGENT_SECONDS,
         )
-        private val LOCATION = Arb.triple(X, Y, Z)
         private val ORDNANCE_COUNTS = Arb.list(
             Arb.byte(min = 0),
             OrdnanceType.size..OrdnanceType.size,
@@ -1346,10 +1320,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             private val warp: Byte,
             private val dockingBase: Int,
             private val doubleAgentStatus: Triple<BoolState, Byte, Int>,
-            location: Triple<Float, Float, Float>,
+            location: Location,
             private val ordnanceCounts: List<Byte>,
             private val tubes: List<Pair<TubeState, OrdnanceType>>,
-        ) : BaseProperties<ArtemisPlayer>(location.first, location.second, location.third) {
+        ) : BaseProperties<ArtemisPlayer>(location) {
             override fun updateDirectly(obj: ArtemisPlayer) {
                 super.updateDirectly(obj)
                 obj.name.value = name
@@ -1396,9 +1370,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.hullId = hullId
                     it.impulse = impulse
                     it.side = side
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
                     ArtemisPlayer.PlayerDsl.shipIndex = shipIndex
                     ArtemisPlayer.PlayerDsl.capitalShipID = capitalShipID
                     ArtemisPlayer.PlayerDsl.alertStatus = enumStates.first
@@ -1418,9 +1392,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     obj.id,
                     objectType,
                     name,
-                    x,
-                    y,
-                    z,
+                    location.x,
+                    location.y,
+                    location.z,
                     hullId,
                     shields.first.first,
                     shields.first.second,
@@ -1478,9 +1452,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.hullId = hullId
                     it.impulse = impulse
                     it.side = side
-                    it.x = x
-                    it.y = y
-                    it.z = z
+                    it.x = location.x
+                    it.y = location.y
+                    it.z = location.z
                     ArtemisPlayer.PlayerDsl.shipIndex = shipIndex
                     ArtemisPlayer.PlayerDsl.capitalShipID = capitalShipID
                     ArtemisPlayer.PlayerDsl.alertStatus = enumStates.first
@@ -1734,7 +1708,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     LOCATION,
                     ORDNANCE_COUNTS,
                     TUBES,
-                    Player::Properties,
+                    ::Properties,
                 ),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
@@ -1761,7 +1735,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     LOCATION,
                     ORDNANCE_COUNTS,
                     TUBES,
-                    Player::Properties,
+                    ::Properties,
                 ),
             ) { player, test ->
                 test.updateDirectly(player)
@@ -1787,7 +1761,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     LOCATION,
                     ORDNANCE_COUNTS,
                     TUBES,
-                    Player::Properties,
+                    ::Properties,
                 ),
             ) { player, test ->
                 test.updateThroughDsl(player)
@@ -1813,7 +1787,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     LOCATION,
                     ORDNANCE_COUNTS,
                     TUBES,
-                    Player::Properties,
+                    ::Properties,
                 ),
             ) { (oldPlayer, newPlayer), test ->
                 test.updateDirectly(oldPlayer)
@@ -1840,7 +1814,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     LOCATION,
                     ORDNANCE_COUNTS,
                     TUBES,
-                    Player::Properties,
+                    ::Properties,
                 ),
             ) { (oldPlayer, newPlayer), test ->
                 test.updateDirectly(newPlayer)
@@ -1867,13 +1841,13 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     LOCATION,
                     ORDNANCE_COUNTS,
                     TUBES,
-                    Player::Properties,
+                    ::Properties,
                 ),
             ) { player, test ->
                 test.updateDirectly(player)
-                shouldThrow<IllegalArgumentException> { test.updateThroughPlayerDsl(player) }
-                shouldThrow<IllegalArgumentException> { test.updateThroughWeaponsDsl(player) }
-                shouldThrow<IllegalArgumentException> { test.updateThroughUpgradesDsl(player) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughPlayerDsl(player) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughWeaponsDsl(player) }
+                shouldThrowUnit<IllegalArgumentException> { test.updateThroughUpgradesDsl(player) }
             }
         }
 
@@ -1935,6 +1909,32 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
         }
 
+        enum class DockInvalidatingTestCase(
+            val impulseArb: Arb<Float>,
+            val warpArb: Arb<Byte>,
+        ) : WithDataTestName {
+            IMPULSE(Arb.numericFloat(min = Float.MIN_VALUE), Arb.of(0)) {
+                override fun update(player: ArtemisPlayer, impulse: Float, warp: Byte) {
+                    player.impulse.value = impulse
+                }
+            },
+            WARP(Arb.of(0f), Arb.byte(min = 1, max = 4)) {
+                override fun update(player: ArtemisPlayer, impulse: Float, warp: Byte) {
+                    player.warp.value = warp
+                }
+            },
+            IMPULSE_AND_WARP(Arb.numericFloat(min = Float.MIN_VALUE), Arb.byte(min = 1, max = 4)) {
+                override fun update(player: ArtemisPlayer, impulse: Float, warp: Byte) {
+                    player.impulse.value = impulse
+                    player.warp.value = warp
+                }
+            };
+
+            abstract fun update(player: ArtemisPlayer, impulse: Float, warp: Byte)
+
+            override fun dataTestName(): String = "At ${name.lowercase().replace('_', ' ')}"
+        }
+
         override suspend fun DescribeSpecContainerScope.describeMore() {
             describeVesselDataTests(arbObject, HULL_ID)
 
@@ -1945,65 +1945,27 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     "Higher than 4" to Arb.byte(min = 5),
                 ) { (_, testGen) ->
                     checkAll(arbObject, testGen) { player, warp ->
-                        shouldThrow<IllegalArgumentException> {
-                            player.warp.value = warp
-                            null
-                        }
+                        shouldThrowUnit<IllegalArgumentException> { player.warp.value = warp }
                     }
                 }
             }
 
             describe("Undock when moving") {
-                it("At impulse") {
+                withData(DockInvalidatingTestCase.entries) { test ->
                     checkAll(
                         arbObjectPair,
                         Arb.int().filter { it != -1 },
-                        Arb.numericFloat(min = Float.MIN_VALUE),
-                    ) { (playerA, playerB), dockingBase, impulse ->
-                        playerA.dockingBase.value = dockingBase
-                        playerA.docked = BoolState.True
-
-                        playerB.impulse.value = impulse
-                        playerB updates playerA
-
-                        playerA.dockingBase shouldContainValue 0
-                        playerA.docked shouldBeEqual BoolState.False
-                    }
-                }
-
-                it("At warp") {
-                    checkAll(
-                        arbObjectPair,
-                        Arb.int().filter { it != -1 },
-                        Arb.byte(min = 1, max = 4),
-                    ) { (playerA, playerB), dockingBase, warp ->
-                        playerA.dockingBase.value = dockingBase
-                        playerA.docked = BoolState.True
-
-                        playerB.warp.value = warp
-                        playerB updates playerA
-
-                        playerA.dockingBase shouldContainValue 0
-                        playerA.docked shouldBeEqual BoolState.False
-                    }
-                }
-
-                it("At impulse and warp") {
-                    checkAll(
-                        arbObjectPair,
-                        Arb.int().filter { it != -1 },
-                        Arb.numericFloat(min = Float.MIN_VALUE),
-                        Arb.byte(min = 1, max = 4),
+                        test.impulseArb,
+                        test.warpArb,
                     ) { (playerA, playerB), dockingBase, impulse, warp ->
                         playerA.dockingBase.value = dockingBase
                         playerA.docked = BoolState.True
 
-                        playerB.impulse.value = impulse
-                        playerB.warp.value = warp
+                        test.update(playerB, impulse, warp)
                         playerB updates playerA
 
                         playerA.dockingBase shouldContainValue 0
-                        playerA.docked shouldBeEqual BoolState.False
+                        playerA.docked.shouldBeFalse()
                     }
                 }
             }
@@ -2035,7 +1997,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         }
     }
 
-    private suspend fun DescribeSpecContainerScope.describeTestEqualityAndHashCode() {
+    private suspend fun DescribeSpecContainerScope.describeTestEquality() {
         describe("Equality") {
             it("Equals itself") {
                 arbObject.checkAll { it shouldBeEqual it }
@@ -2081,7 +2043,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 }
             }
         }
+    }
 
+    private suspend fun DescribeSpecContainerScope.describeTestHashCode() {
         describe("Hash code") {
             it("Equals ID") {
                 arbObject.checkAll { it.hashCode() shouldBeEqual it.id }
@@ -2150,7 +2114,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     ArtemisObjectTestModule.collected shouldContainExactly objects
                 }
 
-                describeTestEqualityAndHashCode()
+                describeTestEquality()
+                describeTestHashCode()
                 describeMore()
 
                 ArtemisObjectTestModule.collected.clear()

@@ -13,9 +13,9 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class DockedPacketFixture(
     arbVersion: Arb<Version> = Arb.version(),
@@ -24,9 +24,9 @@ class DockedPacketFixture(
         override val version: Version,
         private val dockID: Int,
     ) : PacketTestData.Server<DockedPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.DOCKED.toInt())
-            writeIntLittleEndian(dockID)
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.DOCKED.toInt())
+            writeIntLe(dockID)
         }
 
         override fun validate(packet: DockedPacket) {

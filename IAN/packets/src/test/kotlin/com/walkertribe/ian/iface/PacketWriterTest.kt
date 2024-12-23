@@ -20,8 +20,9 @@ import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.enum
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.bits.reverseByteOrder
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import io.ktor.utils.io.close
+import io.ktor.utils.io.writeInt
+import io.ktor.utils.io.writePacket
 import io.mockk.called
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -30,28 +31,37 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
+import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
 class PacketWriterTest : DescribeSpec({
     val sendChannel = mockk<ByteWriteChannel>()
     val packetWriter = PacketWriter(sendChannel)
 
-    afterTest { clearAllMocks() }
+    afterTest {
+        clearAllMocks()
+        unmockkAll()
+    }
 
     describe("PacketWriter") {
         it("Writes packet correctly") {
             val ints = mutableListOf<Int>()
-            val payloadSlot = slot<ByteReadPacket>()
+            val payloadSlot = slot<Source>()
             val extraSize = Int.SIZE_BYTES * 3
 
             val iterations = PropertyTesting.defaultIterationCount
             val expectedInts = iterations * 5
 
+            mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
+
             coEvery { sendChannel.writeInt(capture(ints)) } just runs
             coEvery { sendChannel.writePacket(capture(payloadSlot)) } just runs
-            every { sendChannel.flush() } just runs
+            coEvery { sendChannel.flush() } just runs
 
             checkAll(
                 iterations = iterations,
@@ -76,18 +86,18 @@ class PacketWriterTest : DescribeSpec({
 
                 val packet = payloadSlot.captured
 
-                packet.readIntLittleEndian() shouldBeEqual packetType
-                packet.readIntLittleEndian() shouldBeEqual int
-                packet.readIntLittleEndian() shouldBeEqual gameType.ordinal
-                packet.readIntLittleEndian() shouldBeEqual float.toRawBits()
+                packet.readIntLe() shouldBeEqual packetType
+                packet.readIntLe() shouldBeEqual int
+                packet.readIntLe() shouldBeEqual gameType.ordinal
+                packet.readIntLe() shouldBeEqual float.toRawBits()
 
                 ints.clear()
                 packet.close()
             }
 
             coVerify(exactly = expectedInts) { sendChannel.writeInt(any()) }
-            coVerify(exactly = iterations) { sendChannel.writePacket(any()) }
-            verify(exactly = iterations) { sendChannel.flush() }
+            coVerify(exactly = iterations) { sendChannel.writePacket(any<Source>()) }
+            coVerify(exactly = iterations) { sendChannel.flush() }
 
             confirmVerified(sendChannel)
         }
@@ -158,18 +168,22 @@ class PacketWriterTest : DescribeSpec({
 
             confirmVerified(sendChannel)
 
+            mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
+
             coEvery { sendChannel.writeInt(any()) } just runs
-            coEvery { sendChannel.writePacket(any()) } just runs
-            every { sendChannel.flush() } just runs
+            coEvery { sendChannel.writePacket(any<Source>()) } just runs
+            coEvery { sendChannel.flush() } just runs
             packetWriter.flush()
         }
 
         it("Can close") {
-            coEvery { sendChannel.close(any()) } returns true
+            mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
+
+            every { sendChannel.close(any()) } just runs
 
             packetWriter.close()
 
-            coVerify { sendChannel.close(any()) }
+            verify { sendChannel.close(any()) }
 
             confirmVerified(sendChannel)
         }

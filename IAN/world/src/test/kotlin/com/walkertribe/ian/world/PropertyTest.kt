@@ -19,6 +19,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
+import io.kotest.property.Gen
 import io.kotest.property.arbitrary.byte
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.flatMap
@@ -35,8 +36,6 @@ import io.kotest.property.exhaustive.enum
 import io.kotest.property.exhaustive.filter
 import io.kotest.property.exhaustive.of
 import io.kotest.property.forAll
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sign
 
 class PropertyTest : DescribeSpec({
@@ -127,91 +126,14 @@ enum class PropertyTestCase {
         }
 
         override suspend fun describeMore(scope: DescribeSpecContainerScope) {
-            scope.describe("Comparisons") {
-                it("Less than") {
-                    Arb.numericFloat().flatMap { a ->
-                        Arb.numericFloat().filter { it != a }.map { Pair(a, it) }
-                    }.forAll {
-                        val minProp = Property.FloatProperty(0L)
-                        minProp.value = min(it.first, it.second)
-
-                        val maxProp = Property.FloatProperty(0L)
-                        maxProp.value = max(it.first, it.second)
-
-                        minProp < maxProp
-                    }
-                }
-
-                it("Less than or equal") {
-                    forAll(
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                    ) { a, b ->
-                        val minProp = Property.FloatProperty(0L)
-                        minProp.value = min(a, b)
-
-                        val maxProp = Property.FloatProperty(0L)
-                        maxProp.value = max(a, b)
-
-                        minProp <= maxProp
-                    }
-                }
-
-                it("Greater than") {
-                    Arb.numericFloat().flatMap { a ->
-                        Arb.numericFloat().filter { it != a }.map { Pair(a, it) }
-                    }.forAll {
-                        val minProp = Property.FloatProperty(0L)
-                        minProp.value = min(it.first, it.second)
-
-                        val maxProp = Property.FloatProperty(0L)
-                        maxProp.value = max(it.first, it.second)
-
-                        maxProp > minProp
-                    }
-                }
-
-                it("Greater than or equal") {
-                    forAll(
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                    ) { a, b ->
-                        val minProp = Property.FloatProperty(0L)
-                        minProp.value = min(a, b)
-
-                        val maxProp = Property.FloatProperty(0L)
-                        maxProp.value = max(a, b)
-
-                        maxProp >= minProp
-                    }
-                }
-
-                it("Less than if this property has no value") {
-                    Arb.numericFloat().forAll {
-                        val propWithoutValue = Property.FloatProperty(0L)
-                        val propWithValue = Property.FloatProperty(0L)
-                        propWithValue.value = it
-
-                        propWithoutValue < propWithValue
-                    }
-                }
-
-                it("Greater than if this property has no value") {
-                    Arb.numericFloat().forAll {
-                        val propWithoutValue = Property.FloatProperty(0L)
-                        val propWithValue = Property.FloatProperty(0L)
-                        propWithValue.value = it
-
-                        propWithValue > propWithoutValue
-                    }
-                }
-
-                it("Equal if neither has a value") {
-                    val propA = Property.FloatProperty(0L)
-                    val propB = Property.FloatProperty(0L)
-                    propA shouldBeEqualComparingTo propB
-                }
-            }
+            scope.describeComparisonTests(
+                strictArbPair = Arb.numericFloat().flatMap { a ->
+                    Arb.numericFloat().filter { it != a }.map { Pair(a, it) }
+                },
+                softArbPair = Arb.pair(Arb.numericFloat(), Arb.numericFloat()),
+                singleArb = Arb.numericFloat(),
+                emptyPropertyGenerator = Exhaustive.of(Property.FloatProperty(0L)),
+            ) { Property.FloatProperty(it) }
         }
     },
     BYTE {
@@ -337,97 +259,17 @@ enum class PropertyTestCase {
                 }
             }
 
-            scope.describe("Comparisons") {
-                it("Less than") {
-                    Arb.byte().filter { it.toInt() != -1 }.flatMap { a ->
-                        Arb.byte().filter { it.toInt() != -1 && it != a }.map {
-                            Pair(a.toInt(), it.toInt())
-                        }
-                    }.forAll {
-                        val minProp = Property.ByteProperty(0L)
-                        minProp.value = min(it.first, it.second).toByte()
-
-                        val maxProp = Property.ByteProperty(0L)
-                        maxProp.value = max(it.first, it.second).toByte()
-
-                        minProp < maxProp
-                    }
-                }
-
-                it("Less than or equal") {
-                    forAll(
-                        Arb.byte().filter { it.toInt() != -1 },
-                        Arb.byte().filter { it.toInt() != -1 },
-                    ) { a, b ->
-                        val minProp = Property.ByteProperty(0L)
-                        minProp.value = min(a.toInt(), b.toInt()).toByte()
-
-                        val maxProp = Property.ByteProperty(0L)
-                        maxProp.value = max(a.toInt(), b.toInt()).toByte()
-
-                        minProp <= maxProp
-                    }
-                }
-
-                it("Greater than") {
-                    Arb.byte().filter { it.toInt() != -1 }.flatMap { a ->
-                        Arb.byte().filter { it.toInt() != -1 && it != a }.map {
-                            Pair(a.toInt(), it.toInt())
-                        }
-                    }.forAll {
-                        val minProp = Property.ByteProperty(0L)
-                        minProp.value = min(it.first, it.second).toByte()
-
-                        val maxProp = Property.ByteProperty(0L)
-                        maxProp.value = max(it.first, it.second).toByte()
-
-                        maxProp > minProp
-                    }
-                }
-
-                it("Greater than or equal") {
-                    forAll(
-                        Arb.byte().filter { it.toInt() != -1 },
-                        Arb.byte().filter { it.toInt() != -1 },
-                    ) { a, b ->
-                        val minProp = Property.ByteProperty(0L)
-                        minProp.value = min(a.toInt(), b.toInt()).toByte()
-
-                        val maxProp = Property.ByteProperty(0L)
-                        maxProp.value = max(a.toInt(), b.toInt()).toByte()
-
-                        maxProp >= minProp
-                    }
-                }
-
-                it("Less than if this property has no value") {
-                    Arb.byte().filter { it.toInt() != -1 }.forAll {
-                        val propWithoutValue = Property.ByteProperty(0L)
-                        val propWithValue = Property.ByteProperty(0L)
-                        propWithValue.value = it
-
-                        propWithoutValue < propWithValue
-                    }
-                }
-
-                it("Greater than if this property has no value") {
-                    Arb.byte().filter { it.toInt() != -1 }.forAll {
-                        val propWithoutValue = Property.ByteProperty(0L)
-                        val propWithValue = Property.ByteProperty(0L)
-                        propWithValue.value = it
-
-                        propWithValue > propWithoutValue
-                    }
-                }
-
-                it("Equal if neither has a value") {
-                    checkAll(Arb.byte(), Arb.byte()) { a, b ->
-                        val propA = Property.ByteProperty(0L, a)
-                        val propB = Property.ByteProperty(0L, b)
-                        propA shouldBeEqualComparingTo propB
-                    }
-                }
-            }
+            scope.describeComparisonTests(
+                strictArbPair = Arb.byte().filter { it.toInt() != -1 }.flatMap { a ->
+                    Arb.byte().filter { it.toInt() != -1 && it != a }.map { Pair(a, it) }
+                },
+                softArbPair = Arb.pair(
+                    Arb.byte().filter { it.toInt() != -1 },
+                    Arb.byte().filter { it.toInt() != -1 },
+                ),
+                singleArb = Arb.byte().filter { it.toInt() != -1 },
+                emptyPropertyGenerator = Arb.byte().map { Property.ByteProperty(0L, it) },
+            ) { Property.ByteProperty(it) }
         }
     },
     INTEGER {
@@ -553,87 +395,17 @@ enum class PropertyTestCase {
                 }
             }
 
-            scope.describe("Comparisons") {
-                it("Less than") {
-                    Arb.int().filter { it != -1 }.flatMap { a ->
-                        Arb.int().filter { it != -1 && it != a }.map { Pair(a, it) }
-                    }.forAll {
-                        val minProp = Property.IntProperty(0L)
-                        minProp.value = min(it.first, it.second)
-
-                        val maxProp = Property.IntProperty(0L)
-                        maxProp.value = max(it.first, it.second)
-
-                        minProp < maxProp
-                    }
-                }
-
-                it("Less than or equal") {
-                    forAll(Arb.int().filter { it != -1 }, Arb.int().filter { it != -1 }) { a, b ->
-                        val minProp = Property.IntProperty(0L)
-                        minProp.value = min(a, b)
-
-                        val maxProp = Property.IntProperty(0L)
-                        maxProp.value = max(a, b)
-
-                        minProp <= maxProp
-                    }
-                }
-
-                it("Greater than") {
-                    Arb.int().filter { it != -1 }.flatMap { a ->
-                        Arb.int().filter { it != -1 && it != a }.map { Pair(a, it) }
-                    }.forAll {
-                        val minProp = Property.IntProperty(0L)
-                        minProp.value = min(it.first, it.second)
-
-                        val maxProp = Property.IntProperty(0L)
-                        maxProp.value = max(it.first, it.second)
-
-                        maxProp > minProp
-                    }
-                }
-
-                it("Greater than or equal") {
-                    forAll(Arb.int().filter { it != -1 }, Arb.int().filter { it != -1 }) { a, b ->
-                        val minProp = Property.IntProperty(0L)
-                        minProp.value = min(a, b)
-
-                        val maxProp = Property.IntProperty(0L)
-                        maxProp.value = max(a, b)
-
-                        maxProp >= minProp
-                    }
-                }
-
-                it("Less than if this property has no value") {
-                    Arb.int().filter { it != -1 }.forAll {
-                        val propWithoutValue = Property.IntProperty(0L)
-                        val propWithValue = Property.IntProperty(0L)
-                        propWithValue.value = it
-
-                        propWithoutValue < propWithValue
-                    }
-                }
-
-                it("Greater than if this property has no value") {
-                    Arb.int().filter { it != -1 }.forAll {
-                        val propWithoutValue = Property.IntProperty(0L)
-                        val propWithValue = Property.IntProperty(0L)
-                        propWithValue.value = it
-
-                        propWithValue > propWithoutValue
-                    }
-                }
-
-                it("Equal if neither has a value") {
-                    checkAll(Arb.int(), Arb.int()) { a, b ->
-                        val propA = Property.IntProperty(0L, a)
-                        val propB = Property.IntProperty(0L, b)
-                        propA shouldBeEqualComparingTo propB
-                    }
-                }
-            }
+            scope.describeComparisonTests(
+                strictArbPair = Arb.int().filter { it != -1 }.flatMap { a ->
+                    Arb.int().filter { it != -1 && it != a }.map { Pair(a, it) }
+                },
+                softArbPair = Arb.pair(
+                    Arb.int().filter { it != -1 },
+                    Arb.int().filter { it != -1 },
+                ),
+                singleArb = Arb.int().filter { it != -1 },
+                emptyPropertyGenerator = Arb.int().map { Property.IntProperty(0L, it) },
+            ) { Property.IntProperty(it) }
         }
     },
     BOOLEAN {
@@ -822,6 +594,80 @@ enum class PropertyTestCase {
 
     private companion object {
         const val INITIAL_TEST_NAME = "Is unknown when initialized"
+
+        suspend fun <N, P> testComparisons(
+            arbPair: Arb<Pair<N, N>>,
+            propertyGenerator: (Long) -> P,
+            comparisonTest: (P, P) -> Boolean,
+        ) where N : Number, N : Comparable<N>, P : Property<N, P>, P : Comparable<P> {
+            arbPair.forAll { (first, second) ->
+                val firstProp = propertyGenerator(0L)
+                val secondProp = propertyGenerator(0L)
+
+                firstProp.value = first
+                secondProp.value = second
+
+                if (first < second) {
+                    comparisonTest(firstProp, secondProp)
+                } else {
+                    comparisonTest(secondProp, firstProp)
+                }
+            }
+        }
+
+        suspend fun <N, P> testComparisonWithOneValue(
+            arb: Arb<N>,
+            propertyGenerator: (Long) -> P,
+            comparisonTest: (P, P) -> Boolean,
+        ) where N : Number, N : Comparable<N>, P : Property<N, P>, P : Comparable<P> {
+            arb.forAll {
+                val propWithoutValue = propertyGenerator(0L)
+                val propWithValue = propertyGenerator(0L)
+                propWithValue.value = it
+
+                comparisonTest(propWithValue, propWithoutValue)
+            }
+        }
+
+        suspend fun <N, P> DescribeSpecContainerScope.describeComparisonTests(
+            strictArbPair: Arb<Pair<N, N>>,
+            softArbPair: Arb<Pair<N, N>>,
+            singleArb: Arb<N>,
+            emptyPropertyGenerator: Gen<P>,
+            basePropertyGenerator: (Long) -> P,
+        ) where N : Number, N : Comparable<N>, P : Property<N, P>, P : Comparable<P> {
+            describe("Comparisons") {
+                it("Less than") {
+                    testComparisons(strictArbPair, basePropertyGenerator) { a, b -> a < b }
+                }
+
+                it("Less than or equal") {
+                    testComparisons(softArbPair, basePropertyGenerator) { a, b -> a <= b }
+                }
+
+                it("Greater than") {
+                    testComparisons(strictArbPair, basePropertyGenerator) { a, b -> b > a }
+                }
+
+                it("Greater than or equal") {
+                    testComparisons(softArbPair, basePropertyGenerator) { a, b -> b >= a }
+                }
+
+                it("Less than if this property has no value") {
+                    testComparisonWithOneValue(singleArb, basePropertyGenerator) { a, b -> b < a }
+                }
+
+                it("Greater than if this property has no value") {
+                    testComparisonWithOneValue(singleArb, basePropertyGenerator) { a, b -> a > b }
+                }
+
+                it("Equal if neither has a value") {
+                    checkAll(emptyPropertyGenerator, emptyPropertyGenerator) { a, b ->
+                        a shouldBeEqualComparingTo b
+                    }
+                }
+            }
+        }
     }
 }
 

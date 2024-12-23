@@ -14,9 +14,9 @@ import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class IntelPacketFixture private constructor(
     arbVersion: Arb<Version>,
@@ -30,8 +30,8 @@ class IntelPacketFixture private constructor(
         private val intelType: IntelType,
         private val intel: String,
     ) : PacketTestData.Server<IntelPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(objectID)
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(objectID)
             writeByte(intelType.ordinal.toByte())
             writeString(intel)
         }

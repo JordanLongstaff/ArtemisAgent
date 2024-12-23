@@ -22,7 +22,7 @@ buildscript {
 
 val sdkVersion: Int by extra(35)
 val minimumSdkVersion: Int by extra(21)
-val javaVersion: JavaVersion by extra(JavaVersion.VERSION_17)
+val javaVersion: JavaVersion by extra(JavaVersion.VERSION_21)
 
 val pitestTimeoutFactor: BigDecimal by extra(BigDecimal(100))
 val pitestMutators: Set<String> by extra(

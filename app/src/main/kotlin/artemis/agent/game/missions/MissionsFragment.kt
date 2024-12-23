@@ -153,71 +153,9 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         fun bind(entry: SideMissionEntry) {
             with(entryBinding) {
                 if (entry.isCompleted) {
-                    val seconds = AgentViewModel.getTimeToEnd(entry.completionTimestamp).second
-
-                    root.setOnClickListener { viewModel.allMissions.remove(entry) }
-
-                    root.setBackgroundColor(
-                        ContextCompat.getColor(root.context, R.color.completedMissionGreen)
-                    )
-                    nextLabel.text = getString(R.string.mission_completed)
-                    thenLabel.text = if (viewModel.autoDismissCompletedMissions) {
-                        getString(R.string.mission_will_be_removed, seconds)
-                    } else {
-                        getString(R.string.tap_to_dismiss)
-                    }
-                    thenLabel.visibility = View.VISIBLE
-                    thenLabel.alpha = 1f
-                    missionDirectionLabel.text = ""
-                    missionRangeLabel.text = ""
-                    missionTimeLabel.text = ""
+                    bindCompleted(entry)
                 } else {
-                    val nextTo: ObjectEntry<*>
-                    val thenTo: ObjectEntry<*>?
-                    if (entry.isStarted) {
-                        nextTo = entry.destination
-                        thenTo = null
-                        thenLabel.visibility = View.GONE
-                    } else {
-                        nextTo = entry.source
-                        thenTo = entry.destination
-                        thenLabel.visibility = View.VISIBLE
-                    }
-
-                    root.setBackgroundColor(
-                        ContextCompat.getColor(
-                            root.context,
-                            SideMissionStatus.maxOf(
-                                nextTo.missionStatus,
-                                thenTo?.missionStatus ?: SideMissionStatus.ALL_CLEAR
-                            ).backgroundColor
-                        )
-                    )
-
-                    val nextVessel = nextTo.obj.getVessel(viewModel.vesselData)
-                    nextLabel.text = getString(
-                        R.string.next_to,
-                        nextTo.obj.name.value,
-                        nextVessel?.getFaction(viewModel.vesselData)?.name,
-                        nextVessel?.name
-                    )
-                    val thenVessel = thenTo?.obj?.getVessel(viewModel.vesselData)
-                    thenLabel.text = getString(
-                        R.string.then_to,
-                        thenTo?.run { obj.name.value },
-                        thenVessel?.getFaction(viewModel.vesselData)?.name,
-                        thenVessel?.name
-                    )
-
-                    missionDirectionLabel.text = getString(
-                        R.string.direction,
-                        nextTo.heading
-                    )
-                    missionRangeLabel.text = getString(
-                        R.string.range,
-                        nextTo.range
-                    )
-                    missionTimeLabel.text = entry.durationText
+                    bindInProgress(entry)
                 }
 
                 val rewardList = viewModel.displayedRewards.filter {
@@ -236,6 +174,76 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                 }
                 rewardsLabel.text = getString(R.string.rewards, rewardList)
             }
+        }
+
+        private fun MissionsEntryBinding.bindInProgress(entry: SideMissionEntry) {
+            val nextTo: ObjectEntry<*>
+            val thenTo: ObjectEntry<*>?
+            if (entry.isStarted) {
+                nextTo = entry.destination
+                thenTo = null
+                thenLabel.visibility = View.GONE
+            } else {
+                nextTo = entry.source
+                thenTo = entry.destination
+                thenLabel.visibility = View.VISIBLE
+            }
+
+            root.setBackgroundColor(
+                ContextCompat.getColor(
+                    root.context,
+                    SideMissionStatus.maxOf(
+                        nextTo.missionStatus,
+                        thenTo?.missionStatus ?: SideMissionStatus.ALL_CLEAR
+                    ).backgroundColor
+                )
+            )
+
+            val nextVessel = nextTo.obj.getVessel(viewModel.vesselData)
+            nextLabel.text = getString(
+                R.string.next_to,
+                nextTo.obj.name.value,
+                nextVessel?.getFaction(viewModel.vesselData)?.name,
+                nextVessel?.name
+            )
+            val thenVessel = thenTo?.obj?.getVessel(viewModel.vesselData)
+            thenLabel.text = getString(
+                R.string.then_to,
+                thenTo?.run { obj.name.value },
+                thenVessel?.getFaction(viewModel.vesselData)?.name,
+                thenVessel?.name
+            )
+
+            missionDirectionLabel.text = getString(
+                R.string.direction,
+                nextTo.heading
+            )
+            missionRangeLabel.text = getString(
+                R.string.range,
+                nextTo.range
+            )
+            missionTimeLabel.text = entry.durationText
+        }
+
+        private fun MissionsEntryBinding.bindCompleted(entry: SideMissionEntry) {
+            val seconds = AgentViewModel.getTimeToEnd(entry.completionTimestamp).second
+
+            root.setOnClickListener { viewModel.allMissions.remove(entry) }
+
+            root.setBackgroundColor(
+                ContextCompat.getColor(root.context, R.color.completedMissionGreen)
+            )
+            nextLabel.text = getString(R.string.mission_completed)
+            thenLabel.text = if (viewModel.autoDismissCompletedMissions) {
+                getString(R.string.mission_will_be_removed, seconds)
+            } else {
+                getString(R.string.tap_to_dismiss)
+            }
+            thenLabel.visibility = View.VISIBLE
+            thenLabel.alpha = 1f
+            missionDirectionLabel.text = ""
+            missionRangeLabel.text = ""
+            missionTimeLabel.text = ""
         }
     }
 

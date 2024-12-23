@@ -80,7 +80,7 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
         }
         val dX = other.x.value - x.value
         val dZ = other.z.value - z.value
-        return atan2(-dX, -dZ) * RAD_TO_DEG + HALF_CIRCLE
+        return (atan2(dX, dZ) * RAD_TO_DEG + HALF_CIRCLE) % FULL_CIRCLE
     }
 
     override fun updates(other: T) {
@@ -128,6 +128,7 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
 
     private companion object {
         private const val HALF_CIRCLE = 180f
+        private const val FULL_CIRCLE = HALF_CIRCLE * 2f
         private const val RAD_TO_DEG = (HALF_CIRCLE / PI).toFloat()
     }
 }

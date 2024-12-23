@@ -126,17 +126,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.closestStationName) {
-            binding.closestStationButton.apply {
-                text = getString(R.string.closest_station, it)
-                isEnabled = it != viewModel.stationName.value
-
-                setOnClickListener { _ ->
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    viewModel.stationName.value = it
-                }
-            }
-        }
+        bindClosestStationButton()
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.stationsRemain) {
             val noStationsVisibility: Int
@@ -154,31 +144,11 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             binding.noStationsLabel.visibility = noStationsVisibility
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.stationName) {
-            binding.closestStationButton.isEnabled = it != viewModel.closestStationName.value
-        }
-
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.currentStation) {
             onStationEntryUpdate(it)
         }
 
-        stationSelectorPopup.isFocusable = true
-        ordnanceSelectorPopup.isFocusable = true
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.rootOpacity) {
-            stationPopupBinding.selectorList.alpha = it
-            ordnancePopupBinding.selectorList.alpha = it
-        }
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.jumping) {
-            val visibility = if (it) View.VISIBLE else View.GONE
-            stationPopupBinding.jumpInputDisabler.visibility = visibility
-            ordnancePopupBinding.jumpInputDisabler.visibility = visibility
-        }
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.flashingStations) {
-            stationAdapter.update(it)
-        }
+        preparePopupBindings()
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.stationSelectorFlashPercent) {
             binding.stationSelectorFlash.alpha = if (it < 1f) {
@@ -207,139 +177,196 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
         ordnanceSelectorPopup.dismiss()
     }
 
+    private fun bindClosestStationButton() {
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.closestStationName) {
+            binding.closestStationButton.apply {
+                text = getString(R.string.closest_station, it)
+                isEnabled = it != viewModel.stationName.value
+
+                setOnClickListener { _ ->
+                    viewModel.playSound(SoundEffect.BEEP_1)
+                    viewModel.stationName.value = it
+                }
+            }
+        }
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.stationName) {
+            binding.closestStationButton.isEnabled = it != viewModel.closestStationName.value
+        }
+    }
+
+    private fun preparePopupBindings() {
+        stationSelectorPopup.isFocusable = true
+        ordnanceSelectorPopup.isFocusable = true
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.rootOpacity) {
+            stationPopupBinding.selectorList.alpha = it
+            ordnancePopupBinding.selectorList.alpha = it
+        }
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.jumping) {
+            val visibility = if (it) View.VISIBLE else View.GONE
+            stationPopupBinding.jumpInputDisabler.visibility = visibility
+            ordnancePopupBinding.jumpInputDisabler.visibility = visibility
+        }
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.flashingStations) {
+            stationAdapter.update(it)
+        }
+    }
+
     private fun onStationEntryUpdate(entry: Station) {
         currentStation = entry
         ordnanceAdapter.onStationChanged()
 
         with(binding) {
             val context = root.context
-            val station = entry.obj
-
-            val shields = station.shieldsFront.value
-            val shieldsMax = station.shieldsFrontMax.value
             root.setBackgroundColor(entry.getBackgroundColor(context))
 
-            entry.isDocking = (viewModel.playerShip?.dockingBase?.value == station.id).also {
+            entry.isDocking = (viewModel.playerShip?.dockingBase?.value == entry.obj.id).also {
                 entry.isDocked = it && viewModel.playerShip?.docked?.booleanValue == true
             }
 
-            val percent = shields / shieldsMax
-            val selectorBackground = ResourcesCompat.getDrawable(
-                context.resources,
-                R.drawable.station_selector,
-                context.theme
-            ) as? GradientDrawable
-            selectorBackground?.setStroke(
-                context.resources.getDimensionPixelSize(R.dimen.paddingSmall),
-                SELECTOR_COLORS.find { percent >= it.first }?.let {
-                    ContextCompat.getColor(context, it.second)
-                } ?: Color.TRANSPARENT
-            )
-            stationSelectorButton.background = selectorBackground?.let { drawable ->
-                InsetDrawable(
-                    drawable,
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_vertical_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_vertical_material
-                    )
-                )
-            }
-            stationSelectorButton.text = viewModel.getFullNameForShip(station)
-
-            if (viewModel.version < RouteObjective.ReplacementFighters.REPORT_VERSION) {
-                stationFightersLabel.visibility = View.GONE
-            } else {
-                stationFightersLabel.visibility = View.VISIBLE
-                stationFightersLabel.text = entry.getFightersText(context)
-            }
-
-            stationMissionsLabel.text = entry.getMissionsText(context)
-            stationShieldLabel.text = context.getString(
-                R.string.station_shield,
-                shields.coerceAtLeast(0f),
-                shieldsMax
-            )
-            stationStatusLabel.text = entry.getStatusText(context)
-            stationSpeedLabel.text = entry.getSpeedText(context)
-
-            stationHeadingLabel.text = context.getString(R.string.direction, entry.heading)
-            stationRangeLabel.text = context.getString(R.string.range, entry.range)
-
-            requestStandbyButton.isEnabled = !entry.isStandingBy
-
-            requestStatusButton.setOnClickListener { _ ->
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(
-                        entry.obj,
-                        BaseMessage.PleaseReportStatus,
-                        viewModel.vesselData
-                    )
-                )
-            }
-
-            requestStandbyButton.setOnClickListener { _ ->
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(
-                        entry.obj,
-                        BaseMessage.StandByForDockingOrCeaseOperation,
-                        viewModel.vesselData
-                    )
-                )
-            }
+            bindStationSelector(entry)
+            updateInfoLabels(entry)
+            bindStatusAndStandbyButtons(entry)
+            updateOrdnanceLabels(entry)
 
             stationBuildSelector.text = entry.builtOrdnanceType.getLabelFor(viewModel.version)
-
-            val allOrdnances = OrdnanceType.getAllForVersion(viewModel.version)
-            val numOrdnanceTypes = allOrdnances.size
-
-            val visibleOnRight = numOrdnanceTypes / 2
-            val visibleOnLeft = numOrdnanceTypes - visibleOnRight
-
-            val ordnanceLabels = arrayOf(
-                stationOrdnanceLabel1,
-                stationOrdnanceLabel2,
-                stationOrdnanceLabel3,
-                stationOrdnanceLabel4,
-                stationOrdnanceLabel5,
-                stationOrdnanceLabel6,
-                stationOrdnanceLabel7,
-                stationOrdnanceLabel8,
-            )
-            val halfway = ordnanceLabels.size / 2
-
-            for (i in 0 until visibleOnLeft) {
-                val ordnanceType = allOrdnances[i]
-                val label = ordnanceLabels[i]
-                label.visibility = View.VISIBLE
-                label.text = entry.getOrdnanceText(viewModel, context, ordnanceType)
-            }
-
-            for (i in visibleOnLeft until halfway) {
-                ordnanceLabels[i].visibility = View.GONE
-            }
-
-            for (i in 0 until visibleOnRight) {
-                val ordnanceType = allOrdnances[i + visibleOnLeft]
-                val label = ordnanceLabels[halfway + i]
-                label.visibility = View.VISIBLE
-                label.text = entry.getOrdnanceText(viewModel, context, ordnanceType)
-            }
-
-            for (i in (halfway + visibleOnRight) until ordnanceLabels.size) {
-                ordnanceLabels[i].visibility = View.GONE
-            }
-
             stationBuildTimeLabel.text = entry.getTimerText(context)
+        }
+    }
+
+    private fun StationEntryBinding.bindStationSelector(entry: Station) {
+        val context = root.context
+
+        val station = entry.obj
+        val shields = station.shieldsFront.value
+        val shieldsMax = station.shieldsFrontMax.value
+        val percent = shields / shieldsMax
+
+        val selectorBackground = ResourcesCompat.getDrawable(
+            context.resources,
+            R.drawable.station_selector,
+            context.theme
+        ) as? GradientDrawable
+        selectorBackground?.setStroke(
+            context.resources.getDimensionPixelSize(R.dimen.paddingSmall),
+            SELECTOR_COLORS.find { percent >= it.first }?.let {
+                ContextCompat.getColor(context, it.second)
+            } ?: Color.TRANSPARENT
+        )
+        stationSelectorButton.background = selectorBackground?.let { drawable ->
+            InsetDrawable(
+                drawable,
+                context.resources.getDimensionPixelSize(
+                    androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
+                ),
+                context.resources.getDimensionPixelSize(
+                    androidx.appcompat.R.dimen.abc_button_inset_vertical_material
+                ),
+                context.resources.getDimensionPixelSize(
+                    androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
+                ),
+                context.resources.getDimensionPixelSize(
+                    androidx.appcompat.R.dimen.abc_button_inset_vertical_material
+                )
+            )
+        }
+        stationSelectorButton.text = viewModel.getFullNameForShip(station)
+    }
+
+    private fun StationEntryBinding.updateInfoLabels(entry: Station) {
+        val context = root.context
+
+        val shields = entry.obj.shieldsFront.value
+        val shieldsMax = entry.obj.shieldsFrontMax.value
+
+        if (viewModel.version < RouteObjective.ReplacementFighters.REPORT_VERSION) {
+            stationFightersLabel.visibility = View.GONE
+        } else {
+            stationFightersLabel.visibility = View.VISIBLE
+            stationFightersLabel.text = entry.getFightersText(context)
+        }
+
+        stationMissionsLabel.text = entry.getMissionsText(context)
+        stationShieldLabel.text = context.getString(
+            R.string.station_shield,
+            shields.coerceAtLeast(0f),
+            shieldsMax
+        )
+        stationStatusLabel.text = entry.statusString?.let(context::getString).orEmpty()
+        stationSpeedLabel.text = entry.getSpeedText(context)
+
+        stationHeadingLabel.text = context.getString(R.string.direction, entry.heading)
+        stationRangeLabel.text = context.getString(R.string.range, entry.range)
+    }
+
+    private fun StationEntryBinding.bindStatusAndStandbyButtons(entry: Station) {
+        requestStandbyButton.isEnabled = !entry.isStandingBy
+
+        requestStatusButton.setOnClickListener { _ ->
+            viewModel.playSound(SoundEffect.BEEP_2)
+            viewModel.sendToServer(
+                CommsOutgoingPacket(
+                    entry.obj,
+                    BaseMessage.PleaseReportStatus,
+                    viewModel.vesselData
+                )
+            )
+        }
+
+        requestStandbyButton.setOnClickListener { _ ->
+            viewModel.playSound(SoundEffect.BEEP_2)
+            viewModel.sendToServer(
+                CommsOutgoingPacket(
+                    entry.obj,
+                    BaseMessage.StandByForDockingOrCeaseOperation,
+                    viewModel.vesselData
+                )
+            )
+        }
+    }
+
+    private fun StationEntryBinding.updateOrdnanceLabels(entry: Station) {
+        val allOrdnances = OrdnanceType.getAllForVersion(viewModel.version)
+        val numOrdnanceTypes = allOrdnances.size
+
+        val visibleOnRight = numOrdnanceTypes / 2
+        val visibleOnLeft = numOrdnanceTypes - visibleOnRight
+
+        val ordnanceLabels = arrayOf(
+            stationOrdnanceLabel1,
+            stationOrdnanceLabel2,
+            stationOrdnanceLabel3,
+            stationOrdnanceLabel4,
+            stationOrdnanceLabel5,
+            stationOrdnanceLabel6,
+            stationOrdnanceLabel7,
+            stationOrdnanceLabel8,
+        )
+        val halfway = ordnanceLabels.size / 2
+
+        for (i in 0 until visibleOnLeft) {
+            val ordnanceType = allOrdnances[i]
+            val label = ordnanceLabels[i]
+            label.visibility = View.VISIBLE
+            label.text = entry.getOrdnanceText(viewModel, root.context, ordnanceType)
+        }
+
+        for (i in visibleOnLeft until halfway) {
+            ordnanceLabels[i].visibility = View.GONE
+        }
+
+        for (i in 0 until visibleOnRight) {
+            val ordnanceType = allOrdnances[i + visibleOnLeft]
+            val label = ordnanceLabels[halfway + i]
+            label.visibility = View.VISIBLE
+            label.text = entry.getOrdnanceText(viewModel, root.context, ordnanceType)
+        }
+
+        for (i in (halfway + visibleOnRight) until ordnanceLabels.size) {
+            ordnanceLabels[i].visibility = View.GONE
         }
     }
 

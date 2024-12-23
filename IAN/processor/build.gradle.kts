@@ -27,13 +27,12 @@ detekt {
 }
 
 dependencies {
-  api(project(":IAN:annotations"))
-
   api(libs.kotlin.stdlib)
   api(libs.koin.annotations)
   api(libs.ksp.api)
   api(libs.kotlinpoet)
 
+  implementation(project(":IAN:annotations"))
   implementation(project(":IAN:listener"))
   implementation(project(":IAN:util"))
   implementation(libs.kotlinpoet.ksp)

@@ -39,11 +39,8 @@ sealed interface Packet {
         private companion object {
             private val TYPE_HASH_MAP = mutableMapOf<String, Int>()
 
-            private fun getHash(type: String): Int {
-                return TYPE_HASH_MAP[type] ?: JamCrc.compute(type).also {
-                    TYPE_HASH_MAP[type] = it
-                }
-            }
+            private fun getHash(type: String): Int =
+                TYPE_HASH_MAP.getOrPut(type) { JamCrc.compute(type) }
         }
     }
 

@@ -12,9 +12,9 @@ import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class BayStatusPacketFixture private constructor(
     override val specName: String,
@@ -34,17 +34,17 @@ class BayStatusPacketFixture private constructor(
         val shouldWriteBayNumber: Boolean,
         val bays: List<Bay>,
     ) : PacketTestData.Server<BayStatusPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
+        override fun buildPayload(): Source = buildPacket {
             bays.forEach {
-                writeIntLittleEndian(it.id)
+                writeIntLe(it.id)
                 if (shouldWriteBayNumber) {
-                    writeIntLittleEndian(it.bayNumber)
+                    writeIntLe(it.bayNumber)
                 }
                 writeString(it.name)
                 writeString(it.className)
-                writeIntLittleEndian(it.refitTime)
+                writeIntLe(it.refitTime)
             }
-            writeIntLittleEndian(0)
+            writeIntLe(0)
         }
 
         override fun validate(packet: BayStatusPacket) {

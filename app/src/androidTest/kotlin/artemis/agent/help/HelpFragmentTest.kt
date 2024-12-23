@@ -27,6 +27,7 @@ class HelpFragmentTest {
             R.string.help_topics_routing to 6,
             R.string.help_topics_enemies to 12,
             R.string.help_topics_biomechs to 3,
+            R.string.help_topics_notifications to 15,
             R.string.help_topics_about to 5,
         )
     }

@@ -80,7 +80,17 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             clearFocus()
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
+        initializeFromSettings(incentiveButtons, avoidances)
+
+        prepareAvoidanceSettingButtons(avoidances)
+        prepareIncentiveSettingButtons(incentiveButtons)
+    }
+
+    private fun initializeFromSettings(
+        incentiveButtons: ToggleButtonMap,
+        avoidances: Array<Avoidance>,
+    ) {
+        viewLifecycleOwner.collectLatestWhileStarted(binding.root.context.userSettings.data) {
             it.copy {
                 incentiveButtons.entries.forEach { (button, setting) ->
                     button.isChecked = setting.get(this)
@@ -119,11 +129,15 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             binding.avoidancesAllButton.isEnabled = !avoidances.all { (button) -> button.isChecked }
             binding.avoidancesNoneButton.isEnabled = avoidances.any { (button) -> button.isChecked }
         }
+    }
+
+    private fun prepareAvoidanceSettingButtons(avoidances: Array<Avoidance>) {
+        val context = binding.root.context
 
         binding.avoidancesAllButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         avoidances.forEach { (_, enabledSetting) ->
                             enabledSetting.set(this, true)
@@ -137,7 +151,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             clearFocus()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         avoidances.forEach { (_, enabledSetting) ->
                             enabledSetting.set(this, false)
@@ -147,56 +161,64 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             }
         }
 
-        avoidances.forEach { avoidance ->
-            avoidance.toggleButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        avoidances.forEach { prepareAvoidanceSettingView(it) }
+    }
 
-            avoidance.toggleButton.setOnCheckedChangeListener { _, isChecked ->
-                if (!isChecked && avoidance.clearanceField.hasFocus()) {
-                    hideKeyboard()
-                    avoidance.clearanceField.clearFocus()
-                }
+    private fun prepareAvoidanceSettingView(avoidance: Avoidance) {
+        val context = binding.root.context
 
-                viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy { avoidance.enabledSetting.set(this, isChecked) }
-                    }
-                }
+        avoidance.toggleButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+
+        avoidance.toggleButton.setOnCheckedChangeListener { _, isChecked ->
+            if (!isChecked && avoidance.clearanceField.hasFocus()) {
+                hideKeyboard()
+                avoidance.clearanceField.clearFocus()
             }
 
-            avoidance.clearanceField.setOnClickListener {
+            viewModel.viewModelScope.launch {
+                context.userSettings.updateData {
+                    it.copy { avoidance.enabledSetting.set(this, isChecked) }
+                }
+            }
+        }
+
+        avoidance.clearanceField.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        avoidance.clearanceField.addTextChangedListener {
+            if (playSoundsOnTextChange) {
                 viewModel.playSound(SoundEffect.BEEP_2)
             }
+        }
 
-            avoidance.clearanceField.addTextChangedListener {
-                if (playSoundsOnTextChange) {
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                }
+        avoidance.clearanceField.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                viewModel.playSound(SoundEffect.BEEP_2)
+                return@setOnFocusChangeListener
             }
 
-            avoidance.clearanceField.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                    return@setOnFocusChangeListener
-                }
-
-                val text = avoidance.clearanceField.text?.toString()
-                viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy {
-                            if (!text.isNullOrBlank()) {
-                                avoidance.clearanceSetting.set(this, text.toInt())
-                            }
+            val text = avoidance.clearanceField.text?.toString()
+            viewModel.viewModelScope.launch {
+                context.userSettings.updateData {
+                    it.copy {
+                        if (!text.isNullOrBlank()) {
+                            avoidance.clearanceSetting.set(this, text.toInt())
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun prepareIncentiveSettingButtons(incentiveButtons: ToggleButtonMap) {
+        val context = binding.root.context
 
         binding.incentivesAllButton.setOnClickListener {
             clearFocus()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         incentiveButtons.values.forEach { setting ->
                             setting.set(this, true)
@@ -210,7 +232,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             clearFocus()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         incentiveButtons.values.forEach { setting ->
                             setting.set(this, false)
@@ -227,7 +249,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             }
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
+                    context.userSettings.updateData {
                         it.copy { setting.set(this, isChecked) }
                     }
                 }

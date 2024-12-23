@@ -6,6 +6,7 @@
     <string name="adjust_25_degrees">25</string>
     <string name="agent">Agent</string>
     <string name="alert">Alert</string>
+    <string name="alive">Alive</string>
     <string name="all">All</string>
     <string name="ally_status_ambassador_for_pirate">
         Pirate boss on board. Send shuttle to rescue.
@@ -55,7 +56,7 @@
     <string name="ally_status_reward">
         Friendly ship, en route to a station to deliver a reward for your assistance.
     </string>
-    <string name="alive">Alive</string>
+    <string name="always_scan_publicly">Always scan publicly</string>
     <string name="artemis_version_not_supported">Artemis %1$s not supported</string>
     <string name="attack_nearest_enemy">Attack</string>
     <string name="audio">Audio</string>
@@ -81,10 +82,12 @@
     <string name="channel_allies_deep_string">Deep Strike production</string>
     <string name="channel_biomech_moving">Reanimation alert</string>
     <string name="channel_connection">Connection</string>
+    <string name="channel_enemies_perfidy">Perfidy alert</string>
     <string name="channel_game_info">Game info</string>
     <string name="channel_game_over">Game over</string>
     <string name="channel_group_allies">Allies</string>
     <string name="channel_group_biomechs">Biomechs</string>
+    <string name="channel_group_enemies">Enemies</string>
     <string name="channel_group_important">Important</string>
     <string name="channel_group_missions">Missions</string>
     <string name="channel_group_stations">Stations</string>
@@ -137,6 +140,9 @@
     <string name="docked">Docked</string>
     <string name="docking">Docking</string>
     <string name="enemy">Enemy</string>
+    <string name="enemy_perfidy_notification">
+        This enemy has committed perfidy. Eliminate on sight.
+    </string>
     <string name="enemy_status_brave">Brave</string>
     <string name="enemy_status_cowardly">Cowardly</string>
     <string name="enemy_status_duplicitous">Duplicitous</string>
@@ -269,7 +275,8 @@
             \u2022 Cowardly: More likely to surrender.\n
         </item>
         <item>
-            \u2022 Duplicitous: Surrenders are not permanent.\n
+            \u2022 Duplicitous: Surrenders are perfidious, meaning that the enemy may reengage. See
+            Notifications for more info.\n
         </item>
         <item>
             \u2022 Easily offended: Taunts will work more than once, possibly including ones that
@@ -290,8 +297,15 @@
             Before you can use Artemis Agent, you must have an Artemis server running. Open Artemis
             on your computer and click \"Start Server\". After that, enter the server\'s address
             into the Address bar at the top of the screen, then touch the Connect button on the
-            right to connect to the server. If the server version is 2.7.0 or greater, you can scan
-            for the presence of the server by pressing the Scan button.\n
+            right to connect to the server.\n
+        </item>
+        <item>
+            You can also scan for servers by pressing the Scan button. Servers running Artemis
+            version 2.7.0 or higher broadcast their presence, and any servers detected by the app
+            will be listed below. When you select one of the listed servers, the app will attempt to
+            connect to that server. By default, the app only scans for servers on the local network.
+            If you are having trouble finding servers, you can scan publicly by activating the
+            \"Always scan publicly\" option in the connection settings.\n
         </item>
         <item>
             \nAfter the app has connected to the server, you must select a ship. The Ships page
@@ -299,13 +313,7 @@
             ship, the app will join that ship as a Comms client.\n
         </item>
         <item>
-            \nIf you press the Home button on your device, Artemis Agent will continue to run in the
-            background. It will continue to receive information via a Comms service and display it
-            in notifications on your device. In general, you can return to Artemis Agent by tapping
-            any of the notifications.\n
-        </item>
-        <item>
-            If the Artemis server has a mod, you will need to provide a vessel data XML file that
+            \nIf the Artemis server has a mod, you will need to provide a vessel data XML file that
             matches that of the server. By default, Artemis Agent provides a vessel data file for
             the stock version of Artemis. If you need to use a different set of vessel data, you
             can specify the file\'s location in the Settings page. The location that you set will
@@ -364,6 +372,65 @@
         </item>
         <item>
             \u2022 Shield Boost: The front and rear shield capacities of your ship will increase.
+        </item>
+    </string-array>
+    <string-array name="help_contents_notifications">
+        <item>
+            If you press the Home button on your device, Artemis Agent will continue to run in the
+            background. It will continue to receive information via a Comms service and display it
+            in notifications on your device.\n
+        </item>
+        <item>
+            You can customize the sounds and behaviour of notifications in the Settings app on your
+            device. Here are the types of notifications you might receive:\n
+        </item>
+        <item>
+            \u2022 Connection: Reports the status of your connection, whether the server\'s
+            heartbeat was lost, or the cause of a disconnect.\n
+        </item>
+        <item>
+            \u2022 Deep Strike production: Reports when the lone ally ship in a Deep Strike campaign
+            has produced a new batch of torpedoes, or the estimated time to completion of the next
+            batch.\n
+        </item>
+        <item>
+            \u2022 Game info: Continuously provides an updated inventory of all stations, ally
+            ships, side missions, BioMechs and enemy ships, both surrendered and otherwise.\n
+        </item>
+        <item>
+            \u2022 Game over: Sent when a simulation stops. Reports the cause.\n
+        </item>
+        <item>
+            \u2022 Missile production: Sent when a station finishes building ordnance. Reports how
+            much of that ordnance is currently in stock at that station.\n
+        </item>
+        <item>
+            \u2022 Mission completed: Sent when a side mission is completed.\n
+        </item>
+        <item>
+            \u2022 Mission progress: Sent when progress has been made towards completing a side
+            mission. reports the next destination where the reward will be received.\n
+        </item>
+        <item>
+            \u2022 New mission: Sent when a new side mission is issued. Reports the details of the
+            mission.\n
+        </item>
+        <item>
+            \u2022 Perfidy alert: Sent when a duplicitous enemy ship that surrendered previously is
+            revealed to have resumed aggression.\n
+        </item>
+        <item>
+            \u2022 Reanimation alert: Sent when a frozen BioMech reanimates. Includes an option to
+            re-freeze it.\n
+        </item>
+        <item>
+            \u2022 Station destroyed: Sent when a friendly station is destroyed.\n
+        </item>
+        <item>
+            \u2022 Station under attack: Sent when a friendly station is being attacked.\n
+        </item>
+        <item>
+            In general, you can return to Artemis Agent by tapping any of the notifications.\n
         </item>
     </string-array>
     <string-array name="help_contents_routing">
@@ -463,6 +530,7 @@
     <string name="help_topics_enemies">Enemies</string>
     <string name="help_topics_getting_started">Getting started</string>
     <string name="help_topics_missions">Missions</string>
+    <string name="help_topics_notifications">Notifications</string>
     <string name="help_topics_routing">Routing</string>
     <string name="help_topics_stations">Stations</string>
     <string name="included_incentives">Included incentives</string>
@@ -484,6 +552,13 @@
     <string name="mission_shield">Shield</string>
     <string name="mission_will_be_removed">Will be removed in %1$ds</string>
     <string name="more_commands">More commands:</string>
+    <string-array name="network_type_entries">
+        <item>Wi-Fi</item>
+        <item>Mobile</item>
+        <item>Ethernet</item>
+        <item>Bluetooth tethering</item>
+        <item>Unknown network</item>
+    </string-array>
     <string name="next_to">Next: %1$s %2$s %3$s</string>
     <string name="no">No</string>
     <string name="no_enemies">Scanned enemies will be displayed here.</string>
@@ -561,6 +636,7 @@
     <string name="ships">Ships</string>
     <string name="show_destroyed_allies">Show destroyed allies</string>
     <string name="show_intel">Show intel</string>
+    <string name="show_network_info">Show network info</string>
     <string name="show_taunt_status">Show taunt status</string>
     <string name="single_seat_craft_docked">%1$d single-seat craft docked</string>
     <string name="single_seat_craft_launched">%1$d single-seat craft launched</string>

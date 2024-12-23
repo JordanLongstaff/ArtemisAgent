@@ -1,48 +1,50 @@
 [versions]
-androidx-activity = "1.9.2"
-androidx-annotation = "1.8.2"
+androidx-activity = "1.9.3"
+androidx-annotation = "1.9.1"
 androidx-appcompat = "1.7.0"
-androidx-constraintlayout = "2.1.4"
-androidx-core = "1.13.1"
+androidx-constraintlayout = "2.2.0"
+androidx-core = "1.15.0"
 androidx-datastore = "1.1.1"
-androidx-fragment = "1.8.3"
-androidx-lifecycle = "2.8.5"
+androidx-fragment = "1.8.5"
+androidx-lifecycle = "2.8.7"
 androidx-multidex = "2.0.1"
 androidx-recyclerview = "1.3.2"
 androidx-test-core = "1.6.1"
 androidx-test-junit = "1.2.1"
 androidx-test-runner = "1.6.2"
-app-review = "2.0.1"
+app-review = "2.0.2"
 arcmutate-base = "1.3.1"
 arcmutate-kotlin = "1.3.0"
 barista = "4.3.0"
-dependency-analysis = "2.0.1"
-desugar = "2.1.2"
+dependency-analysis = "2.6.1"
+desugar = "2.1.3"
 detekt = "1.23.7"
-gradle = "8.6.0"
+gradle = "8.7.3"
 gradle-pitest = "1.15.0"
 junit = "4.13.2"
-koin = "3.5.6"
-koin-annotations = "1.3.1"
+koin = "4.0.0"
+koin-annotations = "1.4.0"
+konnection = "1.4.3"
 konsist = "0.16.1"
 korlibs = "6.0.0-alpha2"
 kotest = "5.9.1"
 kotest-koin = "1.3.0"
 kotest-pitest = "1.2.0"
-kotlin = "2.0.20"
-kotlin-coroutines = "1.9.0-RC.2"
+kotlin = "2.1.0"
+kotlin-coroutines = "1.9.0"
 kotlin-datetime = "0.6.1"
-kotlinpoet = "1.18.1"
-kover = "0.8.3"
-ksp = "2.0.20-1.0.25"
-ktor = "2.3.12"
+kotlin-io = "0.6.0"
+kotlinpoet = "2.0.0"
+kover = "0.9.0"
+ksp = "2.1.0-1.0.29"
+ktor = "3.0.2"
 leakcanary = "2.14"
-mockk = "1.13.12"
-okio = "3.9.0"
+mockk = "1.13.14"
+okio = "3.9.1"
 pitest = "1.16.1"
 pitest-junit5 = "1.2.1"
 play-services-tasks = "18.2.0"
-protobuf = "4.28.1"
+protobuf = "4.29.1"
 protobuf-plugin = "0.9.4"
 task-tree = "4.0.0"
 
@@ -54,7 +56,9 @@ gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlin-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlin-datetime" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlin-io" }
 
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
@@ -68,6 +72,9 @@ ksp-koin = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-an
 
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+
+konnection = { module = "dev.tmapps:konnection", version.ref = "konnection" }
+konnection-android-debug = { module = "dev.tmapps:konnection-android-debug", version.ref = "konnection" }
 
 korlibs-charset = { module = "com.soywiz:korlibs-charset", version.ref = "korlibs" }
 korlibs-xml = { module = "com.soywiz:korlibs-serialization-xml", version.ref = "korlibs" }
@@ -164,6 +171,7 @@ app = [
     "lifecycle-viewmodel",
     "multidex",
     "recyclerview",
+    "konnection",
     "okio",
     "okio-assets",
     "protobuf-javalite",
@@ -173,8 +181,10 @@ app = [
 ]
 app-debug = [
     "leakcanary",
+    "konnection-android-debug",
 ]
 app-androidTest = [
+    "kotlinx-coroutines-test",
     "barista",
     "junit",
     "test-core",
@@ -189,6 +199,7 @@ ian = [
     "ktor-network",
 ]
 ian-test = [
+    "kotlinx-io",
     "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
@@ -268,7 +279,6 @@ ian-udp-test = [
     "kotest-framework-datatest-jvm",
     "kotest-property",
     "mockk",
-    "mockk-dsl",
 ]
 
 ian-util = [

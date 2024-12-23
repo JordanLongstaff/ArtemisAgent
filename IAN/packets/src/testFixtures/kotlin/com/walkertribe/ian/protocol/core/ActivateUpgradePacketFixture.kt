@@ -12,8 +12,8 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.map
 import io.kotest.property.exhaustive.of
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
 sealed class ActivateUpgradePacketFixture private constructor(
     override val specName: String,
@@ -28,9 +28,9 @@ sealed class ActivateUpgradePacketFixture private constructor(
         packet: ActivateUpgradePacket,
         private val expectedSubtype: Int,
     ) : PacketTestData.Client<ActivateUpgradePacket>(packet) {
-        override fun validatePayload(payload: ByteReadPacket) {
-            payload.readIntLittleEndian() shouldBeEqual expectedSubtype
-            payload.readIntLittleEndian() shouldBeEqual DOUBLE_AGENT_VALUE
+        override fun validatePayload(payload: Source) {
+            payload.readIntLe() shouldBeEqual expectedSubtype
+            payload.readIntLe() shouldBeEqual DOUBLE_AGENT_VALUE
         }
     }
 
@@ -38,7 +38,7 @@ sealed class ActivateUpgradePacketFixture private constructor(
         "Old packet version: 2.3.1 and older",
         ActivateUpgradePacket.Old,
         ValueIntPacket.Subtype.ACTIVATE_UPGRADE_OLD,
-        Exhaustive.of(0, 1).map { Version(2, 3, it) },
+        Exhaustive.of(0, 1).map { Version(major = 2, minor = 3, patch = it) },
     )
 
     data object Current : ActivateUpgradePacketFixture(

@@ -76,32 +76,8 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         with(binding) {
-            alliesListView.itemAnimator = null
-            alliesListView.layoutManager = LinearLayoutManager(
-                root.context,
-                Configuration.ORIENTATION_LANDSCAPE - root.resources.configuration.orientation,
-                false
-            )
-
-            aliveAlliesButton.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    alliesListView.adapter = aliveAdapter
-                    viewModel.showingDestroyedAllies.value = false
-                }
-            }
-
-            destroyedAlliesButton.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    alliesListView.adapter = destroyedAdapter
-                    viewModel.showingDestroyedAllies.value = true
-                }
-            }
-
-            if (viewModel.showingDestroyedAllies.value) {
-                destroyedAlliesButton
-            } else {
-                aliveAlliesButton
-            }.isChecked = true
+            prepareAlliesListViewAndSelector()
+            prepareDefendableTargetsListView()
 
             arrayOf(
                 allyTurnTo0,
@@ -111,107 +87,149 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
             ).forEachIndexed { i, button ->
                 button.text = viewModel.formattedHeading(i * NINETY)
             }
+        }
+    }
 
-            viewLifecycleOwner.collectLatestWhileStarted(viewModel.livingAllies) {
-                if (!viewModel.showingDestroyedAllies.value) {
-                    aliveAdapter.onAlliesUpdate(it)
+    private fun AlliesFragmentBinding.prepareAlliesListViewAndSelector() {
+        if (!viewModel.showAllySelector) {
+            alliesListSelector.visibility = View.GONE
+        }
 
-                    viewModel.scrollToAlly?.also { ally ->
-                        alliesListView.scrollToPosition(
-                            it.indexOf(ally).coerceAtLeast(0)
-                        )
-                        viewModel.scrollToAlly = null
-                    }
-                }
+        alliesListView.itemAnimator = null
+        alliesListView.layoutManager = LinearLayoutManager(
+            root.context,
+            Configuration.ORIENTATION_LANDSCAPE - root.resources.configuration.orientation,
+            false
+        )
+
+        aliveAlliesButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                alliesListView.adapter = aliveAdapter
+                viewModel.showingDestroyedAllies.value = false
             }
+        }
 
-            viewLifecycleOwner.collectLatestWhileStarted(destroyedAllies) {
-                if (it != null) {
-                    destroyedAdapter.onListUpdate(it.map { name -> GenericDataEntry(name) })
-                }
+        destroyedAlliesButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                alliesListView.adapter = destroyedAdapter
+                viewModel.showingDestroyedAllies.value = true
             }
+        }
 
-            if (!viewModel.showAllySelector) {
-                alliesListSelector.visibility = View.GONE
-            }
+        if (viewModel.showingDestroyedAllies.value) {
+            destroyedAlliesButton
+        } else {
+            aliveAlliesButton
+        }.isChecked = true
 
-            allyDefendList.itemAnimator = null
-            allyDefendList.layoutManager =
-                DestinationGridLayoutManager(allyDefendList.context)
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.livingAllies) {
+            if (!viewModel.showingDestroyedAllies.value) {
+                aliveAdapter.onAlliesUpdate(it)
 
-            viewLifecycleOwner.collectLatestWhileStarted(
-                allyAndDefendableTargets
-            ) { (ally, targets) ->
-                if (ally == null) {
-                    root.setBackgroundColor(Color.TRANSPARENT)
-                    root.children.forEach { child ->
-                        child.visibility = View.GONE
-                    }
-                    alliesListSelector.visibility =
-                        if (viewModel.showAllySelector) View.VISIBLE else View.GONE
-                    alliesListView.visibility = View.VISIBLE
-                    destinationAdapter = null
-                } else {
-                    commandInfoBinder.bind(ally, viewModel)
-                    root.setBackgroundColor(ally.getBackgroundColor(view.context))
-
-                    var targetsAdapter = destinationAdapter
-                    if (targetsAdapter == null) {
-                        arrayOf(
-                            allyTurnTo0 to OtherMessage.TurnToHeading0,
-                            allyTurnTo90 to OtherMessage.TurnToHeading90,
-                            allyTurnTo180 to OtherMessage.TurnToHeading180,
-                            allyTurnTo270 to OtherMessage.TurnToHeading270,
-                            allyTurnLeft10 to OtherMessage.TurnLeft10Degrees,
-                            allyTurnRight10 to OtherMessage.TurnRight10Degrees,
-                            allyTurnLeft25 to OtherMessage.TurnLeft25Degrees,
-                            allyTurnRight25 to OtherMessage.TurnRight25Degrees,
-                            allyAttackButton to OtherMessage.AttackNearestEnemy,
-                            allyProceedButton to OtherMessage.ProceedToYourDestination,
-                        ).forEach { (button, message) ->
-                            button.setOnClickListener {
-                                viewModel.playSound(SoundEffect.CONFIRMATION)
-                                viewModel.sendToServer(
-                                    CommsOutgoingPacket(
-                                        ally.obj,
-                                        message,
-                                        viewModel.vesselData
-                                    )
-                                )
-                                if (
-                                    !viewModel.manuallyReturnFromCommands &&
-                                    !viewModel.isSingleAlly
-                                ) {
-                                    viewModel.focusedAlly.value = null
-                                }
-                            }
-                        }
-
-                        targetsAdapter = DestinationAdapter(
-                            ally.obj,
-                            viewModel
-                        )
-                        destinationAdapter = targetsAdapter
-                    }
-
-                    targetsAdapter.onTargetsUpdate(targets)
-
-                    root.children.forEach { child ->
-                        child.visibility = View.VISIBLE
-                    }
-
-                    if (ally.obj.getVessel(viewModel.vesselData)?.get(WARSHIP) != true) {
-                        allyAttackButton.visibility = View.GONE
-                        allyGoDefendLabel.setText(R.string.rendezvous_with)
-                    } else {
-                        allyGoDefendLabel.setText(R.string.go_defend)
-                    }
-
-                    alliesListSelector.visibility = View.GONE
-                    alliesListView.visibility = View.GONE
+                viewModel.scrollToAlly?.also { ally ->
+                    alliesListView.scrollToPosition(
+                        it.indexOf(ally).coerceAtLeast(0)
+                    )
+                    viewModel.scrollToAlly = null
                 }
             }
         }
+
+        viewLifecycleOwner.collectLatestWhileStarted(destroyedAllies) {
+            if (it != null) {
+                destroyedAdapter.onListUpdate(it.map { name -> GenericDataEntry(name) })
+            }
+        }
+    }
+
+    private fun AlliesFragmentBinding.prepareDefendableTargetsListView() {
+        allyDefendList.itemAnimator = null
+        allyDefendList.layoutManager =
+            DestinationGridLayoutManager(allyDefendList.context)
+
+        viewLifecycleOwner.collectLatestWhileStarted(
+            allyAndDefendableTargets
+        ) { (ally, targets) ->
+            if (ally == null) {
+                showAlliesListView()
+            } else {
+                showSelectedAllyCommands(ally, targets)
+            }
+        }
+    }
+
+    private fun AlliesFragmentBinding.showAlliesListView() {
+        root.setBackgroundColor(Color.TRANSPARENT)
+        root.children.forEach { child ->
+            child.visibility = View.GONE
+        }
+        alliesListSelector.visibility =
+            if (viewModel.showAllySelector) View.VISIBLE else View.GONE
+        alliesListView.visibility = View.VISIBLE
+        destinationAdapter = null
+    }
+
+    private fun AlliesFragmentBinding.showSelectedAllyCommands(
+        ally: Ally,
+        targets: List<ArtemisShielded<*>>,
+    ) {
+        commandInfoBinder.bind(ally, viewModel)
+        root.setBackgroundColor(ally.getBackgroundColor(root.context))
+
+        var targetsAdapter = destinationAdapter
+        if (targetsAdapter == null) {
+            arrayOf(
+                allyTurnTo0 to OtherMessage.TurnToHeading0,
+                allyTurnTo90 to OtherMessage.TurnToHeading90,
+                allyTurnTo180 to OtherMessage.TurnToHeading180,
+                allyTurnTo270 to OtherMessage.TurnToHeading270,
+                allyTurnLeft10 to OtherMessage.TurnLeft10Degrees,
+                allyTurnRight10 to OtherMessage.TurnRight10Degrees,
+                allyTurnLeft25 to OtherMessage.TurnLeft25Degrees,
+                allyTurnRight25 to OtherMessage.TurnRight25Degrees,
+                allyAttackButton to OtherMessage.AttackNearestEnemy,
+                allyProceedButton to OtherMessage.ProceedToYourDestination,
+            ).forEach { (button, message) ->
+                button.setOnClickListener {
+                    viewModel.playSound(SoundEffect.CONFIRMATION)
+                    viewModel.sendToServer(
+                        CommsOutgoingPacket(
+                            ally.obj,
+                            message,
+                            viewModel.vesselData
+                        )
+                    )
+                    if (
+                        !viewModel.manuallyReturnFromCommands &&
+                        !viewModel.isSingleAlly
+                    ) {
+                        viewModel.focusedAlly.value = null
+                    }
+                }
+            }
+
+            targetsAdapter = DestinationAdapter(
+                ally.obj,
+                viewModel
+            )
+            destinationAdapter = targetsAdapter
+        }
+
+        targetsAdapter.onTargetsUpdate(targets)
+
+        root.children.forEach { child ->
+            child.visibility = View.VISIBLE
+        }
+
+        if (ally.obj.getVessel(viewModel.vesselData)?.get(WARSHIP) != true) {
+            allyAttackButton.visibility = View.GONE
+            allyGoDefendLabel.setText(R.string.rendezvous_with)
+        } else {
+            allyGoDefendLabel.setText(R.string.go_defend)
+        }
+
+        alliesListSelector.visibility = View.GONE
+        alliesListView.visibility = View.GONE
     }
 
     private class AllyInfoBinder(val entryBinding: AlliesEntryBinding) {
@@ -224,10 +242,6 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         )
 
         fun bind(entry: Ally, viewModel: AgentViewModel) {
-            val root = entryBinding.root
-            val allyCommandButton = entryBinding.allyCommandButton
-            val context = root.context
-
             entryBinding.allyNameLabel.text = viewModel.getFullNameForShip(entry.obj)
             entryBinding.allyHailButton.setOnClickListener {
                 viewModel.playSound(SoundEffect.BEEP_2)
@@ -240,6 +254,15 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 )
             }
 
+            bindAllyCommandButton(entry, viewModel)
+            bindDescriptionLabel(entry, viewModel)
+            bindInfoLabels(entry)
+        }
+
+        private fun bindAllyCommandButton(entry: Ally, viewModel: AgentViewModel) {
+            val root = entryBinding.root
+            val allyCommandButton = entryBinding.allyCommandButton
+
             if (viewModel.focusedAlly.value != null || viewModel.isSingleAlly) {
                 root.setBackgroundColor(Color.TRANSPARENT)
                 allyCommandButton.setText(R.string.cancel)
@@ -250,7 +273,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                     }
                 }
             } else {
-                root.setBackgroundColor(entry.getBackgroundColor(context))
+                root.setBackgroundColor(entry.getBackgroundColor(root.context))
                 allyCommandButton.setOnClickListener {
                     viewModel.playSound(SoundEffect.BEEP_1)
                     viewModel.focusedAlly.value = entry
@@ -260,6 +283,10 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
             allyCommandButton.visibility =
                 if (viewModel.isSingleAlly || entry.isTrap) View.GONE else View.VISIBLE
             allyCommandButton.isEnabled = entry.isInstructable
+        }
+
+        private fun bindDescriptionLabel(entry: Ally, viewModel: AgentViewModel) {
+            val context = entryBinding.root.context
 
             val description = mutableListOf(context.getString(entry.status.description))
             if (!entry.isTrap && entry.status != AllyStatus.PIRATE_DATA) {
@@ -311,6 +338,10 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
             }
 
             entryBinding.allyDescriptionLabel.text = description.joinSpaceDelimited()
+        }
+
+        private fun bindInfoLabels(entry: Ally) {
+            val context = entryBinding.root.context
 
             entryBinding.allyDirectionLabel.text =
                 context.getString(R.string.direction, entry.heading)

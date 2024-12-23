@@ -4,8 +4,6 @@
   <CurrentIssues>
     <ID>CyclomaticComplexMethod:PacketReader.kt$PacketReader$@Throws(PacketException::class) suspend fun readPacket(): ParseResult</ID>
     <ID>LongMethod:PacketReader.kt$PacketReader$@Throws(PacketException::class) suspend fun readPacket(): ParseResult</ID>
-    <ID>LoopWithTooManyJumpStatements:PacketReader.kt$PacketReader$while</ID>
-    <ID>NestedBlockDepth:PacketReader.kt$PacketReader$@Throws(PacketException::class) suspend fun readPacket(): ParseResult</ID>
     <ID>ReturnCount:PacketReader.kt$PacketReader$@Throws(PacketException::class) suspend fun readPacket(): ParseResult</ID>
     <ID>ThrowsCount:PacketReader.kt$PacketReader$@Throws(PacketException::class) suspend fun readPacket(): ParseResult</ID>
     <ID>TooManyFunctions:PacketReader.kt$PacketReader : KoinComponent</ID>

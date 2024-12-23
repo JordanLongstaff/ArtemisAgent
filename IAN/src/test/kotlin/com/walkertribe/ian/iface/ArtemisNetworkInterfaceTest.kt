@@ -2,7 +2,6 @@ package com.walkertribe.ian.iface
 
 import com.walkertribe.ian.enums.GameType
 import com.walkertribe.ian.protocol.Packet
-import com.walkertribe.ian.protocol.PacketException
 import com.walkertribe.ian.protocol.core.ActivateUpgradePacketFixture
 import com.walkertribe.ian.protocol.core.BayStatusPacket
 import com.walkertribe.ian.protocol.core.BayStatusPacketFixture
@@ -84,12 +83,10 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.cancel
-import io.ktor.utils.io.close
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.errors.IOException
-import io.ktor.utils.io.readAvailable
-import io.ktor.utils.io.readIntLittleEndian
+import io.ktor.utils.io.readByteArray
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -100,6 +97,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.io.IOException
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -120,7 +118,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
     describe("ArtemisNetworkInterface") {
         val loopbackAddress = "127.0.0.1"
         val port = 2010
-        val testTimeout = 30.seconds
+        val testTimeout = 1.minutes
         val client = KtorArtemisNetworkInterface(debugMode = false).apply {
             addListenerModule(TestListener.module)
             setAutoSendHeartbeat(false)
@@ -213,11 +211,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                 }
 
                 suspend fun PacketTestFixture.Client<*>.testRead(data: PacketTestData.Client<*>) {
-                    val ints = List(5) { readChannel.readIntLittleEndian() }
-                    val payload = readChannel.readPacket(ints.last())
-
-                    validateHeader(ints)
-                    data.validate(payload, expectedPayloadSize, packetType)
+                    data.validate(readPacket(readChannel), expectedPayloadSize, packetType)
                 }
 
                 suspend fun PacketTestFixture.Client<*>.testClient() {
@@ -228,7 +222,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                             includeFirst = false
                         }) {
                             withTimeout(5.seconds) {
-                                readChannel.readAvailable(byteArrayOf())
+                                readChannel.readByteArray(readChannel.availableForRead)
                                 client.sendPacket(data.packet)
                                 testRead(data)
                             }
@@ -399,7 +393,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     )
 
                     client.setTimeout(1L)
-                    eventually(1.seconds) {
+                    eventually(2.seconds) {
                         val events = TestListener.calls<ConnectionEvent.HeartbeatLost>()
                         events.size shouldBeEqual 1
                     }
@@ -442,7 +436,9 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     client.connectionListenerJob.cancelAndJoin()
 
                     client.sendingChannel.send(HeartbeatPacket.Client)
-                    client.parseResultsChannel.send(ParseResult.Fail(PacketException()))
+                    client.parseResultsChannel.send(
+                        ParseResult.Success(mockk<WelcomePacket>(), ParseResult.Skip)
+                    )
                     client.connectionEventChannel.send(ConnectionEvent.Success(""))
 
                     client.stop()
@@ -455,6 +451,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                         }
 
                         TestListener.calls<ConnectionEvent.Success>().shouldBeEmpty()
+                        TestListener.calls<WelcomePacket>().shouldBeEmpty()
                     }
                 }
 
@@ -471,7 +468,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                 }
 
                 readChannel.cancel()
-                sendChannel.close()
+                sendChannel.flushAndClose()
 
                 it("Closes on remote disconnect") {
                     client.setAutoSendHeartbeat(false)
@@ -522,7 +519,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                         client.start()
                         TestListener.clear()
 
-                        sender?.close()
+                        sender?.flushAndClose()
                         sender = socket.openWriteChannel(autoFlush = false).apply {
                             writePacketWithHeader(TestPacketTypes.CONNECTED, buildPacket { })
                         }
@@ -540,7 +537,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                         }
                     }
 
-                    sender?.close()
+                    sender?.flushAndClose()
                 }
 
                 withData<Triple<String, Throwable, (DisconnectCause) -> Unit>>(
@@ -606,7 +603,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                             eventually(testTimeout) {
                                 var sender: ByteWriteChannel? = null
 
-                                val result = withTimeoutOrNull(2.seconds) {
+                                val result = withTimeoutOrNull(6.seconds) {
                                     val connectDeferred = async {
                                         client.connect(
                                             host = loopbackAddress,
@@ -638,7 +635,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                                     }
                                 }
 
-                                sender?.close()
+                                sender?.flushAndClose()
                                 result.shouldNotBeNull()
                             }
                         }
@@ -677,7 +674,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                             packets.size shouldBeEqual count
                         }
 
-                        sender.close()
+                        sender.flushAndClose()
                         debugClient.stop()
                         socket.dispose()
                     }

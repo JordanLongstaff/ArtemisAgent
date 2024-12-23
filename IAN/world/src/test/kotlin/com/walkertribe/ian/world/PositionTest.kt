@@ -331,19 +331,19 @@ data class HeadingTestCase(
         private val SQRT_3 = sqrt(3f)
 
         private val ZERO =
-            HeadingTestCase(0f, 0f, 1f)
+            HeadingTestCase(0f, -0f, -1f)
         private val SEVEN_POINT_FIVE =
-            HeadingTestCase(7.5f, (SQRT_2 - 1f) * (SQRT_3 - SQRT_2), 1f)
+            HeadingTestCase(7.5f, -(SQRT_2 - 1f) * (SQRT_3 - SQRT_2), -1f)
         private val FIFTEEN =
-            HeadingTestCase(15f, 2f - SQRT_3, 1f)
+            HeadingTestCase(15f, SQRT_3 - 2f, -1f)
         private val TWENTY_TWO_POINT_FIVE =
-            HeadingTestCase(22.5f, SQRT_2 - 1f, 1f)
+            HeadingTestCase(22.5f, 1f - SQRT_2, -1f)
         private val THIRTY =
-            HeadingTestCase(30f, SQRT_3 / 3f, 1f)
+            HeadingTestCase(30f, -SQRT_3 / 3f, -1f)
         private val THIRTY_SEVEN_POINT_FIVE =
-            HeadingTestCase(37.5f, (SQRT_2 + 1f) * (SQRT_3 - SQRT_2), 1f)
+            HeadingTestCase(37.5f, -(SQRT_2 + 1f) * (SQRT_3 - SQRT_2), -1f)
         private val FORTY_FIVE =
-            HeadingTestCase(45f, 1f, 1f)
+            HeadingTestCase(45f, -1f, -1f)
 
         private val SIMPLE = listOf(ZERO, FORTY_FIVE)
         private val INTERMEDIATE = listOf(

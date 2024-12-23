@@ -8,13 +8,17 @@ import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers.assertChecked
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaProgressBarAssertions.assertProgress
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.BaristaSeekBarInteractions.setProgressTo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -25,8 +29,12 @@ class PersonalSettingsFragmentTest {
     @Test
     fun personalSettingsTest() {
         val threeDigits = AtomicBoolean()
+        val soundVolume = AtomicInteger()
         activityScenarioRule.scenario.onActivity { activity ->
-            threeDigits.lazySet(activity.viewModels<AgentViewModel>().value.threeDigitDirections)
+            val viewModel = activity.viewModels<AgentViewModel>().value
+
+            threeDigits.lazySet(viewModel.threeDigitDirections)
+            soundVolume.lazySet((viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt())
         }
 
         SettingsFragmentTest.openSettingsMenu()
@@ -35,7 +43,7 @@ class PersonalSettingsFragmentTest {
         scrollTo(R.id.themeDivider)
         assertDisplayed(R.id.themeTitle, R.string.theme)
         assertDisplayed(R.id.themeSelector)
-        assertDisplayed(R.id.themeDefaultButton)
+        assertDisplayed(R.id.themeDefaultButton, R.string.default_setting)
         assertDisplayed(R.id.themeRedButton)
         assertDisplayed(R.id.themeGreenButton)
         assertDisplayed(R.id.themeYellowButton)
@@ -43,15 +51,22 @@ class PersonalSettingsFragmentTest {
         assertDisplayed(R.id.themePurpleButton)
 
         scrollTo(R.id.threeDigitDirectionsDivider)
-        assertDisplayed(R.id.threeDigitDirectionsTitle)
+        assertDisplayed(R.id.threeDigitDirectionsTitle, R.string.three_digit_directions)
         assertDisplayed(R.id.threeDigitDirectionsButton)
         assertDisplayed(R.id.threeDigitDirectionsLabel)
         assertChecked(R.id.threeDigitDirectionsButton, threeDigits.get())
 
         scrollTo(R.id.soundVolumeDivider)
-        assertDisplayed(R.id.soundVolumeTitle)
+        assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
         assertDisplayed(R.id.soundVolumeBar)
-        assertDisplayed(R.id.soundVolumeLabel)
+        assertProgress(R.id.soundVolumeBar, soundVolume.get())
+        assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
+
+        val volumeTests = List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume.get()
+        volumeTests.forEach { volume ->
+            setProgressTo(R.id.soundVolumeBar, volume)
+            assertDisplayed(R.id.soundVolumeLabel, volume.toString())
+        }
 
         SettingsFragmentTest.closeSettingsSubMenu()
         assertNotExist(R.id.themeTitle)
@@ -71,5 +86,10 @@ class PersonalSettingsFragmentTest {
         assertNotExist(R.id.soundVolumeBar)
         assertNotExist(R.id.soundVolumeLabel)
         assertNotExist(R.id.soundVolumeDivider)
+    }
+
+    private companion object {
+        const val VOLUME_TEST_COUNT = 20
+        const val MAX_VOLUME = 101
     }
 }

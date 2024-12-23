@@ -6,6 +6,7 @@ import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.readShortLittleEndian
+import io.ktor.utils.io.core.readTextExactCharacters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -16,12 +17,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  * continually poll for servers.
  * @author rjwut
  */
-class ServerDiscoveryRequester(
-    internal val broadcastAddress: String =
-        (PrivateNetworkAddress.guessBest() ?: PrivateNetworkAddress.DEFAULT).hostAddress,
-    private val listener: Listener,
-    private val timeoutMs: Long
-) {
+class ServerDiscoveryRequester(private val listener: Listener, private val timeoutMs: Long) {
     /**
      * Interface for an object which is notified when a server is discovered or the discovery
      * process ends.
@@ -33,12 +29,12 @@ class ServerDiscoveryRequester(
         suspend fun onDiscovered(server: Server)
 
         /**
-         * Invoked with the [ServerDiscoveryRequester] quits listening for responses.
+         * Invoked when the [ServerDiscoveryRequester] quits listening for responses.
          */
         suspend fun onQuit()
     }
 
-    suspend fun run() {
+    suspend fun run(broadcastAddress: String) {
         SelectorManager(Dispatchers.IO).use { selector ->
             aSocket(selector).udp().bind {
                 broadcast = true
@@ -59,10 +55,10 @@ class ServerDiscoveryRequester(
                         if (ack == Server.ACK) {
                             // only accept data starting with ACK
                             val ipLength = packet.readShortLittleEndian().toInt()
-                            val ip = packet.readTextExact(ipLength)
+                            val ip = packet.readTextExactCharacters(ipLength)
 
                             val hostnameLength = packet.readShortLittleEndian().toInt()
-                            val hostname = packet.readTextExact(hostnameLength)
+                            val hostname = packet.readTextExactCharacters(hostnameLength)
                             listener.onDiscovered(Server(ip, hostname))
                         }
                     } while (true)
@@ -75,6 +71,7 @@ class ServerDiscoveryRequester(
 
     companion object {
         const val PORT = 3100
+        const val DEFAULT_BROADCAST_ADDRESS = "255.255.255.255"
     }
 
     init {

@@ -1,6 +1,7 @@
 package artemis.agent.game.allies
 
 import artemis.agent.game.ObjectEntry
+import com.walkertribe.ian.util.buildSortingComparator
 
 data class AllySorter(
     val sortByClassFirst: Boolean = false,
@@ -8,34 +9,22 @@ data class AllySorter(
     val sortByStatus: Boolean = false,
     val sortByClassSecond: Boolean = false,
     val sortByName: Boolean = false,
-) : Comparator<ObjectEntry.Ally> by (
-    listOfNotNull(
-        CLASS_COMPARATOR.takeIf { sortByClassFirst },
-        ENERGY_COMPARATOR.takeIf { sortByEnergy },
-        STATUS_COMPARATOR.takeIf { sortByStatus },
-        CLASS_COMPARATOR.takeIf { sortByClassSecond },
-        NAME_COMPARATOR.takeIf { sortByName },
-    ).let { comparators ->
-        Comparator { ally1, ally2 ->
-            comparators.firstNotNullOfOrNull { comparator ->
-                comparator.compare(ally1, ally2).takeIf { it != 0 }
-            } ?: 0
-        }
-    }
+) : Comparator<ObjectEntry.Ally> by buildSortingComparator(
+    CLASS_COMPARATOR to sortByClassFirst,
+    ENERGY_COMPARATOR to sortByEnergy,
+    STATUS_COMPARATOR to sortByStatus,
+    CLASS_COMPARATOR to sortByClassSecond,
+    NAME_COMPARATOR to sortByName,
 ) {
     private companion object {
-        val CLASS_COMPARATOR: Comparator<ObjectEntry.Ally> = compareByDescending {
-            it.obj.hullId.value
-        }
+        val CLASS_COMPARATOR: Comparator<ObjectEntry.Ally> = compareByDescending { it.obj.hullId }
 
-        val ENERGY_COMPARATOR: Comparator<ObjectEntry.Ally> = compareByDescending {
-            if (it.hasEnergy) 1 else 0
-        }
+        val ENERGY_COMPARATOR: Comparator<ObjectEntry.Ally> = compareByDescending { it.hasEnergy }
 
         val STATUS_COMPARATOR: Comparator<ObjectEntry.Ally> = compareByDescending {
             it.status.sortIndex.ordinal
         }
 
-        val NAME_COMPARATOR: Comparator<ObjectEntry.Ally> = compareBy { it.obj.name.value ?: "" }
+        val NAME_COMPARATOR: Comparator<ObjectEntry.Ally> = compareBy { it.obj.name.value }
     }
 }

@@ -13,8 +13,8 @@ import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
+import kotlinx.io.Source
 
 class CommsButtonPacketFixture private constructor(
     override val specName: String,
@@ -45,7 +45,7 @@ class CommsButtonPacketFixture private constructor(
             }
         }
 
-        final override fun buildPayload(): ByteReadPacket = buildPacket {
+        final override fun buildPayload(): Source = buildPacket {
             writeByte(actionValue)
             label?.also { writeString(it) }
         }

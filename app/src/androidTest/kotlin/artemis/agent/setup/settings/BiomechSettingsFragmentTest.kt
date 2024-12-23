@@ -65,18 +65,23 @@ class BiomechSettingsFragmentTest {
     }
 
     private companion object {
-        val biomechSortingButtonIDs = intArrayOf(
-            R.id.biomechSortingClassButton1,
-            R.id.biomechSortingStatusButton,
-            R.id.biomechSortingClassButton2,
-            R.id.biomechSortingNameButton,
-        )
-
-        val biomechSortingLabels = intArrayOf(
-            R.string.sort_by_class,
-            R.string.sort_by_status,
-            R.string.sort_by_class,
-            R.string.sort_by_name,
+        val biomechSortMethodSettings = arrayOf(
+            GroupedToggleButtonSetting(
+                R.id.biomechSortingClassButton1,
+                R.string.sort_by_class,
+            ),
+            GroupedToggleButtonSetting(
+                R.id.biomechSortingStatusButton,
+                R.string.sort_by_status,
+            ),
+            GroupedToggleButtonSetting(
+                R.id.biomechSortingClassButton2,
+                R.string.sort_by_class,
+            ),
+            GroupedToggleButtonSetting(
+                R.id.biomechSortingNameButton,
+                R.string.sort_by_name,
+            ),
         )
 
         fun testBiomechsSubMenuOpen(sortMethods: BooleanArray, shouldTestSortMethods: Boolean) {
@@ -90,7 +95,7 @@ class BiomechSettingsFragmentTest {
         fun testBiomechsSubMenuClosed() {
             assertNotExist(R.id.biomechSortingTitle)
             assertNotExist(R.id.biomechSortingDefaultButton)
-            biomechSortingButtonIDs.forEach { assertNotExist(it) }
+            biomechSortMethodSettings.forEach { assertNotExist(it.button) }
             assertNotExist(R.id.biomechSortingDivider)
             assertNotExist(R.id.freezeDurationTitle)
             assertNotExist(R.id.freezeDurationTimeInput)
@@ -102,9 +107,9 @@ class BiomechSettingsFragmentTest {
             assertDisplayed(R.id.biomechSortingTitle, R.string.sort_methods)
             assertDisplayed(R.id.biomechSortingDefaultButton, R.string.default_setting)
 
-            biomechSortingButtonIDs.forEachIndexed { index, id ->
-                assertDisplayed(id, biomechSortingLabels[index])
-                ArtemisAgentTestHelpers.assertChecked(id, sortMethods[index])
+            biomechSortMethodSettings.forEachIndexed { index, setting ->
+                assertDisplayed(setting.button, setting.text)
+                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethods[index])
             }
 
             ArtemisAgentTestHelpers.assertChecked(
@@ -115,16 +120,16 @@ class BiomechSettingsFragmentTest {
             if (!shouldTest) return
 
             clickOn(R.id.biomechSortingDefaultButton)
-            biomechSortingButtonIDs.forEach { assertUnchecked(it) }
+            biomechSortMethodSettings.forEach { assertUnchecked(it.button) }
 
             testBiomechsSubMenuSortByClass()
             testBiomechsSubMenuSortByStatus()
             testBiomechsSubMenuSortByName()
             testBiomechsSubMenuSortPermutations()
 
-            biomechSortingButtonIDs.forEachIndexed { index, id ->
+            biomechSortMethodSettings.forEachIndexed { index, setting ->
                 if (sortMethods[index]) {
-                    clickOn(id)
+                    clickOn(setting.button)
                 }
             }
         }

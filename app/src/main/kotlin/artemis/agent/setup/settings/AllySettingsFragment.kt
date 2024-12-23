@@ -16,6 +16,7 @@ import artemis.agent.copy
 import artemis.agent.databinding.SettingsAlliesBinding
 import artemis.agent.databinding.fragmentViewBinding
 import kotlinx.coroutines.launch
+import kotlin.reflect.KMutableProperty1
 
 class AllySettingsFragment : Fragment(R.layout.settings_allies) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -46,40 +47,22 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
                 allySortMethodButtons.keys.none(ToggleButton::isChecked)
         }
 
-        binding.allySortingDefaultButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        prepareAllySortMethodButtons(allySortMethodButtons)
+        prepareDefaultSortMethodButton(allySortMethodButtons)
+        prepareOtherSettingButtons()
+    }
+
+    private fun prepareAllySortMethodButtons(allySortMethodButtons: ToggleButtonMap) {
+        val context = binding.root.context
 
         allySortMethodButtons.keys.forEach { button ->
             button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
         }
 
-        binding.showDestroyedAlliesButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.manuallyReturnButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.allySortingDefaultButton.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy {
-                            allySortMethodButtons.values.forEach { setting ->
-                                setting.set(this, false)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         binding.allySortingClassButton1.setOnCheckedChangeListener { _, isChecked ->
             binding.allySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         allySortClassFirst = isChecked
                         if (isChecked && allySortClassSecond) allySortClassSecond = false
@@ -91,7 +74,7 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
         binding.allySortingEnergyButton.setOnCheckedChangeListener { _, isChecked ->
             binding.allySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         allySortEnergyFirst = isChecked
                         if (isChecked && !allySortStatus) allySortStatus = true
@@ -103,7 +86,7 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
         binding.allySortingStatusButton.setOnCheckedChangeListener { _, isChecked ->
             binding.allySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         allySortStatus = isChecked
                         if (!isChecked && allySortEnergyFirst) allySortEnergyFirst = false
@@ -115,7 +98,7 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
         binding.allySortingClassButton2.setOnCheckedChangeListener { _, isChecked ->
             binding.allySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         allySortClassSecond = isChecked
                         if (isChecked && allySortClassFirst) allySortClassFirst = false
@@ -127,15 +110,45 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
         binding.allySortingNameButton.setOnCheckedChangeListener { _, isChecked ->
             binding.allySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy { allySortName = isChecked }
                 }
             }
         }
+    }
+
+    private fun prepareDefaultSortMethodButton(allySortMethodButtons: ToggleButtonMap) {
+        binding.allySortingDefaultButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        binding.allySortingDefaultButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                viewModel.viewModelScope.launch {
+                    binding.root.context.userSettings.updateData {
+                        it.copy {
+                            allySortMethodButtons.values.forEach { setting ->
+                                setting.set(this, false)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun prepareOtherSettingButtons() {
+        binding.showDestroyedAlliesButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        binding.manuallyReturnButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.showDestroyedAlliesButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                binding.root.context.userSettings.updateData {
                     it.copy { showDestroyedAllies = isChecked }
                 }
             }
@@ -143,7 +156,7 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
 
         binding.manuallyReturnButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                binding.root.context.userSettings.updateData {
                     it.copy { allyCommandManualReturn = isChecked }
                 }
             }

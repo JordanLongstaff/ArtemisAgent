@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import androidx.annotation.ColorInt
 import androidx.annotation.PluralsRes
+import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import artemis.agent.AgentViewModel
 import artemis.agent.R
@@ -16,6 +17,8 @@ import com.walkertribe.ian.world.ArtemisBase
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisShielded
 import java.util.SortedMap
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     val obj: Obj,
@@ -24,7 +27,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     class Ally(
         npc: ArtemisNpc,
         val vesselName: String,
-        val isDeepStrikeShip: Boolean
+        private val isDeepStrikeShip: Boolean
     ) : ObjectEntry<ArtemisNpc>(npc, R.plurals.side_missions_for_ally) {
         var status: AllyStatus = AllyStatus.NORMAL
             set(value) {
@@ -80,7 +83,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
         var isDocked: Boolean = false
         var isStandingBy: Boolean = false
         var speedFactor: Int = 1
-        val normalProductionCoefficient: Int = station.getVessel(vesselData)?.run {
+        private val normalProductionCoefficient: Int = station.getVessel(vesselData)?.run {
             (productionCoefficient * 2).toInt()
         } ?: 2
         var builtOrdnanceType: OrdnanceType = OrdnanceType.TORPEDO
@@ -128,7 +131,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         fun setBuildMinutes(minutes: Int) {
             if (firstMissile || setMissile) return
-            endTime = System.currentTimeMillis() + ONE_MINUTE * minutes
+            endTime = System.currentTimeMillis() + minutes.minutes.inWholeMilliseconds
         }
 
         fun recalibrateSpeed(endOfBuild: Long) {
@@ -149,17 +152,17 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
             val normalTime = (builtOrdnanceType.buildTime shl 1) / normalProductionCoefficient
             val predictedTime = normalTime / speedFactor
-            val predictedMinutes = (predictedTime - 1) / ONE_MINUTE + 1
+            val predictedMinutes = (predictedTime - 1).milliseconds.inWholeMinutes + 1
             if (predictedMinutes.toInt() == minutes) return
 
             val estimatedSpeed = ((predictedMinutes - 1) / minutes + 1).toInt()
             val expectedTime = normalTime / estimatedSpeed
-            val expectedMinutes = (expectedTime - 1) / ONE_MINUTE + 1
+            val expectedMinutes = (expectedTime - 1).milliseconds.inWholeMinutes + 1
 
             val actualTime: Long
             if (expectedMinutes < minutes) {
                 speedFactor = estimatedSpeed - 1
-                actualTime = minutes * ONE_MINUTE.toLong()
+                actualTime = minutes.minutes.inWholeMilliseconds
             } else {
                 speedFactor = estimatedSpeed
                 actualTime = expectedTime
@@ -187,11 +190,12 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
             fighters
         )
 
-        fun getStatusText(context: Context): String = when {
-            isDocked -> context.getString(R.string.docked)
-            isDocking -> context.getString(R.string.docking)
-            isStandingBy -> context.getString(R.string.standby)
-            else -> ""
+        @get:StringRes
+        val statusString: Int? get() = when {
+            isDocked -> R.string.docked
+            isDocking -> R.string.docking
+            isStandingBy -> R.string.standby
+            else -> null
         }
 
         fun getOrdnanceText(
@@ -237,8 +241,6 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     abstract val missionStatus: SideMissionStatus
 
     companion object {
-        private const val ONE_MINUTE =
-            AgentViewModel.SECONDS_PER_MINUTE * AgentViewModel.SECONDS_TO_MILLIS
         private const val BASE_SPEED = 0.5f
 
         fun getStationColorForShieldPercent(percent: Float, context: Context): Int =

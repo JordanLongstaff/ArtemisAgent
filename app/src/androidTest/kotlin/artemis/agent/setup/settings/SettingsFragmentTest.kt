@@ -1,7 +1,6 @@
 package artemis.agent.setup.settings
 
 import androidx.annotation.IdRes
-import androidx.annotation.StringRes
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -19,7 +18,6 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItem
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItemChild
-import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -80,51 +78,38 @@ class SettingsFragmentTest {
             assertRecyclerViewItemCount(R.id.settingsPageMenu, pageTitles.size)
         }
 
-        fun testAllEnabled(
+        fun testSettingsWithAllAndNone(
             @IdRes allButton: Int,
             @IdRes noneButton: Int,
-            buttons: IntArray,
-            skipToggleTest: Boolean,
-        ) {
-            assertDisabled(allButton)
-            assertEnabled(noneButton)
-
-            if (skipToggleTest) return
-
-            listOf(
-                Triple(noneButton, allButton, false),
-                Triple(allButton, noneButton, true),
-            ).forEach { (clicked, other, checked) ->
-                testMultipleOptions(clicked, other, buttons, checked)
-            }
-        }
-
-        fun testNotAllEnabled(
-            @IdRes allButton: Int,
-            @IdRes noneButton: Int,
-            buttons: IntArray,
-            enabled: BooleanArray,
+            settingsButtons: List<Pair<Int, Boolean>>,
             skipToggleTest: Boolean,
             ifEnabled: ((Int, Boolean) -> Unit)? = null,
         ) {
-            val anyEnabled = enabled.any { it }
+            val anyEnabled = settingsButtons.any { it.second }
+            val allEnabled = settingsButtons.all { it.second }
 
-            assertEnabled(allButton)
+            ArtemisAgentTestHelpers.assertEnabled(allButton, !allEnabled)
             ArtemisAgentTestHelpers.assertEnabled(noneButton, anyEnabled)
+
+            settingsButtons.forEach { (button, isChecked) ->
+                ArtemisAgentTestHelpers.assertChecked(button, isChecked)
+            }
 
             if (skipToggleTest) return
 
             listOf(
                 Triple(allButton, noneButton, true),
                 Triple(noneButton, allButton, false),
-            ).forEach { (clicked, other, checked) ->
-                testMultipleOptions(clicked, other, buttons, checked, ifEnabled)
+            ).let {
+                if (allEnabled) it.reversed() else it
+            }.forEach { (clicked, other, checked) ->
+                testMultipleOptions(clicked, other, settingsButtons, checked, ifEnabled)
             }
 
-            if (anyEnabled) {
-                enabled.forEachIndexed { index, on ->
+            if (anyEnabled && !allEnabled) {
+                settingsButtons.forEach { (button, on) ->
                     if (on) {
-                        clickOn(buttons[index])
+                        clickOn(button)
                     }
                 }
                 assertEnabled(noneButton)
@@ -134,19 +119,19 @@ class SettingsFragmentTest {
         private fun testMultipleOptions(
             @IdRes allButton: Int,
             @IdRes otherButton: Int,
-            buttons: IntArray,
+            buttons: List<Pair<Int, Boolean>>,
             checked: Boolean,
             ifEnabled: ((Int, Boolean) -> Unit)? = null,
         ) {
             clickOn(allButton)
-            buttons.forEachIndexed { index, button ->
+            buttons.forEachIndexed { index, (button, _) ->
                 ArtemisAgentTestHelpers.assertChecked(button, checked)
                 ifEnabled?.invoke(index, checked)
             }
             assertEnabled(otherButton)
             assertDisabled(allButton)
 
-            buttons.forEach { button ->
+            buttons.forEach { (button, _) ->
                 booleanArrayOf(true, false).forEach { on ->
                     clickOn(button)
                     ArtemisAgentTestHelpers.assertChecked(button, checked != on)
@@ -203,18 +188,6 @@ class SettingsFragmentTest {
             assertChecked(defaultSortButton)
         }
 
-        fun testSingleToggleSetting(
-            @IdRes dividerId: Int,
-            @IdRes titleId: Int,
-            @StringRes titleText: Int,
-            @IdRes buttonId: Int,
-            isChecked: Boolean,
-        ) {
-            scrollTo(dividerId)
-            assertDisplayed(titleId, titleText)
-            assertDisplayed(buttonId)
-            ArtemisAgentTestHelpers.assertChecked(buttonId, isChecked)
-        }
     }
 
     @get:Rule

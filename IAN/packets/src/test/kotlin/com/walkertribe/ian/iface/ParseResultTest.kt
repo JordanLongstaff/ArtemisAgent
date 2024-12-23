@@ -25,14 +25,6 @@ class ParseResultTest : DescribeSpec({
     afterSpec { clearAllMocks() }
 
     describe("ParseResult") {
-        describe("Processing") {
-            it("Cannot fire listeners") {
-                shouldThrow<UnsupportedOperationException> {
-                    ParseResult.Processing().fireListeners()
-                }
-            }
-        }
-
         describe("Fail") {
             val fails = mutableListOf<ParseResult.Fail>()
 
@@ -56,10 +48,12 @@ class ParseResultTest : DescribeSpec({
                     }
                 }
             }
+        }
 
-            it("Cannot fire listeners") {
-                fails.forEach {
-                    shouldThrow<UnsupportedOperationException> { it.fireListeners() }
+        describe("Skip") {
+            it("Cannot add listeners") {
+                shouldThrow<IllegalStateException> {
+                    ParseResult.Skip.addListeners(listOf(mockListener, PacketTestListenerModule))
                 }
             }
         }
@@ -87,7 +81,7 @@ class ParseResultTest : DescribeSpec({
                 val mockPacket = mockk<Packet.Server> {
                     every { offerTo(any()) } answers { callOriginal() }
                 }
-                val success = ParseResult.Success(mockPacket, ParseResult.Fail(PacketException()))
+                val success = ParseResult.Success(mockPacket, ParseResult.Skip)
                 success.addListeners(listOf(PacketTestListenerModule))
                 success.fireListeners()
                 PacketTestListenerModule.packets shouldContain mockPacket

@@ -107,6 +107,12 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     },
                 ),
                 HelpTopic(
+                    getString(R.string.help_topics_notifications),
+                    getStringArray(R.array.help_contents_notifications).map {
+                        HelpTopicContent.Text(it)
+                    },
+                ),
+                HelpTopic(
                     getString(R.string.help_topics_about),
                     getStringArray(R.array.help_contents_about).map {
                         HelpTopicContent.Text(it)
@@ -257,8 +263,8 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         const val IMAGE = 0
         const val TEXT = 1
 
-        private const val INDEX_PREVIEW_CONNECT = 3
-        private const val INDEX_PREVIEW_SHIP = 5
+        private const val INDEX_PREVIEW_CONNECT = 4
+        private const val INDEX_PREVIEW_SHIP = 6
 
         private const val INDEX_PREVIEW_COMMS_MESSAGE = 1
         private const val INDEX_PREVIEW_MISSION = 7

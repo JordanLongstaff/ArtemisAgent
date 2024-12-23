@@ -82,6 +82,29 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        prepareRouteListView()
+        bindRouteSelectorViews()
+        bindRouteObjectiveData()
+
+        suppliesSelectorPopup.isFocusable = true
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.rootOpacity) {
+            popupBinding.selectorList.alpha = it
+        }
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.jumping) {
+            popupBinding.jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        suppliesSelectorPopup.dismiss()
+    }
+
+    private fun prepareRouteListView() {
+        val context = binding.root.context
+
         val routeListView = binding.routeListView
         routeListView.itemAnimator = null
 
@@ -93,26 +116,17 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
         }
 
         routeListView.layoutManager = LinearLayoutManager(
-            view.context,
-            Configuration.ORIENTATION_LANDSCAPE - view.resources.configuration.orientation,
+            context,
+            Configuration.ORIENTATION_LANDSCAPE - context.resources.configuration.orientation,
             false
         )
+    }
 
-        val routeSuppliesSelector = binding.routeSuppliesSelector
-        val fighterSupplyIndex = OrdnanceType.countForVersion(viewModel.version)
-
-        suppliesSelectorPopup.isFocusable = true
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.rootOpacity) {
-            popupBinding.selectorList.alpha = it
-        }
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.jumping) {
-            popupBinding.jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
-        }
-
+    private fun bindRouteSelectorViews() {
         val routeTasksButton = binding.routeTasksButton
         val routeSuppliesButton = binding.routeSuppliesButton
+        val routeSuppliesSelector = binding.routeSuppliesSelector
+        val fighterSupplyIndex = ordnanceTypes.size
 
         routeTasksButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
@@ -162,7 +176,9 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             }
             binding.routeSuppliesData.text = it.getDataFrom(viewModel)
         }
+    }
 
+    private fun bindRouteObjectiveData() {
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.totalFighters) {
             val routeObjective = viewModel.routeObjective.value
             if (routeObjective is RouteObjective.ReplacementFighters) {
@@ -180,11 +196,6 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
                 routeSuppliesAdapter.notifyItemRangeChanged(0, ordnanceTypes.size)
             }
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        suppliesSelectorPopup.dismiss()
     }
 
     private class RouteDiffUtilCallback(
@@ -208,9 +219,7 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
         fun bind(entry: RouteEntry) {
             val root = entryBinding.root
             val context = root.context
-
             val objEntry = entry.objEntry
-            val ordnanceObjective = objective as? RouteObjective.Ordnance
 
             root.setBackgroundColor(objEntry.getBackgroundColor(context))
             entryBinding.destDirectionLabel.text = getString(R.string.direction, objEntry.heading)
@@ -219,83 +228,100 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             entryBinding.destReasonsLabel.text = entry.getReasonText(objective, context, viewModel)
             entryBinding.destNameLabel.text = viewModel.getFullNameForShip(objEntry.obj)
 
+            if (objEntry is ObjectEntry.Station) {
+                bindStation(entry, objEntry)
+            } else if (objEntry is ObjectEntry.Ally) {
+                bindAlly(objEntry)
+            }
+        }
+
+        private fun bindStation(entry: RouteEntry, objEntry: ObjectEntry.Station) {
+            val ordnanceObjective = objective as? RouteObjective.Ordnance
+
+            val root = entryBinding.root
             val destStandbyButton = entryBinding.destStandbyButton
             val destBuildButton = entryBinding.destBuildButton
             val destAllyCommandButton = entryBinding.destAllyCommandButton
             val destBuildTimeLabel = entryBinding.destBuildTimeLabel
 
-            if (objEntry is ObjectEntry.Station) {
-                destStandbyButton.visibility = View.VISIBLE
-                destStandbyButton.isEnabled = !objEntry.isStandingBy
-                destStandbyButton.setOnClickListener {
+            destStandbyButton.visibility = View.VISIBLE
+            destStandbyButton.isEnabled = !objEntry.isStandingBy
+            destStandbyButton.setOnClickListener {
+                viewModel.playSound(SoundEffect.BEEP_2)
+                viewModel.sendToServer(
+                    CommsOutgoingPacket(
+                        objEntry.obj,
+                        BaseMessage.StandByForDockingOrCeaseOperation,
+                        viewModel.vesselData
+                    )
+                )
+            }
+
+            destBuildTimeLabel.visibility = if (ordnanceObjective == null) {
+                destBuildButton.visibility = View.GONE
+                View.GONE
+            } else if (ordnanceObjective.ordnanceType == objEntry.builtOrdnanceType) {
+                destBuildButton.visibility = View.GONE
+                destBuildTimeLabel.text = entry.getBuildTimeText(objective, root.context)
+                View.VISIBLE
+            } else {
+                destBuildButton.visibility = View.VISIBLE
+                destBuildButton.setOnClickListener {
                     viewModel.playSound(SoundEffect.BEEP_2)
                     viewModel.sendToServer(
                         CommsOutgoingPacket(
                             objEntry.obj,
-                            BaseMessage.StandByForDockingOrCeaseOperation,
+                            BaseMessage.Build(ordnanceObjective.ordnanceType),
                             viewModel.vesselData
                         )
                     )
                 }
 
-                destBuildTimeLabel.visibility = if (ordnanceObjective == null) {
-                    destBuildButton.visibility = View.GONE
-                    View.GONE
-                } else if (ordnanceObjective.ordnanceType == objEntry.builtOrdnanceType) {
-                    destBuildButton.visibility = View.GONE
-                    destBuildTimeLabel.text = entry.getBuildTimeText(objective, context)
+                View.GONE
+            }
+
+            destAllyCommandButton.visibility = View.INVISIBLE
+
+            root.setOnClickListener {
+                viewModel.playSound(SoundEffect.BEEP_1)
+                objEntry.obj.name.value?.also {
+                    viewModel.stationName.value = it
+                    viewModel.stationPage.value = StationsFragment.Page.FRIENDLY
+                    viewModel.currentGamePage.value = GameFragment.Page.STATIONS
+                }
+            }
+        }
+
+        private fun bindAlly(objEntry: ObjectEntry.Ally) {
+            val root = entryBinding.root
+            val destStandbyButton = entryBinding.destStandbyButton
+            val destBuildButton = entryBinding.destBuildButton
+            val destAllyCommandButton = entryBinding.destAllyCommandButton
+            val destBuildTimeLabel = entryBinding.destBuildTimeLabel
+
+            destBuildButton.visibility = View.GONE
+            destStandbyButton.visibility = View.GONE
+            destBuildTimeLabel.visibility = View.GONE
+
+            destAllyCommandButton.visibility =
+                if (objEntry.isNormal || objEntry.status == AllyStatus.FLYING_BLIND) {
+                    destAllyCommandButton.setOnClickListener {
+                        viewModel.playSound(SoundEffect.BEEP_1)
+                        viewModel.showingDestroyedAllies.value = false
+                        viewModel.scrollToAlly = objEntry
+                        viewModel.focusedAlly.value = objEntry
+                        viewModel.currentGamePage.value = GameFragment.Page.ALLIES
+                    }
                     View.VISIBLE
                 } else {
-                    destBuildButton.visibility = View.VISIBLE
-                    destBuildButton.setOnClickListener {
-                        viewModel.playSound(SoundEffect.BEEP_2)
-                        viewModel.sendToServer(
-                            CommsOutgoingPacket(
-                                objEntry.obj,
-                                BaseMessage.Build(ordnanceObjective.ordnanceType),
-                                viewModel.vesselData
-                            )
-                        )
-                    }
-
-                    View.GONE
+                    View.INVISIBLE
                 }
 
-                destAllyCommandButton.visibility = View.INVISIBLE
-
-                root.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    objEntry.obj.name.value?.also {
-                        viewModel.stationName.value = it
-                        viewModel.stationPage.value = StationsFragment.Page.FRIENDLY
-                        viewModel.currentGamePage.value = GameFragment.Page.STATIONS
-                    }
-                }
-            } else if (objEntry is ObjectEntry.Ally) {
-                destBuildButton.visibility = View.GONE
-                destStandbyButton.visibility = View.GONE
-                destBuildTimeLabel.visibility = View.GONE
-
-                destAllyCommandButton.visibility =
-                    if (objEntry.isNormal || objEntry.status == AllyStatus.FLYING_BLIND) {
-                        destAllyCommandButton.setOnClickListener {
-                            viewModel.playSound(SoundEffect.BEEP_1)
-                            viewModel.showingDestroyedAllies.value = false
-                            viewModel.scrollToAlly = objEntry
-                            viewModel.focusedAlly.value = objEntry
-                            viewModel.currentGamePage.value = GameFragment.Page.ALLIES
-                        }
-                        View.VISIBLE
-                    } else {
-                        View.INVISIBLE
-                    }
-
-                root.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    viewModel.showingDestroyedAllies.value = false
-                    viewModel.scrollToAlly = objEntry
-                    viewModel.currentGamePage.value = GameFragment.Page.ALLIES
-                }
+            root.setOnClickListener {
+                viewModel.playSound(SoundEffect.BEEP_1)
+                viewModel.showingDestroyedAllies.value = false
+                viewModel.scrollToAlly = objEntry
+                viewModel.currentGamePage.value = GameFragment.Page.ALLIES
             }
         }
     }

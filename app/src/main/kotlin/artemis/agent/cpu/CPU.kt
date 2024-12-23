@@ -22,7 +22,6 @@ import com.walkertribe.ian.protocol.core.world.IntelPacket
 import com.walkertribe.ian.util.Version
 import com.walkertribe.ian.util.isKnown
 import com.walkertribe.ian.vesseldata.Faction
-import com.walkertribe.ian.world.Artemis
 import com.walkertribe.ian.world.ArtemisBase
 import com.walkertribe.ian.world.ArtemisBlackHole
 import com.walkertribe.ian.world.ArtemisCreature
@@ -184,96 +183,98 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
     @Listener
     fun onPlayerUpdate(update: ArtemisPlayer) {
-        with(viewModel) {
-            checkGameStart()
+        viewModel.checkGameStart()
 
-            ordnanceUpdated.value = update.hasWeaponsData
+        viewModel.ordnanceUpdated.value = update.hasWeaponsData
 
-            val id = update.id
-            var existingPlayer = players[id]
+        val id = update.id
+        val existingPlayer = viewModel.players[id]?.also { player ->
+            if (player == viewModel.playerShip) {
+                val dockingBase = player.dockingBase.value.takeIf {
+                    it > 0
+                }?.let(viewModel.livingStations::get)
 
-            if (existingPlayer != null) {
-                if (existingPlayer == playerShip) {
-                    val dockingBase = existingPlayer.dockingBase.value
-                    if (dockingBase > 0 && (update.impulse.value > 0 || update.warp.value > 0)) {
-                        livingStations[dockingBase]?.apply {
-                            sendToServer(
-                                CommsOutgoingPacket(
-                                    obj,
-                                    BaseMessage.PleaseReportStatus,
-                                    vesselData
-                                )
-                            )
-                            isStandingBy = false
-                        }
-                    }
+                if (dockingBase != null && (update.impulse.value > 0 || update.warp.value > 0)) {
+                    viewModel.sendToServer(
+                        CommsOutgoingPacket(
+                            dockingBase.obj,
+                            BaseMessage.PleaseReportStatus,
+                            viewModel.vesselData,
+                        )
+                    )
+                    dockingBase.isStandingBy = false
                 }
-                update updates existingPlayer
-            } else {
-                existingPlayer = update
-                players[id] = existingPlayer
             }
 
-            val index = existingPlayer.shipIndex.value.toInt()
-            if (index in playerIndex.indices) {
-                playerIndex[index] = id
+            update updates player
+        } ?: update.also { viewModel.players[id] = it }
+
+        val index = existingPlayer.shipIndex.value.toInt()
+        if (index in viewModel.playerIndex.indices) {
+            viewModel.playerIndex[index] = id
+        }
+
+        onSelectedPlayerUpdate(update)
+    }
+
+    private fun onSelectedPlayerUpdate(update: ArtemisPlayer) {
+        val player = viewModel.playerShip ?: return
+
+        if (update == player) {
+            var count = player.doubleAgentCount.value
+            var active = player.doubleAgentActive.value.booleanValue
+            var agentUpdate = false
+
+            val doubleAgentCount = update.doubleAgentCount.value
+            if (doubleAgentCount >= 0) {
+                agentUpdate = true
+                count = doubleAgentCount
             }
 
-            playerShip?.also { player ->
-                val selectedPlayerUpdated = update == player
-                if (selectedPlayerUpdated) {
-                    var count = player.doubleAgentCount.value
-                    var active = player.doubleAgentActive.value.booleanValue
-                    var agentUpdate = false
-
-                    update.doubleAgentCount.value.also {
-                        if (it >= 0) {
-                            agentUpdate = true
-                            count = it
-                        }
-                    }
-                    update.doubleAgentActive.value.also {
-                        if (it.isKnown) {
-                            agentUpdate = true
-                            active = it.booleanValue
-                            doubleAgentActive.value = active
-                            if (!active) {
-                                doubleAgentSecondsLeft = -1
-                            }
-                        }
-                    }
-                    update.doubleAgentSecondsLeft.value.also {
-                        if (it > 0 || (it == 0 && active)) {
-                            doubleAgentSecondsLeft = it
-                        }
-                    }
-                    update.alertStatus.value?.also {
-                        alertStatus.value = it
-                    }
-
-                    if (agentUpdate) {
-                        doubleAgentEnabled.value = count > 0 && !active
-                    }
+            val doubleAgentActive = update.doubleAgentActive.value
+            if (doubleAgentActive.isKnown) {
+                agentUpdate = true
+                active = doubleAgentActive.booleanValue
+                viewModel.doubleAgentActive.value = active
+                if (!active) {
+                    viewModel.doubleAgentSecondsLeft = -1
                 }
+            }
 
-                if (update.capitalShipID.value == player.id) {
-                    fighterIDs.add(id)
+            update.doubleAgentSecondsLeft.value.also {
+                if (it > 0 || (it == 0 && active)) {
+                    viewModel.doubleAgentSecondsLeft = it
                 }
+            }
+
+            update.alertStatus.value?.also {
+                viewModel.alertStatus.value = it
+            }
+
+            if (agentUpdate) {
+                viewModel.doubleAgentEnabled.value = count > 0 && !active
             }
         }
+
+        if (update.capitalShipID.value == player.id) {
+            viewModel.fighterIDs.add(update.id)
+        }
     }
+
+    private val npcUpdateFunctions = arrayOf(
+        this::updateAllyShip,
+        this::updateUnscannedBiomech,
+        this::updateScannedBiomech,
+        this::updateEnemy,
+    )
 
     @Listener
     fun onNpcUpdate(update: ArtemisNpc) {
         viewModel.checkGameStart()
 
-        if (updateAllyShip(update)) return
-        if (updateUnscannedBiomech(update)) return
-        if (updateScannedBiomech(update)) return
-        if (updateEnemy(update)) return
+        if (npcUpdateFunctions.any { it(update) }) return
 
         val createdNpc = pendingNPCs.remove(update.id)?.also(update::updates) ?: update
-
         if (!onNpcCreate(createdNpc)) {
             pendingNPCs[createdNpc.id] = createdNpc
         }
@@ -319,7 +320,8 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
         if (isSurrendered && viewModel.selectedEnemy.value?.enemy == enemy) {
             viewModel.selectedEnemy.value = null
-        } else if (!isSurrendered && wasSurrendered) {
+        } else if (update.isSurrendered.hasValue && !isSurrendered && wasSurrendered) {
+            viewModel.perfidiousEnemy.tryEmit(entry)
             viewModel.enemiesUpdate = true
         }
 
@@ -377,8 +379,11 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                 return@apply
             }
 
-            enemies.remove(id)?.also { enemy ->
-                val name = enemy.enemy.name.value
+            enemies.remove(id)?.also { entry ->
+                val enemy = entry.enemy
+                destroyedEnemyName.tryEmit(getFullNameForShip(enemy))
+
+                val name = enemy.name.value
                 allyShips.values.filter {
                     it.isAttacking && it.destination == name
                 }.forEach {
@@ -387,8 +392,8 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                 }
                 name?.also(enemyNameIndex::remove)
 
-                if (viewModel.selectedEnemy.value == enemy) {
-                    viewModel.selectedEnemy.value = null
+                if (selectedEnemy.value == entry) {
+                    selectedEnemy.value = null
                 }
 
                 return@apply
@@ -617,71 +622,74 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun parseStandby(packet: CommsIncomingPacket): Boolean {
-        val playerShips = viewModel.selectableShips.value
         val message = packet.message
         if (!message.startsWith(STANDBY)) return false
         val sender = packet.sender
 
         val shipName = message.substring(STANDBY.length, message.length - 1)
-        for (i in 0 until Artemis.SHIP_COUNT) {
-            if (playerShips[i].name != shipName) continue
-
-            if (i == viewModel.shipIndex.value) {
-                viewModel.livingStationFullNameIndex[sender]?.also {
-                    viewModel.livingStations[it]?.isStandingBy = true
-                }
+        val indexOfShip = viewModel.selectableShips.value.indexOfFirst { it.name == shipName }
+        return if (indexOfShip < 0) {
+            false
+        } else {
+            if (indexOfShip == viewModel.shipIndex.value) {
+                viewModel.livingStationFullNameIndex[sender]?.let(
+                    viewModel.livingStations::get
+                )?.isStandingBy = true
             }
-            return true
+            true
         }
-
-        return false
     }
 
     private fun parseProduction(packet: CommsIncomingPacket): Boolean {
         val sender = packet.sender
         val message = packet.message
-        if (message.startsWith(PRODUCED)) {
-            val restOfMessage = message.substring(PRODUCED.length)
-            if (
-                !OrdnanceType.entries.any {
-                    restOfMessage.startsWith(it.getLabelFor(viewModel.version))
+
+        return when {
+            message.startsWith(PRODUCED) -> {
+                val restOfMessage = message.substring(PRODUCED.length)
+                if (
+                    !OrdnanceType.entries.any {
+                        restOfMessage.startsWith(it.getLabelFor(viewModel.version))
+                    }
+                ) {
+                    return false
                 }
-            ) {
-                return false
-            }
 
-            viewModel.stationProductionPacket.tryEmit(packet)
-            viewModel.livingStationNameIndex[sender]?.let(viewModel.livingStations::get)?.apply {
-                recalibrateSpeed(packet.timestamp)
-                resetBuildProgress()
-                resetMissile()
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(
-                        obj,
-                        BaseMessage.PleaseReportStatus,
-                        viewModel.vesselData
+                viewModel.stationProductionPacket.tryEmit(packet)
+                viewModel.livingStationNameIndex[sender]?.let(viewModel.livingStations::get)?.apply {
+                    recalibrateSpeed(packet.timestamp)
+                    resetBuildProgress()
+                    resetMissile()
+                    viewModel.sendToServer(
+                        CommsOutgoingPacket(
+                            obj,
+                            BaseMessage.PleaseReportStatus,
+                            viewModel.vesselData,
+                        )
                     )
-                )
-            }
-            return true
-        }
+                }
 
-        if (message.contains(PRODUCING)) {
-            viewModel.livingStationFullNameIndex[sender]?.let(viewModel.livingStations::get)?.apply {
-                resetBuildProgress()
-                resetMissile()
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(
-                        obj,
-                        BaseMessage.PleaseReportStatus,
-                        viewModel.vesselData
+                true
+            }
+
+            message.contains(PRODUCING) -> {
+                viewModel.livingStationFullNameIndex[sender]?.let(viewModel.livingStations::get)?.apply {
+                    resetBuildProgress()
+                    resetMissile()
+                    viewModel.sendToServer(
+                        CommsOutgoingPacket(
+                            obj,
+                            BaseMessage.PleaseReportStatus,
+                            viewModel.vesselData
+                        )
                     )
-                )
-            }
-            return true
-        }
+                }
 
-        return false
+                true
+            }
+
+            else -> false
+        }
     }
 
     private fun parseFighter(packet: CommsIncomingPacket): Boolean {
@@ -781,15 +789,18 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
     private fun parseContraband(packet: CommsIncomingPacket): Boolean {
         val message = checkForHailResponse(packet) ?: return false
-        val pirateAware = message.startsWith(PRIVATEER)
-        if (!pirateAware && !message.startsWith(CONTRABAND)) return false
 
-        setAllyStatus(
-            packet.sender,
-            message,
-            if (pirateAware) AllyStatus.PIRATE_SUPPLIES else AllyStatus.CONTRABAND
-        )
-        return true
+        val pirateAware = message.startsWith(PRIVATEER)
+        return if (pirateAware || message.startsWith(CONTRABAND)) {
+            setAllyStatus(
+                packet.sender,
+                message,
+                if (pirateAware) AllyStatus.PIRATE_SUPPLIES else AllyStatus.CONTRABAND,
+            )
+            true
+        } else {
+            false
+        }
     }
 
     private fun parseHeaveTo(packet: CommsIncomingPacket): Boolean {
@@ -806,15 +817,18 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
     private fun parseSecureData(packet: CommsIncomingPacket): Boolean {
         val message = checkForHailResponse(packet) ?: return false
-        val pirateAware = message.startsWith(PIRATE_SCUM)
-        if (!pirateAware && !message.startsWith(SECRET_DATA)) return false
 
-        setAllyStatus(
-            packet.sender,
-            message,
-            if (pirateAware) AllyStatus.PIRATE_DATA else AllyStatus.SECURE_DATA
-        )
-        return true
+        val pirateAware = message.startsWith(PIRATE_SCUM)
+        return if (pirateAware || message.startsWith(SECRET_DATA)) {
+            setAllyStatus(
+                packet.sender,
+                message,
+                if (pirateAware) AllyStatus.PIRATE_DATA else AllyStatus.SECURE_DATA,
+            )
+            true
+        } else {
+            false
+        }
     }
 
     private fun parseNeedsDamcon(packet: CommsIncomingPacket): Boolean {
@@ -878,15 +892,18 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
     private fun parseTrap(packet: CommsIncomingPacket): Boolean {
         val message = checkForHailResponse(packet) ?: return false
-        val mineTrap = message.startsWith(MINE_TRAP)
-        if (!mineTrap && !message.startsWith(FIGHTER_TRAP)) return false
 
-        setAllyStatus(
-            packet.sender,
-            message,
-            if (mineTrap) AllyStatus.MINE_TRAP else AllyStatus.FIGHTER_TRAP
-        )
-        return true
+        val mineTrap = message.startsWith(MINE_TRAP)
+        return if (mineTrap || message.startsWith(FIGHTER_TRAP)) {
+            setAllyStatus(
+                packet.sender,
+                message,
+                if (mineTrap) AllyStatus.MINE_TRAP else AllyStatus.FIGHTER_TRAP,
+            )
+            true
+        } else {
+            false
+        }
     }
 
     private fun parseNewMission(packet: CommsIncomingPacket): Boolean {
@@ -1037,26 +1054,27 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun processMissionCompletion(destination: String, shipName: String) {
-        with(viewModel) {
-            val timestamp = System.currentTimeMillis() + completedDismissalTime
-            allMissions.forEach { mission ->
-                if (mission.associatedShipName != shipName) return@forEach
-                if (mission.isCompleted) return@forEach
-                if (destination != getFullNameForShip(mission.destination.obj)) return@forEach
+        val timestamp = System.currentTimeMillis() + viewModel.completedDismissalTime
+        viewModel.allMissions.forEach { mission ->
+            if (mission.associatedShipName != shipName) return@forEach
+            if (mission.isCompleted) return@forEach
+            if (destination != viewModel.getFullNameForShip(mission.destination.obj)) return@forEach
 
-                mission.completionTimestamp = timestamp
-                displayedRewards.forEach {
-                    payouts[it.ordinal] += mission.rewards[it.ordinal]
+            mission.completionTimestamp = timestamp
+            viewModel.displayedRewards.forEach {
+                viewModel.payouts[it.ordinal] += mission.rewards[it.ordinal]
+            }
+
+            mission.destination.apply {
+                missions -= viewModel.displayedRewards.sumOf {
+                    mission.rewards[it.ordinal]
                 }
-                mission.destination.apply {
-                    missions -= displayedRewards.sumOf { mission.rewards[it.ordinal] }
-                    if (this is ObjectEntry.Station) {
-                        speedFactor += mission.rewards[RewardType.PRODUCTION.ordinal]
-                    }
+                if (this is ObjectEntry.Station) {
+                    speedFactor += mission.rewards[RewardType.PRODUCTION.ordinal]
                 }
             }
-            updatePayouts()
         }
+        viewModel.updatePayouts()
     }
 
     private fun parseUnderAttack(packet: CommsIncomingPacket): Boolean {
@@ -1122,39 +1140,31 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         return true
     }
 
-    private fun parseDirections(packet: CommsIncomingPacket): Boolean =
-        TURNING.find(packet.message)?.run {
-            val details = value.substring(TURNING_PREFIX.length)
-            with(viewModel) {
-                allyShipIndex[packet.sender]?.let(allyShips::get)?.apply {
-                    destination = null
-                    isAttacking = false
-                    isMovingToStation = false
-                    direction = details.run {
-                        when {
-                            startsWith(TURNING_TO) ->
-                                substring(TURNING_TO.length until length - 1).toInt()
-                            startsWith(TURNING_LEFT) ->
-                                (
-                                    (direction ?: 0) +
-                                        AgentViewModel.FULL_HEADING_RANGE -
-                                        substring(
-                                            TURNING_LEFT.length until length - TURNING_DEGREES_OFFSET
-                                        ).toInt()
-                                    ) % AgentViewModel.FULL_HEADING_RANGE
-                            else ->
-                                (
-                                    (direction ?: 0) +
-                                        substring(
-                                            TURNING_RIGHT.length until length - TURNING_DEGREES_OFFSET
-                                        ).toInt()
-                                    ) % AgentViewModel.FULL_HEADING_RANGE
-                        }
-                    }
+    private fun parseDirections(packet: CommsIncomingPacket): Boolean {
+        val result = TURNING.find(packet.message) ?: return false
+        val details = result.value.substring(TURNING_PREFIX.length)
+
+        viewModel.allyShipIndex[packet.sender]?.let(viewModel.allyShips::get)?.apply {
+            destination = null
+            isAttacking = false
+            isMovingToStation = false
+
+            direction = if (details.startsWith(TURNING_TO)) {
+                details.substring(TURNING_TO.length until details.length - 1).toInt()
+            } else {
+                val tailPosition = details.length - TURNING_DEGREES_OFFSET
+                val diff = if (details.startsWith(TURNING_RIGHT)) {
+                    details.substring(TURNING_RIGHT.length until tailPosition).toInt()
+                } else {
+                    AgentViewModel.FULL_HEADING_RANGE -
+                        details.substring(TURNING_LEFT.length until tailPosition).toInt()
                 }
+                ((direction ?: 0) + diff) % AgentViewModel.FULL_HEADING_RANGE
             }
-            true
-        } == true
+        }
+
+        return true
+    }
 
     private fun parsePlannedDestination(packet: CommsIncomingPacket): Boolean {
         val message = packet.message
@@ -1210,11 +1220,14 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         val message = checkForHailResponse(packet)?.takeUnless {
             it.startsWith(TO_STATION) || it.startsWith(FIX_ENGINES)
         } ?: return false
-        val sender = packet.sender
-        if (sender.startsWith("DS")) return false
 
-        setAllyStatus(sender, message, AllyStatus.NORMAL)
-        return true
+        val sender = packet.sender
+        return if (sender.startsWith("DS")) {
+            false
+        } else {
+            setAllyStatus(sender, message, AllyStatus.NORMAL)
+            true
+        }
     }
 
     private fun setAllyStatus(sender: String, message: String, status: AllyStatus) {

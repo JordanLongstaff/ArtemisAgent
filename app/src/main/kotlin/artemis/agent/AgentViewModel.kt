@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
 import androidx.annotation.StyleRes
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
@@ -105,7 +104,8 @@ import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
-import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The view model containing all running client data and utility functions used by the UI.
@@ -136,6 +136,10 @@ class AgentViewModel(application: Application) :
     val isScanningUDP: MutableSharedFlow<Boolean> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
+    var showingNetworkInfo: Boolean = true
+        private set
+    var alwaysScanPublicBroadcasts: Boolean = true
+        private set
 
     // Saved copy of address bar text in connect fragment
     var addressBarText: String = ""
@@ -256,6 +260,7 @@ class AgentViewModel(application: Application) :
 
     // Allies page UI data
     var allySorter: AllySorter = AllySorter()
+        private set
     var showAllySelector = false
         set(value) {
             field = value
@@ -363,6 +368,12 @@ class AgentViewModel(application: Application) :
         MutableStateFlow(listOf())
     }
     val enemyIntel: MutableStateFlow<String?> by lazy { MutableStateFlow(null) }
+    val perfidiousEnemy: MutableSharedFlow<EnemyEntry> by lazy {
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
+    val destroyedEnemyName: MutableSharedFlow<String> by lazy {
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
     var enemySorter = EnemySorter()
     val enemyNameIndex = ConcurrentHashMap<String, Int>()
     val enemies = ConcurrentHashMap<Int, EnemyEntry>()
@@ -393,9 +404,9 @@ class AgentViewModel(application: Application) :
     internal var avoidTyphons: Boolean = true
 
     // Object clearance variables - modified in Settings
-    internal var mineClearance: Float = DEFAULT_MINE_CLEARANCE.toFloat()
-    internal var blackHoleClearance: Float = DEFAULT_BLACK_HOLE_CLEARANCE.toFloat()
-    internal var typhonClearance: Float = DEFAULT_TYPHON_CLEARANCE.toFloat()
+    internal var mineClearance: Float = DEFAULT_MINE_CLEARANCE
+    internal var blackHoleClearance: Float = DEFAULT_BLACK_HOLE_CLEARANCE
+    internal var typhonClearance: Float = DEFAULT_TYPHON_CLEARANCE
 
     // Lists of obstacles
     internal val mines = ConcurrentHashMap<Int, ArtemisMine>()
@@ -431,39 +442,36 @@ class AgentViewModel(application: Application) :
     val helpTopicIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(HelpFragment.MENU) }
 
     // Various numerical settings
-    var port: Int = DEFAULT_PORT.toInt()
+    var port: Int = DEFAULT_PORT
     var updateObjectsInterval: Int = DEFAULT_UPDATE_INTERVAL
-    var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT.toInt()
-    var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT.toInt()
-    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT.toLong()
+    var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT
+    var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT
+    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT
         set(value) {
             field = value
             ifConnected {
-                networkInterface.setTimeout(field * SECONDS_TO_MILLIS)
+                networkInterface.setTimeout(field.seconds.inWholeMilliseconds)
             }
         }
-    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.toLong() * SECONDS_TO_MILLIS
+    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.seconds.inWholeMilliseconds
         set(value) {
-            field = value * SECONDS_TO_MILLIS
+            field = value.seconds.inWholeMilliseconds
         }
     var autoDismissCompletedMissions: Boolean = true
-    internal var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.toLong() * SECONDS_TO_MILLIS
+    var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.seconds.inWholeMilliseconds
         set(value) {
-            field = value * SECONDS_TO_MILLIS
+            field = value.seconds.inWholeMilliseconds
         }
 
     // UDP server discovery requester
     private val serverDiscoveryRequester: ServerDiscoveryRequester get() = ServerDiscoveryRequester(
         listener = this@AgentViewModel,
-        timeoutMs = scanTimeout.toLong() * SECONDS_TO_MILLIS
+        timeoutMs = scanTimeout.seconds.inWholeMilliseconds,
     )
 
     // I/O resolver data
     private val assetsResolver: AssetsResolver = AssetsResolver(application.assets)
-    val storageDirectories: Array<File> = ContextCompat.getExternalFilesDirs(
-        application.applicationContext,
-        null
-    )
+    val storageDirectories: Array<File> = application.applicationContext.getExternalFilesDirs(null)
 
     // Artemis version
     var version: Version = Version.LATEST
@@ -596,9 +604,7 @@ class AgentViewModel(application: Application) :
      * Calculates the heading from the player ship to the given object and formats it as a string.
      */
     private fun calculatePlayerHeadingTo(obj: ArtemisObject<*>): String {
-        val heading = playerShip?.run {
-            headingTo(obj).toDouble().roundToInt() % FULL_HEADING_RANGE
-        } ?: 0
+        val heading = playerShip?.run { headingTo(obj).toDouble().toInt() } ?: 0
         return formattedHeading(heading)
     }
 
@@ -749,7 +755,7 @@ class AgentViewModel(application: Application) :
             val connected = networkInterface.connect(
                 host = url,
                 port = port,
-                timeoutMs = connectTimeout.toLong() * SECONDS_TO_MILLIS,
+                timeoutMs = connectTimeout.seconds.inWholeMilliseconds,
             )
             lastAttemptedHost = url
             attemptingConnection = false
@@ -805,12 +811,15 @@ class AgentViewModel(application: Application) :
     /**
      * Begins scanning for servers via UDP.
      */
-    fun scanForServers() {
+    fun scanForServers(broadcastAddress: String?) {
         isScanningUDP.tryEmit(true)
         discoveredServers.value = listOf()
         cpu.launch {
             try {
-                serverDiscoveryRequester.run()
+                serverDiscoveryRequester.run(
+                    broadcastAddress?.takeUnless { alwaysScanPublicBroadcasts } ?:
+                    ServerDiscoveryRequester.DEFAULT_BROADCAST_ADDRESS
+                )
             } catch (_: Exception) {
                 isScanningUDP.emit(false)
             }
@@ -963,14 +972,15 @@ class AgentViewModel(application: Application) :
         }
 
         val selectedEnemyEntry = selectedEnemy.value
-        val enemyShipList = enemies.values.filter {
-            !it.vessel.isSingleseat && playerShip?.let(it.enemy::hasBeenScannedBy)?.booleanValue == true
+        val enemyShipList = enemies.values.filter { !it.vessel.isSingleseat }
+        val scannedEnemies = enemyShipList.filter {
+            playerShip?.let(it.enemy::hasBeenScannedBy)?.booleanValue == true
         }.sortedWith(enemySorter).onEach { entry ->
             val enemy = entry.enemy
             entry.heading = calculatePlayerHeadingTo(enemy)
             entry.range = calculatePlayerRangeTo(enemy)
         }
-        val enemyNavOptions = enemySorter.buildCategoryMap(enemyShipList)
+        val enemyNavOptions = enemySorter.buildCategoryMap(scannedEnemies)
 
         val biomechList = if (biomechsEnabled) {
             scannedBiomechs.sortedWith(biomechSorter).onEach {
@@ -995,12 +1005,18 @@ class AgentViewModel(application: Application) :
             else -> { }
         }
 
+        val (surrendered, hostile) = enemyShipList.partition {
+            it.enemy.isSurrendered.value.booleanValue
+        }
+
         val postedInventory = arrayOf(
             livingStations.size.takeIf { stationsExist.value },
             enemyStationList.size.takeIf { enemyStationsExist.value },
             allyShipList.size.takeIf { alliesExist },
             missionList.size.takeIf { missionsExist },
             biomechList.size.takeIf { biomechsExist },
+            hostile.size,
+            surrendered.size.takeIf { it > 0 },
         )
 
         if (!postedInventory.contentEquals(inventory.value)) {
@@ -1083,7 +1099,7 @@ class AgentViewModel(application: Application) :
         missions.tryEmit(missionList)
         livingAllies.tryEmit(allyShipList)
         enemyStations.tryEmit(enemyStationList)
-        displayedEnemies.tryEmit(enemyShipList)
+        displayedEnemies.tryEmit(scannedEnemies)
         enemyCategories.tryEmit(enemyNavOptions)
         biomechs.tryEmit(biomechList)
 
@@ -1091,7 +1107,7 @@ class AgentViewModel(application: Application) :
         enemyIntel.value = selectedEnemyEntry?.intel
         selectedEnemyIndex.tryEmit(
             selectedEnemyEntry?.let { entry ->
-                enemyShipList.indexOfFirst { it.enemy == entry.enemy }
+                scannedEnemies.indexOfFirst { it.enemy == entry.enemy }
             } ?: -1
         )
 
@@ -1438,6 +1454,8 @@ class AgentViewModel(application: Application) :
         connectTimeout = settings.connectionTimeoutSeconds
         scanTimeout = settings.scanTimeoutSeconds
         heartbeatTimeout = settings.serverTimeoutSeconds.toLong()
+        showingNetworkInfo = settings.showNetworkInfo
+        alwaysScanPublicBroadcasts = settings.alwaysScanPublic
 
         missionsEnabled = settings.missionsEnabled
         reconcileDisplayedMissions(
@@ -1556,7 +1574,7 @@ class AgentViewModel(application: Application) :
         biomechSortStatus = biomechSorter.sortByStatus
         biomechSortClassSecond = biomechSorter.sortByClassSecond
         biomechSortName = biomechSorter.sortByName
-        freezeDurationSeconds = biomechFreezeTime.toInt() / SECONDS_TO_MILLIS
+        freezeDurationSeconds = biomechFreezeTime.milliseconds.inWholeSeconds.toInt()
 
         routingEnabled = this@AgentViewModel.routingEnabled
         routeMissions = routeIncludesMissions
@@ -1602,24 +1620,25 @@ class AgentViewModel(application: Application) :
         threeDigitDirections = this@AgentViewModel.threeDigitDirections
         soundVolume = (volume * VOLUME_SCALE).toInt()
         themeValue = ALL_THEMES.indexOf(themeRes)
+        showNetworkInfo = showingNetworkInfo
+        alwaysScanPublic = alwaysScanPublicBroadcasts
     }
 
     companion object {
-        private const val DEFAULT_PORT = "2010"
-        private const val DEFAULT_SCAN_TIMEOUT = "5"
-        private const val DEFAULT_CONNECT_TIMEOUT = "9"
-        private const val DEFAULT_HEARTBEAT_TIMEOUT = "15"
-        private const val DEFAULT_FREEZE_TIME = "220"
-        private const val DEFAULT_COMPLETED_DISMISSAL = "3"
+        private const val DEFAULT_PORT = 2010
+        private const val DEFAULT_SCAN_TIMEOUT = 5
+        private const val DEFAULT_CONNECT_TIMEOUT = 9
+        private const val DEFAULT_HEARTBEAT_TIMEOUT = 15L
+        private const val DEFAULT_FREEZE_TIME = 220
+        private const val DEFAULT_COMPLETED_DISMISSAL = 3
 
-        private const val DEFAULT_BLACK_HOLE_CLEARANCE = "500"
-        private const val DEFAULT_MINE_CLEARANCE = "1000"
-        private const val DEFAULT_TYPHON_CLEARANCE = "3000"
+        private const val DEFAULT_BLACK_HOLE_CLEARANCE = 500f
+        private const val DEFAULT_MINE_CLEARANCE = 1000f
+        private const val DEFAULT_TYPHON_CLEARANCE = 3000f
 
         const val DEFAULT_UPDATE_INTERVAL = 50
         const val FLASH_INTERVAL = 500L
         const val SECONDS_TO_MILLIS = 1000
-        const val SECONDS_PER_MINUTE = 60
         private const val PIRATE_SIDE = 8
         private const val DAMAGED_ALPHA = 0.5f
         private const val JUMP_DURATION = 3000L
@@ -1636,7 +1655,9 @@ class AgentViewModel(application: Application) :
             R.plurals.enemy_stations,
             R.plurals.allies,
             R.plurals.side_missions,
-            R.plurals.biomechs
+            R.plurals.biomechs,
+            R.plurals.enemies,
+            R.plurals.surrenders,
         )
 
         private val ALL_THEMES = arrayOf(
@@ -1649,16 +1670,13 @@ class AgentViewModel(application: Application) :
         )
 
         fun getTimeToEnd(endTime: Long): Pair<Int, Int> {
-            val timeRemaining = endTime - System.currentTimeMillis() + SECONDS_TO_MILLIS - 1
-            val totalSeconds = (timeRemaining / SECONDS_TO_MILLIS).coerceAtLeast(0L)
+            val timeRemaining = 1.seconds + (endTime - System.currentTimeMillis() - 1).milliseconds
+            val totalSeconds = timeRemaining.inWholeSeconds.coerceAtLeast(0L)
             return getTimer(totalSeconds.toInt())
         }
 
-        fun getTimer(totalSeconds: Int): Pair<Int, Int> {
-            val seconds = totalSeconds % SECONDS_PER_MINUTE
-            val minutes = totalSeconds / SECONDS_PER_MINUTE
-            return Pair(minutes, seconds)
-        }
+        fun getTimer(totalSeconds: Int): Pair<Int, Int> =
+            totalSeconds.seconds.toComponents { minutes, seconds, _ -> minutes.toInt() to seconds }
 
         fun Int.formatString(): String = toString().format(Locale.getDefault())
     }

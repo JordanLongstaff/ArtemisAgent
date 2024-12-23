@@ -10,9 +10,9 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
 class GameStartPacketFixture private constructor(
     arbVersion: Arb<Version>,
@@ -25,9 +25,9 @@ class GameStartPacketFixture private constructor(
         val gameType: GameType,
         val difficulty: Int,
     ) : PacketTestData.Server<GameStartPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(difficulty)
-            writeIntLittleEndian(gameType.ordinal)
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(difficulty)
+            writeIntLe(gameType.ordinal)
         }
 
         override fun validate(packet: GameStartPacket) {

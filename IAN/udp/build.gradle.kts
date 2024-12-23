@@ -34,6 +34,7 @@ detekt {
 }
 
 dependencies {
+    implementation(libs.kotlinx.io)
     api(libs.bundles.ian.udp.api)
 
     testImplementation(libs.bundles.ian.udp.test)

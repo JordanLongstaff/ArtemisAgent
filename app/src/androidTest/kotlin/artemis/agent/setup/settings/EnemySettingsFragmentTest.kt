@@ -79,10 +79,10 @@ class EnemySettingsFragmentTest {
             testEnemySubMenuOpen(
                 sortSettings,
                 surrenderRange.takeIf { it >= 0 },
+                !usingToggle,
                 intel,
                 tauntStatuses,
                 disableIneffective,
-                !usingToggle,
             )
 
             SettingsFragmentTest.closeSettingsSubMenu(usingToggle = !usingToggle)
@@ -91,58 +91,64 @@ class EnemySettingsFragmentTest {
     }
 
     private companion object {
-        val enemySortingButtonIDs = intArrayOf(
-            R.id.enemySortingSurrenderButton,
-            R.id.enemySortingRaceButton,
-            R.id.enemySortingNameButton,
-            R.id.enemySortingRangeButton,
+        val enemySortMethodSettings = arrayOf(
+            GroupedToggleButtonSetting(
+                R.id.enemySortingSurrenderButton,
+                R.string.surrender,
+            ),
+            GroupedToggleButtonSetting(
+                R.id.enemySortingRaceButton,
+                R.string.sort_by_race,
+            ),
+            GroupedToggleButtonSetting(
+                R.id.enemySortingNameButton,
+                R.string.sort_by_name,
+            ),
+            GroupedToggleButtonSetting(
+                R.id.enemySortingRangeButton,
+                R.string.sort_by_range,
+            ),
         )
 
-        val enemySortingLabels = intArrayOf(
-            R.string.surrender,
-            R.string.sort_by_race,
-            R.string.sort_by_name,
-            R.string.sort_by_range,
+        val enemySingleToggleSettings = arrayOf(
+            SingleToggleButtonSetting(
+                R.id.showIntelDivider,
+                R.id.showIntelTitle,
+                R.string.show_intel,
+                R.id.showIntelButton,
+            ),
+            SingleToggleButtonSetting(
+                R.id.showTauntStatusDivider,
+                R.id.showTauntStatusTitle,
+                R.string.show_taunt_status,
+                R.id.showTauntStatusButton,
+            ),
+            SingleToggleButtonSetting(
+                R.id.disableIneffectiveDivider,
+                R.id.disableIneffectiveTitle,
+                R.string.disable_ineffective_taunts,
+                R.id.disableIneffectiveButton,
+            ),
         )
 
         fun testEnemySubMenuOpen(
             sortMethods: BooleanArray,
             surrenderRange: Int?,
-            showIntel: Boolean,
-            showTauntStatus: Boolean,
-            disableIneffectiveTaunts: Boolean,
             shouldTestSettings: Boolean,
+            vararg singleToggles: Boolean,
         ) {
             testEnemySubMenuSortMethods(sortMethods, shouldTestSettings)
             testEnemySubMenuSurrenderRange(surrenderRange, shouldTestSettings)
 
-            SettingsFragmentTest.testSingleToggleSetting(
-                R.id.showIntelDivider,
-                R.id.showIntelTitle,
-                R.string.show_intel,
-                R.id.showIntelButton,
-                showIntel,
-            )
-            SettingsFragmentTest.testSingleToggleSetting(
-                R.id.showTauntStatusDivider,
-                R.id.showTauntStatusTitle,
-                R.string.show_taunt_status,
-                R.id.showTauntStatusButton,
-                showTauntStatus,
-            )
-            SettingsFragmentTest.testSingleToggleSetting(
-                R.id.disableIneffectiveDivider,
-                R.id.disableIneffectiveTitle,
-                R.string.disable_ineffective_taunts,
-                R.id.disableIneffectiveButton,
-                disableIneffectiveTaunts,
-            )
+            enemySingleToggleSettings.forEachIndexed { index, setting ->
+                setting.testSingleToggle(singleToggles[index])
+            }
         }
 
         fun testEnemySubMenuClosed() {
             assertNotExist(R.id.enemySortingTitle)
             assertNotExist(R.id.enemySortingDefaultButton)
-            enemySortingButtonIDs.forEach { assertNotExist(it) }
+            enemySortMethodSettings.forEach { assertNotExist(it.button) }
             assertNotExist(R.id.reverseRaceSortTitle)
             assertNotExist(R.id.reverseRaceSortButton)
             assertNotExist(R.id.enemySortingDivider)
@@ -152,15 +158,7 @@ class EnemySettingsFragmentTest {
             assertNotExist(R.id.surrenderRangeEnableButton)
             assertNotExist(R.id.surrenderRangeInfinity)
             assertNotExist(R.id.surrenderRangeDivider)
-            assertNotExist(R.id.showIntelTitle)
-            assertNotExist(R.id.showIntelButton)
-            assertNotExist(R.id.showIntelDivider)
-            assertNotExist(R.id.showTauntStatusTitle)
-            assertNotExist(R.id.showTauntStatusButton)
-            assertNotExist(R.id.showTauntStatusDivider)
-            assertNotExist(R.id.disableIneffectiveTitle)
-            assertNotExist(R.id.disableIneffectiveButton)
-            assertNotExist(R.id.disableIneffectiveDivider)
+            enemySingleToggleSettings.forEach { it.testNotExist() }
         }
 
         fun testEnemySubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {
@@ -168,9 +166,9 @@ class EnemySettingsFragmentTest {
             assertDisplayed(R.id.enemySortingTitle, R.string.sort_methods)
             assertDisplayed(R.id.enemySortingDefaultButton, R.string.default_setting)
 
-            enemySortingButtonIDs.forEachIndexed { index, id ->
-                assertDisplayed(id, enemySortingLabels[index])
-                ArtemisAgentTestHelpers.assertChecked(id, sortMethods[index])
+            enemySortMethodSettings.forEachIndexed { index, setting ->
+                assertDisplayed(setting.button, setting.text)
+                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethods[index])
             }
 
             ArtemisAgentTestHelpers.assertChecked(
@@ -181,16 +179,16 @@ class EnemySettingsFragmentTest {
             if (!shouldTest) return
 
             clickOn(R.id.enemySortingDefaultButton)
-            enemySortingButtonIDs.forEach { assertUnchecked(it) }
+            enemySortMethodSettings.forEach { assertUnchecked(it.button) }
 
             testEnemySubMenuSortBySurrender()
             testEnemySubMenuSortByRace()
             testEnemySubMenuSortByNameAndRange()
             testEnemySubMenuSortPermutations()
 
-            enemySortingButtonIDs.forEachIndexed { index, id ->
+            enemySortMethodSettings.forEachIndexed { index, setting ->
                 if (sortMethods[index]) {
-                    clickOn(id)
+                    clickOn(setting.button)
                 }
             }
         }
@@ -248,10 +246,10 @@ class EnemySettingsFragmentTest {
 
             if (!shouldTest) return
 
-            clickOn(R.id.surrenderRangeEnableButton)
-            testEnemySubMenuSurrenderRange(surrenderRange == null, null)
-            clickOn(R.id.surrenderRangeEnableButton)
-            testEnemySubMenuSurrenderRange(surrenderRange != null, surrenderRange)
+            booleanArrayOf(true, false).forEach {
+                clickOn(R.id.surrenderRangeEnableButton)
+                testEnemySubMenuSurrenderRange((surrenderRange == null) == it, surrenderRange)
+            }
         }
 
         fun testEnemySubMenuSurrenderRange(
