@@ -88,14 +88,6 @@ class ConnectFragmentTest {
         sleep(100L)
         clickOn(R.id.connectButton)
 
-        val isEmulator = Build.FINGERPRINT.contains("generic") ||
-            Build.MODEL.contains("Emulator", ignoreCase = true) ||
-            Build.MODEL.contains("google_sdk", ignoreCase = true) ||
-            Build.PRODUCT.contains("sdk", ignoreCase = true) ||
-            Build.PRODUCT.contains("google_sdk", ignoreCase = true) ||
-            Build.PRODUCT.contains("sdk_x86", ignoreCase = true) ||
-            Build.DEVICE.contains("emulator", ignoreCase = true)
-
         if (!isEmulator) {
             // Skip this check on CI since it always fails
             assertDisplayed(R.id.connectLabel, R.string.connecting)
@@ -138,5 +130,11 @@ class ConnectFragmentTest {
                 ArtemisAgentTestHelpers.assertDisplayed(resId, showing && isNotEmpty)
             }
         }
+    }
+
+    companion object {
+        private val EMULATOR_PRODUCTS by lazy { setOf("sdk", "google_sdk", "sdk_x86") }
+
+        private val isEmulator by lazy { Build.PRODUCT in EMULATOR_PRODUCTS }
     }
 }
