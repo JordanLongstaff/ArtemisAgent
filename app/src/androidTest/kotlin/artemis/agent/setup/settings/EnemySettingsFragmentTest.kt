@@ -1,9 +1,9 @@
 package artemis.agent.setup.settings
 
 import androidx.activity.viewModels
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @LargeTest
 class EnemySettingsFragmentTest {
     @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun enemySettingsTest() {
@@ -41,7 +41,7 @@ class EnemySettingsFragmentTest {
         val sortByName = AtomicBoolean()
         val sortByDistance = AtomicBoolean()
 
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             val enemySorter = viewModel.enemySorter
 
