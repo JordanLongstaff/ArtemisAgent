@@ -110,7 +110,7 @@ class ConnectFragmentTest {
         }
 
         // Wait a bit for the connection info to load
-        sleep(250L)
+        sleep(500L)
 
         val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
