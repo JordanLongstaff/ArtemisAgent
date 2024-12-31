@@ -42,6 +42,7 @@ import artemis.agent.setup.ConnectFragment
 import artemis.agent.setup.SetupFragment
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.walkertribe.ian.iface.DisconnectCause
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
@@ -568,12 +569,17 @@ class MainActivity : AppCompatActivity() {
             collectLatestWhileStarted(disconnectCause) {
                 var suggestUpdate = false
                 val message = when (it) {
-                    is DisconnectCause.IOError ->
+                    is DisconnectCause.IOError -> {
+                        FirebaseCrashlytics.getInstance().recordException(it.exception)
                         getString(R.string.disconnect_io_error, it.exception.message)
-                    is DisconnectCause.PacketParseError ->
+                    }
+                    is DisconnectCause.PacketParseError -> {
+                        FirebaseCrashlytics.getInstance().recordException(it.exception)
                         getString(R.string.disconnect_parse, it.exception.message)
-                    is DisconnectCause.RemoteDisconnect ->
+                    }
+                    is DisconnectCause.RemoteDisconnect -> {
                         getString(R.string.disconnect_remote)
+                    }
                     is DisconnectCause.UnsupportedVersion -> {
                         if (it.version < Version.MINIMUM) {
                             getString(
@@ -590,6 +596,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     is DisconnectCause.UnknownError -> {
+                        FirebaseCrashlytics.getInstance().recordException(it.throwable)
                         getString(R.string.disconnect_unknown_error, it.throwable.message)
                     }
                     is DisconnectCause.LocalDisconnect -> return@collectLatestWhileStarted

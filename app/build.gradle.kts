@@ -3,6 +3,8 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 plugins {
     id("com.android.application")
     kotlin("android")
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.crashlytics)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
@@ -85,6 +87,9 @@ dependencies {
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
     androidTestImplementation(libs.bundles.app.androidTest)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
 
     constraints {
         androidTestImplementation(libs.jsoup) {
