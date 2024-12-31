@@ -32,7 +32,7 @@ class PacketException private constructor(
      * @param cause The cause of this [PacketException].
      * @constructor Constructs a [PacketException] caused by another exception.
      */
-    constructor(cause: Throwable? = null) : this(cause, 0, null)
+    constructor(cause: Throwable? = null) : this(null, cause)
 
     /**
      * @param cause The exception that caused PacketException to be thrown
