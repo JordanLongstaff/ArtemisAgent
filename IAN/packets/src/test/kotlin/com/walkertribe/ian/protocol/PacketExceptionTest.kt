@@ -40,9 +40,9 @@ class PacketExceptionTest : DescribeSpec({
         }
 
         it("Can be constructed from another exception") {
-            messages.forEach {
+            (messages + null).forEach {
                 val ex = PacketException(RuntimeException(it))
-                ex.message.shouldNotBeNull() shouldBeEqual it
+                ex.message.shouldNotBeNull().shouldBeEqual(it ?: "RuntimeException")
                 ex.cause.shouldNotBeNull().shouldBeInstanceOf<RuntimeException>()
                 ex.packetType.shouldBeZero()
                 ex.payload.shouldBeNull()

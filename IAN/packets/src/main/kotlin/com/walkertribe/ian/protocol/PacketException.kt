@@ -9,7 +9,7 @@ class PacketException private constructor(
     cause: Throwable?,
     packetType: Int = 0,
     payload: ByteArray? = null
-) : Exception(string ?: cause?.message ?: cause?.let { it::class.simpleName }, cause) {
+) : Exception(string ?: cause?.let { it.message ?: it::class.simpleName }, cause) {
     /**
      * The type value for this packet, or 0 if unknown.
      */
