@@ -26,15 +26,20 @@ android {
         targetSdk = sdkVersion
         versionCode = 9
         versionName = "1.0.3"
-
         multiDexEnabled = true
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
     compileOptions {
         sourceCompatibility = javaVersion
         targetCompatibility = javaVersion
         isCoreLibraryDesugaringEnabled = true
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
 
     kotlinOptions {
@@ -87,6 +92,7 @@ dependencies {
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
     androidTestImplementation(libs.bundles.app.androidTest)
+    androidTestUtil(libs.test.orchestrator)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
