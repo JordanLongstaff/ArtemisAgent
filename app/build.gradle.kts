@@ -98,11 +98,11 @@ dependencies {
     implementation(libs.bundles.firebase)
 
     constraints {
+        implementation(libs.guava) {
+            because("Version 32.0.0-android patches a moderate security vulnerability")
+        }
         androidTestImplementation(libs.jsoup) {
             because("Version 1.14.2 patches a high-level security vulnerability")
-        }
-        androidTestImplementation(libs.guava) {
-            because("Version 32.0.0-android patches a moderate security vulnerability")
         }
         androidTestImplementation(libs.accessibility.test.framework) {
             because("Needed to resolve static method registerDefaultInstance")
