@@ -19,6 +19,7 @@ import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.clearText
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.writeTo
 import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
+import dev.tmapps.konnection.ConnectionInfo
 import dev.tmapps.konnection.Konnection
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -109,10 +110,10 @@ class ConnectFragmentTest {
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
         }
 
-        // Wait a bit for the connection info to load
-        sleep(500L)
-
-        val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
+        // Wait for the connection info to load
+        var info: ConnectionInfo?
+        do { info = Konnection.instance.getInfo() } while (info == null)
+        val hasNetwork = !info.ipv4.isNullOrBlank()
 
         val infoViews = intArrayOf(
             R.id.addressLabel,
