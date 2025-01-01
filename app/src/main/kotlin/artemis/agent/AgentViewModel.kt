@@ -1440,6 +1440,7 @@ class AgentViewModel(application: Application) :
         disconnectFromServer(resetUrl = false)
         networkInterface.dispose()
 
+        volume = 0f
         sounds.forEach { it?.release() }
         sounds.clear()
 
