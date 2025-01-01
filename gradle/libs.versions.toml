@@ -199,6 +199,7 @@ app-androidTest = [
     "test-core",
     "test-junit",
     "test-runner",
+    "konnection-android-debug",
 ]
 
 ian = [
