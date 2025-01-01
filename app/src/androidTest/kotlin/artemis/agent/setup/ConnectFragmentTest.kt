@@ -123,6 +123,8 @@ class ConnectFragmentTest {
 
         val settingValue = showingInfo.get()
         listOf(settingValue, !settingValue, settingValue).forEachIndexed { index, showing ->
+            sleep(500L)
+
             if (index != 0) {
                 SettingsFragmentTest.openSettingsMenu()
                 SettingsFragmentTest.openSettingsSubMenu(0)
