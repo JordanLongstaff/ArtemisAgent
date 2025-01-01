@@ -32,8 +32,8 @@ dependencies {
   api(libs.ksp.api)
   api(libs.kotlinpoet)
 
-  implementation(project(":IAN:annotations"))
-  implementation(project(":IAN:listener"))
-  implementation(project(":IAN:util"))
+  implementation(projects.ian.annotations)
+  implementation(projects.ian.listener)
+  implementation(projects.ian.util)
   implementation(libs.kotlinpoet.ksp)
 }

@@ -25,8 +25,8 @@ tasks.test {
 }
 
 dependencies {
-    testImplementation(project(":IAN:annotations"))
-    testImplementation(project(":IAN:packets"))
+    testImplementation(projects.ian.annotations)
+    testImplementation(projects.ian.packets)
 
     testImplementation(libs.bundles.konsist.common)
     testImplementation(libs.bundles.konsist.ian)

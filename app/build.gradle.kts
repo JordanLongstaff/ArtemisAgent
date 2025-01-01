@@ -78,16 +78,16 @@ android {
 
 dependencies {
     implementation(fileTree(baseDir = "libs") { include("*.jar") })
-    implementation(project(":IAN"))
-    implementation(project(":IAN:enums"))
-    implementation(project(":IAN:listener"))
-    implementation(project(":IAN:packets"))
-    implementation(project(":IAN:udp"))
-    implementation(project(":IAN:util"))
-    implementation(project(":IAN:vesseldata"))
-    implementation(project(":IAN:world"))
+    implementation(projects.ian)
+    implementation(projects.ian.enums)
+    implementation(projects.ian.listener)
+    implementation(projects.ian.packets)
+    implementation(projects.ian.udp)
+    implementation(projects.ian.util)
+    implementation(projects.ian.vesseldata)
+    implementation(projects.ian.world)
 
-    ksp(project(":IAN:processor"))
+    ksp(projects.ian.processor)
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)

@@ -39,22 +39,22 @@ detekt {
 }
 
 dependencies {
-    api(project(":IAN:enums"))
-    api(project(":IAN:listener"))
-    api(project(":IAN:util"))
-    api(project(":IAN:vesseldata"))
+    api(projects.ian.enums)
+    api(projects.ian.listener)
+    api(projects.ian.util)
+    api(projects.ian.vesseldata)
     api(libs.kotlin.stdlib)
 
-    ksp(project(":IAN:processor"))
+    ksp(projects.ian.processor)
 
     implementation(libs.kotlin.reflect)
 
-    testFixturesApi(project(":IAN:listener"))
-    testFixturesApi(project(":IAN:util"))
+    testFixturesApi(projects.ian.listener)
+    testFixturesApi(projects.ian.util)
     testFixturesImplementation(libs.bundles.ian.world.test.fixtures)
 
-    testImplementation(testFixtures(project(":IAN:util")))
-    testImplementation(testFixtures(project(":IAN:vesseldata")))
+    testImplementation(testFixtures(projects.ian.util))
+    testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

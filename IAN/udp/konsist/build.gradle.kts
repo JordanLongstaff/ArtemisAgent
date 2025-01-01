@@ -25,7 +25,7 @@ tasks.test {
 }
 
 dependencies {
-    testImplementation(project(":IAN:udp"))
+    testImplementation(projects.ian.udp)
     testImplementation(libs.bundles.konsist.common)
     testRuntimeOnly(libs.bundles.konsist.runtime)
 }

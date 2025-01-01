@@ -44,7 +44,7 @@ android {
 }
 
 dependencies {
-    testImplementation(project(":app"))
+    testImplementation(projects.app)
 
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)

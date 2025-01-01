@@ -38,10 +38,10 @@ detekt {
 }
 
 dependencies {
-  api(project(":IAN:util"))
+  api(projects.ian.util)
   api(libs.kotlin.stdlib)
 
-  testImplementation(testFixtures(project(":IAN:util")))
+  testImplementation(testFixtures(projects.ian.util))
   testImplementation(libs.bundles.ian.enums.test)
   testRuntimeOnly(libs.bundles.ian.test.runtime)
 

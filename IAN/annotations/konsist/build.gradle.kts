@@ -25,8 +25,7 @@ tasks.test {
 }
 
 dependencies {
-    testCompileOnly(project(":IAN:annotations"))
-
+    testCompileOnly(projects.ian.annotations)
     testImplementation(libs.bundles.konsist.common)
     testImplementation(libs.bundles.konsist.ian)
     testRuntimeOnly(libs.bundles.konsist.runtime)

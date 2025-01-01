@@ -38,13 +38,13 @@ detekt {
 }
 
 dependencies {
-  api(project(":IAN:enums"))
-  api(project(":IAN:util"))
+  api(projects.ian.enums)
+  api(projects.ian.util)
   api(libs.kotlin.stdlib)
 
   implementation(libs.bundles.ian.vesseldata)
 
-  testFixturesImplementation(project(":IAN:enums"))
+  testFixturesImplementation(projects.ian.enums)
   testFixturesImplementation(libs.bundles.ian.vesseldata.test.fixtures)
   testFixturesApi(libs.kotest.framework.datatest.jvm)
 

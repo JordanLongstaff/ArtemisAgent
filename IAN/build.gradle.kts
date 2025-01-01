@@ -51,26 +51,26 @@ detekt {
 }
 
 dependencies {
-    compileOnly(project(":IAN:annotations"))
+    compileOnly(projects.ian.annotations)
 
-    api(project(":IAN:enums"))
-    api(project(":IAN:listener"))
-    api(project(":IAN:packets"))
-    api(project(":IAN:util"))
-    api(project(":IAN:world"))
+    api(projects.ian.enums)
+    api(projects.ian.listener)
+    api(projects.ian.packets)
+    api(projects.ian.util)
+    api(projects.ian.world)
 
     api(libs.kotlin.stdlib)
 
-    ksp(project(":IAN:processor"))
+    ksp(projects.ian.processor)
     ksp(libs.ksp.koin)
 
     implementation(libs.bundles.ian)
 
     runtimeOnly(libs.kotlin.reflect)
 
-    testImplementation(testFixtures(project(":IAN:listener")))
-    testImplementation(testFixtures(project(":IAN:packets")))
-    testImplementation(testFixtures(project(":IAN:util")))
+    testImplementation(testFixtures(projects.ian.listener))
+    testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.util))
     testImplementation(libs.bundles.ian.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
