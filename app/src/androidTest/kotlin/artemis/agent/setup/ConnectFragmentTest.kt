@@ -110,11 +110,6 @@ class ConnectFragmentTest {
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
         }
 
-        // Wait for the connection info to load
-        var info: ConnectionInfo?
-        do { info = Konnection.instance.getInfo() } while (info == null)
-        val hasNetwork = !info.ipv4.isNullOrBlank()
-
         val infoViews = intArrayOf(
             R.id.addressLabel,
             R.id.networkTypeLabel,
@@ -123,7 +118,16 @@ class ConnectFragmentTest {
 
         val settingValue = showingInfo.get()
         listOf(settingValue, !settingValue, settingValue).forEachIndexed { index, showing ->
-            sleep(500L)
+            val hasNetwork = if (showing) {
+                // Wait for the connection info to load
+                var info: ConnectionInfo?
+                do {
+                    info = Konnection.instance.getInfo()
+                } while (info == null)
+                !info.ipv4.isNullOrBlank()
+            } else {
+                false
+            }
 
             if (index != 0) {
                 SettingsFragmentTest.openSettingsMenu()
