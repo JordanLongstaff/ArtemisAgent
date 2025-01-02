@@ -66,6 +66,3 @@ jobs:
         emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
         script: ./gradlew connectedCheck
-
-    - name: Get Device Info
-      run: adb devices -l | grep emulator
