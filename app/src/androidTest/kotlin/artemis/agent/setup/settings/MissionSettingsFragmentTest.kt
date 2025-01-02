@@ -1,9 +1,9 @@
 package artemis.agent.setup.settings
 
 import androidx.activity.viewModels
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
@@ -24,14 +24,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 @LargeTest
 class MissionSettingsFragmentTest {
     @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun missionSettingsTest() {
         val missionsEnabled = AtomicBoolean()
         val autoDismissal = AtomicBoolean()
         val rewardsEnabled = Array(RewardType.entries.size) { AtomicBoolean() }
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             missionsEnabled.lazySet(viewModel.missionsEnabled)
             autoDismissal.lazySet(viewModel.autoDismissCompletedMissions)
