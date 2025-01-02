@@ -43,6 +43,7 @@ import artemis.agent.setup.SetupFragment
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.crashlytics.setCustomKeys
 import com.walkertribe.ian.iface.DisconnectCause
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
@@ -427,9 +428,12 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
-        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+
+        val crashlytics = FirebaseCrashlytics.getInstance()
+        crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
 
         with(viewModel) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -571,11 +575,17 @@ class MainActivity : AppCompatActivity() {
                 var suggestUpdate = false
                 val message = when (it) {
                     is DisconnectCause.IOError -> {
-                        FirebaseCrashlytics.getInstance().recordException(it.exception)
+                        crashlytics.recordException(it.exception)
                         getString(R.string.disconnect_io_error, it.exception.message)
                     }
                     is DisconnectCause.PacketParseError -> {
-                        FirebaseCrashlytics.getInstance().recordException(it.exception)
+                        val ex = it.exception
+                        crashlytics.setCustomKeys {
+                            key("Version", viewModel.version.toString())
+                            key("Packet type", ex.packetType.toHexString())
+                            key("Payload", ex.payload?.toHexString() ?: "[]")
+                        }
+                        crashlytics.recordException(ex)
                         getString(R.string.disconnect_parse, it.exception.message)
                     }
                     is DisconnectCause.RemoteDisconnect -> {
@@ -597,7 +607,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     is DisconnectCause.UnknownError -> {
-                        FirebaseCrashlytics.getInstance().recordException(it.throwable)
+                        crashlytics.recordException(it.throwable)
                         getString(R.string.disconnect_unknown_error, it.throwable.message)
                     }
                     is DisconnectCause.LocalDisconnect -> return@collectLatestWhileStarted
