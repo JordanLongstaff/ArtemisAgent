@@ -152,6 +152,7 @@
     <string name="exit_message">You will be disconnected from the server. Confirm exit?</string>
     <string name="failed_to_connect">Failed to connect</string>
     <string name="fighters">Fighters</string>
+    <string name="finding_network">Finding network…</string>
     <string name="freeze_duration">Freeze duration</string>
     <string name="friendly">Friendly</string>
     <string name="front_shield">F %1$.0f/%2$.0f</string>
