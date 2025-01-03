@@ -30,6 +30,7 @@ class NotificationManager(context: Context) {
                     CHANNEL_GAME_INFO,
                     R.string.channel_game_info,
                     NotificationManagerCompat.IMPORTANCE_LOW,
+                    true,
                 ),
                 NotificationChannelSetup(
                     CHANNEL_GAME_OVER,
@@ -121,7 +122,9 @@ class NotificationManager(context: Context) {
             groupSetups.flatMap { group ->
                 group.channels.map {
                     NotificationChannelCompat.Builder(it.id, it.importance)
-                        .setGroup(group.id).setName(context.getString(it.nameID))
+                        .setGroup(group.id)
+                        .setName(context.getString(it.nameID))
+                        .setShowBadge(it.shouldShowBadge)
                         .build()
                 }
             }
@@ -202,6 +205,7 @@ class NotificationManager(context: Context) {
         val id: String,
         @StringRes val nameID: Int,
         val importance: Int,
+        val shouldShowBadge: Boolean = false,
     )
 
     class NotificationChannelGroupSetup(
