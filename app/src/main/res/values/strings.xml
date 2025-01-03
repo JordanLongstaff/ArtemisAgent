@@ -1,6 +1,9 @@
 <resources>
     <string name="actions">Actions</string>
     <string name="active">Active</string>
+    <string name="add_one_minute">Add one minute</string>
+    <string name="add_one_second">Add one second</string>
+    <string name="add_ten_seconds">Add ten seconds</string>
     <string name="address">Address</string>
     <string name="adjust_10_degrees">10</string>
     <string name="adjust_25_degrees">25</string>
@@ -655,6 +658,9 @@
     <string name="station_speed">Speed factor %1$.1f</string>
     <string name="status">Status</string>
     <string name="stock_of_ordnance">%1$d of %2$s</string>
+    <string name="subtract_one_minute">Subtract one minute</string>
+    <string name="subtract_one_second">Subtract one second</string>
+    <string name="subtract_ten_seconds">Subtract ten seconds</string>
     <string name="supplies">Supplies</string>
     <string name="surrender">Surrender</string>
     <string name="surrender_range">Surrender range</string>
