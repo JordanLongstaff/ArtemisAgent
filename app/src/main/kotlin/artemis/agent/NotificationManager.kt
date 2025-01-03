@@ -42,6 +42,11 @@ class NotificationManager(context: Context) {
                     R.string.channel_connection,
                     NotificationManagerCompat.IMPORTANCE_HIGH,
                 ),
+                NotificationChannelSetup(
+                    CHANNEL_BORDER_WAR,
+                    R.string.channel_border_war,
+                    NotificationManagerCompat.IMPORTANCE_HIGH,
+                ),
             ),
             NotificationChannelGroupSetup(
                 CHANNEL_GROUP_STATION,
@@ -225,6 +230,7 @@ class NotificationManager(context: Context) {
         const val CHANNEL_GAME_INFO = "game info"
         const val CHANNEL_CONNECTION = "connection"
         const val CHANNEL_GAME_OVER = "game over"
+        const val CHANNEL_BORDER_WAR = "border war"
         const val CHANNEL_DEEP_STRIKE = "deep strike"
         const val CHANNEL_NEW_MISSION = "new mission"
         const val CHANNEL_MISSION_PROGRESS = "mission progress"

@@ -173,6 +173,9 @@ class AgentViewModel(application: Application) :
         )
     }
     val borderWarStatus: MutableStateFlow<WarStatus> by lazy { MutableStateFlow(WarStatus.TENSION) }
+    val borderWarMessage: MutableSharedFlow<CommsIncomingPacket> by lazy {
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
     val gameOverReason: MutableSharedFlow<String> by lazy {
         MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }

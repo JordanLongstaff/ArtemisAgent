@@ -266,6 +266,17 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
+            service.collectLatestWhileStarted(viewModel.borderWarMessage) { packet ->
+                buildNotification(
+                    channelId = NotificationManager.CHANNEL_BORDER_WAR,
+                    title = packet.sender,
+                    message = packet.message,
+                    onIntent = {
+                        putExtra(Section.GAME.name, GAME_PAGE_UNSPECIFIED)
+                    }
+                )
+            }
+
             service.collectLatestWhileStarted(viewModel.disconnectCause) { cause ->
                 val message = when (cause) {
                     is DisconnectCause.UnsupportedVersion ->

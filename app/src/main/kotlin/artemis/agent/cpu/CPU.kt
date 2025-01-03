@@ -584,18 +584,16 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun parseWarStatus(packet: CommsIncomingPacket): Boolean {
+        if (packet.sender != TSNCOM) return false
+
         val message = packet.message
-        return when {
-            packet.sender != TSNCOM -> false
-            message.startsWith(WAR_WARNING) -> {
-                viewModel.borderWarStatus.value = WarStatus.WARNING
-                true
-            }
-            message.startsWith(WAR_DECLARED) -> {
-                viewModel.borderWarStatus.value = WarStatus.DECLARED
-                true
-            }
-            else -> false
+        val status = WarStatus.entries.last { message.startsWith(WAR_MESSAGES[it.ordinal]) }
+        return if (status == WarStatus.TENSION) {
+            false
+        } else {
+            viewModel.borderWarStatus.value = status
+            viewModel.borderWarMessage.tryEmit(packet)
+            true
         }
     }
 
@@ -1312,6 +1310,12 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             ATTACK_2,
             ATTACK_3,
             ATTACK_4,
+        )
+
+        val WAR_MESSAGES = arrayOf(
+            "",
+            WAR_WARNING,
+            WAR_DECLARED,
         )
 
         const val DEEP_STRIKE_TORPEDO_BUILD_TIME = 300_000L
