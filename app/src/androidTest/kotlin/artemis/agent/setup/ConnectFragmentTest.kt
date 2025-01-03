@@ -12,6 +12,7 @@ import artemis.agent.R
 import artemis.agent.setup.settings.SettingsFragmentTest
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertEnabled
+import com.adevinta.android.barista.assertion.BaristaHintAssertions.assertHint
 import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
@@ -19,7 +20,6 @@ import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.clearText
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.writeTo
 import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
-import dev.tmapps.konnection.ConnectionInfo
 import dev.tmapps.konnection.Konnection
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -68,6 +68,7 @@ class ConnectFragmentTest {
     @Test
     fun addressBarTest() {
         clearText(R.id.addressBar)
+        assertHint(R.id.addressBar, R.string.address)
         assertDisabled(R.id.connectButton)
 
         assertDisplayed(R.id.connectLabel, R.string.not_connected)
