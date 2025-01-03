@@ -80,7 +80,7 @@ sealed class UnobservedObjectParser(
 
     abstract fun getByteCounts(version: Version): IntArray
 
-    override fun parseDsl(reader: PacketReader): Nothing? {
+    final override fun parseDsl(reader: PacketReader): Nothing? {
         byteCounts.forEachIndexed { bitIndex, byteCount ->
             if (byteCount == S) {
                 reader.readString(bitIndex)
