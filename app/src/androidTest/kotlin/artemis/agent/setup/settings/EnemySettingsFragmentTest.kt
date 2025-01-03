@@ -88,7 +88,7 @@ class EnemySettingsFragmentTest {
             SettingsFragmentTest.closeSettingsSubMenu(usingToggle = !usingToggle)
             testEnemySubMenuClosed(usingToggle)
 
-            if (!usingToggle) {
+            if (usingToggle) {
                 SettingsFragmentTest.openSettingsSubMenu(
                     index = ENTRY_INDEX,
                     usingToggle = false,

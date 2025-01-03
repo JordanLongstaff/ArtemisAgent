@@ -79,7 +79,7 @@ class RoutingSettingsFragmentTest {
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
             testRoutingSubMenuClosed(usingToggle)
 
-            if (!usingToggle) {
+            if (usingToggle) {
                 SettingsFragmentTest.openSettingsSubMenu(
                     index = ENTRY_INDEX,
                     usingToggle = false,

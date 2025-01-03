@@ -54,7 +54,7 @@ class MissionSettingsFragmentTest {
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
             testMissionsSubMenuClosed(usingToggle)
 
-            if (!usingToggle) {
+            if (usingToggle) {
                 SettingsFragmentTest.openSettingsSubMenu(
                     index = ENTRY_INDEX,
                     usingToggle = false,

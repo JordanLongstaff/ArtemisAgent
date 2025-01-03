@@ -62,7 +62,7 @@ class BiomechSettingsFragmentTest {
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
             testBiomechsSubMenuClosed(usingToggle)
 
-            if (!usingToggle) {
+            if (usingToggle) {
                 SettingsFragmentTest.openSettingsSubMenu(
                     index = ENTRY_INDEX,
                     usingToggle = false,

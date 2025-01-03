@@ -73,7 +73,7 @@ class AllySettingsFragmentTest {
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
             testAlliesSubMenuClosed(usingToggle)
 
-            if (!usingToggle) {
+            if (usingToggle) {
                 SettingsFragmentTest.openSettingsSubMenu(
                     index = ENTRY_INDEX,
                     usingToggle = false,
