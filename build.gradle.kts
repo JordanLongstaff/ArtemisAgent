@@ -46,6 +46,7 @@ plugins {
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.dependency.analysis)
     alias(libs.plugins.task.tree)
+    alias(libs.plugins.git.hooks)
 }
 
 tasks.detekt {
@@ -60,4 +61,8 @@ detekt {
     toolVersion = libs.versions.detekt.get()
     basePath = projectDir.toString()
     parallel = true
+}
+
+gitHooks {
+    setHooks(mapOf("pre-commit" to "detekt detektTest detektTestFixtures :IAN:konsistCollect :app:konsist:test"))
 }

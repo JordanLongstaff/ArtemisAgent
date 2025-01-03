@@ -22,6 +22,7 @@ dependency-analysis = "2.6.1"
 desugar = "2.1.4"
 detekt = "1.23.7"
 firebase-bom = "33.7.0"
+git-hooks = "0.0.2"
 google-services = "4.4.2"
 gradle = "8.7.3"
 gradle-pitest = "1.15.0"
@@ -400,6 +401,7 @@ arcmutate = [
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
