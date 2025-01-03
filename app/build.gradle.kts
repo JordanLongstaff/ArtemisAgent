@@ -24,7 +24,7 @@ android {
         applicationId = "artemis.agent"
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 15
+        versionCode = 16
         versionName = "1.0.6"
         multiDexEnabled = true
 

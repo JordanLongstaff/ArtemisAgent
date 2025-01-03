@@ -390,6 +390,10 @@
             device. Here are the types of notifications you might receive:\n
         </item>
         <item>
+            \u2022 Border war: Sent when a warning or declaration of war is issued in Border War
+            mode.\n
+        </item>
+        <item>
             \u2022 Connection: Reports the status of your connection, whether the server\'s
             heartbeat was lost, or the cause of a disconnect.\n
         </item>
