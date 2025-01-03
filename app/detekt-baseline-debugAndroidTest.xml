@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>LongMethod:EnemySettingsFragmentTest.kt$EnemySettingsFragmentTest$@Test fun enemySettingsTest()</ID>
+  </CurrentIssues>
+</SmellBaseline>
