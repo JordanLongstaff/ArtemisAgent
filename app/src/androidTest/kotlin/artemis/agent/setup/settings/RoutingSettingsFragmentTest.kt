@@ -41,13 +41,13 @@ class RoutingSettingsFragmentTest {
             val viewModel = activity.viewModels<AgentViewModel>().value
             routingEnabled.lazySet(viewModel.routingEnabled)
 
-            arrayOf(
+            booleanArrayOf(
                 viewModel.avoidBlackHoles,
                 viewModel.avoidMines,
                 viewModel.avoidTyphons,
             ).forEachIndexed { index, avoid -> avoidances[index].lazySet(avoid) }
 
-            arrayOf(
+            floatArrayOf(
                 viewModel.blackHoleClearance,
                 viewModel.mineClearance,
                 viewModel.typhonClearance,
