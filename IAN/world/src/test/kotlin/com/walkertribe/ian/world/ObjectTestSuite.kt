@@ -140,7 +140,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
     ) {
         suspend fun testPartiallyUpdatedObject(test: (AO) -> Unit) {
             checkAll(objectGen, propGen) { obj, value ->
-                dslProperty.setter.call(value)
+                dslProperty.set(value)
                 dsl updates obj
                 obj.hasData.shouldBeTrue()
                 test(obj)

@@ -55,7 +55,6 @@ dependencies {
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
-    testRuntimeOnly(libs.kotlin.reflect)
 
     pitest(libs.bundles.arcmutate)
 }
