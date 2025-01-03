@@ -68,7 +68,7 @@ class RoutingSettingsFragmentTest {
         val clearanceValues = clearances.map { it.get() }.toIntArray()
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(6, usingToggle, true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testRoutingSubMenuOpen(
                 incentivesEnabled,
                 avoidancesEnabled,
@@ -77,7 +77,24 @@ class RoutingSettingsFragmentTest {
             )
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testRoutingSubMenuClosed()
+            testRoutingSubMenuClosed(usingToggle)
+
+            if (!usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testRoutingSubMenuOpen(
+                    incentivesEnabled,
+                    avoidancesEnabled,
+                    clearanceValues,
+                    false,
+                )
+
+                SettingsFragmentTest.backFromSubMenu()
+                testRoutingSubMenuClosed(true)
+            }
         }
     }
 
@@ -90,6 +107,8 @@ class RoutingSettingsFragmentTest {
     )
 
     private companion object {
+        const val ENTRY_INDEX = 6
+
         val routingIncentiveSettings = arrayOf(
             GroupedToggleButtonSetting(
                 R.id.incentivesNeedsEnergyButton,
@@ -235,7 +254,7 @@ class RoutingSettingsFragmentTest {
             }
         }
 
-        fun testRoutingSubMenuClosed() {
+        fun testRoutingSubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.incentivesTitle)
             assertNotExist(R.id.incentivesAllButton)
             assertNotExist(R.id.incentivesNoneButton)
@@ -253,6 +272,8 @@ class RoutingSettingsFragmentTest {
                 assertNotExist(it.input)
                 assertNotExist(it.kmLabel)
             }
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
     }
 }

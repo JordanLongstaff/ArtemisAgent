@@ -38,58 +38,82 @@ class PersonalSettingsFragmentTest {
         }
 
         SettingsFragmentTest.openSettingsMenu()
-        SettingsFragmentTest.openSettingsSubMenu(7)
 
-        scrollTo(R.id.themeDivider)
-        assertDisplayed(R.id.themeTitle, R.string.theme)
-        assertDisplayed(R.id.themeSelector)
-        assertDisplayed(R.id.themeDefaultButton, R.string.default_setting)
-        assertDisplayed(R.id.themeRedButton)
-        assertDisplayed(R.id.themeGreenButton)
-        assertDisplayed(R.id.themeYellowButton)
-        assertDisplayed(R.id.themeBlueButton)
-        assertDisplayed(R.id.themePurpleButton)
+        listOf(
+            { SettingsFragmentTest.closeSettingsSubMenu() },
+            { SettingsFragmentTest.backFromSubMenu() },
+        ).forEachIndexed { index, closeSubMenu ->
+            SettingsFragmentTest.openSettingsSubMenu(7)
+            testPersonalSubMenuOpen(
+                threeDigits.get(),
+                soundVolume.get(),
+                index == 0,
+            )
 
-        scrollTo(R.id.threeDigitDirectionsDivider)
-        assertDisplayed(R.id.threeDigitDirectionsTitle, R.string.three_digit_directions)
-        assertDisplayed(R.id.threeDigitDirectionsButton)
-        assertDisplayed(R.id.threeDigitDirectionsLabel)
-        assertChecked(R.id.threeDigitDirectionsButton, threeDigits.get())
-
-        scrollTo(R.id.soundVolumeDivider)
-        assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
-        assertDisplayed(R.id.soundVolumeBar)
-        assertProgress(R.id.soundVolumeBar, soundVolume.get())
-        assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
-
-        val volumeTests = List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume.get()
-        volumeTests.forEach { volume ->
-            setProgressTo(R.id.soundVolumeBar, volume)
-            assertDisplayed(R.id.soundVolumeLabel, volume.toString())
+            closeSubMenu()
+            testPersonalSubMenuClosed()
         }
-
-        SettingsFragmentTest.closeSettingsSubMenu()
-        assertNotExist(R.id.themeTitle)
-        assertNotExist(R.id.themeSelector)
-        assertNotExist(R.id.themeDefaultButton)
-        assertNotExist(R.id.themeRedButton)
-        assertNotExist(R.id.themeGreenButton)
-        assertNotExist(R.id.themeYellowButton)
-        assertNotExist(R.id.themeBlueButton)
-        assertNotExist(R.id.themePurpleButton)
-        assertNotExist(R.id.themeDivider)
-        assertNotExist(R.id.threeDigitDirectionsTitle)
-        assertNotExist(R.id.threeDigitDirectionsButton)
-        assertNotExist(R.id.threeDigitDirectionsLabel)
-        assertNotExist(R.id.threeDigitDirectionsDivider)
-        assertNotExist(R.id.soundVolumeTitle)
-        assertNotExist(R.id.soundVolumeBar)
-        assertNotExist(R.id.soundVolumeLabel)
-        assertNotExist(R.id.soundVolumeDivider)
     }
 
     private companion object {
         const val VOLUME_TEST_COUNT = 20
         const val MAX_VOLUME = 101
+
+        fun testPersonalSubMenuOpen(
+            isThreeDigitsOn: Boolean,
+            soundVolume: Int,
+            shouldTestVolumeBar: Boolean,
+        ) {
+            scrollTo(R.id.themeDivider)
+            assertDisplayed(R.id.themeTitle, R.string.theme)
+            assertDisplayed(R.id.themeSelector)
+            assertDisplayed(R.id.themeDefaultButton, R.string.default_setting)
+            assertDisplayed(R.id.themeRedButton)
+            assertDisplayed(R.id.themeGreenButton)
+            assertDisplayed(R.id.themeYellowButton)
+            assertDisplayed(R.id.themeBlueButton)
+            assertDisplayed(R.id.themePurpleButton)
+
+            scrollTo(R.id.threeDigitDirectionsDivider)
+            assertDisplayed(R.id.threeDigitDirectionsTitle, R.string.three_digit_directions)
+            assertDisplayed(R.id.threeDigitDirectionsButton)
+            assertDisplayed(R.id.threeDigitDirectionsLabel)
+            assertChecked(R.id.threeDigitDirectionsButton, isThreeDigitsOn)
+
+            scrollTo(R.id.soundVolumeDivider)
+            assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
+            assertDisplayed(R.id.soundVolumeBar)
+            assertProgress(R.id.soundVolumeBar, soundVolume)
+            assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
+
+            if (shouldTestVolumeBar) {
+                val volumeTests =
+                    List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume
+                volumeTests.forEach { volume ->
+                    setProgressTo(R.id.soundVolumeBar, volume)
+                    assertDisplayed(R.id.soundVolumeLabel, volume.toString())
+                }
+            }
+        }
+
+        fun testPersonalSubMenuClosed() {
+            assertNotExist(R.id.themeTitle)
+            assertNotExist(R.id.themeSelector)
+            assertNotExist(R.id.themeDefaultButton)
+            assertNotExist(R.id.themeRedButton)
+            assertNotExist(R.id.themeGreenButton)
+            assertNotExist(R.id.themeYellowButton)
+            assertNotExist(R.id.themeBlueButton)
+            assertNotExist(R.id.themePurpleButton)
+            assertNotExist(R.id.themeDivider)
+            assertNotExist(R.id.threeDigitDirectionsTitle)
+            assertNotExist(R.id.threeDigitDirectionsButton)
+            assertNotExist(R.id.threeDigitDirectionsLabel)
+            assertNotExist(R.id.threeDigitDirectionsDivider)
+            assertNotExist(R.id.soundVolumeTitle)
+            assertNotExist(R.id.soundVolumeBar)
+            assertNotExist(R.id.soundVolumeLabel)
+            assertNotExist(R.id.soundVolumeDivider)
+        }
     }
 }

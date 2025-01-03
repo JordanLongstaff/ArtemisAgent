@@ -39,16 +39,22 @@ class ClientSettingsFragmentTest {
         }
 
         SettingsFragmentTest.openSettingsMenu()
-        SettingsFragmentTest.openSettingsSubMenu(0)
-        testClientSubMenuOpen(
-            externalVesselDataCount.get(),
-            expectedPort.toString(),
-            expectedUpdateInterval.toString(),
-            showingInfo.get(),
-        )
 
-        SettingsFragmentTest.closeSettingsSubMenu()
-        testClientSubMenuClosed()
+        listOf(
+            { SettingsFragmentTest.closeSettingsSubMenu() },
+            { SettingsFragmentTest.backFromSubMenu() },
+        ).forEach { closeSubMenu ->
+            SettingsFragmentTest.openSettingsSubMenu(0)
+            testClientSubMenuOpen(
+                externalVesselDataCount.get(),
+                expectedPort.toString(),
+                expectedUpdateInterval.toString(),
+                showingInfo.get(),
+            )
+
+            closeSubMenu()
+            testClientSubMenuClosed()
+        }
     }
 
     private companion object {

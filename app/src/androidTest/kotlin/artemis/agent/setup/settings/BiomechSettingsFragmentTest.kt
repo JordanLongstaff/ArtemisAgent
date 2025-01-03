@@ -56,15 +56,29 @@ class BiomechSettingsFragmentTest {
         )
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(5, usingToggle, true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testBiomechsSubMenuOpen(sortSettings, !usingToggle)
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testBiomechsSubMenuClosed()
+            testBiomechsSubMenuClosed(usingToggle)
+
+            if (!usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testBiomechsSubMenuOpen(sortSettings, false)
+
+                SettingsFragmentTest.backFromSubMenu()
+                testBiomechsSubMenuClosed(true)
+            }
         }
     }
 
     private companion object {
+        const val ENTRY_INDEX = 5
+
         val biomechSortMethodSettings = arrayOf(
             GroupedToggleButtonSetting(
                 R.id.biomechSortingClassButton1,
@@ -92,7 +106,7 @@ class BiomechSettingsFragmentTest {
             assertDisplayed(R.id.freezeDurationTimeInput)
         }
 
-        fun testBiomechsSubMenuClosed() {
+        fun testBiomechsSubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.biomechSortingTitle)
             assertNotExist(R.id.biomechSortingDefaultButton)
             biomechSortMethodSettings.forEach { assertNotExist(it.button) }
@@ -100,6 +114,8 @@ class BiomechSettingsFragmentTest {
             assertNotExist(R.id.freezeDurationTitle)
             assertNotExist(R.id.freezeDurationTimeInput)
             assertNotExist(R.id.freezeDurationDivider)
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
 
         fun testBiomechSubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {

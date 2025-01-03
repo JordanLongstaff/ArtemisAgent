@@ -11,10 +11,12 @@ import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChe
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertEnabled
+import com.adevinta.android.barista.assertion.BaristaListAssertions.assertDisplayedAtPosition
 import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
+import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickBack
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItem
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItemChild
@@ -70,12 +72,26 @@ class SettingsFragmentTest {
             assertSettingsMainMenuDisplayed()
         }
 
+        fun backFromSubMenu() {
+            clickBack()
+            assertSettingsMainMenuDisplayed()
+        }
+
         private fun assertSettingsMainMenuDisplayed() {
             assertDisplayed(R.id.settingsPageTitle, R.string.settings)
             assertNotDisplayed(R.id.settingsBack)
 
             assertDisplayed(R.id.settingsPageMenu)
             assertRecyclerViewItemCount(R.id.settingsPageMenu, pageTitles.size)
+        }
+
+        fun assertSettingsMenuEntryToggleState(index: Int, isOn: Boolean) {
+            assertDisplayedAtPosition(
+                R.id.settingsPageMenu,
+                index,
+                R.id.settingsEntryToggle,
+                if (isOn) R.string.on else R.string.off,
+            )
         }
 
         fun testSettingsWithAllAndNone(

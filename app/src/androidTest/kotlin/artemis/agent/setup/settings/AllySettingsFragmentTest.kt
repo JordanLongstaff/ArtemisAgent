@@ -67,15 +67,29 @@ class AllySettingsFragmentTest {
         )
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(3, usingToggle, true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testAlliesSubMenuOpen(sortSettings, !usingToggle, showDestroyed, manualReturn)
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testAlliesSubMenuClosed()
+            testAlliesSubMenuClosed(usingToggle)
+
+            if (!usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testAlliesSubMenuOpen(sortSettings, false, showDestroyed, manualReturn)
+
+                SettingsFragmentTest.backFromSubMenu()
+                testAlliesSubMenuClosed(true)
+            }
         }
     }
 
     private companion object {
+        const val ENTRY_INDEX = 3
+
         val allySortMethodSettings = arrayOf(
             GroupedToggleButtonSetting(
                 R.id.allySortingClassButton1,
@@ -127,12 +141,14 @@ class AllySettingsFragmentTest {
             ).forEach { (setting, isChecked) -> setting.testSingleToggle(isChecked) }
         }
 
-        fun testAlliesSubMenuClosed() {
+        fun testAlliesSubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.allySortingTitle)
             assertNotExist(R.id.allySortingDefaultButton)
             allySortMethodSettings.forEach { assertNotExist(it.button) }
             assertNotExist(R.id.allySortingDivider)
             allySingleToggleSettings.forEach { it.testNotExist() }
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
 
         fun testAllySubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {

@@ -48,15 +48,29 @@ class MissionSettingsFragmentTest {
         val rewardValues = rewardsEnabled.map { it.get() }.toBooleanArray()
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(2, usingToggle, true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testMissionsSubMenuOpen(autoDismissalOn, rewardValues, !usingToggle)
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testMissionsSubMenuClosed()
+            testMissionsSubMenuClosed(usingToggle)
+
+            if (!usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testMissionsSubMenuOpen(autoDismissalOn, rewardValues, false)
+
+                SettingsFragmentTest.backFromSubMenu()
+                testMissionsSubMenuClosed(true)
+            }
         }
     }
 
     private companion object {
+        const val ENTRY_INDEX = 2
+
         val rewardSettings = arrayOf(
             GroupedToggleButtonSetting(R.id.rewardsBatteryButton, R.string.mission_battery),
             GroupedToggleButtonSetting(R.id.rewardsCoolantButton, R.string.mission_coolant),
@@ -119,7 +133,7 @@ class MissionSettingsFragmentTest {
             }
         }
 
-        fun testMissionsSubMenuClosed() {
+        fun testMissionsSubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.rewardsTitle)
             assertNotExist(R.id.rewardsAllButton)
             assertNotExist(R.id.rewardsNoneButton)
@@ -130,6 +144,8 @@ class MissionSettingsFragmentTest {
             assertNotExist(R.id.autoDismissalTimeInput)
             assertNotExist(R.id.autoDismissalSecondsLabel)
             assertNotExist(R.id.autoDismissalDivider)
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
     }
 }

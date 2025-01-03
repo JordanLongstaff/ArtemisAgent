@@ -75,7 +75,7 @@ class EnemySettingsFragmentTest {
         )
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(4, usingToggle = usingToggle, toggleDisplayed = true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testEnemySubMenuOpen(
                 sortSettings,
                 surrenderRange.takeIf { it >= 0 },
@@ -86,11 +86,32 @@ class EnemySettingsFragmentTest {
             )
 
             SettingsFragmentTest.closeSettingsSubMenu(usingToggle = !usingToggle)
-            testEnemySubMenuClosed()
+            testEnemySubMenuClosed(usingToggle)
+
+            if (!usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testEnemySubMenuOpen(
+                    sortSettings,
+                    surrenderRange.takeIf { it >= 0 },
+                    false,
+                    intel,
+                    tauntStatuses,
+                    disableIneffective,
+                )
+
+                SettingsFragmentTest.backFromSubMenu()
+                testEnemySubMenuClosed(true)
+            }
         }
     }
 
     private companion object {
+        const val ENTRY_INDEX = 4
+
         val enemySortMethodSettings = arrayOf(
             GroupedToggleButtonSetting(
                 R.id.enemySortingSurrenderButton,
@@ -145,7 +166,7 @@ class EnemySettingsFragmentTest {
             }
         }
 
-        fun testEnemySubMenuClosed() {
+        fun testEnemySubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.enemySortingTitle)
             assertNotExist(R.id.enemySortingDefaultButton)
             enemySortMethodSettings.forEach { assertNotExist(it.button) }
@@ -159,6 +180,8 @@ class EnemySettingsFragmentTest {
             assertNotExist(R.id.surrenderRangeInfinity)
             assertNotExist(R.id.surrenderRangeDivider)
             enemySingleToggleSettings.forEach { it.testNotExist() }
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
 
         fun testEnemySubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {

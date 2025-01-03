@@ -31,39 +31,45 @@ class ConnectionSettingsFragmentTest {
         }
 
         SettingsFragmentTest.openSettingsMenu()
-        SettingsFragmentTest.openSettingsSubMenu(1)
 
-        scrollTo(R.id.connectionTimeoutDivider)
-        assertDisplayed(R.id.connectionTimeoutTitle, R.string.connection_timeout)
-        assertDisplayed(R.id.connectionTimeoutTimeInput)
-        assertDisplayed(R.id.connectionTimeoutSecondsLabel, R.string.seconds)
+        listOf(
+            { SettingsFragmentTest.closeSettingsSubMenu() },
+            { SettingsFragmentTest.backFromSubMenu() },
+        ).forEach { closeSubMenu ->
+            SettingsFragmentTest.openSettingsSubMenu(1)
 
-        scrollTo(R.id.heartbeatTimeoutDivider)
-        assertDisplayed(R.id.heartbeatTimeoutTitle, R.string.heartbeat_timeout)
-        assertDisplayed(R.id.heartbeatTimeoutTimeInput)
-        assertDisplayed(R.id.heartbeatTimeoutSecondsLabel, R.string.seconds)
+            scrollTo(R.id.connectionTimeoutDivider)
+            assertDisplayed(R.id.connectionTimeoutTitle, R.string.connection_timeout)
+            assertDisplayed(R.id.connectionTimeoutTimeInput)
+            assertDisplayed(R.id.connectionTimeoutSecondsLabel, R.string.seconds)
 
-        scrollTo(R.id.scanTimeoutDivider)
-        assertDisplayed(R.id.scanTimeoutTitle, R.string.scan_timeout)
-        assertDisplayed(R.id.scanTimeoutTimeInput)
-        assertDisplayed(R.id.scanTimeoutSecondsLabel, R.string.seconds)
+            scrollTo(R.id.heartbeatTimeoutDivider)
+            assertDisplayed(R.id.heartbeatTimeoutTitle, R.string.heartbeat_timeout)
+            assertDisplayed(R.id.heartbeatTimeoutTimeInput)
+            assertDisplayed(R.id.heartbeatTimeoutSecondsLabel, R.string.seconds)
 
-        alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
+            scrollTo(R.id.scanTimeoutDivider)
+            assertDisplayed(R.id.scanTimeoutTitle, R.string.scan_timeout)
+            assertDisplayed(R.id.scanTimeoutTimeInput)
+            assertDisplayed(R.id.scanTimeoutSecondsLabel, R.string.seconds)
 
-        SettingsFragmentTest.closeSettingsSubMenu()
-        assertNotExist(R.id.connectionTimeoutTitle)
-        assertNotExist(R.id.connectionTimeoutTimeInput)
-        assertNotExist(R.id.connectionTimeoutSecondsLabel)
-        assertNotExist(R.id.connectionTimeoutDivider)
-        assertNotExist(R.id.heartbeatTimeoutTitle)
-        assertNotExist(R.id.heartbeatTimeoutTimeInput)
-        assertNotExist(R.id.heartbeatTimeoutSecondsLabel)
-        assertNotExist(R.id.heartbeatTimeoutDivider)
-        assertNotExist(R.id.scanTimeoutTitle)
-        assertNotExist(R.id.scanTimeoutTimeInput)
-        assertNotExist(R.id.scanTimeoutSecondsLabel)
-        assertNotExist(R.id.scanTimeoutDivider)
-        alwaysScanPublicToggleSetting.testNotExist()
+            alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
+
+            closeSubMenu()
+            assertNotExist(R.id.connectionTimeoutTitle)
+            assertNotExist(R.id.connectionTimeoutTimeInput)
+            assertNotExist(R.id.connectionTimeoutSecondsLabel)
+            assertNotExist(R.id.connectionTimeoutDivider)
+            assertNotExist(R.id.heartbeatTimeoutTitle)
+            assertNotExist(R.id.heartbeatTimeoutTimeInput)
+            assertNotExist(R.id.heartbeatTimeoutSecondsLabel)
+            assertNotExist(R.id.heartbeatTimeoutDivider)
+            assertNotExist(R.id.scanTimeoutTitle)
+            assertNotExist(R.id.scanTimeoutTimeInput)
+            assertNotExist(R.id.scanTimeoutSecondsLabel)
+            assertNotExist(R.id.scanTimeoutDivider)
+            alwaysScanPublicToggleSetting.testNotExist()
+        }
     }
 
     private companion object {

@@ -9,6 +9,7 @@ import com.adevinta.android.barista.assertion.BaristaListAssertions.assertDispla
 import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
+import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickBack
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import org.junit.Rule
 import org.junit.Test
@@ -17,6 +18,19 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class HelpFragmentTest {
+    @get:Rule
+    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+
+    @Test
+    fun menuOptionsTest() {
+        testHelpFragment { clickOn(R.id.backButton) }
+    }
+
+    @Test
+    fun backButtonTest() {
+        testHelpFragment { clickBack() }
+    }
+
     private companion object {
         val helpTopics = arrayOf(
             R.string.help_topics_getting_started to 8,
@@ -30,38 +44,33 @@ class HelpFragmentTest {
             R.string.help_topics_notifications to 15,
             R.string.help_topics_about to 5,
         )
-    }
 
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
-
-    private fun assertHelpMenuDisplayed() {
-        assertNotDisplayed(R.id.helpTopicTitle)
-        assertNotDisplayed(R.id.backButton)
-        assertDisplayed(R.id.helpTopicContent)
-        assertRecyclerViewItemCount(R.id.helpTopicContent, helpTopics.size)
-
-        helpTopics.forEachIndexed { index, (res, _) ->
-            assertDisplayedAtPosition(R.id.helpTopicContent, index, res)
-        }
-    }
-
-    @Test
-    fun menuOptionsTest() {
-        clickOn(R.id.helpPageButton)
-        assertHelpMenuDisplayed()
-
-        helpTopics.forEach { (stringRes, itemCount) ->
-            clickOn(stringRes)
-
-            assertDisplayed(R.id.helpTopicTitle, stringRes)
-            assertDisplayed(R.id.backButton)
+        fun assertHelpMenuDisplayed() {
+            assertNotDisplayed(R.id.helpTopicTitle)
+            assertNotDisplayed(R.id.backButton)
             assertDisplayed(R.id.helpTopicContent)
-            assertRecyclerViewItemCount(R.id.helpTopicContent, itemCount)
+            assertRecyclerViewItemCount(R.id.helpTopicContent, helpTopics.size)
 
-            clickOn(R.id.backButton)
+            helpTopics.forEachIndexed { index, (res, _) ->
+                assertDisplayedAtPosition(R.id.helpTopicContent, index, res)
+            }
+        }
 
+        fun testHelpFragment(goBack: () -> Unit) {
+            clickOn(R.id.helpPageButton)
             assertHelpMenuDisplayed()
+
+            helpTopics.forEach { (stringRes, itemCount) ->
+                clickOn(stringRes)
+
+                assertDisplayed(R.id.helpTopicTitle, stringRes)
+                assertDisplayed(R.id.backButton)
+                assertDisplayed(R.id.helpTopicContent)
+                assertRecyclerViewItemCount(R.id.helpTopicContent, itemCount)
+
+                goBack()
+                assertHelpMenuDisplayed()
+            }
         }
     }
 }
