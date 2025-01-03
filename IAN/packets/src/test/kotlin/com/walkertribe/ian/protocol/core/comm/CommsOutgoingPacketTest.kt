@@ -29,10 +29,10 @@ class CommsOutgoingPacketTest : PacketTestSpec.Client<CommsOutgoingPacket>(
                     "ArtemisCreature" to Arb.bind<ArtemisCreature>(),
                     "ArtemisMine" to Arb.bind<ArtemisMine>(),
                     "ArtemisPlayer" to Arb.bind<ArtemisPlayer>(),
-                ) {
+                ) { (_, arbObject) ->
                     castFixtures.distinctBy { it.expectedRecipientType }.forEach { fixture ->
                         checkAll(
-                            it.second,
+                            arbObject,
                             fixture.messageGen,
                         ) { recipient, message ->
                             shouldThrow<IllegalArgumentException> {

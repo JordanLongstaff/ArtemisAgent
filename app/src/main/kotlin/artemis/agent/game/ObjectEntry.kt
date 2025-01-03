@@ -92,7 +92,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
                 startTime = System.currentTimeMillis()
                 field = type
                 if (firstMissile && !midBuild) {
-                    val buildTime = (type.buildTime shl 1) / normalProductionCoefficient / speedFactor
+                    val buildTime =
+                        (type.buildTime shl 1) / normalProductionCoefficient / speedFactor
                     endTime = startTime + buildTime
                 }
                 firstMissile = true

@@ -8,7 +8,7 @@ import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.withContext
 import okio.IOException
 import okio.Path.Companion.toOkioPath
@@ -32,7 +32,7 @@ class PathResolverTest : DescribeSpec({
         }
 
         it("Can create input stream from file") {
-            withContext(Dispatchers.IO) {
+            withContext(StandardTestDispatcher()) {
                 File(tmpDir, "foo").createNewFile()
             }
             val pathResolver = FilePathResolver(tmpDirPath)

@@ -18,6 +18,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.of
 import io.kotest.property.forAll
+import kotlin.time.Duration.Companion.minutes
 
 class OrdnanceTypeTest : DescribeSpec({
     describe("OrdnanceType") {
@@ -34,7 +35,7 @@ class OrdnanceTypeTest : DescribeSpec({
 
         validCodes.size shouldBeEqual OrdnanceType.size
 
-        val legacyTypes = arrayOf(1, 4, 6, 9, 8)
+        val legacyTypes = intArrayOf(1, 4, 6, 9, 8)
         legacyTypes.size shouldBeEqual OrdnanceType.BEACON.ordinal
 
         describe("Infer from three-letter code") {
@@ -177,16 +178,15 @@ class OrdnanceTypeTest : DescribeSpec({
         }
 
         describe("Build minutes") {
-            val oneMinute = 60000L
-            val expectedBuildTimes = arrayOf(3, 10, 4, 5, 10, 1, 1, 1)
+            val expectedBuildTimes = intArrayOf(3, 10, 4, 5, 10, 1, 1, 1)
 
             withData(
                 nameFn = {
-                    "${it.first}: ${it.second} minute${if (it.second == 1) "" else "s"}"
+                    "${it.second}: ${it.first} minute${if (it.first == 1) "" else "s"}"
                 },
-                OrdnanceType.entries.zip(expectedBuildTimes)
-            ) { (ordnanceType, expectedTime) ->
-                ordnanceType.buildTime shouldBeEqual expectedTime * oneMinute
+                expectedBuildTimes.zip(OrdnanceType.entries),
+            ) { (expectedTime, ordnanceType) ->
+                ordnanceType.buildTime shouldBeEqual expectedTime.minutes.inWholeMilliseconds
             }
         }
 

@@ -45,7 +45,7 @@ sealed class PacketTestSpec<T : Packet>(
         }
     }
 
-    abstract class Client<T : Packet.Client>(
+    open class Client<T : Packet.Client>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Client<T>>,
         autoIncludeTests: Boolean = true,

@@ -29,9 +29,9 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeFully
 import io.ktor.utils.io.core.writeText
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.io.Source
 import kotlinx.io.writeShortLe
 
@@ -77,7 +77,7 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
 
         val localAddress = InetSocketAddress(loopbackAddress, ServerDiscoveryRequester.PORT)
 
-        SelectorManager(Dispatchers.IO).use { selector ->
+        SelectorManager(StandardTestDispatcher()).use { selector ->
             aSocket(selector).udp().bind(localAddress).use { socket ->
                 var requesterJob: Job? = null
                 lateinit var datagram: Datagram

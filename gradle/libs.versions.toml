@@ -209,6 +209,7 @@ ian = [
     "ktor-network",
 ]
 ian-test = [
+    "kotlinx-coroutines-test",
     "kotlinx-io",
     "kotest-assertions-api",
     "kotest-assertions-core",
@@ -282,6 +283,7 @@ ian-udp-api = [
     "ktor-network",
 ]
 ian-udp-test = [
+    "kotlinx-coroutines-test",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
@@ -292,12 +294,13 @@ ian-udp-test = [
 ]
 
 ian-util = [
-    "kotlinx-coroutines",
     "korlibs-charset",
     "ktor-io",
     "okio",
 ]
 ian-util-test = [
+    "kotlinx-coroutines",
+    "kotlinx-coroutines-test",
     "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",

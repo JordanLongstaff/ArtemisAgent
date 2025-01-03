@@ -109,7 +109,7 @@ class PositionTest : DescribeSpec({
                 val distance1 = obj1 distanceTo obj2
                 val distance2 = obj2 distanceTo obj1
 
-                val diffs = arrayOf(xDiff, yDiff, zDiff)
+                val diffs = floatArrayOf(xDiff, yDiff, zDiff)
                 val maxDiff = diffs.max()
                 val maxDiffBound = min(maxDiff * sqrt3, diffs.sum())
 
@@ -223,7 +223,7 @@ class PositionTest : DescribeSpec({
                 val distance1 = obj1 horizontalDistanceTo obj2
                 val distance2 = obj2 horizontalDistanceTo obj1
 
-                val diffs = arrayOf(xDiff, zDiff)
+                val diffs = floatArrayOf(xDiff, zDiff)
                 val maxDiff = diffs.max()
                 val maxDiffBound = min(maxDiff * sqrt2, diffs.sum())
 

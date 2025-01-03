@@ -95,6 +95,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
@@ -128,7 +129,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
             setAutoSendHeartbeat(false)
         }
 
-        SelectorManager(Dispatchers.IO).use { selector ->
+        SelectorManager(StandardTestDispatcher()).use { selector ->
             aSocket(selector).tcp().bind(loopbackAddress, port).use { server ->
                 lateinit var socket: Socket
 
