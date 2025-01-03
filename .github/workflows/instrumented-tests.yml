@@ -30,7 +30,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Set up Android SDK Tools
-      uses: android-actions/setup-android@v3.2.1
+      uses: android-actions/setup-android@v3.2.2
 
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
