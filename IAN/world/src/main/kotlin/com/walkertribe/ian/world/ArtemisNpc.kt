@@ -70,11 +70,13 @@ class ArtemisNpc(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisNpc>(id, tim
         scanBits updates other.scanBits
     }
 
-    object Dsl : BaseArtemisShip.Dsl<ArtemisNpc>(ArtemisNpc::class) {
+    object Dsl : BaseArtemisShip.Dsl<ArtemisNpc>() {
         var isEnemy: BoolState = BoolState.Unknown
         var isSurrendered: BoolState = BoolState.Unknown
         var isInNebula: BoolState = BoolState.Unknown
         var scanBits: Int? = null
+
+        override fun create(id: Int, timestamp: Long) = ArtemisNpc(id, timestamp)
 
         override fun updates(obj: ArtemisNpc) {
             super.updates(obj)

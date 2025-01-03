@@ -5,8 +5,6 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
-import kotlin.reflect.KClass
-import kotlin.reflect.full.primaryConstructor
 
 /**
  * Base implementation for all ArtemisObjects.
@@ -103,17 +101,14 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
 
     override fun hashCode(): Int = id
 
-    open class Dsl<T : BaseArtemisObject<T>>(objectClass: KClass<T>) {
-        private val objectConstructor = requireNotNull(objectClass.primaryConstructor) {
-            "Invalid object Dsl class: ${objectClass.simpleName}"
-        }
-
+    abstract class Dsl<T : BaseArtemisObject<T>> {
         var x: Float = Float.NaN
         var y: Float = Float.NaN
         var z: Float = Float.NaN
 
-        fun create(id: Int, timestamp: Long): T =
-            objectConstructor.call(id, timestamp).also(this::updates)
+        fun build(id: Int, timestamp: Long): T = create(id, timestamp).also(this::updates)
+
+        protected abstract fun create(id: Int, timestamp: Long): T
 
         protected open fun isObjectEmpty(obj: T): Boolean = !obj.hasData
 

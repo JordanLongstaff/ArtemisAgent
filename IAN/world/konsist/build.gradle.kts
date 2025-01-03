@@ -29,5 +29,6 @@ dependencies {
     testCompileOnly(projects.ian.annotations)
 
     testImplementation(libs.bundles.konsist.common)
+    testImplementation(libs.bundles.konsist.ian)
     testRuntimeOnly(libs.bundles.konsist.runtime)
 }

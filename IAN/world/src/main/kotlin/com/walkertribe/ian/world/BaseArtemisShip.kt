@@ -1,7 +1,5 @@
 package com.walkertribe.ian.world
 
-import kotlin.reflect.KClass
-
 /**
  * Base implementation for ships (player or NPC).
  */
@@ -52,9 +50,7 @@ abstract class BaseArtemisShip<T : BaseArtemisShip<T>>(
             impulse.hasValue ||
             side.hasValue
 
-    open class Dsl<T : BaseArtemisShip<T>>(
-        objectClass: KClass<T>
-    ) : BaseArtemisShielded.Dsl<T>(objectClass) {
+    abstract class Dsl<T : BaseArtemisShip<T>> : BaseArtemisShielded.Dsl<T>() {
         var shieldsRear: Float = Float.NaN
         var shieldsRearMax: Float = Float.NaN
         var impulse: Float = Float.NaN

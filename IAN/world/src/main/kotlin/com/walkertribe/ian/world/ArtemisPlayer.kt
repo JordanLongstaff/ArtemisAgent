@@ -179,74 +179,78 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
         doubleAgentSecondsLeft updates plr.doubleAgentSecondsLeft
     }
 
-    object PlayerDsl : Dsl<ArtemisPlayer>(ArtemisPlayer::class) {
-        var shipIndex: Byte = Byte.MIN_VALUE
-        var capitalShipID: Int = -1
-        var alertStatus: AlertStatus? = null
-        var dockingBase: Int = -1
-        var driveType: DriveType? = null
-        var warp: Byte = -1
+    sealed class Dsl private constructor() : BaseArtemisShip.Dsl<ArtemisPlayer>() {
+        data object Player : Dsl() {
+            var shipIndex: Byte = Byte.MIN_VALUE
+            var capitalShipID: Int = -1
+            var alertStatus: AlertStatus? = null
+            var dockingBase: Int = -1
+            var driveType: DriveType? = null
+            var warp: Byte = -1
 
-        override fun isObjectEmpty(obj: ArtemisPlayer): Boolean = !obj.hasPlayerData
+            override fun isObjectEmpty(obj: ArtemisPlayer): Boolean = !obj.hasPlayerData
 
-        override fun updates(obj: ArtemisPlayer) {
-            super.updates(obj)
+            override fun updates(obj: ArtemisPlayer) {
+                super.updates(obj)
 
-            obj.warp.value = warp
-            obj.shipIndex.value = shipIndex
-            obj.capitalShipID.value = capitalShipID
-            obj.alertStatus.value = alertStatus
-            obj.driveType.value = driveType
-            obj.dockingBase.value = dockingBase
+                obj.warp.value = warp
+                obj.shipIndex.value = shipIndex
+                obj.capitalShipID.value = capitalShipID
+                obj.alertStatus.value = alertStatus
+                obj.driveType.value = driveType
+                obj.dockingBase.value = dockingBase
 
-            shipIndex = Byte.MIN_VALUE
-            capitalShipID = -1
-            alertStatus = null
-            dockingBase = -1
-            driveType = null
-            warp = -1
-        }
-    }
-
-    object WeaponsDsl : Dsl<ArtemisPlayer>(ArtemisPlayer::class) {
-        val ordnanceCounts = mutableMapOf<OrdnanceType, Byte>()
-        val tubeStates = arrayOfNulls<TubeState>(Artemis.MAX_TUBES)
-        val tubeContents = arrayOfNulls<OrdnanceType>(Artemis.MAX_TUBES)
-
-        override fun updates(obj: ArtemisPlayer) {
-            require(!obj.hasWeaponsData) { "Cannot apply Dsl to an already-populated object" }
-
-            ordnanceCounts.forEach { (ordnanceType, count) ->
-                obj.ordnanceCounts[ordnanceType.ordinal].value = count
+                shipIndex = Byte.MIN_VALUE
+                capitalShipID = -1
+                alertStatus = null
+                dockingBase = -1
+                driveType = null
+                warp = -1
             }
-            tubeStates.zip(tubeContents).forEachIndexed { index, (state, contents) ->
-                obj.tubes[index].also {
-                    it.state.value = state
-                    it.contents = contents
+        }
+
+        data object Weapons : Dsl() {
+            val ordnanceCounts = mutableMapOf<OrdnanceType, Byte>()
+            val tubeStates = arrayOfNulls<TubeState>(Artemis.MAX_TUBES)
+            val tubeContents = arrayOfNulls<OrdnanceType>(Artemis.MAX_TUBES)
+
+            override fun updates(obj: ArtemisPlayer) {
+                require(!obj.hasWeaponsData) { "Cannot apply Dsl to an already-populated object" }
+
+                ordnanceCounts.forEach { (ordnanceType, count) ->
+                    obj.ordnanceCounts[ordnanceType.ordinal].value = count
                 }
+                tubeStates.zip(tubeContents).forEachIndexed { index, (state, contents) ->
+                    obj.tubes[index].also {
+                        it.state.value = state
+                        it.contents = contents
+                    }
+                }
+
+                ordnanceCounts.clear()
+                tubeStates.fill(null)
+                tubeContents.fill(null)
             }
-
-            ordnanceCounts.clear()
-            tubeStates.fill(null)
-            tubeContents.fill(null)
         }
-    }
 
-    object UpgradesDsl : Dsl<ArtemisPlayer>(ArtemisPlayer::class) {
-        var doubleAgentActive: BoolState = BoolState.Unknown
-        var doubleAgentCount: Byte = -1
-        var doubleAgentSecondsLeft: Int = -1
+        data object Upgrades : Dsl() {
+            var doubleAgentActive: BoolState = BoolState.Unknown
+            var doubleAgentCount: Byte = -1
+            var doubleAgentSecondsLeft: Int = -1
 
-        override fun updates(obj: ArtemisPlayer) {
-            require(!obj.hasUpgradeData) { "Cannot apply Dsl to an already-populated object" }
+            override fun updates(obj: ArtemisPlayer) {
+                require(!obj.hasUpgradeData) { "Cannot apply Dsl to an already-populated object" }
 
-            obj.doubleAgentActive.value = doubleAgentActive
-            obj.doubleAgentCount.value = doubleAgentCount
-            obj.doubleAgentSecondsLeft.value = doubleAgentSecondsLeft
+                obj.doubleAgentActive.value = doubleAgentActive
+                obj.doubleAgentCount.value = doubleAgentCount
+                obj.doubleAgentSecondsLeft.value = doubleAgentSecondsLeft
 
-            doubleAgentActive = BoolState.Unknown
-            doubleAgentCount = -1
-            doubleAgentSecondsLeft = -1
+                doubleAgentActive = BoolState.Unknown
+                doubleAgentCount = -1
+                doubleAgentSecondsLeft = -1
+            }
         }
+
+        final override fun create(id: Int, timestamp: Long) = ArtemisPlayer(id, timestamp)
     }
 }

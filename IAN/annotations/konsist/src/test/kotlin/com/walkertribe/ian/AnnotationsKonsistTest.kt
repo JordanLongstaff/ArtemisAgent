@@ -8,15 +8,11 @@ import io.kotest.matchers.collections.shouldBeEmpty
 
 class AnnotationsKonsistTest : DescribeSpec({
     val annotationsScope = Konsist.scopeFromModule("IAN/annotations")
-    val classes = annotationsScope.classes()
-    val interfaces = annotationsScope.interfaces()
-    val objects = annotationsScope.objects()
 
     describe("Annotations module only contains annotation classes") {
-        interfaces.shouldBeEmpty()
-        objects.shouldBeEmpty()
+        annotationsScope.interfacesAndObjects().shouldBeEmpty()
 
-        withData(nameFn = { it.fullyQualifiedName.toString() }, classes) { cls ->
+        withData(nameFn = { it.fullyQualifiedName.toString() }, annotationsScope.classes()) { cls ->
             cls.assertTrue { it.hasAnnotationModifier }
         }
     }

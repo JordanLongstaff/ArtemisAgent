@@ -25,8 +25,10 @@ class ArtemisCreature(
         isNotTyphon updates other.isNotTyphon
     }
 
-    object Dsl : BaseArtemisObject.Dsl<ArtemisCreature>(ArtemisCreature::class) {
+    object Dsl : BaseArtemisObject.Dsl<ArtemisCreature>() {
         var isNotTyphon: BoolState = BoolState.Unknown
+
+        override fun create(id: Int, timestamp: Long) = ArtemisCreature(id, timestamp)
 
         override fun updates(obj: ArtemisCreature) {
             super.updates(obj)

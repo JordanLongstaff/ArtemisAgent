@@ -52,7 +52,7 @@ object WeaponsParser : AbstractObjectParser<ArtemisPlayer>(ObjectType.WEAPONS_CO
                 listOf(TubeTimeBit(it), TubeStateBit(it), TubeContentsBit(it))
             }
 
-    override fun parseDsl(reader: PacketReader) = ArtemisPlayer.WeaponsDsl.apply {
+    override fun parseDsl(reader: PacketReader) = ArtemisPlayer.Dsl.Weapons.apply {
         OrdnanceType.entries.forEach {
             ordnanceCounts[it] = reader.readByte(OrdnanceCountBit(it))
         }

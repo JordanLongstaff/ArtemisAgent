@@ -47,8 +47,6 @@ dependencies {
 
     ksp(projects.ian.processor)
 
-    implementation(libs.kotlin.reflect)
-
     testFixturesApi(projects.ian.listener)
     testFixturesApi(projects.ian.util)
     testFixturesImplementation(libs.bundles.ian.world.test.fixtures)

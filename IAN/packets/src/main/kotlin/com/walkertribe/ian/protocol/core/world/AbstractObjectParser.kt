@@ -20,6 +20,6 @@ abstract class AbstractObjectParser<T : BaseArtemisObject<T>> protected construc
         reader.startObject(getBitCount(reader.version))
         return parseDsl(reader)?.takeIf {
             reader.isAcceptingCurrentObject
-        }?.create(reader.objectId, timestamp)
+        }?.build(reader.objectId, timestamp)
     }
 }

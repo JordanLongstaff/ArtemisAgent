@@ -179,7 +179,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.y = location.y
                     it.z = location.z
 
-                    it.create(id, timestamp).apply { it.shouldBeReset() }
+                    it.build(id, timestamp).apply { it.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisBase) {
@@ -363,7 +363,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.y = location.y
                     it.z = location.z
 
-                    it.create(id, timestamp).apply { it.shouldBeReset() }
+                    it.build(id, timestamp).apply { it.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisBlackHole) {
@@ -514,7 +514,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.y = location.y
                     it.z = location.z
 
-                    it.create(id, timestamp).apply { it.shouldBeReset() }
+                    it.build(id, timestamp).apply { it.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisCreature) {
@@ -667,7 +667,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.y = location.y
                     it.z = location.z
 
-                    it.create(id, timestamp).apply { it.shouldBeReset() }
+                    it.build(id, timestamp).apply { it.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisMine) {
@@ -872,7 +872,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.y = location.y
                     it.z = location.z
 
-                    it.create(id, timestamp).apply { it.shouldBeReset() }
+                    it.build(id, timestamp).apply { it.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisNpc) {
@@ -1361,7 +1361,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisPlayer =
-                ArtemisPlayer.PlayerDsl.let {
+                ArtemisPlayer.Dsl.Player.let {
                     it.name = name
                     it.shieldsFront = shields.first.first
                     it.shieldsFrontMax = shields.first.second
@@ -1373,14 +1373,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.x = location.x
                     it.y = location.y
                     it.z = location.z
-                    ArtemisPlayer.PlayerDsl.shipIndex = shipIndex
-                    ArtemisPlayer.PlayerDsl.capitalShipID = capitalShipID
-                    ArtemisPlayer.PlayerDsl.alertStatus = enumStates.first
-                    ArtemisPlayer.PlayerDsl.driveType = enumStates.second
-                    ArtemisPlayer.PlayerDsl.warp = warp
-                    ArtemisPlayer.PlayerDsl.dockingBase = dockingBase
+                    it.shipIndex = shipIndex
+                    it.capitalShipID = capitalShipID
+                    it.alertStatus = enumStates.first
+                    it.driveType = enumStates.second
+                    it.warp = warp
+                    it.dockingBase = dockingBase
 
-                    it.create(id, timestamp).also { player ->
+                    it.build(id, timestamp).also { player ->
                         updateThroughWeaponsDsl(player)
                         updateThroughUpgradesDsl(player)
                         it.shouldBeReset()
@@ -1443,7 +1443,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             fun updateThroughPlayerDsl(player: ArtemisPlayer) {
-                ArtemisPlayer.PlayerDsl.also {
+                ArtemisPlayer.Dsl.Player.also {
                     it.name = name
                     it.shieldsFront = shields.first.first
                     it.shieldsFrontMax = shields.first.second
@@ -1455,36 +1455,36 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.x = location.x
                     it.y = location.y
                     it.z = location.z
-                    ArtemisPlayer.PlayerDsl.shipIndex = shipIndex
-                    ArtemisPlayer.PlayerDsl.capitalShipID = capitalShipID
-                    ArtemisPlayer.PlayerDsl.alertStatus = enumStates.first
-                    ArtemisPlayer.PlayerDsl.driveType = enumStates.second
-                    ArtemisPlayer.PlayerDsl.warp = warp
-                    ArtemisPlayer.PlayerDsl.dockingBase = dockingBase
+                    it.shipIndex = shipIndex
+                    it.capitalShipID = capitalShipID
+                    it.alertStatus = enumStates.first
+                    it.driveType = enumStates.second
+                    it.warp = warp
+                    it.dockingBase = dockingBase
 
                     it updates player
                 }.shouldBeReset()
             }
 
             fun updateThroughWeaponsDsl(player: ArtemisPlayer) {
-                ArtemisPlayer.WeaponsDsl.also {
+                ArtemisPlayer.Dsl.Weapons.also { dsl ->
                     ordnanceCounts.forEachIndexed { index, count ->
-                        ArtemisPlayer.WeaponsDsl.ordnanceCounts[OrdnanceType.entries[index]] = count
+                        dsl.ordnanceCounts[OrdnanceType.entries[index]] = count
                     }
                     tubes.forEachIndexed { index, (state, contents) ->
-                        ArtemisPlayer.WeaponsDsl.tubeStates[index] = state
-                        ArtemisPlayer.WeaponsDsl.tubeContents[index] = contents
+                        dsl.tubeStates[index] = state
+                        dsl.tubeContents[index] = contents
                     }
 
-                    it updates player
+                    dsl updates player
                 }.shouldBeReset()
             }
 
             fun updateThroughUpgradesDsl(player: ArtemisPlayer) {
-                ArtemisPlayer.UpgradesDsl.also {
-                    ArtemisPlayer.UpgradesDsl.doubleAgentActive = doubleAgentStatus.first
-                    ArtemisPlayer.UpgradesDsl.doubleAgentCount = doubleAgentStatus.second
-                    ArtemisPlayer.UpgradesDsl.doubleAgentSecondsLeft = doubleAgentStatus.third
+                ArtemisPlayer.Dsl.Upgrades.also {
+                    it.doubleAgentActive = doubleAgentStatus.first
+                    it.doubleAgentCount = doubleAgentStatus.second
+                    it.doubleAgentSecondsLeft = doubleAgentStatus.third
 
                     it updates player
                 }.shouldBeReset()
@@ -1509,160 +1509,160 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 arbObject,
                 NAME,
                 ArtemisPlayer::name,
-                ArtemisPlayer.PlayerDsl::name,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::name,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Front shields",
                 arbObject,
                 SHIELDS_FRONT,
                 ArtemisPlayer::shieldsFront,
-                ArtemisPlayer.PlayerDsl::shieldsFront,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::shieldsFront,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Front shields max",
                 arbObject,
                 SHIELDS_FRONT_MAX,
                 ArtemisPlayer::shieldsFrontMax,
-                ArtemisPlayer.PlayerDsl::shieldsFrontMax,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::shieldsFrontMax,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Rear shields",
                 arbObject,
                 SHIELDS_REAR,
                 ArtemisPlayer::shieldsRear,
-                ArtemisPlayer.PlayerDsl::shieldsRear,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::shieldsRear,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Rear shields max",
                 arbObject,
                 SHIELDS_REAR_MAX,
                 ArtemisPlayer::shieldsRearMax,
-                ArtemisPlayer.PlayerDsl::shieldsRearMax,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::shieldsRearMax,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Hull ID",
                 arbObject,
                 HULL_ID,
                 ArtemisPlayer::hullId,
-                ArtemisPlayer.PlayerDsl::hullId,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::hullId,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Impulse",
                 arbObject,
                 IMPULSE,
                 ArtemisPlayer::impulse,
-                ArtemisPlayer.PlayerDsl::impulse,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::impulse,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Warp",
                 arbObject,
                 WARP,
                 ArtemisPlayer::warp,
-                ArtemisPlayer.PlayerDsl::warp,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::warp,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Side",
                 arbObject,
                 SIDE,
                 ArtemisPlayer::side,
-                ArtemisPlayer.PlayerDsl::side,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::side,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Ship index",
                 arbObject,
                 SHIP_INDEX,
                 ArtemisPlayer::shipIndex,
-                ArtemisPlayer.PlayerDsl::shipIndex,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::shipIndex,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Capital ship ID",
                 arbObject,
                 CAPITAL_SHIP_ID,
                 ArtemisPlayer::capitalShipID,
-                ArtemisPlayer.PlayerDsl::capitalShipID,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::capitalShipID,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Docking base",
                 arbObject,
                 DOCKING_BASE,
                 ArtemisPlayer::dockingBase,
-                ArtemisPlayer.PlayerDsl::dockingBase,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::dockingBase,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Alert status",
                 arbObject,
                 ALERT_STATUS,
                 ArtemisPlayer::alertStatus,
-                ArtemisPlayer.PlayerDsl::alertStatus,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::alertStatus,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Drive type",
                 arbObject,
                 DRIVE_TYPE,
                 ArtemisPlayer::driveType,
-                ArtemisPlayer.PlayerDsl::driveType,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::driveType,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "X",
                 arbObject,
                 X,
                 ArtemisPlayer::x,
-                ArtemisPlayer.PlayerDsl::x,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::x,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Y",
                 arbObject,
                 Y,
                 ArtemisPlayer::y,
-                ArtemisPlayer.PlayerDsl::y,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::y,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Z",
                 arbObject,
                 Z,
                 ArtemisPlayer::z,
-                ArtemisPlayer.PlayerDsl::z,
-                ArtemisPlayer.PlayerDsl,
+                ArtemisPlayer.Dsl.Player::z,
+                ArtemisPlayer.Dsl.Player,
             ),
             PartialUpdateTestSuite(
                 "Double agent active",
                 arbObject,
                 DOUBLE_AGENT_ACTIVE,
                 ArtemisPlayer::doubleAgentActive,
-                ArtemisPlayer.UpgradesDsl::doubleAgentActive,
-                ArtemisPlayer.UpgradesDsl,
+                ArtemisPlayer.Dsl.Upgrades::doubleAgentActive,
+                ArtemisPlayer.Dsl.Upgrades,
             ),
             PartialUpdateTestSuite(
                 "Double agent count",
                 arbObject,
                 DOUBLE_AGENT_COUNT,
                 ArtemisPlayer::doubleAgentCount,
-                ArtemisPlayer.UpgradesDsl::doubleAgentCount,
-                ArtemisPlayer.UpgradesDsl,
+                ArtemisPlayer.Dsl.Upgrades::doubleAgentCount,
+                ArtemisPlayer.Dsl.Upgrades,
             ),
             PartialUpdateTestSuite(
                 "Double agent seconds left",
                 arbObject,
                 DOUBLE_AGENT_SECONDS,
                 ArtemisPlayer::doubleAgentSecondsLeft,
-                ArtemisPlayer.UpgradesDsl::doubleAgentSecondsLeft,
-                ArtemisPlayer.UpgradesDsl,
+                ArtemisPlayer.Dsl.Upgrades::doubleAgentSecondsLeft,
+                ArtemisPlayer.Dsl.Upgrades,
             ),
         )
 
@@ -1859,8 +1859,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             scope.describe("Ordnance count") {
                 withData(OrdnanceType.entries) { ordnanceType ->
                     checkAll(arbObject, Arb.byte(min = 0)) { player, count ->
-                        ArtemisPlayer.WeaponsDsl.ordnanceCounts[ordnanceType] = count
-                        ArtemisPlayer.WeaponsDsl updates player
+                        ArtemisPlayer.Dsl.Weapons.ordnanceCounts[ordnanceType] = count
+                        ArtemisPlayer.Dsl.Weapons updates player
                         player.hasData.shouldBeTrue()
                         player.hasWeaponsData.shouldBeTrue()
                         repeat(OrdnanceType.size) { index ->
@@ -1876,8 +1876,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 repeat(Artemis.MAX_TUBES) { i ->
                     it("Index: $i") {
                         checkAll(arbObject, Arb.enum<TubeState>()) { player, state ->
-                            ArtemisPlayer.WeaponsDsl.tubeStates[i] = state
-                            ArtemisPlayer.WeaponsDsl updates player
+                            ArtemisPlayer.Dsl.Weapons.tubeStates[i] = state
+                            ArtemisPlayer.Dsl.Weapons updates player
                             player.hasData.shouldBeTrue()
                             player.hasWeaponsData.shouldBeTrue()
                             repeat(Artemis.MAX_TUBES) { j ->
@@ -1894,8 +1894,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 repeat(Artemis.MAX_TUBES) { i ->
                     it("Index: $i") {
                         checkAll(arbObject, Arb.enum<OrdnanceType>()) { player, ordnance ->
-                            ArtemisPlayer.WeaponsDsl.tubeContents[i] = ordnance
-                            ArtemisPlayer.WeaponsDsl updates player
+                            ArtemisPlayer.Dsl.Weapons.tubeContents[i] = ordnance
+                            ArtemisPlayer.Dsl.Weapons updates player
                             player.hasData.shouldBeTrue()
                             player.hasWeaponsData.shouldBeTrue()
                             repeat(Artemis.MAX_TUBES) { j ->

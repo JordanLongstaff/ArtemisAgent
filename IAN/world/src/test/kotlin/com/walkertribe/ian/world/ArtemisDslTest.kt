@@ -2,7 +2,9 @@ package com.walkertribe.ian.world
 
 import com.walkertribe.ian.util.shouldBeUnknown
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldContainOnlyNulls
 import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 
 class ArtemisDslTest : DescribeSpec({
@@ -31,43 +33,69 @@ class ArtemisDslTest : DescribeSpec({
     }
 
     describe("ArtemisPlayer") {
-        describe("PlayerDsl") {
+        describe("Player") {
             it("shipIndex") {
-                ArtemisPlayer.PlayerDsl.shipIndex shouldBeEqual Byte.MIN_VALUE
+                ArtemisPlayer.Dsl.Player.shipIndex shouldBeEqual Byte.MIN_VALUE
             }
 
             it("capitalShipID") {
-                ArtemisPlayer.PlayerDsl.capitalShipID shouldBeEqual -1
+                ArtemisPlayer.Dsl.Player.capitalShipID shouldBeEqual -1
             }
 
             it("alertStatus") {
-                ArtemisPlayer.PlayerDsl.alertStatus.shouldBeNull()
+                ArtemisPlayer.Dsl.Player.alertStatus.shouldBeNull()
             }
 
             it("dockingBase") {
-                ArtemisPlayer.PlayerDsl.dockingBase shouldBeEqual -1
+                ArtemisPlayer.Dsl.Player.dockingBase shouldBeEqual -1
             }
 
             it("driveType") {
-                ArtemisPlayer.PlayerDsl.driveType.shouldBeNull()
+                ArtemisPlayer.Dsl.Player.driveType.shouldBeNull()
             }
 
             it("warp") {
-                ArtemisPlayer.PlayerDsl.warp shouldBeEqual -1
+                ArtemisPlayer.Dsl.Player.warp shouldBeEqual -1
             }
         }
 
-        describe("UpgradesDsl") {
+        describe("Weapons") {
+            it("ordnanceCounts") {
+                ArtemisPlayer.Dsl.Weapons.ordnanceCounts.shouldBeEmpty()
+            }
+
+            describe("tubeStates") {
+                it("Size: ${Artemis.MAX_TUBES}") {
+                    ArtemisPlayer.Dsl.Weapons.tubeStates.size shouldBeEqual Artemis.MAX_TUBES
+                }
+
+                it("Contents: null") {
+                    ArtemisPlayer.Dsl.Weapons.tubeStates.shouldContainOnlyNulls()
+                }
+            }
+
+            describe("tubeContents") {
+                it("Size: ${Artemis.MAX_TUBES}") {
+                    ArtemisPlayer.Dsl.Weapons.tubeContents.size shouldBeEqual Artemis.MAX_TUBES
+                }
+
+                it("Contents: null") {
+                    ArtemisPlayer.Dsl.Weapons.tubeStates.shouldContainOnlyNulls()
+                }
+            }
+        }
+
+        describe("Upgrades") {
             it("doubleAgentActive") {
-                ArtemisPlayer.UpgradesDsl.doubleAgentActive.shouldBeUnknown()
+                ArtemisPlayer.Dsl.Upgrades.doubleAgentActive.shouldBeUnknown()
             }
 
             it("doubleAgentCount") {
-                ArtemisPlayer.UpgradesDsl.doubleAgentCount shouldBeEqual -1
+                ArtemisPlayer.Dsl.Upgrades.doubleAgentCount shouldBeEqual -1
             }
 
             it("doubleAgentSecondsLeft") {
-                ArtemisPlayer.UpgradesDsl.doubleAgentSecondsLeft shouldBeEqual -1
+                ArtemisPlayer.Dsl.Upgrades.doubleAgentSecondsLeft shouldBeEqual -1
             }
         }
     }

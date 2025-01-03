@@ -80,7 +80,7 @@ object PlayerShipParser : AbstractObjectParser<ArtemisPlayer>(ObjectType.PLAYER_
         override fun getIndex(version: Version): Int = ordinal
     }
 
-    override fun parseDsl(reader: PacketReader) = ArtemisPlayer.PlayerDsl.apply {
+    override fun parseDsl(reader: PacketReader) = ArtemisPlayer.Dsl.Player.apply {
         reader.readInt(PlayerBit.WEAPONS_TARGET, -1)
         impulse = reader.readFloat(PlayerBit.IMPULSE)
         reader.readFloat(PlayerBit.RUDDER)
