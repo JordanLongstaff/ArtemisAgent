@@ -103,13 +103,17 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
 
     override fun hashCode(): Int = id
 
-    open class Dsl<T : BaseArtemisObject<T>>(private val objectClass: KClass<T>) {
+    open class Dsl<T : BaseArtemisObject<T>>(objectClass: KClass<T>) {
+        private val objectConstructor = requireNotNull(objectClass.primaryConstructor) {
+            "Invalid object Dsl class: ${objectClass.simpleName}"
+        }
+
         var x: Float = Float.NaN
         var y: Float = Float.NaN
         var z: Float = Float.NaN
 
         fun create(id: Int, timestamp: Long): T =
-            objectClass.primaryConstructor!!.call(id, timestamp).also(this::updates)
+            objectConstructor.call(id, timestamp).also(this::updates)
 
         protected open fun isObjectEmpty(obj: T): Boolean = !obj.hasData
 
