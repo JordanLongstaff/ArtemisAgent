@@ -82,71 +82,9 @@ class PacketReader(
     suspend fun readPacket(): ParseResult {
         objectId = 0
         bitField = null
-
-        // header (0xdeadbeef)
-        val header = channel.readInt().reverseByteOrder()
         packetTimestamp = Clock.System.now().toEpochMilliseconds()
 
-        if (header != Packet.HEADER) {
-            throw PacketException(
-                "Illegal packet header: ${Integer.toHexString(header)}"
-            )
-        }
-
-        // packet length
-        val len = channel.readInt().reverseByteOrder()
-        if (len < Packet.PREAMBLE_SIZE) {
-            throw PacketException("Illegal packet length: $len")
-        }
-
-        // Read the rest of the packet
-        val origin = Origin(channel.readInt().reverseByteOrder())
-        val padding = channel.readInt().reverseByteOrder()
-        val remainingBytes = channel.readInt().reverseByteOrder()
-        val packetType = channel.readInt().reverseByteOrder()
-        val remaining = len - Packet.PREAMBLE_SIZE
-        val payloadPacket = channel.readPacket(remaining)
-
-        // Check preamble fields for issues
-        if (!origin.isValid) {
-            throw PacketException(
-                "Unknown origin: ${origin.value}",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        val requiredOrigin = Origin.SERVER
-        if (origin != requiredOrigin) {
-            throw PacketException(
-                "Origin mismatch: expected $requiredOrigin, got $origin",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        // padding
-        if (padding != 0) {
-            throw PacketException(
-                "No empty padding after connection type?",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        // remaining bytes
-        val expectedRemainingBytes = remaining + Int.SIZE_BYTES
-        if (remainingBytes != expectedRemainingBytes) {
-            throw PacketException(
-                "Packet length discrepancy: total length = $len; " +
-                    "expected $expectedRemainingBytes for remaining bytes field, " +
-                    "but got $remainingBytes",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        // Find the PacketFactory that knows how to handle this packet type
+        val (packetType, payloadPacket) = readPayload()
         val subtype = if (payloadPacket.exhausted()) 0x00 else payloadPacket.preview {
             it.readByte()
         }
@@ -408,4 +346,46 @@ class PacketReader(
      * Returns true if the current [BitField] has the indicated bit turned on.
      */
     fun has(bitIndex: Int): Boolean = bitField?.get(bitIndex) ?: false
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private suspend fun readHeaderAndLength(): Int {
+        val header = channel.readInt().reverseByteOrder()
+        if (header != Packet.HEADER) {
+            throw PacketException("Illegal packet header: ${header.toHexString()}")
+        }
+
+        val length = channel.readInt().reverseByteOrder()
+        if (length < Packet.PREAMBLE_SIZE) {
+            throw PacketException("Illegal packet length: $length")
+        }
+
+        return length
+    }
+
+    private suspend fun readPayload(): Pair<Int, Source> {
+        val length = readHeaderAndLength()
+        val origin = Origin(channel.readInt().reverseByteOrder())
+        val padding = channel.readInt().reverseByteOrder()
+        val remaining = channel.readInt().reverseByteOrder()
+
+        val expectedRemaining = length - Packet.PREAMBLE_SIZE + Int.SIZE_BYTES
+        val payloadPacket = channel.readPacket(expectedRemaining)
+        val packetType = payloadPacket.readIntLe()
+
+        val requiredOrigin = Origin.SERVER
+
+        when {
+            !origin.isValid -> "Unknown origin: ${origin.value}"
+            origin != requiredOrigin -> "Origin mismatch: expected $requiredOrigin, got $origin"
+            padding != 0 -> "No empty padding after connection type?"
+            remaining != expectedRemaining ->
+                "Packet length discrepancy: total length = $length; expected $expectedRemaining " +
+                    "for remaining bytes field, but got $remaining"
+            else -> null
+        }?.also { error ->
+            throw PacketException(error, packetType, payloadPacket.readByteArray())
+        }
+
+        return packetType to payloadPacket
+    }
 }
