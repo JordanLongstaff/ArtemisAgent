@@ -129,14 +129,15 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
             addListenerModule(TestListener.module)
             setAutoSendHeartbeat(false)
         }
+        val testDispatcher = UnconfinedTestDispatcher()
 
-        SelectorManager(UnconfinedTestDispatcher()).use { selector ->
+        SelectorManager(testDispatcher).use { selector ->
             aSocket(selector).tcp().bind(loopbackAddress, port).use { server ->
                 lateinit var socket: Socket
 
                 it("Can connect") {
                     eventually(5.seconds) {
-                        val connectDeferred = async {
+                        val connectDeferred = async(testDispatcher) {
                             client.connect(
                                 host = loopbackAddress,
                                 port = port,
@@ -167,7 +168,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
 
                 it("Can reconnect") {
                     eventually(5.seconds) {
-                        val connectDeferred = async {
+                        val connectDeferred = async(testDispatcher) {
                             client.connect(
                                 host = loopbackAddress,
                                 port = port,
@@ -448,9 +449,8 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     eventually(1.seconds) {
                         val events = TestListener.calls<ConnectionEvent.Disconnect>()
                         events.size shouldBeEqual 1
-                        events.forEach {
-                            it.cause.shouldBeInstanceOf<DisconnectCause.LocalDisconnect>()
-                        }
+                        events.first().cause
+                            .shouldBeInstanceOf<DisconnectCause.LocalDisconnect>()
 
                         TestListener.calls<ConnectionEvent.Success>().shouldBeEmpty()
                         TestListener.calls<WelcomePacket>().shouldBeEmpty()
@@ -476,7 +476,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     client.setAutoSendHeartbeat(false)
 
                     eventually(testTimeout * 5) {
-                        val connectDeferred = async {
+                        val connectDeferred = async(testDispatcher) {
                             client.connect(
                                 host = loopbackAddress,
                                 port = port,
@@ -495,10 +495,8 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                             assertSoftly {
                                 val events = TestListener.calls<ConnectionEvent.Disconnect>()
                                 events.size shouldBeEqual 1
-                                events.forEach {
-                                    it.cause
-                                        .shouldBeInstanceOf<DisconnectCause.RemoteDisconnect>()
-                                }
+                                events.first().cause
+                                    .shouldBeInstanceOf<DisconnectCause.RemoteDisconnect>()
                             }
                         }
                     }
@@ -508,7 +506,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     var sender: ByteWriteChannel? = null
 
                     eventually(testTimeout) {
-                        val connectDeferred = async {
+                        val connectDeferred = async(testDispatcher) {
                             client.connect(
                                 host = loopbackAddress,
                                 port = port,
@@ -530,11 +528,8 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                             assertSoftly {
                                 val events = TestListener.calls<ConnectionEvent.Disconnect>()
                                 events.size shouldBeEqual 1
-                                events.forEach {
-                                    val (cause) =
-                                        it.shouldBeInstanceOf<ConnectionEvent.Disconnect>()
-                                    cause.shouldBeInstanceOf<DisconnectCause.PacketParseError>()
-                                }
+                                events.first().cause
+                                    .shouldBeInstanceOf<DisconnectCause.PacketParseError>()
                             }
                         }
                     }
@@ -552,7 +547,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     },
                 ) { (_, exception, testCause) ->
                     eventually(testTimeout) {
-                        val connectDeferred = async {
+                        val connectDeferred = async(testDispatcher) {
                             client.connect(
                                 host = loopbackAddress,
                                 port = port,
@@ -575,11 +570,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                             assertSoftly {
                                 val events = TestListener.calls<ConnectionEvent.Disconnect>()
                                 events.size shouldBeEqual 1
-                                events.forEach {
-                                    val (cause) =
-                                        it.shouldBeInstanceOf<ConnectionEvent.Disconnect>()
-                                    testCause(cause)
-                                }
+                                testCause(events.first().cause)
                             }
                         }
                     }
@@ -606,7 +597,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                                 var sender: ByteWriteChannel? = null
 
                                 val result = withTimeoutOrNull(6.seconds) {
-                                    val connectDeferred = async {
+                                    val connectDeferred = async(testDispatcher) {
                                         client.connect(
                                             host = loopbackAddress,
                                             port = port,
@@ -630,10 +621,8 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                                         val events =
                                             TestListener.calls<ConnectionEvent.Disconnect>()
                                         events.size shouldBeEqual 1
-                                        events.forEach {
-                                            it.cause should
-                                                beInstanceOf<DisconnectCause.UnsupportedVersion>()
-                                        }
+                                        events.first().cause should
+                                            beInstanceOf<DisconnectCause.UnsupportedVersion>()
                                     }
                                 }
 
@@ -647,7 +636,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                         val versionFixture =
                             VersionPacketFixture(unsupportedTestCases.last().second)
 
-                        val connectDeferred = async {
+                        val connectDeferred = async(testDispatcher) {
                             debugClient.connect(
                                 host = loopbackAddress,
                                 port = port,
