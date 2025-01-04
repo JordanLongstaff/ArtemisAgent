@@ -300,8 +300,6 @@ ian-util = [
     "okio",
 ]
 ian-util-test = [
-    "kotlinx-coroutines",
-    "kotlinx-coroutines-test",
     "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",

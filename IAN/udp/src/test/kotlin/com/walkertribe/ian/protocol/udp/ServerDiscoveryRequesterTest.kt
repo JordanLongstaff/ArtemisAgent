@@ -29,12 +29,14 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeFully
 import io.ktor.utils.io.core.writeText
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.io.Source
 import kotlinx.io.writeShortLe
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ServerDiscoveryRequesterTest : DescribeSpec({
     failfast = true
 
@@ -77,7 +79,7 @@ class ServerDiscoveryRequesterTest : DescribeSpec({
 
         val localAddress = InetSocketAddress(loopbackAddress, ServerDiscoveryRequester.PORT)
 
-        SelectorManager(StandardTestDispatcher()).use { selector ->
+        SelectorManager(UnconfinedTestDispatcher()).use { selector ->
             aSocket(selector).udp().bind(localAddress).use { socket ->
                 var requesterJob: Job? = null
                 lateinit var datagram: Datagram

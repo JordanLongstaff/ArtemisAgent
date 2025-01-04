@@ -91,11 +91,11 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
@@ -103,6 +103,7 @@ import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ArtemisNetworkInterfaceTest : DescribeSpec({
     failfast = true
 
@@ -129,7 +130,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
             setAutoSendHeartbeat(false)
         }
 
-        SelectorManager(StandardTestDispatcher()).use { selector ->
+        SelectorManager(UnconfinedTestDispatcher()).use { selector ->
             aSocket(selector).tcp().bind(loopbackAddress, port).use { server ->
                 lateinit var socket: Socket
 
