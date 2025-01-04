@@ -46,7 +46,7 @@ jobs:
       continue-on-error: true
       uses: natiginfo/action-detekt-all@1.23.7
       with:
-        args: --config ${{ github.workspace }}/config/detekt/detekt.yml --report sarif:${{ github.workspace }}/detekt.sarif.json
+        args: --report sarif:${{ github.workspace }}/detekt.sarif.json
 
     # Uploads results to GitHub repository using the upload-sarif action
     - uses: github/codeql-action/upload-sarif@v3
