@@ -592,7 +592,7 @@ class ArtemisNetworkInterfaceTest : DescribeSpec({
                     withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb) ->
                         val versionFixture = VersionPacketFixture(versionArb)
 
-                        versionFixture.generator.checkAll(100) { data ->
+                        versionFixture.generator.checkAll { data ->
                             eventually(testTimeout) {
                                 var sender: ByteWriteChannel? = null
 
