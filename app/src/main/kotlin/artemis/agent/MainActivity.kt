@@ -366,8 +366,15 @@ class MainActivity : AppCompatActivity() {
             flow: MutableSharedFlow<CommsIncomingPacket>,
             channelId: String
         ) {
-            service.collectLatestWhileStarted(flow) {
-                buildNotificationForMission(channelId, it)
+            service.collectLatestWhileStarted(flow) { packet ->
+                buildNotification(
+                    channelId = channelId,
+                    title = packet.sender,
+                    message = packet.message,
+                    onIntent = {
+                        putExtra(Section.GAME.name, GameFragment.Page.MISSIONS.ordinal)
+                    }
+                )
             }
         }
 
@@ -375,13 +382,23 @@ class MainActivity : AppCompatActivity() {
             service: NotificationService,
             flow: MutableSharedFlow<CommsIncomingPacket>,
             channelId: String,
-            includeSenderName: Boolean = true
+            includeSenderName: Boolean = true,
         ) {
-            service.collectLatestWhileStarted(flow) {
-                buildNotificationForStation(
-                    channelId,
-                    it,
-                    if (includeSenderName) it.sender else null
+            service.collectLatestWhileStarted(flow) { packet ->
+                buildNotification(
+                    channelId = channelId,
+                    title = packet.sender,
+                    message = packet.message,
+                    onIntent = {
+                        putExtra(
+                            GameFragment.Page.STATIONS.name,
+                            if (includeSenderName) {
+                                packet.sender
+                            } else {
+                                StationsFragment.Page.FRIENDLY.name
+                            },
+                        )
+                    }
                 )
             }
         }
@@ -422,38 +439,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun buildNotificationForMission(
-        channelId: String,
-        packet: CommsIncomingPacket
-    ) {
-        buildNotification(
-            channelId = channelId,
-            title = packet.sender,
-            message = packet.message,
-            onIntent = {
-                putExtra(Section.GAME.name, GameFragment.Page.MISSIONS.ordinal)
-            }
-        )
-    }
-
-    private fun buildNotificationForStation(
-        channelId: String,
-        packet: CommsIncomingPacket,
-        stationName: String?
-    ) {
-        buildNotification(
-            channelId = channelId,
-            title = packet.sender,
-            message = packet.message,
-            onIntent = {
-                putExtra(
-                    GameFragment.Page.STATIONS.name,
-                    stationName ?: StationsFragment.Page.FRIENDLY.name
-                )
-            }
-        )
-    }
-
     @OptIn(ExperimentalStdlibApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -461,22 +446,9 @@ class MainActivity : AppCompatActivity() {
         val crashlytics = FirebaseCrashlytics.getInstance()
         crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
 
+        setupTiramisu()
+
         with(viewModel) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//                onBackInvokedDispatcher.registerOnBackInvokedCallback(
-//                    OnBackInvokedDispatcher.PRIORITY_DEFAULT
-//                ) {
-//                    onBackPressed()
-//                }
-
-                if (
-                    ActivityCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED
-                ) {
-                    requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
-                }
-            }
-
             val finishCallback = onBackPressedDispatcher.addCallback(this@MainActivity) {
                 supportFinishAfterTransition()
             }
@@ -775,6 +747,23 @@ class MainActivity : AppCompatActivity() {
                 currentGamePage.value = GameFragment.Page.STATIONS
                 binding.mainPageSelector.check(Section.GAME.buttonId)
             }
+        }
+    }
+
+    private fun setupTiramisu() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+//        onBackInvokedDispatcher.registerOnBackInvokedCallback(
+//            OnBackInvokedDispatcher.PRIORITY_DEFAULT
+//        ) {
+//            onBackPressed()
+//        }
+
+        if (
+            ActivityCompat.checkSelfPermission(this, POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
         }
     }
 

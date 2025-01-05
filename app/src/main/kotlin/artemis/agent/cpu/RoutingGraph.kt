@@ -106,56 +106,29 @@ internal class RoutingGraph(
      * Pre-process the list of objects to avoid based on user settings.
      */
     fun preprocessObjectsToAvoid() {
-        // Start by fetching all of the objects themselves
-        val nearObjects = mutableMapOf<ArtemisObject<*>, MutableSet<ArtemisObject<*>>>()
-
-        if (viewModel.avoidBlackHoles) {
-            nearObjects.putAll(viewModel.blackHoles.values.map { it to mutableSetOf() })
-        }
-        if (viewModel.avoidMines) {
-            nearObjects.putAll(viewModel.mines.values.map { it to mutableSetOf() })
-        }
-        if (viewModel.avoidTyphons) {
-            nearObjects.putAll(viewModel.typhons.values.map { it to mutableSetOf() })
-        }
-
-        // Then map each object to the set of objects within range
-        nearObjects.forEach { (obj, nearSet) ->
-            val oneClearance = getClearanceFor(obj)
-            nearSet.addAll(
-                nearObjects.keys.filter { otherObj ->
-                    val totalClearance = getClearanceFor(otherObj) + oneClearance
-
-                    // It is possible for this to fail
-                    try {
-                        obj horizontalDistanceSquaredTo otherObj <= totalClearance * totalClearance
-                    } catch (_: IllegalStateException) {
-                        false
-                    }
-                }
-            )
-        }
+        // Start by fetching all of the objects and their neighbours
+        val nearObjects = viewModel.findNeighbors()
 
         // Then spread out search for nearby objects to form "clusters" in which proximity becomes
         // transitive - this is important for minefields etc.
         val clusterSets = mutableListOf<CopyOnWriteArraySet<ArtemisObject<*>>>()
-        while (true) {
+        while (nearObjects.isNotEmpty()) {
             // Grab an object from the set - exit loop if none are left
-            val firstKey = nearObjects.keys.firstOrNull() ?: break
+            val firstKey = nearObjects.keys.first()
 
             // Remove object from the set to avoid processing it repeatedly
-            val openSet = nearObjects.remove(firstKey) ?: continue
+            val openSet = nearObjects.remove(firstKey)
 
             // If this object already belongs to a cluster, skip it
-            if (clusterSets.any { it.contains(firstKey) }) continue
+            if (openSet == null || clusterSets.any { it.contains(firstKey) }) continue
 
             // Start a new cluster beginning with this object
             val newSet = CopyOnWriteArraySet<ArtemisObject<*>>()
             newSet.add(firstKey)
 
-            while (true) {
+            while (openSet.isNotEmpty()) {
                 // Find a nearby object - if none left, finalize cluster
-                val nextKey = openSet.firstOrNull() ?: break
+                val nextKey = openSet.first()
 
                 // Add all of its neighbours to the cluster
                 nearObjects[nextKey]?.also {
@@ -853,18 +826,6 @@ internal class RoutingGraph(
         }
     }
 
-    /**
-     * Returns the minimum clearance required to avoid an obstacle, if necessary.
-     */
-    private fun getClearanceFor(obj: ArtemisObject<*>?) = viewModel.run {
-        when (obj) {
-            is ArtemisMine -> mineClearance
-            is ArtemisBlackHole -> blackHoleClearance
-            is ArtemisCreature -> typhonClearance
-            else -> 0f
-        }
-    }
-
     companion object {
         /**
          * Calculates the cost of a path from one point to another, with object avoidances taken
@@ -916,6 +877,51 @@ internal class RoutingGraph(
          * the path it represents.
          */
         private fun swapKey(key: Int) = (key shl DEST_SHIFT) or (key ushr DEST_SHIFT)
+
+        private fun AgentViewModel.findNeighbors():
+            MutableMap<ArtemisObject<*>, MutableSet<ArtemisObject<*>>> {
+            // Start by fetching all of the objects themselves
+            val nearObjects = mutableMapOf<ArtemisObject<*>, MutableSet<ArtemisObject<*>>>()
+
+            if (avoidBlackHoles) {
+                nearObjects.putAll(blackHoles.values.map { it to mutableSetOf() })
+            }
+            if (avoidMines) {
+                nearObjects.putAll(mines.values.map { it to mutableSetOf() })
+            }
+            if (avoidTyphons) {
+                nearObjects.putAll(typhons.values.map { it to mutableSetOf() })
+            }
+
+            // Then map each object to the set of objects within range
+            nearObjects.forEach { (obj, nearSet) ->
+                val oneClearance = getClearanceFor(obj)
+                nearSet.addAll(
+                    nearObjects.keys.filter { otherObj ->
+                        val totalClearance = getClearanceFor(otherObj) + oneClearance
+
+                        // It is possible for this to fail
+                        try {
+                            obj horizontalDistanceSquaredTo otherObj <= totalClearance * totalClearance
+                        } catch (_: IllegalStateException) {
+                            false
+                        }
+                    }
+                )
+            }
+
+            return nearObjects
+        }
+
+        /**
+         * Returns the minimum clearance required to avoid an obstacle, if necessary.
+         */
+        private fun AgentViewModel.getClearanceFor(obj: ArtemisObject<*>?) = when (obj) {
+            is ArtemisMine -> mineClearance
+            is ArtemisBlackHole -> blackHoleClearance
+            is ArtemisCreature -> typhonClearance
+            else -> 0f
+        }
 
         // Constants
         private const val TWO_PI = PI.toFloat() * 2
