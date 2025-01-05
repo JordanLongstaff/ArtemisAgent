@@ -14,7 +14,6 @@
     <ID>LongMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
     <ID>LongMethod:GameFragment.kt$GameFragment$override fun onViewCreated(view: View, savedInstanceState: Bundle?)</ID>
     <ID>LongMethod:MainActivity.kt$MainActivity$@OptIn(ExperimentalStdlibApi::class) override fun onCreate(savedInstanceState: Bundle?)</ID>
-    <ID>LongMethod:MainActivity.kt$MainActivity.&lt;no name provided&gt;$override fun onServiceConnected(name: ComponentName?, binder: IBinder?)</ID>
     <ID>LongMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY ): Float</ID>
     <ID>LongMethod:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
     <ID>LongParameterList:MainActivity.kt$MainActivity$( channelId: String, title: String, message: String, ongoing: Boolean = false, onIntent: Intent.() -&gt; Unit = { }, setBuilder: (NotificationCompat.Builder) -&gt; Unit = { } )</ID>

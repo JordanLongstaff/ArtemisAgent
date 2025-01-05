@@ -125,13 +125,59 @@ class MainActivity : AppCompatActivity() {
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             binder as NotificationService.LocalBinder
-            val service = binder.service!!
             binder.notificationManager = notificationManager
-
             binder.viewModel = viewModel
 
             notificationRequests = 0
 
+            binder.service?.also { service ->
+                createStationPacketListener(
+                    service,
+                    viewModel.stationProductionPacket,
+                    NotificationManager.CHANNEL_PRODUCTION
+                )
+                createStationPacketListener(
+                    service,
+                    viewModel.stationAttackedPacket,
+                    NotificationManager.CHANNEL_ATTACK
+                )
+                createStationPacketListener(
+                    service,
+                    viewModel.stationDestroyedPacket,
+                    NotificationManager.CHANNEL_DESTROYED,
+                    false
+                )
+
+                createMissionPacketListener(
+                    service,
+                    viewModel.newMissionPacket,
+                    NotificationManager.CHANNEL_NEW_MISSION
+                )
+                createMissionPacketListener(
+                    service,
+                    viewModel.missionProgressPacket,
+                    NotificationManager.CHANNEL_MISSION_PROGRESS
+                )
+                createMissionPacketListener(
+                    service,
+                    viewModel.missionCompletionPacket,
+                    NotificationManager.CHANNEL_MISSION_COMPLETED
+                )
+
+                setupOngoingNotifications(service)
+                setupBiomechNotifications(service)
+                setupEnemyNotifications(service)
+                setupGameNotifications(service)
+                setupConnectionNotifications(service)
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            notificationRequests = STOP_NOTIFICATIONS
+            notificationManager.reset()
+        }
+
+        private fun setupOngoingNotifications(service: NotificationService) {
             service.collectLatestWhileStarted(viewModel.inventory) { inv ->
                 if (!viewModel.gameIsRunning.value) return@collectLatestWhileStarted
 
@@ -179,40 +225,9 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
             }
+        }
 
-            createStationPacketListener(
-                service,
-                viewModel.stationProductionPacket,
-                NotificationManager.CHANNEL_PRODUCTION
-            )
-            createStationPacketListener(
-                service,
-                viewModel.stationAttackedPacket,
-                NotificationManager.CHANNEL_ATTACK
-            )
-            createStationPacketListener(
-                service,
-                viewModel.stationDestroyedPacket,
-                NotificationManager.CHANNEL_DESTROYED,
-                false
-            )
-
-            createMissionPacketListener(
-                service,
-                viewModel.newMissionPacket,
-                NotificationManager.CHANNEL_NEW_MISSION
-            )
-            createMissionPacketListener(
-                service,
-                viewModel.missionProgressPacket,
-                NotificationManager.CHANNEL_MISSION_PROGRESS
-            )
-            createMissionPacketListener(
-                service,
-                viewModel.missionCompletionPacket,
-                NotificationManager.CHANNEL_MISSION_COMPLETED
-            )
-
+        private fun setupBiomechNotifications(service: NotificationService) {
             service.collectLatestWhileStarted(viewModel.destroyedBiomechName) {
                 notificationManager.dismissBiomechMessage(it)
             }
@@ -250,7 +265,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 )
             }
+        }
 
+        private fun setupEnemyNotifications(service: NotificationService) {
             service.collectLatestWhileStarted(viewModel.destroyedEnemyName) {
                 notificationManager.dismissPerfidyMessage(it)
             }
@@ -265,7 +282,9 @@ class MainActivity : AppCompatActivity() {
                     },
                 )
             }
+        }
 
+        private fun setupGameNotifications(service: NotificationService) {
             service.collectLatestWhileStarted(viewModel.borderWarMessage) { packet ->
                 buildNotification(
                     channelId = NotificationManager.CHANNEL_BORDER_WAR,
@@ -277,6 +296,18 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
+            service.collectLatestWhileStarted(viewModel.gameOverReason) { reason ->
+                if (viewModel.gameIsRunning.value) return@collectLatestWhileStarted
+                buildNotification(
+                    channelId = NotificationManager.CHANNEL_GAME_OVER,
+                    title = viewModel.connectedUrl.value,
+                    message = reason,
+                    setBuilder = { notificationManager.reset() }
+                )
+            }
+        }
+
+        private fun setupConnectionNotifications(service: NotificationService) {
             service.collectLatestWhileStarted(viewModel.disconnectCause) { cause ->
                 val message = when (cause) {
                     is DisconnectCause.UnsupportedVersion ->
@@ -328,21 +359,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 )
             }
-
-            service.collectLatestWhileStarted(viewModel.gameOverReason) { reason ->
-                if (viewModel.gameIsRunning.value) return@collectLatestWhileStarted
-                buildNotification(
-                    channelId = NotificationManager.CHANNEL_GAME_OVER,
-                    title = viewModel.connectedUrl.value,
-                    message = reason,
-                    setBuilder = { notificationManager.reset() }
-                )
-            }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            notificationRequests = STOP_NOTIFICATIONS
-            notificationManager.reset()
         }
 
         private fun createMissionPacketListener(
@@ -381,8 +397,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         if (notificationRequests == STOP_NOTIFICATIONS) return
 
-        val launchIntent = Intent(applicationContext, MainActivity::class.java)
-        launchIntent.apply(onIntent)
+        val launchIntent = Intent(applicationContext, MainActivity::class.java).apply(onIntent)
         val pendingIntent = PendingIntent.getActivity(
             this,
             notificationRequests++,
