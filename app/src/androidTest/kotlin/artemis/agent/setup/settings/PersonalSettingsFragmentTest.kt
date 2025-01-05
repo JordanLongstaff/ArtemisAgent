@@ -1,5 +1,6 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -13,6 +14,7 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.BaristaSeekBarInteractions.setProgressTo
+import com.adevinta.android.barista.interaction.PermissionGranter
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,6 +38,8 @@ class PersonalSettingsFragmentTest {
             threeDigits.lazySet(viewModel.threeDigitDirections)
             soundVolume.lazySet((viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt())
         }
+
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         SettingsFragmentTest.openSettingsMenu()
 

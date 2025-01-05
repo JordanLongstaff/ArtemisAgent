@@ -1,5 +1,6 @@
 package artemis.agent.setup
 
+import android.Manifest
 import android.os.Build
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -20,6 +21,7 @@ import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.clearText
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.writeTo
 import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
+import com.adevinta.android.barista.interaction.PermissionGranter
 import dev.tmapps.konnection.Konnection
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -41,6 +43,8 @@ class ConnectFragmentTest {
         activityScenarioManager.onActivity { activity ->
             scanTimeout.lazySet(activity.viewModels<AgentViewModel>().value.scanTimeout)
         }
+
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         assertEnabled(R.id.scanButton)
         assertNotDisplayed(R.id.scanSpinner)
@@ -67,6 +71,8 @@ class ConnectFragmentTest {
 
     @Test
     fun addressBarTest() {
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
         clearText(R.id.addressBar)
         assertHint(R.id.addressBar, R.string.address)
         assertDisabled(R.id.connectButton)
@@ -84,6 +90,8 @@ class ConnectFragmentTest {
         activityScenarioManager.onActivity { activity ->
             connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
         }
+
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         assertDisplayed(R.id.connectLabel, R.string.not_connected)
         assertNotDisplayed(R.id.connectSpinner)
@@ -110,6 +118,8 @@ class ConnectFragmentTest {
         activityScenarioManager.onActivity { activity ->
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
         }
+
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 

@@ -469,15 +469,11 @@ class MainActivity : AppCompatActivity() {
 //                    onBackPressed()
 //                }
 
-                try {
-                    Class.forName("androidx.test.espresso.Espresso")
-                } catch (_: ClassNotFoundException) {
-                    if (
-                        ActivityCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
-                        != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
-                    }
+                if (
+                    ActivityCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED
+                ) {
+                    requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
                 }
             }
 

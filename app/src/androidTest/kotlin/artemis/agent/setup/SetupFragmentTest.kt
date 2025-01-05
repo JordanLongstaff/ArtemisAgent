@@ -1,5 +1,6 @@
 package artemis.agent.setup
 
+import android.Manifest
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.ActivityScenarioManager
@@ -10,6 +11,7 @@ import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnc
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
+import com.adevinta.android.barista.interaction.PermissionGranter
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,6 +24,8 @@ class SetupFragmentTest {
 
     @Test
     fun radioButtonsTest() {
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
         assertChecked(R.id.setupPageButton)
         assertDisplayed(R.id.setupPageSelector)
 
