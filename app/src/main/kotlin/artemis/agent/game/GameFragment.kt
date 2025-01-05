@@ -111,12 +111,105 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         }
     }
 
+    private val fighterStockStrings = intArrayOf(
+        R.string.single_seat_craft_docked,
+        R.string.single_seat_craft_launched,
+        R.string.single_seat_craft_lost,
+    )
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.helpTopicIndex.value = HelpFragment.MENU
         viewModel.settingsPage.value = null
 
+        setupInventoryButton()
+        setupVisibilityControllers()
+        setupPageSelector()
+        setupAlertButton()
+        setupAgentButton()
+
+        viewLifecycleOwner.collectLatestWhileStarted(borderWar) { status ->
+            val visibility = if (status != null) {
+                binding.borderWarLabel.text = getString(
+                    R.string.border_war_status,
+                    status.name
+                )
+                binding.borderWarBackground.setBackgroundColor(
+                    ContextCompat.getColor(
+                        binding.borderWarBackground.context,
+                        status.backgroundColor
+                    )
+                )
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+            binding.borderWarBackground.visibility = visibility
+            binding.borderWarLabel.visibility = visibility
+        }
+    }
+
+    private fun setupVisibilityControllers() {
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.rootOpacity) {
+            binding.root.alpha = it
+            popupBinding.selectorList.alpha = it
+        }
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.jumping) {
+            popupBinding.jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
+        }
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectableShips) { ships ->
+            val shipNameVisibility: Int
+            binding.shipNumberLabel.text = if (ships.isEmpty()) {
+                shipNameVisibility = View.GONE
+                getString(R.string.no_ships)
+            } else {
+                val index = viewModel.shipIndex.value
+                if (index >= 0) {
+                    binding.shipNameLabel.text = ships[index].name
+                    shipNameVisibility = View.VISIBLE
+                    getString(R.string.ship_number, index + 1)
+                } else {
+                    shipNameVisibility = View.GONE
+                    getString(R.string.no_ship_selected)
+                }
+            }
+            binding.shipNameLabel.visibility = shipNameVisibility
+            binding.waitingForGameLabel.visibility = shipNameVisibility
+        }
+
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.gameIsRunning) { isRunning ->
+            val waitingVisibility: Int
+            val visibility = if (isRunning) {
+                waitingVisibility = View.GONE
+                View.VISIBLE
+            } else {
+                waitingVisibility = binding.shipNameLabel.visibility
+                viewModel.rootOpacity.value = 1f
+                binding.redAlertButton.isChecked = false
+                gamePagePopup.dismiss()
+                View.GONE
+            }
+
+            binding.waitingForGameLabel.visibility = waitingVisibility
+            binding.gamePageSelectorButton.visibility = visibility
+            binding.gameFragmentContainer.visibility = visibility
+            binding.inventoryButton.visibility = visibility
+            binding.redAlertButton.visibility = visibility
+            binding.doubleAgentButton.visibility = visibility
+
+            if (
+                binding.root.resources.configuration.orientation ==
+                Configuration.ORIENTATION_PORTRAIT
+            ) {
+                binding.agentLabel.visibility = visibility
+            }
+        }
+    }
+
+    private fun setupInventoryButton() {
         binding.inventoryButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
 
@@ -149,23 +242,15 @@ class GameFragment : Fragment(R.layout.game_fragment) {
             val lostFighters = maxFighters - viewModel.totalFighters.value
             val dockedFighters = maxFighters - lostFighters - launchedFighters
 
-            var fullMessage = ordnanceStockMessage
-            fullMessage += "\n" + getString(
-                R.string.single_seat_craft_docked,
-                dockedFighters
-            )
-            if (launchedFighters > 0) {
-                fullMessage += "\n" + getString(
-                    R.string.single_seat_craft_launched,
-                    launchedFighters
-                )
+            val fighterStockMessage = intArrayOf(
+                dockedFighters,
+                launchedFighters,
+                lostFighters,
+            ).zip(fighterStockStrings).filter { it.first > 0 }.joinToString("\n") { (count, id) ->
+                getString(id, count)
             }
-            if (lostFighters > 0) {
-                fullMessage += "\n" + getString(
-                    R.string.single_seat_craft_lost,
-                    lostFighters
-                )
-            }
+
+            val fullMessage = "$ordnanceStockMessage\n$fighterStockMessage"
 
             val routeObjective = neededOrdnanceType?.let(RouteObjective::Ordnance)
                 ?: RouteObjective.ReplacementFighters.takeIf { lostFighters > 0 }
@@ -184,40 +269,21 @@ class GameFragment : Fragment(R.layout.game_fragment) {
                 }
                 .show()
         }
+    }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.rootOpacity) {
-            binding.root.alpha = it
-            popupBinding.selectorList.alpha = it
-        }
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.jumping) {
-            popupBinding.jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
-        }
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectableShips) { ships ->
-            val shipNameVisibility: Int
-            binding.shipNumberLabel.text = if (ships.isEmpty()) {
-                shipNameVisibility = View.GONE
-                getString(R.string.no_ships)
-            } else {
-                val index = viewModel.shipIndex.value
-                if (index >= 0) {
-                    binding.shipNameLabel.text = ships[index].name
-                    shipNameVisibility = View.VISIBLE
-                    getString(R.string.ship_number, index + 1)
-                } else {
-                    shipNameVisibility = View.GONE
-                    getString(R.string.no_ship_selected)
-                }
-            }
-            binding.shipNameLabel.visibility = shipNameVisibility
-            binding.waitingForGameLabel.visibility = shipNameVisibility
-        }
+    private fun setupPageSelector() {
+        gamePagePopup.isFocusable = true
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.currentGamePage) {
             currentPage = it
         }
 
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.gamePages) {
+            gamePageAdapter.update(it)
+        }
+    }
+
+    private fun setupAlertButton() {
         binding.redAlertButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_1)
             viewModel.sendToServer(ToggleRedAlertPacket())
@@ -226,7 +292,9 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.alertStatus) {
             binding.redAlertButton.isChecked = it == AlertStatus.RED
         }
+    }
 
+    private fun setupAgentButton() {
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.doubleAgentEnabled) {
             binding.doubleAgentButton.isEnabled = it
         }
@@ -242,60 +310,6 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         binding.doubleAgentButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_1)
             viewModel.activateDoubleAgent()
-        }
-
-        gamePagePopup.isFocusable = true
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.gamePages) {
-            gamePageAdapter.update(it)
-        }
-
-        viewLifecycleOwner.collectLatestWhileStarted(borderWar) { status ->
-            val visibility = if (status != null) {
-                binding.borderWarLabel.text = getString(
-                    R.string.border_war_status,
-                    status.name
-                )
-                binding.borderWarBackground.setBackgroundColor(
-                    ContextCompat.getColor(
-                        binding.borderWarBackground.context,
-                        status.backgroundColor
-                    )
-                )
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
-            binding.borderWarBackground.visibility = visibility
-            binding.borderWarLabel.visibility = visibility
-        }
-
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.gameIsRunning) { isRunning ->
-            val waitingVisibility: Int
-            val visibility = if (isRunning) {
-                waitingVisibility = View.GONE
-                View.VISIBLE
-            } else {
-                waitingVisibility = binding.shipNameLabel.visibility
-                viewModel.rootOpacity.value = 1f
-                binding.redAlertButton.isChecked = false
-                gamePagePopup.dismiss()
-                View.GONE
-            }
-
-            binding.waitingForGameLabel.visibility = waitingVisibility
-            binding.gamePageSelectorButton.visibility = visibility
-            binding.gameFragmentContainer.visibility = visibility
-            binding.inventoryButton.visibility = visibility
-            binding.redAlertButton.visibility = visibility
-            binding.doubleAgentButton.visibility = visibility
-
-            if (
-                binding.root.resources.configuration.orientation ==
-                Configuration.ORIENTATION_PORTRAIT
-            ) {
-                binding.agentLabel.visibility = visibility
-            }
         }
     }
 
