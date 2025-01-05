@@ -66,7 +66,7 @@ detekt {
 gitHooks {
     setHooks(
         mapOf(
-            "pre-commit" to "detektBaseline detektBaselineTest detektBaselineTestFixtures ",
+            "pre-commit" to "detektBaseline detektBaselineTest detektBaselineTestFixtures ktfmtFormat",
             "pre-push" to ":IAN:konsistCollect :app:konsist:test",
         )
     )

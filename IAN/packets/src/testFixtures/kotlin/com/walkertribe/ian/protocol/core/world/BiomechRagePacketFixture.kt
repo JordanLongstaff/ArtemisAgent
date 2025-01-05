@@ -17,13 +17,10 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class BiomechRagePacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<BiomechRagePacket>(TestPacketTypes.SIMPLE_EVENT) {
-    class Data internal constructor(
-        override val version: Version,
-        private val rage: Int,
-    ) : PacketTestData.Server<BiomechRagePacket> {
+class BiomechRagePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<BiomechRagePacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version, private val rage: Int) :
+        PacketTestData.Server<BiomechRagePacket> {
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(SimpleEventPacket.Subtype.BIOMECH_STANCE.toInt())
             writeIntLe(rage)

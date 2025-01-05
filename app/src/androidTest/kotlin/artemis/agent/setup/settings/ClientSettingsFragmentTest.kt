@@ -13,17 +13,16 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.PermissionGranter
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class ClientSettingsFragmentTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun clientSettingsTest() {
@@ -45,29 +44,31 @@ class ClientSettingsFragmentTest {
         SettingsFragmentTest.openSettingsMenu()
 
         listOf(
-            { SettingsFragmentTest.closeSettingsSubMenu() },
-            { SettingsFragmentTest.backFromSubMenu() },
-        ).forEach { closeSubMenu ->
-            SettingsFragmentTest.openSettingsSubMenu(0)
-            testClientSubMenuOpen(
-                externalVesselDataCount.get(),
-                expectedPort.toString(),
-                expectedUpdateInterval.toString(),
-                showingInfo.get(),
+                { SettingsFragmentTest.closeSettingsSubMenu() },
+                { SettingsFragmentTest.backFromSubMenu() },
             )
+            .forEach { closeSubMenu ->
+                SettingsFragmentTest.openSettingsSubMenu(0)
+                testClientSubMenuOpen(
+                    externalVesselDataCount.get(),
+                    expectedPort.toString(),
+                    expectedUpdateInterval.toString(),
+                    showingInfo.get(),
+                )
 
-            closeSubMenu()
-            testClientSubMenuClosed()
-        }
+                closeSubMenu()
+                testClientSubMenuClosed()
+            }
     }
 
     private companion object {
-        val showNetworkInfoToggleSetting = SingleToggleButtonSetting(
-            R.id.showNetworkInfoDivider,
-            R.id.showNetworkInfoTitle,
-            R.string.show_network_info,
-            R.id.showNetworkInfoButton,
-        )
+        val showNetworkInfoToggleSetting =
+            SingleToggleButtonSetting(
+                R.id.showNetworkInfoDivider,
+                R.id.showNetworkInfoTitle,
+                R.string.show_network_info,
+                R.id.showNetworkInfoButton,
+            )
 
         fun testClientSubMenuOpen(
             externalVesselDataCount: Int,
@@ -81,15 +82,16 @@ class ClientSettingsFragmentTest {
             assertDisplayed(R.id.vesselDataDefault, R.string.default_setting)
 
             listOf(
-                R.id.vesselDataInternalStorage to R.string.vessel_data_internal,
-                R.id.vesselDataExternalStorage to R.string.vessel_data_external,
-            ).forEachIndexed { index, (id, label) ->
-                if (index < externalVesselDataCount) {
-                    assertDisplayed(id, label)
-                } else {
-                    assertNotDisplayed(id)
+                    R.id.vesselDataInternalStorage to R.string.vessel_data_internal,
+                    R.id.vesselDataExternalStorage to R.string.vessel_data_external,
+                )
+                .forEachIndexed { index, (id, label) ->
+                    if (index < externalVesselDataCount) {
+                        assertDisplayed(id, label)
+                    } else {
+                        assertNotDisplayed(id)
+                    }
                 }
-            }
 
             showNetworkInfoToggleSetting.testSingleToggle(showingInfo)
 

@@ -17,12 +17,10 @@ import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
 
-class PlayerShipDamagePacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<PlayerShipDamagePacket>(
-    TestPacketTypes.SIMPLE_EVENT,
-) {
-    class Data internal constructor(
+class PlayerShipDamagePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<PlayerShipDamagePacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data
+    internal constructor(
         override val version: Version,
         private val shipIndex: Int,
         private val damageDuration: Float,

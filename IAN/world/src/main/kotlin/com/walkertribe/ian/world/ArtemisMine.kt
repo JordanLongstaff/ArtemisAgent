@@ -4,6 +4,7 @@ import com.walkertribe.ian.enums.ObjectType
 
 /**
  * Mines
+ *
  * @author rjwut
  */
 class ArtemisMine(id: Int, timestamp: Long) : BaseArtemisObject<ArtemisMine>(id, timestamp) {

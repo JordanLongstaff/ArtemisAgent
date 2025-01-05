@@ -11,12 +11,10 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class EndGamePacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<EndGamePacket>(TestPacketTypes.SIMPLE_EVENT) {
-    class Data internal constructor(
-        override val version: Version,
-    ) : PacketTestData.Server<EndGamePacket> {
+class EndGamePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<EndGamePacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version) :
+        PacketTestData.Server<EndGamePacket> {
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(SimpleEventPacket.Subtype.END_GAME.toInt())
         }

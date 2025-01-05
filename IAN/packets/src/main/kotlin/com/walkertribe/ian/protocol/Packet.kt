@@ -6,9 +6,7 @@ import com.walkertribe.ian.iface.PacketReader
 import com.walkertribe.ian.iface.PacketWriter
 import com.walkertribe.ian.util.JamCrc
 
-/**
- * Interface for all packets that can be received or sent.
- */
+/** Interface for all packets that can be received or sent. */
 sealed interface Packet {
     abstract class Server(reader: PacketReader) : Packet, ListenerArgument {
         final override val timestamp: Long = reader.packetTimestamp
@@ -19,9 +17,7 @@ sealed interface Packet {
     }
 
     abstract class Client(
-        /**
-         * Returns the type value for this packet, specified as the last field of the preamble.
-         */
+        /** Returns the type value for this packet, specified as the last field of the preamble. */
         val type: Int
     ) : Packet {
         constructor(type: String) : this(getHash(type))
@@ -31,9 +27,7 @@ sealed interface Packet {
             writePayload(writer)
         }
 
-        /**
-         * Causes the packet's payload to be written to the given PacketWriter.
-         */
+        /** Causes the packet's payload to be written to the given PacketWriter. */
         protected abstract fun writePayload(writer: PacketWriter)
 
         private companion object {
@@ -47,21 +41,18 @@ sealed interface Packet {
     /**
      * Any packet that IAN has not parsed, either because IAN has yet to attempt to parse it or
      * because it failed.
+     *
      * @author rjwut
      */
     class Raw(
         val type: Int,
 
-        /**
-         * Returns the payload for this packet.
-         */
-        val payload: ByteArray
+        /** Returns the payload for this packet. */
+        val payload: ByteArray,
     ) : Packet
 
     companion object {
-        /**
-         * The preamble of every packet starts with this value.
-         */
+        /** The preamble of every packet starts with this value. */
         const val HEADER = 0xDEADBEEF.toInt()
         const val PREAMBLE_SIZE = Int.SIZE_BYTES * 6
     }

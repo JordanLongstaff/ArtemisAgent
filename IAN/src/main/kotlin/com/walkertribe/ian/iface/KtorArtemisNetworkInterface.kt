@@ -26,19 +26,15 @@ import kotlinx.io.IOException
 /**
  * Default implementation of [ArtemisNetworkInterface] that uses Ktor. When started, it launches
  * four coroutines:
- *  * The **connection listener coroutine**, which listens for changes to the connection and
- *  heartbeats.
- *
- *  * The **receiver coroutine**, which reads and parses packets from the input stream.
- *
- *  * The **parse result dispatch coroutine**, which fires listeners to respond to incoming packets
- *  and object updates.
- *
- *  * The **sender coroutine**, which writes outgoing packets to the output stream.
+ * * The **connection listener coroutine**, which listens for changes to the connection and
+ *   heartbeats.
+ * * The **receiver coroutine**, which reads and parses packets from the input stream.
+ * * The **parse result dispatch coroutine**, which fires listeners to respond to incoming packets
+ *   and object updates.
+ * * The **sender coroutine**, which writes outgoing packets to the output stream.
  */
-class KtorArtemisNetworkInterface(
-    override val debugMode: Boolean,
-) : ArtemisNetworkInterface, CoroutineScope {
+class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
+    ArtemisNetworkInterface, CoroutineScope {
     override val coroutineContext = Dispatchers.IO
 
     private lateinit var socket: Socket
@@ -53,7 +49,9 @@ class KtorArtemisNetworkInterface(
     internal val sendingChannel = Channel<Packet.Client>(Channel.BUFFERED)
     internal val parseResultsChannel = Channel<ParseResult.Success>(Channel.BUFFERED)
     internal val connectionEventChannel = Channel<ConnectionEvent>(Channel.BUFFERED)
-    internal var startTime: Long? = null; private set
+    internal var startTime: Long? = null
+        private set
+
     private var disconnectCause: DisconnectCause? = DisconnectCause.LocalDisconnect
     private val heartbeatManager = HeartbeatManager(this)
     private val listeners = ListenerRegistry()
@@ -71,30 +69,34 @@ class KtorArtemisNetworkInterface(
     private val receiveExceptionHandler by lazy {
         CoroutineExceptionHandler { _, throwable ->
             reader.close(throwable)
-            disconnectCause = when (throwable) {
-                is PacketException -> DisconnectCause.PacketParseError(throwable)
-                else -> DisconnectCause.RemoteDisconnect
-            }
+            disconnectCause =
+                when (throwable) {
+                    is PacketException -> DisconnectCause.PacketParseError(throwable)
+                    else -> DisconnectCause.RemoteDisconnect
+                }
             stop()
         }
     }
 
     private val sendExceptionHandler by lazy {
         CoroutineExceptionHandler { _, throwable ->
-            disconnectCause = when (throwable) {
-                is IOException -> DisconnectCause.IOError(throwable)
-                else -> DisconnectCause.UnknownError(throwable)
-            }
+            disconnectCause =
+                when (throwable) {
+                    is IOException -> DisconnectCause.IOError(throwable)
+                    else -> DisconnectCause.UnknownError(throwable)
+                }
             stop()
         }
     }
 
-    private val disconnectCauseException get() = when (val cause = disconnectCause) {
-        is DisconnectCause.IOError -> cause.exception
-        is DisconnectCause.PacketParseError -> cause.exception
-        is DisconnectCause.UnknownError -> cause.throwable
-        else -> null
-    }
+    private val disconnectCauseException
+        get() =
+            when (val cause = disconnectCause) {
+                is DisconnectCause.IOError -> cause.exception
+                is DisconnectCause.PacketParseError -> cause.exception
+                is DisconnectCause.UnknownError -> cause.throwable
+                else -> null
+            }
 
     init {
         addListeners(
@@ -106,9 +108,7 @@ class KtorArtemisNetworkInterface(
                         listeners.offer(ConnectionEvent.Success(it.message))
                     }
                 },
-                ListenerFunction(VersionPacket::class) {
-                    version = it.version
-                },
+                ListenerFunction(VersionPacket::class) { version = it.version },
             ) + heartbeatManager.listeners
         )
     }
@@ -129,27 +129,29 @@ class KtorArtemisNetworkInterface(
         if (startTime == null && disconnectCause == null) {
             startTime = Clock.System.now().toEpochMilliseconds()
 
-            sendJob = launch(sendExceptionHandler) {
-                while (isRunning && isActive) {
-                    sendingChannel.tryReceive().onSuccess { packet ->
-                        packet.writeTo(writer)
-                        writer.flush()
-                    }
+            sendJob =
+                launch(sendExceptionHandler) {
+                    while (isRunning && isActive) {
+                        sendingChannel.tryReceive().onSuccess { packet ->
+                            packet.writeTo(writer)
+                            writer.flush()
+                        }
 
-                    heartbeatManager.sendHeartbeatIfNeeded()
-                }
-            }
-
-            receiveJob = launch(receiveExceptionHandler) {
-                while (isRunning) {
-                    // read packet and process
-                    when (val result = reader.readPacket()) {
-                        is ParseResult.Success -> parseResultsChannel.send(result)
-                        is ParseResult.Fail -> throw result.exception
-                        else -> { }
+                        heartbeatManager.sendHeartbeatIfNeeded()
                     }
                 }
-            }
+
+            receiveJob =
+                launch(receiveExceptionHandler) {
+                    while (isRunning) {
+                        // read packet and process
+                        when (val result = reader.readPacket()) {
+                            is ParseResult.Success -> parseResultsChannel.send(result)
+                            is ParseResult.Fail -> throw result.exception
+                            else -> {}
+                        }
+                    }
+                }
 
             connectionListenerJob = launch {
                 while (isRunning && isActive) {
@@ -168,7 +170,8 @@ class KtorArtemisNetworkInterface(
     }
 
     override var isConnected: Boolean = false
-    private val isRunning: Boolean get() = disconnectCause == null && startTime != null
+    private val isRunning: Boolean
+        get() = disconnectCause == null && startTime != null
 
     override fun sendPacket(packet: Packet.Client) {
         sendingChannel.trySend(packet)
@@ -208,30 +211,32 @@ class KtorArtemisNetworkInterface(
     }
 
     /**
-     * Attempts an outgoing client connection to an Artemis server. The send and
-     * receive streams won't actually be opened until [start] is called.
+     * Attempts an outgoing client connection to an Artemis server. The send and receive streams
+     * won't actually be opened until [start] is called.
+     *
      * @param host the hostname of the server.
      * @param port the port on which to connect.
      * @param timeoutMs how long (in milliseconds) IAN will wait for the connection to be
-     * established before returning false.
+     *   established before returning false.
      * @return Whether the connection was successful.
      */
     override suspend fun connect(host: String, port: Int, timeoutMs: Long): Boolean {
         if (isRunning) stop()
 
-        socket = try {
-            withTimeout(timeoutMs) {
-                aSocket(SelectorManager(Dispatchers.IO)).tcp().connect(host, port) {
-                    keepAlive = true
+        socket =
+            try {
+                withTimeout(timeoutMs) {
+                    aSocket(SelectorManager(Dispatchers.IO)).tcp().connect(host, port) {
+                        keepAlive = true
+                    }
                 }
-            }
-        } catch (_: TimeoutCancellationException) {
-            null
-        } catch (_: IllegalArgumentException) {
-            null
-        } catch (_: IOException) {
-            null
-        } ?: return false
+            } catch (_: TimeoutCancellationException) {
+                null
+            } catch (_: IllegalArgumentException) {
+                null
+            } catch (_: IOException) {
+                null
+            } ?: return false
 
         reader = PacketReader(socket.openReadChannel(), listeners)
         writer = PacketWriter(socket.openWriteChannel())

@@ -6,13 +6,12 @@ import com.walkertribe.ian.protocol.PacketType
 
 /**
  * A superclass for handling SIMPLE_EVENT server packets.
+ *
  * @author rjwut
  */
 @PacketType(type = CorePacketType.SIMPLE_EVENT)
 abstract class SimpleEventPacket(reader: PacketReader) : Packet.Server(reader) {
-    /**
-     * SIMPLE_EVENT server packet subtypes.
-     */
+    /** SIMPLE_EVENT server packet subtypes. */
     object Subtype {
         const val PAUSE: Byte = 0x04
         const val PLAYER_SHIP_DAMAGE: Byte = 0x05

@@ -7,6 +7,7 @@ plugins {
   id("kotlin")
   alias(libs.plugins.kover)
   id("info.solidsoft.pitest")
+  alias(libs.plugins.ktfmt)
   alias(libs.plugins.detekt)
   alias(libs.plugins.dependency.analysis)
 }
@@ -31,6 +32,10 @@ tasks.test {
 }
 
 tasks.assemble.dependsOn(":IAN:vesseldata:konsist:test")
+
+ktfmt {
+  kotlinLangStyle()
+}
 
 detekt {
   source.setFrom(file("src/main/kotlin"))

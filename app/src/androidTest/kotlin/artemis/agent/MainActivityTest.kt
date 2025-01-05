@@ -21,8 +21,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class MainActivityTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun radioButtonsTest() {
@@ -82,9 +81,7 @@ class MainActivityTest {
     fun permissionRationaleDialogNegativeTest() {
         testPermissionDialog()
         clickDialogNegativeButton()
-        Assert.assertThrows(RuntimeException::class.java) {
-            assertNotExist(R.id.mainPageSelector)
-        }
+        Assert.assertThrows(RuntimeException::class.java) { assertNotExist(R.id.mainPageSelector) }
         PermissionGranter.denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
         assertDisplayed(R.id.mainPageSelector)
     }

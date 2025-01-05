@@ -17,16 +17,15 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.PermissionGranter
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class MissionSettingsFragmentTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun missionSettingsTest() {
@@ -39,9 +38,7 @@ class MissionSettingsFragmentTest {
             missionsEnabled.lazySet(viewModel.missionsEnabled)
             autoDismissal.lazySet(viewModel.autoDismissCompletedMissions)
 
-            viewModel.displayedRewards.forEach {
-                rewardsEnabled[it.ordinal].lazySet(true)
-            }
+            viewModel.displayedRewards.forEach { rewardsEnabled[it.ordinal].lazySet(true) }
         }
 
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
@@ -76,13 +73,17 @@ class MissionSettingsFragmentTest {
     private companion object {
         const val ENTRY_INDEX = 2
 
-        val rewardSettings = arrayOf(
-            GroupedToggleButtonSetting(R.id.rewardsBatteryButton, R.string.mission_battery),
-            GroupedToggleButtonSetting(R.id.rewardsCoolantButton, R.string.mission_coolant),
-            GroupedToggleButtonSetting(R.id.rewardsNukeButton, R.string.mission_nuke),
-            GroupedToggleButtonSetting(R.id.rewardsProductionButton, R.string.mission_production),
-            GroupedToggleButtonSetting(R.id.rewardsShieldButton, R.string.mission_shield),
-        )
+        val rewardSettings =
+            arrayOf(
+                GroupedToggleButtonSetting(R.id.rewardsBatteryButton, R.string.mission_battery),
+                GroupedToggleButtonSetting(R.id.rewardsCoolantButton, R.string.mission_coolant),
+                GroupedToggleButtonSetting(R.id.rewardsNukeButton, R.string.mission_nuke),
+                GroupedToggleButtonSetting(
+                    R.id.rewardsProductionButton,
+                    R.string.mission_production,
+                ),
+                GroupedToggleButtonSetting(R.id.rewardsShieldButton, R.string.mission_shield),
+            )
 
         fun testMissionsSubMenuOpen(
             autoDismissal: Boolean,

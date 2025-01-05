@@ -21,8 +21,8 @@ import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsRoutingBinding
 import artemis.agent.databinding.fragmentViewBinding
-import kotlinx.coroutines.launch
 import kotlin.reflect.KMutableProperty1
+import kotlinx.coroutines.launch
 
 class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -41,44 +41,44 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val incentiveButtons = mapOf(
-            binding.incentivesMissionsButton to UserSettingsKt.Dsl::routeMissions,
-            binding.incentivesNeedsDamConButton to UserSettingsKt.Dsl::routeNeedsDamcon,
-            binding.incentivesNeedsEnergyButton to UserSettingsKt.Dsl::routeNeedsEnergy,
-            binding.incentivesHasEnergyButton to UserSettingsKt.Dsl::routeHasEnergy,
-            binding.incentivesMalfunctionButton to UserSettingsKt.Dsl::routeMalfunction,
-            binding.incentivesAmbassadorButton to UserSettingsKt.Dsl::routeAmbassador,
-            binding.incentivesHostageButton to UserSettingsKt.Dsl::routeHostage,
-            binding.incentivesCommandeeredButton to UserSettingsKt.Dsl::routeCommandeered,
-        )
+        val incentiveButtons =
+            mapOf(
+                binding.incentivesMissionsButton to UserSettingsKt.Dsl::routeMissions,
+                binding.incentivesNeedsDamConButton to UserSettingsKt.Dsl::routeNeedsDamcon,
+                binding.incentivesNeedsEnergyButton to UserSettingsKt.Dsl::routeNeedsEnergy,
+                binding.incentivesHasEnergyButton to UserSettingsKt.Dsl::routeHasEnergy,
+                binding.incentivesMalfunctionButton to UserSettingsKt.Dsl::routeMalfunction,
+                binding.incentivesAmbassadorButton to UserSettingsKt.Dsl::routeAmbassador,
+                binding.incentivesHostageButton to UserSettingsKt.Dsl::routeHostage,
+                binding.incentivesCommandeeredButton to UserSettingsKt.Dsl::routeCommandeered,
+            )
 
-        val avoidances = arrayOf(
-            Avoidance(
-                toggleButton = binding.blackHolesButton,
-                clearanceField = binding.blackHolesClearanceField,
-                kmLabel = binding.blackHolesClearanceKm,
-                enabledSetting = UserSettingsKt.Dsl::avoidBlackHoles,
-                clearanceSetting = UserSettingsKt.Dsl::blackHoleClearance,
-            ),
-            Avoidance(
-                toggleButton = binding.minesButton,
-                clearanceField = binding.minesClearanceField,
-                kmLabel = binding.minesClearanceKm,
-                enabledSetting = UserSettingsKt.Dsl::avoidMines,
-                clearanceSetting = UserSettingsKt.Dsl::mineClearance,
-            ),
-            Avoidance(
-                toggleButton = binding.typhonsButton,
-                clearanceField = binding.typhonsClearanceField,
-                kmLabel = binding.typhonsClearanceKm,
-                enabledSetting = UserSettingsKt.Dsl::avoidTyphon,
-                clearanceSetting = UserSettingsKt.Dsl::typhonClearance,
-            ),
-        )
+        val avoidances =
+            arrayOf(
+                Avoidance(
+                    toggleButton = binding.blackHolesButton,
+                    clearanceField = binding.blackHolesClearanceField,
+                    kmLabel = binding.blackHolesClearanceKm,
+                    enabledSetting = UserSettingsKt.Dsl::avoidBlackHoles,
+                    clearanceSetting = UserSettingsKt.Dsl::blackHoleClearance,
+                ),
+                Avoidance(
+                    toggleButton = binding.minesButton,
+                    clearanceField = binding.minesClearanceField,
+                    kmLabel = binding.minesClearanceKm,
+                    enabledSetting = UserSettingsKt.Dsl::avoidMines,
+                    clearanceSetting = UserSettingsKt.Dsl::mineClearance,
+                ),
+                Avoidance(
+                    toggleButton = binding.typhonsButton,
+                    clearanceField = binding.typhonsClearanceField,
+                    kmLabel = binding.typhonsClearanceKm,
+                    enabledSetting = UserSettingsKt.Dsl::avoidTyphon,
+                    clearanceSetting = UserSettingsKt.Dsl::typhonClearance,
+                ),
+            )
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsReset) {
-            clearFocus()
-        }
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsReset) { clearFocus() }
 
         initializeFromSettings(incentiveButtons, avoidances)
 
@@ -111,7 +111,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
                         avoidance.kmLabel.visibility = View.VISIBLE
                         avoidance.clearanceField.visibility = View.VISIBLE
                         avoidance.clearanceField.setText(
-                            avoidance.clearanceSetting.get(this).formatString(),
+                            avoidance.clearanceSetting.get(this).formatString()
                         )
                     } else {
                         avoidance.toggleButton.isChecked = false
@@ -139,9 +139,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
                     it.copy {
-                        avoidances.forEach { (_, enabledSetting) ->
-                            enabledSetting.set(this, true)
-                        }
+                        avoidances.forEach { (_, enabledSetting) -> enabledSetting.set(this, true) }
                     }
                 }
             }
@@ -182,9 +180,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             }
         }
 
-        avoidance.clearanceField.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        avoidance.clearanceField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         avoidance.clearanceField.addTextChangedListener {
             if (playSoundsOnTextChange) {
@@ -220,9 +216,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
                     it.copy {
-                        incentiveButtons.values.forEach { setting ->
-                            setting.set(this, true)
-                        }
+                        incentiveButtons.values.forEach { setting -> setting.set(this, true) }
                     }
                 }
             }
@@ -234,9 +228,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
                     it.copy {
-                        incentiveButtons.values.forEach { setting ->
-                            setting.set(this, false)
-                        }
+                        incentiveButtons.values.forEach { setting -> setting.set(this, false) }
                     }
                 }
             }
@@ -249,9 +241,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             }
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {
-                    context.userSettings.updateData {
-                        it.copy { setting.set(this, isChecked) }
-                    }
+                    context.userSettings.updateData { it.copy { setting.set(this, isChecked) } }
                 }
             }
         }

@@ -16,7 +16,6 @@ import artemis.agent.copy
 import artemis.agent.databinding.SettingsBiomechsBinding
 import artemis.agent.databinding.fragmentViewBinding
 import kotlinx.coroutines.launch
-import kotlin.reflect.KMutableProperty1
 
 class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -38,12 +37,13 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val biomechSortMethodButtons = mapOf(
-            binding.biomechSortingClassButton1 to UserSettingsKt.Dsl::biomechSortClassFirst,
-            binding.biomechSortingStatusButton to UserSettingsKt.Dsl::biomechSortStatus,
-            binding.biomechSortingClassButton2 to UserSettingsKt.Dsl::biomechSortClassSecond,
-            binding.biomechSortingNameButton to UserSettingsKt.Dsl::biomechSortName,
-        )
+        val biomechSortMethodButtons =
+            mapOf(
+                binding.biomechSortingClassButton1 to UserSettingsKt.Dsl::biomechSortClassFirst,
+                binding.biomechSortingStatusButton to UserSettingsKt.Dsl::biomechSortStatus,
+                binding.biomechSortingClassButton2 to UserSettingsKt.Dsl::biomechSortClassSecond,
+                binding.biomechSortingNameButton to UserSettingsKt.Dsl::biomechSortName,
+            )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             it.copy {
@@ -89,9 +89,7 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
         binding.biomechSortingStatusButton.setOnCheckedChangeListener { _, isChecked ->
             binding.biomechSortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy { biomechSortStatus = isChecked }
-                }
+                context.userSettings.updateData { it.copy { biomechSortStatus = isChecked } }
             }
         }
 
@@ -110,9 +108,7 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
         binding.biomechSortingNameButton.setOnCheckedChangeListener { _, isChecked ->
             binding.biomechSortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy { biomechSortName = isChecked }
-                }
+                context.userSettings.updateData { it.copy { biomechSortName = isChecked } }
             }
         }
     }

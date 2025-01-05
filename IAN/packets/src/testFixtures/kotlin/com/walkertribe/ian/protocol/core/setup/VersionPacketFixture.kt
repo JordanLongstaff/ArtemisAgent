@@ -18,15 +18,12 @@ import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
 
-data class VersionPacketFixture(
-    private val arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<VersionPacket>(TestPacketTypes.CONNECTED) {
-    data class Data(
-        val unknownInt: Int,
-        val legacyFloat: Float,
-        val packetVersion: Version,
-    ) : PacketTestData.Server<VersionPacket> {
-        override val version: Version get() = Version.LATEST
+data class VersionPacketFixture(private val arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<VersionPacket>(TestPacketTypes.CONNECTED) {
+    data class Data(val unknownInt: Int, val legacyFloat: Float, val packetVersion: Version) :
+        PacketTestData.Server<VersionPacket> {
+        override val version: Version
+            get() = Version.LATEST
 
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(unknownInt)

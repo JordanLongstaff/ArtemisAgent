@@ -23,19 +23,18 @@ import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.writ
 import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
 import com.adevinta.android.barista.interaction.PermissionGranter
 import dev.tmapps.konnection.Konnection
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class ConnectFragmentTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun scanTest() {
@@ -123,11 +122,8 @@ class ConnectFragmentTest {
 
         val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
-        val infoViews = intArrayOf(
-            R.id.addressLabel,
-            R.id.networkTypeLabel,
-            R.id.networkInfoDivider,
-        )
+        val infoViews =
+            intArrayOf(R.id.addressLabel, R.id.networkTypeLabel, R.id.networkInfoDivider)
 
         val settingValue = showingInfo.get()
         listOf(settingValue, !settingValue, settingValue).forEachIndexed { index, showing ->

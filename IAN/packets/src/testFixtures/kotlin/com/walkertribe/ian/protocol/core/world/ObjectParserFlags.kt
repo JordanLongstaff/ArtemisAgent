@@ -17,63 +17,103 @@ import kotlinx.io.writeShortLe
 internal typealias PositionFlags = FlagByte<Float, Float, Float, *, *, *, *, *>
 
 internal typealias BaseFlags1 = FlagByte<String, Float, Float, Int, Int, Float, Float, Float>
+
 internal typealias BaseFlags2 = FlagByte<Float, Float, Float, Float, Byte, Byte, *, *>
 
 internal typealias CreatureFlags1 = FlagByte<Float, Float, Float, String, Float, Float, Float, Int>
+
 internal typealias CreatureFlags2 = FlagByte<Int, Int, Int, Int, Int, Int, Float, Float>
+
 internal typealias CreatureFlags3 = FlagByte<Byte, Int, *, *, *, *, *, *>
 
 internal typealias NpcFlags1 = FlagByte<String, Float, Float, Float, Float, Int, Int, Float>
+
 internal typealias NpcFlags2 = FlagByte<Float, Float, Float, Float, Float, Float, Byte, out Number>
+
 internal typealias NpcFlags2Old = FlagByte<Float, Float, Float, Float, Float, Float, Byte, Short>
+
 internal typealias NpcFlags2New = FlagByte<Float, Float, Float, Float, Float, Float, Byte, Byte>
+
 internal typealias NpcFlags3 = FlagByte<Float, Float, Float, Float, Short, Byte, Int, Int>
+
 internal typealias NpcFlags4 = FlagByte<Int, Int, Int, Byte, Byte, Byte, Byte, Float>
+
 internal typealias NpcFlags5Old = FlagByte<Float, Float, Float, Float, Float, Float, Float, Float>
+
 internal typealias NpcFlags5New = FlagByte<Float, Float, Byte, Byte, Float, Float, Float, Float>
+
 internal typealias NpcFlags6Old = FlagByte<Float, Float, Float, Float, Float, Float, Float, *>
+
 internal typealias NpcFlags6New = FlagByte<Float, Float, Float, Float, Float, Float, Float, Float>
+
 internal typealias NpcFlags7 = FlagByte<Float, *, *, *, *, *, *, *>
 
 internal typealias PlayerFlags1 = FlagByte<Int, Float, Float, Float, Float, Byte, Byte, Float>
+
 internal typealias PlayerFlags2 = FlagByte<Short, Int, Int, Float, Float, Float, Float, Float>
+
 internal typealias PlayerFlags3 =
     FlagByte<Float, Float, out Number, String, Float, Float, Float, Float>
+
 internal typealias PlayerFlags3Old =
     FlagByte<Float, Float, Short, String, Float, Float, Float, Float>
+
 internal typealias PlayerFlags3New =
     FlagByte<Float, Float, Byte, String, Float, Float, Float, Float>
+
 internal typealias PlayerFlags4 = FlagByte<Int, AlertStatus, Float, Byte, Byte, Byte, Int, Int>
+
 internal typealias PlayerFlags5 = FlagByte<DriveType, Int, Float, Byte, Float, Byte, Int, Byte>
+
 internal typealias PlayerFlags6 = FlagByte<Int, Float, Float, Byte, Byte, *, *, *>
 
-internal typealias UpgradesByteFlags =
-    FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte>
+internal typealias UpgradesByteFlags = FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte>
+
 internal typealias UpgradesShortFlags =
     FlagByte<Short, Short, Short, Short, Short, Short, Short, Short>
+
 internal typealias UpgradesEndFlags = FlagByte<Short, Short, Short, Short, *, *, *, *>
 
-internal typealias WeaponsV1Flags1 =
-    FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Float, Float>
+internal typealias WeaponsV1Flags1 = FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Float, Float>
+
 internal typealias WeaponsV1Flags2 =
     FlagByte<Float, Float, Float, Float, TubeState, TubeState, TubeState, TubeState>
-internal typealias WeaponsV1Flags3 =
-    FlagByte<TubeState, TubeState,
-        OrdnanceType, OrdnanceType, OrdnanceType, OrdnanceType, OrdnanceType, OrdnanceType>
 
-internal typealias WeaponsV2Flags1 =
-    FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte>
+internal typealias WeaponsV1Flags3 =
+    FlagByte<
+        TubeState,
+        TubeState,
+        OrdnanceType,
+        OrdnanceType,
+        OrdnanceType,
+        OrdnanceType,
+        OrdnanceType,
+        OrdnanceType,
+    >
+
+internal typealias WeaponsV2Flags1 = FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte>
+
 internal typealias WeaponsV2Flags2 =
     FlagByte<Float, Float, Float, Float, Float, Float, TubeState, TubeState>
+
 internal typealias WeaponsV2Flags3 =
-    FlagByte<TubeState, TubeState, TubeState, TubeState,
-        OrdnanceType, OrdnanceType, OrdnanceType, OrdnanceType>
+    FlagByte<
+        TubeState,
+        TubeState,
+        TubeState,
+        TubeState,
+        OrdnanceType,
+        OrdnanceType,
+        OrdnanceType,
+        OrdnanceType,
+    >
+
 internal typealias WeaponsV2Flags4 = FlagByte<OrdnanceType, OrdnanceType, *, *, *, *, *, *>
 
 internal typealias EngineeringFloatFlags =
     FlagByte<Float, Float, Float, Float, Float, Float, Float, Float>
-internal typealias EngineeringByteFlags =
-    FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte>
+
+internal typealias EngineeringByteFlags = FlagByte<Byte, Byte, Byte, Byte, Byte, Byte, Byte, Byte>
 
 internal typealias AnomalyFlags = FlagByte<Float, Float, Float, Int, Int, Int, Byte, Byte>
 
@@ -83,16 +123,18 @@ internal typealias NebulaFlags = FlagByte<Float, Float, Float, Float, Float, Flo
 
 internal typealias TorpedoFlags = FlagByte<Float, Float, Float, Float, Float, Float, Int, Int>
 
-internal typealias GenericMeshFlags1 =
-    FlagByte<Float, Float, Float, Int, Int, Int, Float, Float>
+internal typealias GenericMeshFlags1 = FlagByte<Float, Float, Float, Int, Int, Int, Float, Float>
+
 internal typealias GenericMeshFlags2 =
     FlagByte<Float, Float, Float, Float, String, String, String, Float>
+
 internal typealias GenericMeshFlags3 =
     FlagByte<Byte, Float, Float, Float, Float, Float, Float, Byte>
-internal typealias GenericMeshFlags4 =
-    FlagByte<String, String, Int, *, *, *, *, *>
+
+internal typealias GenericMeshFlags4 = FlagByte<String, String, Int, *, *, *, *, *>
 
 internal typealias DroneFlags1 = FlagByte<Int, Float, Float, Float, Float, Float, Float, Int>
+
 internal typealias DroneFlags2 = FlagByte<Float, *, *, *, *, *, *, *>
 
 internal data class Flag<T>(val enabled: Boolean, val value: T)
@@ -110,12 +152,12 @@ internal data class FlagByte<T1, T2, T3, T4, T5, T6, T7, T8>(
     val byteValue: Byte by lazy {
         var value = 0
 
-        arrayOf(flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8)
-            .forEachIndexed { index, flag ->
-                if (flag.enabled) {
-                    value += 1 shl index
-                }
+        arrayOf(flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8).forEachIndexed { index, flag
+            ->
+            if (flag.enabled) {
+                value += 1 shl index
             }
+        }
 
         value.toByte()
     }
@@ -127,47 +169,39 @@ internal val dummy = Flag(false, 0)
 
 private fun <T> Arb.Companion.flag(arb: Arb<T>): Arb<Flag<T>> = Arb.bind(Arb.boolean(), arb, ::Flag)
 
-internal fun <T> Arb.Companion.flags(
-    arb: Arb<T>
-): Arb<FlagByte<T, *, *, *, *, *, *, *>> = Arb.flag(arb).map {
-    FlagByte(it, dummy, dummy, dummy, dummy, dummy, dummy, dummy)
-}
+internal fun <T> Arb.Companion.flags(arb: Arb<T>): Arb<FlagByte<T, *, *, *, *, *, *, *>> =
+    Arb.flag(arb).map { FlagByte(it, dummy, dummy, dummy, dummy, dummy, dummy, dummy) }
 
 internal fun <T1, T2> Arb.Companion.flags(
     arb1: Arb<T1>,
     arb2: Arb<T2>,
-): Arb<FlagByte<T1, T2, *, *, *, *, *, *>> = Arb.bind(
-    Arb.flag(arb1),
-    Arb.flag(arb2),
-) { flag1, flag2 ->
-    FlagByte(flag1, flag2, dummy, dummy, dummy, dummy, dummy, dummy)
-}
+): Arb<FlagByte<T1, T2, *, *, *, *, *, *>> =
+    Arb.bind(Arb.flag(arb1), Arb.flag(arb2)) { flag1, flag2 ->
+        FlagByte(flag1, flag2, dummy, dummy, dummy, dummy, dummy, dummy)
+    }
 
 internal fun <T1, T2, T3> Arb.Companion.flags(
     arb1: Arb<T1>,
     arb2: Arb<T2>,
     arb3: Arb<T3>,
-): Arb<FlagByte<T1, T2, T3, *, *, *, *, *>> = Arb.bind(
-    Arb.flag(arb1),
-    Arb.flag(arb2),
-    Arb.flag(arb3),
-) { flag1, flag2, flag3 ->
-    FlagByte(flag1, flag2, flag3, dummy, dummy, dummy, dummy, dummy)
-}
+): Arb<FlagByte<T1, T2, T3, *, *, *, *, *>> =
+    Arb.bind(Arb.flag(arb1), Arb.flag(arb2), Arb.flag(arb3)) { flag1, flag2, flag3 ->
+        FlagByte(flag1, flag2, flag3, dummy, dummy, dummy, dummy, dummy)
+    }
 
 internal fun <T1, T2, T3, T4> Arb.Companion.flags(
     arb1: Arb<T1>,
     arb2: Arb<T2>,
     arb3: Arb<T3>,
     arb4: Arb<T4>,
-): Arb<FlagByte<T1, T2, T3, T4, *, *, *, *>> = Arb.bind(
-    Arb.flag(arb1),
-    Arb.flag(arb2),
-    Arb.flag(arb3),
-    Arb.flag(arb4),
-) { flag1, flag2, flag3, flag4 ->
-    FlagByte(flag1, flag2, flag3, flag4, dummy, dummy, dummy, dummy)
-}
+): Arb<FlagByte<T1, T2, T3, T4, *, *, *, *>> =
+    Arb.bind(Arb.flag(arb1), Arb.flag(arb2), Arb.flag(arb3), Arb.flag(arb4)) {
+        flag1,
+        flag2,
+        flag3,
+        flag4 ->
+        FlagByte(flag1, flag2, flag3, flag4, dummy, dummy, dummy, dummy)
+    }
 
 internal fun <T1, T2, T3, T4, T5> Arb.Companion.flags(
     arb1: Arb<T1>,
@@ -175,15 +209,15 @@ internal fun <T1, T2, T3, T4, T5> Arb.Companion.flags(
     arb3: Arb<T3>,
     arb4: Arb<T4>,
     arb5: Arb<T5>,
-): Arb<FlagByte<T1, T2, T3, T4, T5, *, *, *>> = Arb.bind(
-    Arb.flag(arb1),
-    Arb.flag(arb2),
-    Arb.flag(arb3),
-    Arb.flag(arb4),
-    Arb.flag(arb5),
-) { flag1, flag2, flag3, flag4, flag5 ->
-    FlagByte(flag1, flag2, flag3, flag4, flag5, dummy, dummy, dummy)
-}
+): Arb<FlagByte<T1, T2, T3, T4, T5, *, *, *>> =
+    Arb.bind(Arb.flag(arb1), Arb.flag(arb2), Arb.flag(arb3), Arb.flag(arb4), Arb.flag(arb5)) {
+        flag1,
+        flag2,
+        flag3,
+        flag4,
+        flag5 ->
+        FlagByte(flag1, flag2, flag3, flag4, flag5, dummy, dummy, dummy)
+    }
 
 internal fun <T1, T2, T3, T4, T5, T6> Arb.Companion.flags(
     arb1: Arb<T1>,
@@ -192,16 +226,17 @@ internal fun <T1, T2, T3, T4, T5, T6> Arb.Companion.flags(
     arb4: Arb<T4>,
     arb5: Arb<T5>,
     arb6: Arb<T6>,
-): Arb<FlagByte<T1, T2, T3, T4, T5, T6, *, *>> = Arb.bind(
-    Arb.flag(arb1),
-    Arb.flag(arb2),
-    Arb.flag(arb3),
-    Arb.flag(arb4),
-    Arb.flag(arb5),
-    Arb.flag(arb6),
-) { flag1, flag2, flag3, flag4, flag5, flag6 ->
-    FlagByte(flag1, flag2, flag3, flag4, flag5, flag6, dummy, dummy)
-}
+): Arb<FlagByte<T1, T2, T3, T4, T5, T6, *, *>> =
+    Arb.bind(
+        Arb.flag(arb1),
+        Arb.flag(arb2),
+        Arb.flag(arb3),
+        Arb.flag(arb4),
+        Arb.flag(arb5),
+        Arb.flag(arb6),
+    ) { flag1, flag2, flag3, flag4, flag5, flag6 ->
+        FlagByte(flag1, flag2, flag3, flag4, flag5, flag6, dummy, dummy)
+    }
 
 internal fun <T1, T2, T3, T4, T5, T6, T7> Arb.Companion.flags(
     arb1: Arb<T1>,
@@ -211,17 +246,18 @@ internal fun <T1, T2, T3, T4, T5, T6, T7> Arb.Companion.flags(
     arb5: Arb<T5>,
     arb6: Arb<T6>,
     arb7: Arb<T7>,
-): Arb<FlagByte<T1, T2, T3, T4, T5, T6, T7, *>> = Arb.bind(
-    Arb.flag(arb1),
-    Arb.flag(arb2),
-    Arb.flag(arb3),
-    Arb.flag(arb4),
-    Arb.flag(arb5),
-    Arb.flag(arb6),
-    Arb.flag(arb7),
-) { flag1, flag2, flag3, flag4, flag5, flag6, flag7 ->
-    FlagByte(flag1, flag2, flag3, flag4, flag5, flag6, flag7, dummy)
-}
+): Arb<FlagByte<T1, T2, T3, T4, T5, T6, T7, *>> =
+    Arb.bind(
+        Arb.flag(arb1),
+        Arb.flag(arb2),
+        Arb.flag(arb3),
+        Arb.flag(arb4),
+        Arb.flag(arb5),
+        Arb.flag(arb6),
+        Arb.flag(arb7),
+    ) { flag1, flag2, flag3, flag4, flag5, flag6, flag7 ->
+        FlagByte(flag1, flag2, flag3, flag4, flag5, flag6, flag7, dummy)
+    }
 
 internal fun <T1, T2, T3, T4, T5, T6, T7, T8> Arb.Companion.flags(
     arb1: Arb<T1>,
@@ -232,18 +268,19 @@ internal fun <T1, T2, T3, T4, T5, T6, T7, T8> Arb.Companion.flags(
     arb6: Arb<T6>,
     arb7: Arb<T7>,
     arb8: Arb<T8>,
-): Arb<FlagByte<T1, T2, T3, T4, T5, T6, T7, T8>> = Arb.bind(
-    Arb.flag(arb1),
-    Arb.flag(arb2),
-    Arb.flag(arb3),
-    Arb.flag(arb4),
-    Arb.flag(arb5),
-    Arb.flag(arb6),
-    Arb.flag(arb7),
-    Arb.flag(arb8),
-) { flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8 ->
-    FlagByte(flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8)
-}
+): Arb<FlagByte<T1, T2, T3, T4, T5, T6, T7, T8>> =
+    Arb.bind(
+        Arb.flag(arb1),
+        Arb.flag(arb2),
+        Arb.flag(arb3),
+        Arb.flag(arb4),
+        Arb.flag(arb5),
+        Arb.flag(arb6),
+        Arb.flag(arb7),
+        Arb.flag(arb8),
+    ) { flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8 ->
+        FlagByte(flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8)
+    }
 
 internal fun Sink.writeFloatFlags(vararg flags: Flag<Float>) {
     flags.forEach {

@@ -6,18 +6,17 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-/**
- * Base implementation for all ArtemisObjects.
- */
+/** Base implementation for all ArtemisObjects. */
 abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     final override val id: Int,
-    final override val timestamp: Long
+    final override val timestamp: Long,
 ) : ArtemisObject<T> {
     override val x = Property.FloatProperty(timestamp)
     override val y = Property.FloatProperty(timestamp)
     override val z = Property.FloatProperty(timestamp)
 
-    override val hasPosition: Boolean get() = x.hasValue && z.hasValue
+    override val hasPosition: Boolean
+        get() = x.hasValue && z.hasValue
 
     override fun distanceTo(other: ArtemisObject<*>): Float {
         check(hasPosition && other.hasPosition) {
@@ -91,10 +90,9 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
         module.onArtemisObject(this)
     }
 
-    /**
-     * Returns true if this object contains any data.
-     */
-    internal open val hasData: Boolean get() = x.hasValue || y.hasValue || z.hasValue
+    /** Returns true if this object contains any data. */
+    internal open val hasData: Boolean
+        get() = x.hasValue || y.hasValue || z.hasValue
 
     override fun equals(other: Any?): Boolean =
         this === other || (other is ArtemisObject<*> && id == other.id && type == other.type)

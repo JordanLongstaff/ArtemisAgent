@@ -15,11 +15,11 @@ import io.ktor.utils.io.core.writeText
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-data object WelcomePacketFixture : PacketTestFixture.Server<WelcomePacket>(
-    TestPacketTypes.PLAIN_TEXT_GREETING,
-) {
+data object WelcomePacketFixture :
+    PacketTestFixture.Server<WelcomePacket>(TestPacketTypes.PLAIN_TEXT_GREETING) {
     data class Data(val message: String) : PacketTestData.Server<WelcomePacket> {
-        override val version: Version get() = Version.LATEST
+        override val version: Version
+            get() = Version.LATEST
 
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(message.length)

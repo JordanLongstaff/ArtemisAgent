@@ -42,6 +42,7 @@ kotlin-io = "0.6.0"
 kotlinpoet = "2.0.0"
 kover = "0.9.0"
 ksp = "2.1.0-1.0.29"
+ktfmt = "0.21.0"
 ktor = "3.0.3"
 leakcanary = "2.14"
 mockk = "1.13.14"
@@ -404,5 +405,6 @@ google-services = { id = "com.google.gms.google-services", version.ref = "google
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
 task-tree = { id = "com.dorongold.task-tree", version.ref = "task-tree" }

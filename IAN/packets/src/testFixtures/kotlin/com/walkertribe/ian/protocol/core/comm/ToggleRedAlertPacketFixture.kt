@@ -11,10 +11,11 @@ import io.kotest.property.exhaustive.of
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-data object ToggleRedAlertPacketFixture : PacketTestFixture.Client<ToggleRedAlertPacket>(
-    packetType = TestPacketTypes.VALUE_INT,
-    expectedPayloadSize = Int.SIZE_BYTES * 2,
-) {
+data object ToggleRedAlertPacketFixture :
+    PacketTestFixture.Client<ToggleRedAlertPacket>(
+        packetType = TestPacketTypes.VALUE_INT,
+        expectedPayloadSize = Int.SIZE_BYTES * 2,
+    ) {
     data object Data : PacketTestData.Client<ToggleRedAlertPacket>(ToggleRedAlertPacket()) {
         override fun validatePayload(payload: Source) {
             payload.readIntLe() shouldBeEqual ValueIntPacket.Subtype.TOGGLE_RED_ALERT.toInt()

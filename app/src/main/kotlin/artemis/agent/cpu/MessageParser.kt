@@ -76,9 +76,7 @@ sealed interface MessageParser {
 
             val sender = packet.sender
             viewModel.scannedBiomechs.apply {
-                find { it.biomech.name.value == sender }?.also {
-                    it.onFreezeResponse()
-                }
+                find { it.biomech.name.value == sender }?.also { it.onFreezeResponse() }
             }
             return true
         }
@@ -96,9 +94,9 @@ sealed interface MessageParser {
                 false
             } else {
                 if (indexOfShip == viewModel.shipIndex.value) {
-                    viewModel.livingStationFullNameIndex[sender]?.let(
-                        viewModel.livingStations::get
-                    )?.isStandingBy = true
+                    viewModel.livingStationFullNameIndex[sender]
+                        ?.let(viewModel.livingStations::get)
+                        ?.isStandingBy = true
                 }
                 true
             }
@@ -122,34 +120,38 @@ sealed interface MessageParser {
                     }
 
                     viewModel.stationProductionPacket.tryEmit(packet)
-                    viewModel.livingStationNameIndex[sender]?.let(viewModel.livingStations::get)?.apply {
-                        recalibrateSpeed(packet.timestamp)
-                        resetBuildProgress()
-                        resetMissile()
-                        viewModel.sendToServer(
-                            CommsOutgoingPacket(
-                                obj,
-                                BaseMessage.PleaseReportStatus,
-                                viewModel.vesselData,
+                    viewModel.livingStationNameIndex[sender]
+                        ?.let(viewModel.livingStations::get)
+                        ?.apply {
+                            recalibrateSpeed(packet.timestamp)
+                            resetBuildProgress()
+                            resetMissile()
+                            viewModel.sendToServer(
+                                CommsOutgoingPacket(
+                                    obj,
+                                    BaseMessage.PleaseReportStatus,
+                                    viewModel.vesselData,
+                                )
                             )
-                        )
-                    }
+                        }
 
                     true
                 }
 
                 message.contains(PRODUCING) -> {
-                    viewModel.livingStationFullNameIndex[sender]?.let(viewModel.livingStations::get)?.apply {
-                        resetBuildProgress()
-                        resetMissile()
-                        viewModel.sendToServer(
-                            CommsOutgoingPacket(
-                                obj,
-                                BaseMessage.PleaseReportStatus,
-                                viewModel.vesselData
+                    viewModel.livingStationFullNameIndex[sender]
+                        ?.let(viewModel.livingStations::get)
+                        ?.apply {
+                            resetBuildProgress()
+                            resetMissile()
+                            viewModel.sendToServer(
+                                CommsOutgoingPacket(
+                                    obj,
+                                    BaseMessage.PleaseReportStatus,
+                                    viewModel.vesselData,
+                                )
                             )
-                        )
-                    }
+                        }
 
                     true
                 }
@@ -164,9 +166,9 @@ sealed interface MessageParser {
             if (!packet.message.endsWith(FIGHTER)) return false
             val sender = packet.sender
 
-            viewModel.livingStationNameIndex[sender]
-                ?.let(viewModel.livingStations::get)
-                ?.apply { fighters-- }
+            viewModel.livingStationNameIndex[sender]?.let(viewModel.livingStations::get)?.apply {
+                fighters--
+            }
             return true
         }
     }
@@ -175,7 +177,7 @@ sealed interface MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
             val inventory = packet.message.split('\n')
             if (!inventory.last().startsWith(ORDNANCE)) return false
-            
+
             val sender = packet.sender
             viewModel.livingStationFullNameIndex[sender]
                 ?.let(viewModel.livingStations::get)
@@ -183,7 +185,7 @@ sealed interface MessageParser {
 
             return true
         }
-        
+
         private fun process(
             station: ObjectEntry.Station,
             inventory: List<String>,
@@ -203,18 +205,21 @@ sealed interface MessageParser {
 
             val productionInfo = inventory.last().substringAfter(ORDNANCE).split(".", limit = 2)
             val builtOrdnanceLabel = productionInfo[0]
-            allOrdnanceTypes.find { it.hasLabel(builtOrdnanceLabel) }?.also {
-                val minutes = BUILD_MINUTES.find(productionInfo[1])?.run {
-                    value.substring(0, value.length - MINUTES_LENGTH).toInt()
-                } ?: DEFAULT_BUILD_MINUTES
-                station.setBuildMinutes(minutes)
-                station.builtOrdnanceType = it
-                if (viewModel.version >= Version.NEBULA_TYPES) {
-                    station.resetMissile()
+            allOrdnanceTypes
+                .find { it.hasLabel(builtOrdnanceLabel) }
+                ?.also {
+                    val minutes =
+                        BUILD_MINUTES.find(productionInfo[1])?.run {
+                            value.substring(0, value.length - MINUTES_LENGTH).toInt()
+                        } ?: DEFAULT_BUILD_MINUTES
+                    station.setBuildMinutes(minutes)
                     station.builtOrdnanceType = it
-                    station.reconcileSpeed(minutes)
+                    if (viewModel.version >= Version.NEBULA_TYPES) {
+                        station.resetMissile()
+                        station.builtOrdnanceType = it
+                        station.reconcileSpeed(minutes)
+                    }
                 }
-            }
         }
     }
 
@@ -278,18 +283,20 @@ sealed interface MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
             val message = packet.message
             val srcIndex = NEW_MISSION.find(message)?.run { value.length } ?: return false
-            
-            return RewardType.entries.find { message.endsWith(it.parseKey) }?.also { rewardType ->
-                process(
-                    packet,
-                    message.substring(srcIndex),
-                    srcIndex <= SOURCE_DISCRIMINANT,
-                    rewardType,
-                    viewModel,
-                )
-            } != null
+
+            return RewardType.entries
+                .find { message.endsWith(it.parseKey) }
+                ?.also { rewardType ->
+                    process(
+                        packet,
+                        message.substring(srcIndex),
+                        srcIndex <= SOURCE_DISCRIMINANT,
+                        rewardType,
+                        viewModel,
+                    )
+                } != null
         }
-        
+
         private fun process(
             packet: CommsIncomingPacket,
             sourceName: String,
@@ -299,38 +306,38 @@ sealed interface MessageParser {
         ) {
             viewModel.newMissionPacket.tryEmit(packet)
 
-            val source = if (isSourceStation) {
-                viewModel.livingStations.values.find { station ->
-                    station.obj.name.value?.let { stationName ->
-                        sourceName.startsWith(stationName)
-                    } == true
-                }
-            } else {
-                viewModel.allyShips.values.find { ally ->
-                    if (ally.isTrap) return@find false
-                    val allyName = ally.obj.name.value ?: return@find false
-                    sourceName.startsWith(allyName)
-                }
-            } ?: return
+            val source =
+                if (isSourceStation) {
+                    viewModel.livingStations.values.find { station ->
+                        station.obj.name.value?.let { stationName ->
+                            sourceName.startsWith(stationName)
+                        } == true
+                    }
+                } else {
+                    viewModel.allyShips.values.find { ally ->
+                        if (ally.isTrap) return@find false
+                        val allyName = ally.obj.name.value ?: return@find false
+                        sourceName.startsWith(allyName)
+                    }
+                } ?: return
 
             val destinationName = packet.sender
-            val destination = viewModel.livingStationFullNameIndex[destinationName]?.let {
-                viewModel.livingStations[it]
-            } ?: viewModel.allyShips.values.find {
-                !it.isTrap && viewModel.getFullNameForShip(it.obj) == destinationName
-            } ?: return
+            val destination =
+                viewModel.livingStationFullNameIndex[destinationName]?.let {
+                    viewModel.livingStations[it]
+                }
+                    ?: viewModel.allyShips.values.find {
+                        !it.isTrap && viewModel.getFullNameForShip(it.obj) == destinationName
+                    }
+                    ?: return
 
-            val existingMission = viewModel.allMissions.find {
-                it.destination == destination && !it.isStarted && it.source == source
-            }
+            val existingMission =
+                viewModel.allMissions.find {
+                    it.destination == destination && !it.isStarted && it.source == source
+                }
             if (existingMission == null) {
                 viewModel.allMissions.add(
-                    SideMissionEntry(
-                        source,
-                        destination,
-                        rewardType,
-                        packet.timestamp
-                    )
+                    SideMissionEntry(source, destination, rewardType, packet.timestamp)
                 )
                 viewModel.missionsExist = true
             } else {
@@ -348,17 +355,19 @@ sealed interface MessageParser {
     data object MissionProgress : MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean =
             parseNormalProgress(packet, viewModel) ||
-                parsePiratePickup(packet, viewModel) || parsePirateCompletion(packet, viewModel)
-        
+                parsePiratePickup(packet, viewModel) ||
+                parsePirateCompletion(packet, viewModel)
+
         private fun parseNormalProgress(
             packet: CommsIncomingPacket,
             viewModel: AgentViewModel,
         ): Boolean {
-            val (shipName, postfix) = packet.message.substringAfterStarting(PROGRESS)?.let {
-                getPlayerName(it, viewModel)?.let { playerName ->
-                    playerName to it.substring(playerName.length)
-                }
-            } ?: return false
+            val (shipName, postfix) =
+                packet.message.substringAfterStarting(PROGRESS)?.let {
+                    getPlayerName(it, viewModel)?.let { playerName ->
+                        playerName to it.substring(playerName.length)
+                    }
+                } ?: return false
             return parseNormalPickup(packet, shipName, postfix, viewModel) ||
                 parseNormalCompletion(packet, shipName, postfix, viewModel)
         }
@@ -369,9 +378,10 @@ sealed interface MessageParser {
             postfix: String,
             viewModel: AgentViewModel,
         ): Boolean {
-            val destination = postfix.substringAfterStarting(PROGRESS_1)?.let {
-                NEXT_DESTINATION.find(it)?.run { it.substring(0, range.first) }
-            } ?: return false
+            val destination =
+                postfix.substringAfterStarting(PROGRESS_1)?.let {
+                    NEXT_DESTINATION.find(it)?.run { it.substring(0, range.first) }
+                } ?: return false
 
             viewModel.missionProgressPacket.tryEmit(packet)
             processMissionProgress(packet.sender, destination, shipName, viewModel)
@@ -390,40 +400,41 @@ sealed interface MessageParser {
             processMissionCompletion(packet.sender, shipName, viewModel)
             return true
         }
-        
+
         private fun parsePiratePickup(
             packet: CommsIncomingPacket,
             viewModel: AgentViewModel,
         ): Boolean {
             val message = packet.message
-            val (shipName, destination) = getPlayerName(message, viewModel)?.let { playerName ->
-                message
-                    .substring(playerName.length)
-                    .substringAfterStarting(PIRATE_PROGRESS_1)
-                    ?.let {
-                        PIRATE_NEXT_DESTINATION.find(it)?.run {
-                            it.substring(range.last + 1, it.length - 1)
+            val (shipName, destination) =
+                getPlayerName(message, viewModel)?.let { playerName ->
+                    message
+                        .substring(playerName.length)
+                        .substringAfterStarting(PIRATE_PROGRESS_1)
+                        ?.let {
+                            PIRATE_NEXT_DESTINATION.find(it)?.run {
+                                it.substring(range.last + 1, it.length - 1)
+                            }
                         }
-                    }
-                    ?.let { playerName to it }
-            } ?: return false
-            
+                        ?.let { playerName to it }
+                } ?: return false
+
             viewModel.missionProgressPacket.tryEmit(packet)
             processMissionProgress(packet.sender, destination, shipName, viewModel)
             return true
         }
-        
+
         private fun parsePirateCompletion(
             packet: CommsIncomingPacket,
             viewModel: AgentViewModel,
         ): Boolean {
-            val shipName = packet.message.takeIf {
-                it.endsWith(PIRATE_PROGRESS_2)
-            }?.let { message ->
-                PIRATE_COMPLETE.find(message)?.run { message.substring(value.length) }
-            }?.let { substring ->
-                getPlayerName(substring, viewModel)
-            } ?: return false
+            val shipName =
+                packet.message
+                    .takeIf { it.endsWith(PIRATE_PROGRESS_2) }
+                    ?.let { message ->
+                        PIRATE_COMPLETE.find(message)?.run { message.substring(value.length) }
+                    }
+                    ?.let { substring -> getPlayerName(substring, viewModel) } ?: return false
 
             viewModel.missionCompletionPacket.tryEmit(packet)
             processMissionCompletion(packet.sender, shipName, viewModel)
@@ -442,8 +453,8 @@ sealed interface MessageParser {
             viewModel.allMissions.forEach { mission ->
                 if (
                     mission.isStarted ||
-                    source != viewModel.getFullNameForShip(mission.source.obj) ||
-                    destination != mission.destination.obj.name.value
+                        source != viewModel.getFullNameForShip(mission.source.obj) ||
+                        destination != mission.destination.obj.name.value
                 ) {
                     return@forEach
                 }
@@ -465,32 +476,29 @@ sealed interface MessageParser {
             viewModel: AgentViewModel,
         ) {
             val timestamp = System.currentTimeMillis() + viewModel.completedDismissalTime
-            viewModel.allMissions.filterNot { mission ->
-                mission.associatedShipName != shipName ||
-                    mission.isCompleted ||
-                    destination != viewModel.getFullNameForShip(mission.destination.obj)
-            }.forEach { mission ->
-                mission.completionTimestamp = timestamp
-                viewModel.displayedRewards.forEach {
-                    viewModel.payouts[it.ordinal] += mission.rewards[it.ordinal]
+            viewModel.allMissions
+                .filterNot { mission ->
+                    mission.associatedShipName != shipName ||
+                        mission.isCompleted ||
+                        destination != viewModel.getFullNameForShip(mission.destination.obj)
                 }
+                .forEach { mission ->
+                    mission.completionTimestamp = timestamp
+                    viewModel.displayedRewards.forEach {
+                        viewModel.payouts[it.ordinal] += mission.rewards[it.ordinal]
+                    }
 
-                mission.destination.apply {
-                    missions -= viewModel.displayedRewards.sumOf {
-                        mission.rewards[it.ordinal]
-                    }
-                    if (this is ObjectEntry.Station) {
-                        speedFactor += mission.rewards[RewardType.PRODUCTION.ordinal]
+                    mission.destination.apply {
+                        missions -= viewModel.displayedRewards.sumOf { mission.rewards[it.ordinal] }
+                        if (this is ObjectEntry.Station) {
+                            speedFactor += mission.rewards[RewardType.PRODUCTION.ordinal]
+                        }
                     }
                 }
-            }
             viewModel.updatePayouts()
         }
 
-        private fun coalesceMissionRewards(
-            shipName: String,
-            viewModel: AgentViewModel,
-        ) {
+        private fun coalesceMissionRewards(shipName: String, viewModel: AgentViewModel) {
             val allRewards = RewardType.entries
             var i = 0
             while (i < viewModel.allMissions.size) {
@@ -501,8 +509,8 @@ sealed interface MessageParser {
                     val otherMission = viewModel.allMissions[j]
                     if (
                         otherMission.isCompleted ||
-                        otherMission.associatedShipName != shipName ||
-                        mission.destination != otherMission.destination
+                            otherMission.associatedShipName != shipName ||
+                            mission.destination != otherMission.destination
                     ) {
                         continue
                     }
@@ -543,17 +551,17 @@ sealed interface MessageParser {
 
             viewModel.allyShipIndex[packet.sender]?.let(viewModel.allyShips::get)?.apply {
                 status = AllyStatus.NORMAL
-                viewModel.livingStations.values.minByOrNull {
-                    obj distanceSquaredTo it.obj
-                }?.also {
-                    viewModel.sendToServer(
-                        CommsOutgoingPacket(
-                            it.obj,
-                            BaseMessage.PleaseReportStatus,
-                            viewModel.vesselData
+                viewModel.livingStations.values
+                    .minByOrNull { obj distanceSquaredTo it.obj }
+                    ?.also {
+                        viewModel.sendToServer(
+                            CommsOutgoingPacket(
+                                it.obj,
+                                BaseMessage.PleaseReportStatus,
+                                viewModel.vesselData,
+                            )
                         )
-                    )
-                }
+                    }
             }
 
             return true
@@ -596,18 +604,22 @@ sealed interface MessageParser {
                 isAttacking = false
                 isMovingToStation = false
 
-                direction = if (details.startsWith(TURNING_TO)) {
-                    details.substring(TURNING_TO.length until details.length - 1).toInt()
-                } else {
-                    val tailPosition = details.length - TURNING_DEGREES_OFFSET
-                    val diff = if (details.startsWith(TURNING_RIGHT)) {
-                        details.substring(TURNING_RIGHT.length until tailPosition).toInt()
+                direction =
+                    if (details.startsWith(TURNING_TO)) {
+                        details.substring(TURNING_TO.length until details.length - 1).toInt()
                     } else {
-                        AgentViewModel.FULL_HEADING_RANGE -
-                            details.substring(TURNING_LEFT.length until tailPosition).toInt()
+                        val tailPosition = details.length - TURNING_DEGREES_OFFSET
+                        val diff =
+                            if (details.startsWith(TURNING_RIGHT)) {
+                                details.substring(TURNING_RIGHT.length until tailPosition).toInt()
+                            } else {
+                                AgentViewModel.FULL_HEADING_RANGE -
+                                    details
+                                        .substring(TURNING_LEFT.length until tailPosition)
+                                        .toInt()
+                            }
+                        ((direction ?: 0) + diff) % AgentViewModel.FULL_HEADING_RANGE
                     }
-                    ((direction ?: 0) + diff) % AgentViewModel.FULL_HEADING_RANGE
-                }
             }
 
             return true
@@ -639,9 +651,10 @@ sealed interface MessageParser {
             } ?: return false
 
             viewModel.allyShipIndex[packet.sender]?.let(viewModel.allyShips::get)?.apply {
-                val nearestEnemy = viewModel.enemies.values.map { it.enemy }.minByOrNull {
-                    it.horizontalDistanceSquaredTo(obj)
-                }
+                val nearestEnemy =
+                    viewModel.enemies.values
+                        .map { it.enemy }
+                        .minByOrNull { it.horizontalDistanceSquaredTo(obj) }
                 destination = nearestEnemy?.run { name.value }
                 isAttacking = true
                 isMovingToStation = false
@@ -671,25 +684,26 @@ sealed interface MessageParser {
     data object HailResponse : MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
             val message = packet.message
-            val response = OUR_SHIELDS.find(message)?.run {
-                message.substring(value.length + 1)
-            } ?: return false
+            val response =
+                OUR_SHIELDS.find(message)?.run { message.substring(value.length + 1) }
+                    ?: return false
 
             val sender = packet.sender
-            return !sender.startsWith("DS") && HailResponseEffect.entries.any {
-                if (!it.appliesTo(response)) return@any false
-                val splitPoint = sender.lastIndexOf(" ")
-                val vesselName = sender.substring(0, splitPoint)
-                val name = sender.substring(splitPoint + 1)
-                viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also { ally ->
-                    if (ally.vesselName == vesselName) {
-                        ally.status = it.getAllyStatus(response)
-                        ally.hasEnergy = response.endsWith(HAS_ENERGY)
-                        ally.checkNebulaStatus()
+            return !sender.startsWith("DS") &&
+                HailResponseEffect.entries.any {
+                    if (!it.appliesTo(response)) return@any false
+                    val splitPoint = sender.lastIndexOf(" ")
+                    val vesselName = sender.substring(0, splitPoint)
+                    val name = sender.substring(splitPoint + 1)
+                    viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also { ally ->
+                        if (ally.vesselName == vesselName) {
+                            ally.status = it.getAllyStatus(response)
+                            ally.hasEnergy = response.endsWith(HAS_ENERGY)
+                            ally.checkNebulaStatus()
+                        }
                     }
+                    true
                 }
-                true
-            }
         }
     }
 
@@ -733,18 +747,9 @@ sealed interface MessageParser {
         // ship names have max
         // length of 24 characters
 
-        val UNDER_ATTACK = arrayOf(
-            ATTACK_1,
-            ATTACK_2,
-            ATTACK_3,
-            ATTACK_4,
-        )
+        val UNDER_ATTACK = arrayOf(ATTACK_1, ATTACK_2, ATTACK_3, ATTACK_4)
 
-        val WAR_MESSAGES = arrayOf(
-            "",
-            WAR_WARNING,
-            WAR_DECLARED,
-        )
+        val WAR_MESSAGES = arrayOf("", WAR_WARNING, WAR_DECLARED)
 
         const val DEEP_STRIKE_TORPEDO_BUILD_TIME = 300_000L
 
@@ -764,7 +769,7 @@ sealed interface MessageParser {
         val PIRATE_COMPLETE = Regex("^You can't (steal|just take) what's ours, ")
         const val SOURCE_DISCRIMINANT = 35
         const val MINUTES_LENGTH = 9
-        
+
         fun String.substringAfterStarting(prefix: String): String? =
             if (startsWith(prefix)) substring(prefix.length) else null
     }

@@ -39,153 +39,157 @@ import io.mockk.verify
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-class PacketWriterTest : DescribeSpec({
-    val sendChannel = mockk<ByteWriteChannel>()
-    val packetWriter = PacketWriter(sendChannel)
+class PacketWriterTest :
+    DescribeSpec({
+        val sendChannel = mockk<ByteWriteChannel>()
+        val packetWriter = PacketWriter(sendChannel)
 
-    afterTest {
-        clearAllMocks()
-        unmockkAll()
-    }
-
-    describe("PacketWriter") {
-        it("Writes packet correctly") {
-            val ints = mutableListOf<Int>()
-            val payloadSlot = slot<Source>()
-            val extraSize = Int.SIZE_BYTES * 3
-
-            val iterations = PropertyTesting.defaultIterationCount
-            val expectedInts = iterations * 5
-
-            mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
-
-            coEvery { sendChannel.writeInt(capture(ints)) } just runs
-            coEvery { sendChannel.writePacket(capture(payloadSlot)) } just runs
-            coEvery { sendChannel.flush() } just runs
-
-            checkAll(
-                iterations = iterations,
-                Arb.int(),
-                Arb.enum<GameType>(),
-                Arb.float(),
-                Arb.int(),
-            ) { int, gameType, float, packetType ->
-                packetWriter.start(packetType)
-                    .writeInt(int)
-                    .writeEnumAsInt(gameType)
-                    .writeFloat(float)
-                    .flush()
-
-                ints shouldContainExactly listOf(
-                    Packet.HEADER,
-                    Packet.PREAMBLE_SIZE + extraSize,
-                    Origin.CLIENT.value,
-                    0,
-                    Int.SIZE_BYTES + extraSize,
-                ).map(Int::reverseByteOrder)
-
-                val packet = payloadSlot.captured
-
-                packet.readIntLe() shouldBeEqual packetType
-                packet.readIntLe() shouldBeEqual int
-                packet.readIntLe() shouldBeEqual gameType.ordinal
-                packet.readIntLe() shouldBeEqual float.toRawBits()
-
-                ints.clear()
-                packet.close()
-            }
-
-            coVerify(exactly = expectedInts) { sendChannel.writeInt(any()) }
-            coVerify(exactly = iterations) { sendChannel.writePacket(any<Source>()) }
-            coVerify(exactly = iterations) { sendChannel.flush() }
-
-            confirmVerified(sendChannel)
+        afterTest {
+            clearAllMocks()
+            unmockkAll()
         }
 
-        describe("Throws when attempting to write before packet start") {
-            it("Integer") {
-                Arb.int().checkAll {
-                    shouldThrow<IllegalStateException> { packetWriter.writeInt(it) }
+        describe("PacketWriter") {
+            it("Writes packet correctly") {
+                val ints = mutableListOf<Int>()
+                val payloadSlot = slot<Source>()
+                val extraSize = Int.SIZE_BYTES * 3
+
+                val iterations = PropertyTesting.defaultIterationCount
+                val expectedInts = iterations * 5
+
+                mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
+
+                coEvery { sendChannel.writeInt(capture(ints)) } just runs
+                coEvery { sendChannel.writePacket(capture(payloadSlot)) } just runs
+                coEvery { sendChannel.flush() } just runs
+
+                checkAll(
+                    iterations = iterations,
+                    Arb.int(),
+                    Arb.enum<GameType>(),
+                    Arb.float(),
+                    Arb.int(),
+                ) { int, gameType, float, packetType ->
+                    packetWriter
+                        .start(packetType)
+                        .writeInt(int)
+                        .writeEnumAsInt(gameType)
+                        .writeFloat(float)
+                        .flush()
+
+                    ints shouldContainExactly
+                        listOf(
+                                Packet.HEADER,
+                                Packet.PREAMBLE_SIZE + extraSize,
+                                Origin.CLIENT.value,
+                                0,
+                                Int.SIZE_BYTES + extraSize,
+                            )
+                            .map(Int::reverseByteOrder)
+
+                    val packet = payloadSlot.captured
+
+                    packet.readIntLe() shouldBeEqual packetType
+                    packet.readIntLe() shouldBeEqual int
+                    packet.readIntLe() shouldBeEqual gameType.ordinal
+                    packet.readIntLe() shouldBeEqual float.toRawBits()
+
+                    ints.clear()
+                    packet.close()
+                }
+
+                coVerify(exactly = expectedInts) { sendChannel.writeInt(any()) }
+                coVerify(exactly = iterations) { sendChannel.writePacket(any<Source>()) }
+                coVerify(exactly = iterations) { sendChannel.flush() }
+
+                confirmVerified(sendChannel)
+            }
+
+            describe("Throws when attempting to write before packet start") {
+                it("Integer") {
+                    Arb.int().checkAll {
+                        shouldThrow<IllegalStateException> { packetWriter.writeInt(it) }
+                    }
+
+                    verify { sendChannel wasNot called }
+
+                    confirmVerified(sendChannel)
+                }
+
+                describe("Enum") {
+                    it("Audio command") {
+                        Exhaustive.enum<AudioCommand>().checkAll {
+                            shouldThrow<IllegalStateException> { packetWriter.writeEnumAsInt(it) }
+                        }
+
+                        verify { sendChannel wasNot called }
+
+                        confirmVerified(sendChannel)
+                    }
+
+                    it("Comms recipient type") {
+                        Exhaustive.enum<CommsRecipientType>().checkAll {
+                            shouldThrow<IllegalStateException> { packetWriter.writeEnumAsInt(it) }
+                        }
+
+                        verify { sendChannel wasNot called }
+
+                        confirmVerified(sendChannel)
+                    }
+
+                    it("Enemy message") {
+                        Exhaustive.enum<EnemyMessage>().checkAll {
+                            shouldThrow<IllegalStateException> { packetWriter.writeEnumAsInt(it) }
+                        }
+
+                        verify { sendChannel wasNot called }
+
+                        confirmVerified(sendChannel)
+                    }
+                }
+
+                it("Float") {
+                    Arb.float().checkAll {
+                        shouldThrow<IllegalStateException> { packetWriter.writeFloat(it) }
+                    }
+
+                    verify { sendChannel wasNot called }
+
+                    confirmVerified(sendChannel)
+                }
+            }
+
+            it("Throws when started twice") {
+                checkAll(Arb.int(), Arb.int()) { type1, type2 ->
+                    shouldThrow<IllegalStateException> {
+                        packetWriter.start(type1)
+                        packetWriter.start(type2)
+                    }
                 }
 
                 verify { sendChannel wasNot called }
 
                 confirmVerified(sendChannel)
+
+                mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
+
+                coEvery { sendChannel.writeInt(any()) } just runs
+                coEvery { sendChannel.writePacket(any<Source>()) } just runs
+                coEvery { sendChannel.flush() } just runs
+                packetWriter.flush()
             }
 
-            describe("Enum") {
-                it("Audio command") {
-                    Exhaustive.enum<AudioCommand>().checkAll {
-                        shouldThrow<IllegalStateException> { packetWriter.writeEnumAsInt(it) }
-                    }
+            it("Can close") {
+                mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
 
-                    verify { sendChannel wasNot called }
+                every { sendChannel.close(any()) } just runs
 
-                    confirmVerified(sendChannel)
-                }
+                packetWriter.close()
 
-                it("Comms recipient type") {
-                    Exhaustive.enum<CommsRecipientType>().checkAll {
-                        shouldThrow<IllegalStateException> { packetWriter.writeEnumAsInt(it) }
-                    }
-
-                    verify { sendChannel wasNot called }
-
-                    confirmVerified(sendChannel)
-                }
-
-                it("Enemy message") {
-                    Exhaustive.enum<EnemyMessage>().checkAll {
-                        shouldThrow<IllegalStateException> { packetWriter.writeEnumAsInt(it) }
-                    }
-
-                    verify { sendChannel wasNot called }
-
-                    confirmVerified(sendChannel)
-                }
-            }
-
-            it("Float") {
-                Arb.float().checkAll {
-                    shouldThrow<IllegalStateException> { packetWriter.writeFloat(it) }
-                }
-
-                verify { sendChannel wasNot called }
+                verify { sendChannel.close(any()) }
 
                 confirmVerified(sendChannel)
             }
         }
-
-        it("Throws when started twice") {
-            checkAll(Arb.int(), Arb.int()) { type1, type2 ->
-                shouldThrow<IllegalStateException> {
-                    packetWriter.start(type1)
-                    packetWriter.start(type2)
-                }
-            }
-
-            verify { sendChannel wasNot called }
-
-            confirmVerified(sendChannel)
-
-            mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
-
-            coEvery { sendChannel.writeInt(any()) } just runs
-            coEvery { sendChannel.writePacket(any<Source>()) } just runs
-            coEvery { sendChannel.flush() } just runs
-            packetWriter.flush()
-        }
-
-        it("Can close") {
-            mockkStatic("io.ktor.utils.io.ByteWriteChannelOperationsKt")
-
-            every { sendChannel.close(any()) } just runs
-
-            packetWriter.close()
-
-            verify { sendChannel.close(any()) }
-
-            confirmVerified(sendChannel)
-        }
-    }
-})
+    })

@@ -16,11 +16,12 @@ enum class HailResponseEffect(private val prefix: String) {
         override fun getAllyStatus(response: String): AllyStatus = AllyStatus.FLYING_BLIND
     },
     AMBASSADOR("We're dead in space, our d") {
-        override fun getAllyStatus(response: String): AllyStatus = when {
-            response.substring(AMBASSADOR_SEARCH_INDEX).startsWith(PIRATE_BOSS) ->
-                AllyStatus.PIRATE_BOSS
-            else -> AllyStatus.AMBASSADOR
-        }
+        override fun getAllyStatus(response: String): AllyStatus =
+            when {
+                response.substring(AMBASSADOR_SEARCH_INDEX).startsWith(PIRATE_BOSS) ->
+                    AllyStatus.PIRATE_BOSS
+                else -> AllyStatus.AMBASSADOR
+            }
     },
     CONTRABAND("We are carrying needed su") {
         override fun getAllyStatus(response: String): AllyStatus = AllyStatus.CONTRABAND
@@ -47,10 +48,7 @@ enum class HailResponseEffect(private val prefix: String) {
         override fun getAllyStatus(response: String): AllyStatus = AllyStatus.FIGHTER_TRAP
     },
     OTHER("") {
-        private val antiprefixes = arrayOf(
-            "We appreciate your help. ",
-            "We're heading to the stat",
-        )
+        private val antiprefixes = arrayOf("We appreciate your help. ", "We're heading to the stat")
 
         override fun appliesTo(response: String): Boolean =
             antiprefixes.none { response.startsWith(it) }

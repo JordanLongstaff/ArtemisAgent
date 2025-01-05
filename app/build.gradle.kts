@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -110,6 +111,10 @@ dependencies {
     }
 
     coreLibraryDesugaring(libs.desugaring)
+}
+
+ktfmt {
+    kotlinLangStyle()
 }
 
 detekt {

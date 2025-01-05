@@ -7,9 +7,7 @@ import com.walkertribe.ian.protocol.core.CorePacketType
 import com.walkertribe.ian.util.Util.caretToNewline
 import com.walkertribe.ian.util.Version
 
-/**
- * Received when an incoming COMMs message arrives.
- */
+/** Received when an incoming COMMs message arrives. */
 @PacketType(type = CorePacketType.COMM_TEXT)
 class CommsIncomingPacket(reader: PacketReader) : Packet.Server(reader) {
     /**
@@ -18,12 +16,11 @@ class CommsIncomingPacket(reader: PacketReader) : Packet.Server(reader) {
      * name (e.g. "DS3 Terran Deep Space Base"). Messages in scripted scenarios can have any String
      * for the sender.
      */
-    val sender: String = reader.apply {
-        skip(if (version < Version.COMM_FILTERS) Int.SIZE_BYTES else 2)
-    }.readString()
+    val sender: String =
+        reader
+            .apply { skip(if (version < Version.COMM_FILTERS) Int.SIZE_BYTES else 2) }
+            .readString()
 
-    /**
-     * The content of the message.
-     */
+    /** The content of the message. */
     val message: String = reader.readString().caretToNewline().trim()
 }

@@ -5,8 +5,7 @@ import com.walkertribe.ian.iface.ListenerFunction
 import kotlin.reflect.KClass
 
 object ArtemisObjectTestModule : ArtemisObjectListenerModule {
-    override val acceptedTypes: Set<KClass<out ListenerArgument>> =
-        setOf(ArtemisObject::class)
+    override val acceptedTypes: Set<KClass<out ListenerArgument>> = setOf(ArtemisObject::class)
 
     val collected = mutableListOf<ArtemisObject<*>>()
 

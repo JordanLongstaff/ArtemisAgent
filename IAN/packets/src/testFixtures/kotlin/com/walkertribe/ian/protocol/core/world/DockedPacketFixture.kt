@@ -17,13 +17,10 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class DockedPacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<DockedPacket>(TestPacketTypes.SIMPLE_EVENT) {
-    class Data internal constructor(
-        override val version: Version,
-        private val dockID: Int,
-    ) : PacketTestData.Server<DockedPacket> {
+class DockedPacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<DockedPacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version, private val dockID: Int) :
+        PacketTestData.Server<DockedPacket> {
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(SimpleEventPacket.Subtype.DOCKED.toInt())
             writeIntLe(dockID)
@@ -36,6 +33,5 @@ class DockedPacketFixture(
 
     override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int(), ::Data)
 
-    override suspend fun testType(packet: Packet.Server): DockedPacket =
-        packet.shouldBeInstanceOf()
+    override suspend fun testType(packet: Packet.Server): DockedPacket = packet.shouldBeInstanceOf()
 }

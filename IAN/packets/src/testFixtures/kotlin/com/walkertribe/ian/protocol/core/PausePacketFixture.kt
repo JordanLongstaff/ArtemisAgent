@@ -13,16 +13,13 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class PausePacketFixture private constructor(
-    arbVersion: Arb<Version>,
-    isPaused: BoolState,
-) : PacketTestFixture.Server<PausePacket>(TestPacketTypes.SIMPLE_EVENT) {
+class PausePacketFixture private constructor(arbVersion: Arb<Version>, isPaused: BoolState) :
+    PacketTestFixture.Server<PausePacket>(TestPacketTypes.SIMPLE_EVENT) {
     override val specName: String = "Paused: $isPaused"
 
-    class Data internal constructor(
-        override val version: Version,
-        private val isPaused: BoolState,
-    ) : PacketTestData.Server<PausePacket> {
+    class Data
+    internal constructor(override val version: Version, private val isPaused: BoolState) :
+        PacketTestData.Server<PausePacket> {
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(SimpleEventPacket.Subtype.PAUSE.toInt())
             writeIntLe(if (isPaused.booleanValue) 1 else 0)
@@ -35,8 +32,7 @@ class PausePacketFixture private constructor(
 
     override val generator: Gen<Data> = arbVersion.map { Data(it, isPaused) }
 
-    override suspend fun testType(packet: Packet.Server): PausePacket =
-        packet.shouldBeInstanceOf()
+    override suspend fun testType(packet: Packet.Server): PausePacket = packet.shouldBeInstanceOf()
 
     companion object {
         fun allFixtures(arbVersion: Arb<Version> = Arb.version()): List<PausePacketFixture> =

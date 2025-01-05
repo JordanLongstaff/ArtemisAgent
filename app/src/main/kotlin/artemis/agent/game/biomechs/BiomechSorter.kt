@@ -7,12 +7,13 @@ data class BiomechSorter(
     val sortByStatus: Boolean = false,
     val sortByClassSecond: Boolean = false,
     val sortByName: Boolean = false,
-) : Comparator<BiomechEntry> by buildSortingComparator(
-    CLASS_COMPARATOR to sortByClassFirst,
-    STATUS_COMPARATOR to sortByStatus,
-    CLASS_COMPARATOR to sortByClassSecond,
-    NAME_COMPARATOR to sortByName,
-) {
+) :
+    Comparator<BiomechEntry> by buildSortingComparator(
+        CLASS_COMPARATOR to sortByClassFirst,
+        STATUS_COMPARATOR to sortByStatus,
+        CLASS_COMPARATOR to sortByClassSecond,
+        NAME_COMPARATOR to sortByName,
+    ) {
     private companion object {
         val CLASS_COMPARATOR: Comparator<BiomechEntry> = compareByDescending { it.biomech.hullId }
 

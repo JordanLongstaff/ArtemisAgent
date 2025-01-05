@@ -30,18 +30,20 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val enemySortMethodButtons = mapOf(
-            binding.enemySortingSurrenderButton to UserSettingsKt.Dsl::enemySortSurrendered,
-            binding.enemySortingRaceButton to UserSettingsKt.Dsl::enemySortFaction,
-            binding.enemySortingNameButton to UserSettingsKt.Dsl::enemySortName,
-            binding.enemySortingRangeButton to UserSettingsKt.Dsl::enemySortDistance,
-        )
+        val enemySortMethodButtons =
+            mapOf(
+                binding.enemySortingSurrenderButton to UserSettingsKt.Dsl::enemySortSurrendered,
+                binding.enemySortingRaceButton to UserSettingsKt.Dsl::enemySortFaction,
+                binding.enemySortingNameButton to UserSettingsKt.Dsl::enemySortName,
+                binding.enemySortingRangeButton to UserSettingsKt.Dsl::enemySortDistance,
+            )
 
-        val enemyToggleButtons = mapOf(
-            binding.showIntelButton to UserSettingsKt.Dsl::showEnemyIntel,
-            binding.showTauntStatusButton to UserSettingsKt.Dsl::showTauntStatuses,
-            binding.disableIneffectiveButton to UserSettingsKt.Dsl::disableIneffectiveTaunts,
-        )
+        val enemyToggleButtons =
+            mapOf(
+                binding.showIntelButton to UserSettingsKt.Dsl::showEnemyIntel,
+                binding.showTauntStatusButton to UserSettingsKt.Dsl::showTauntStatuses,
+                binding.disableIneffectiveButton to UserSettingsKt.Dsl::disableIneffectiveTaunts,
+            )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             it.copy {
@@ -120,22 +122,14 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         binding.enemySortingSurrenderButton.setOnCheckedChangeListener { _, isChecked ->
             binding.enemySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        enemySortSurrendered = isChecked
-                    }
-                }
+                context.userSettings.updateData { it.copy { enemySortSurrendered = isChecked } }
             }
         }
 
         binding.enemySortingRaceButton.setOnCheckedChangeListener { _, isChecked ->
             binding.enemySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        enemySortFaction = isChecked
-                    }
-                }
+                context.userSettings.updateData { it.copy { enemySortFaction = isChecked } }
             }
         }
 
@@ -165,16 +159,12 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
     }
 
     private fun prepareReverseRaceSortButton() {
-        binding.reverseRaceSortButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.reverseRaceSortButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.reverseRaceSortButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
-                    it.copy {
-                        enemySortFactionReversed = isChecked
-                    }
+                    it.copy { enemySortFactionReversed = isChecked }
                 }
             }
         }
@@ -187,9 +177,7 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
             }
         }
 
-        binding.surrenderRangeField.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.surrenderRangeField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.surrenderRangeField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -201,11 +189,12 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
                     it.copy {
-                        surrenderRange = if (text.isNullOrBlank()) {
-                            0
-                        } else {
-                            text.toInt()
-                        }
+                        surrenderRange =
+                            if (text.isNullOrBlank()) {
+                                0
+                            } else {
+                                text.toInt()
+                            }
                     }
                 }
             }

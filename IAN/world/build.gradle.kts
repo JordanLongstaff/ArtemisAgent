@@ -5,10 +5,11 @@ plugins {
     id("java-library")
     id("java-test-fixtures")
     id("kotlin")
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -32,6 +33,10 @@ tasks.test {
 }
 
 tasks.assemble.dependsOn(":IAN:world:konsist:test")
+
+ktfmt {
+    kotlinLangStyle()
+}
 
 detekt {
     source.setFrom(file("src/main/kotlin"))

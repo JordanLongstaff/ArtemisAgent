@@ -34,9 +34,9 @@ import artemis.agent.help.HelpFragment
 import com.walkertribe.ian.enums.AlertStatus
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.protocol.core.comm.ToggleRedAlertPacket
+import kotlin.math.sign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlin.math.sign
 
 class GameFragment : Fragment(R.layout.game_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -83,17 +83,9 @@ class GameFragment : Fragment(R.layout.game_fragment) {
                 val gamePageSelectorButton = binding.gamePageSelectorButton
                 gamePageSelectorButton.setOnClickListener {
                     viewModel.playSound(SoundEffect.BEEP_2)
-                    root.measure(
-                        View.MeasureSpec.UNSPECIFIED,
-                        View.MeasureSpec.UNSPECIFIED
-                    )
+                    root.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
                     popup.showAsDropDown(gamePageSelectorButton)
-                    popup.update(
-                        it.left,
-                        it.top,
-                        it.measuredWidth,
-                        root.measuredHeight
-                    )
+                    popup.update(it.left, it.top, it.measuredWidth, root.measuredHeight)
                 }
 
                 selectorList.itemAnimator = null
@@ -111,11 +103,12 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         }
     }
 
-    private val fighterStockStrings = intArrayOf(
-        R.string.single_seat_craft_docked,
-        R.string.single_seat_craft_launched,
-        R.string.single_seat_craft_lost,
-    )
+    private val fighterStockStrings =
+        intArrayOf(
+            R.string.single_seat_craft_docked,
+            R.string.single_seat_craft_launched,
+            R.string.single_seat_craft_lost,
+        )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -130,21 +123,19 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         setupAgentButton()
 
         viewLifecycleOwner.collectLatestWhileStarted(borderWar) { status ->
-            val visibility = if (status != null) {
-                binding.borderWarLabel.text = getString(
-                    R.string.border_war_status,
-                    status.name
-                )
-                binding.borderWarBackground.setBackgroundColor(
-                    ContextCompat.getColor(
-                        binding.borderWarBackground.context,
-                        status.backgroundColor
+            val visibility =
+                if (status != null) {
+                    binding.borderWarLabel.text = getString(R.string.border_war_status, status.name)
+                    binding.borderWarBackground.setBackgroundColor(
+                        ContextCompat.getColor(
+                            binding.borderWarBackground.context,
+                            status.backgroundColor,
+                        )
                     )
-                )
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             binding.borderWarBackground.visibility = visibility
             binding.borderWarLabel.visibility = visibility
         }
@@ -162,36 +153,38 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectableShips) { ships ->
             val shipNameVisibility: Int
-            binding.shipNumberLabel.text = if (ships.isEmpty()) {
-                shipNameVisibility = View.GONE
-                getString(R.string.no_ships)
-            } else {
-                val index = viewModel.shipIndex.value
-                if (index >= 0) {
-                    binding.shipNameLabel.text = ships[index].name
-                    shipNameVisibility = View.VISIBLE
-                    getString(R.string.ship_number, index + 1)
-                } else {
+            binding.shipNumberLabel.text =
+                if (ships.isEmpty()) {
                     shipNameVisibility = View.GONE
-                    getString(R.string.no_ship_selected)
+                    getString(R.string.no_ships)
+                } else {
+                    val index = viewModel.shipIndex.value
+                    if (index >= 0) {
+                        binding.shipNameLabel.text = ships[index].name
+                        shipNameVisibility = View.VISIBLE
+                        getString(R.string.ship_number, index + 1)
+                    } else {
+                        shipNameVisibility = View.GONE
+                        getString(R.string.no_ship_selected)
+                    }
                 }
-            }
             binding.shipNameLabel.visibility = shipNameVisibility
             binding.waitingForGameLabel.visibility = shipNameVisibility
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.gameIsRunning) { isRunning ->
             val waitingVisibility: Int
-            val visibility = if (isRunning) {
-                waitingVisibility = View.GONE
-                View.VISIBLE
-            } else {
-                waitingVisibility = binding.shipNameLabel.visibility
-                viewModel.rootOpacity.value = 1f
-                binding.redAlertButton.isChecked = false
-                gamePagePopup.dismiss()
-                View.GONE
-            }
+            val visibility =
+                if (isRunning) {
+                    waitingVisibility = View.GONE
+                    View.VISIBLE
+                } else {
+                    waitingVisibility = binding.shipNameLabel.visibility
+                    viewModel.rootOpacity.value = 1f
+                    binding.redAlertButton.isChecked = false
+                    gamePagePopup.dismiss()
+                    View.GONE
+                }
 
             binding.waitingForGameLabel.visibility = waitingVisibility
             binding.gamePageSelectorButton.visibility = visibility
@@ -202,7 +195,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
             if (
                 binding.root.resources.configuration.orientation ==
-                Configuration.ORIENTATION_PORTRAIT
+                    Configuration.ORIENTATION_PORTRAIT
             ) {
                 binding.agentLabel.visibility = visibility
             }
@@ -216,44 +209,46 @@ class GameFragment : Fragment(R.layout.game_fragment) {
             val player = viewModel.playerShip ?: return@setOnClickListener
             val vessel = player.getVessel(viewModel.vesselData) ?: return@setOnClickListener
 
-            val ordnanceStocks = OrdnanceType.getAllForVersion(viewModel.version).map {
-                val max = vessel.ordnanceStorage[it] ?: 0
-                val current = player.getTotalOrdnanceCount(it)
-                Triple(it, current, max)
-            }
+            val ordnanceStocks =
+                OrdnanceType.getAllForVersion(viewModel.version).map {
+                    val max = vessel.ordnanceStorage[it] ?: 0
+                    val current = player.getTotalOrdnanceCount(it)
+                    Triple(it, current, max)
+                }
 
-            val ordnanceStockMessage = ordnanceStocks.joinToString("\n") { (ordnanceType, current, max) ->
-                getString(
-                    R.string.ordnance_stock,
-                    ordnanceType.getLabelFor(viewModel.version),
-                    current,
-                    max
-                )
-            }
+            val ordnanceStockMessage =
+                ordnanceStocks.joinToString("\n") { (ordnanceType, current, max) ->
+                    getString(
+                        R.string.ordnance_stock,
+                        ordnanceType.getLabelFor(viewModel.version),
+                        current,
+                        max,
+                    )
+                }
 
-            val neededOrdnanceType = ordnanceStocks.find { (_, current, max) ->
-                current < max
-            }?.first
+            val neededOrdnanceType =
+                ordnanceStocks.find { (_, current, max) -> current < max }?.first
 
-            val maxFighters = viewModel.version.compareTo(
-                RouteObjective.ReplacementFighters.SHUTTLE_VERSION
-            ).sign.coerceAtMost(0) + 1 + vessel.bayCount
+            val maxFighters =
+                viewModel.version
+                    .compareTo(RouteObjective.ReplacementFighters.SHUTTLE_VERSION)
+                    .sign
+                    .coerceAtMost(0) + 1 + vessel.bayCount
             val launchedFighters = viewModel.fighterIDs.size
             val lostFighters = maxFighters - viewModel.totalFighters.value
             val dockedFighters = maxFighters - lostFighters - launchedFighters
 
-            val fighterStockMessage = intArrayOf(
-                dockedFighters,
-                launchedFighters,
-                lostFighters,
-            ).zip(fighterStockStrings).filter { it.first > 0 }.joinToString("\n") { (count, id) ->
-                getString(id, count)
-            }
+            val fighterStockMessage =
+                intArrayOf(dockedFighters, launchedFighters, lostFighters)
+                    .zip(fighterStockStrings)
+                    .filter { it.first > 0 }
+                    .joinToString("\n") { (count, id) -> getString(id, count) }
 
             val fullMessage = "$ordnanceStockMessage\n$fighterStockMessage"
 
-            val routeObjective = neededOrdnanceType?.let(RouteObjective::Ordnance)
-                ?: RouteObjective.ReplacementFighters.takeIf { lostFighters > 0 }
+            val routeObjective =
+                neededOrdnanceType?.let(RouteObjective::Ordnance)
+                    ?: RouteObjective.ReplacementFighters.takeIf { lostFighters > 0 }
 
             AlertDialog.Builder(requireContext())
                 .setMessage(fullMessage)
@@ -274,9 +269,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
     private fun setupPageSelector() {
         gamePagePopup.isFocusable = true
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.currentGamePage) {
-            currentPage = it
-        }
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.currentGamePage) { currentPage = it }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.gamePages) {
             gamePageAdapter.update(it)
@@ -320,9 +313,10 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
     private class GamePagesDiffUtilCallback(
         private val oldList: List<Pair<Page, Boolean>>,
-        private val newList: List<Pair<Page, Boolean>>
+        private val newList: List<Pair<Page, Boolean>>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
@@ -332,9 +326,8 @@ class GameFragment : Fragment(R.layout.game_fragment) {
             oldList[oldItemPosition].second == newList[newItemPosition].second
     }
 
-    private class GamePageViewHolder(
-        private val entryBinding: SelectorEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private class GamePageViewHolder(private val entryBinding: SelectorEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(page: Page, flashing: Boolean) {
             entryBinding.entryLabel.text = page.name
             entryBinding.flashBackground.alpha = if (flashing) PAGE_FLASH_ALPHA else 0f
@@ -348,11 +341,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GamePageViewHolder =
             GamePageViewHolder(
-                SelectorEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                SelectorEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: GamePageViewHolder, position: Int) {
@@ -377,9 +366,8 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
         fun update(value: Map<Page, Boolean>) {
             val newList = value.toList()
-            DiffUtil.calculateDiff(
-                GamePagesDiffUtilCallback(pages, newList)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(GamePagesDiffUtilCallback(pages, newList))
+                .dispatchUpdatesTo(this)
             pages = newList
 
             binding.gamePageSelectorFlash.visibility =
