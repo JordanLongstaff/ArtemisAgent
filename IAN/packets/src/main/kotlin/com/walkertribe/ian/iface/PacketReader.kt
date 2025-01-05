@@ -317,11 +317,12 @@ class PacketReader(
         val origin = Origin(channel.readInt().reverseByteOrder())
         val padding = channel.readInt().reverseByteOrder()
         val remaining = channel.readInt().reverseByteOrder()
+        val packetType = channel.readInt().reverseByteOrder()
 
-        val expectedRemaining = length - Packet.PREAMBLE_SIZE + Int.SIZE_BYTES
-        val payloadPacket = channel.readPacket(expectedRemaining)
-        val packetType = payloadPacket.readIntLe()
+        val payloadLength = length - Packet.PREAMBLE_SIZE
+        val payloadPacket = channel.readPacket(payloadLength)
 
+        val expectedRemaining = payloadLength + Int.SIZE_BYTES
         val requiredOrigin = Origin.SERVER
 
         when {
