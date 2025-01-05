@@ -12,11 +12,13 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     private var timesFrozen = 0
     var isFrozen = false
         private set
+
     private var freezeStartTime = 0L
     private var freezeSent = false
     private var isReadyToReanimate = false
 
-    val canFreezeAgain: Boolean get() = timesFrozen < MAX_FREEZES
+    val canFreezeAgain: Boolean
+        get() = timesFrozen < MAX_FREEZES
 
     fun getFrozenStatusText(viewModel: AgentViewModel, context: Context): String {
         val (minutes, seconds) =
@@ -43,11 +45,7 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
         freezeSent = true
         viewModel.playSound(SoundEffect.BEEP_1)
         viewModel.sendToServer(
-            CommsOutgoingPacket(
-                biomech,
-                EnemyMessage.entries[++timesFrozen],
-                viewModel.vesselData
-            )
+            CommsOutgoingPacket(biomech, EnemyMessage.entries[++timesFrozen], viewModel.vesselData)
         )
     }
 
@@ -61,11 +59,7 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     }
 
     fun onFreezeTimeExpired(elapsedTime: Long): Boolean {
-        if (
-            !isFrozen ||
-            isReadyToReanimate ||
-            elapsedTime < freezeStartTime
-        ) {
+        if (!isFrozen || isReadyToReanimate || elapsedTime < freezeStartTime) {
             return false
         }
         isReadyToReanimate = true

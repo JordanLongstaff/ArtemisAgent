@@ -8,5 +8,5 @@ enum class SoundEffect(@RawRes val soundId: Int) {
     CONFIRMATION(R.raw.confirmation),
     CONNECTED(R.raw.connected),
     DISCONNECTED(R.raw.disconnected),
-    HEARTBEAT_LOST(R.raw.heartbeat_lost)
+    HEARTBEAT_LOST(R.raw.heartbeat_lost),
 }

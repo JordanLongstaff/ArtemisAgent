@@ -20,42 +20,41 @@ import kotlin.reflect.KClass
  *
  * The `ArtemisPlayer` object is actually expressed in four different update types, depending on the
  * data that it contains:
- *  * `ObjectType.PLAYER`: Data not included in the other three types
- *  * `ObjectType.WEAPONS_CONSOLE`: Data about ordnance counts and tube status
- *  * `ObjectType.ENGINEERING_CONSOLE`: Data about system status (energy, heat, coolant)
- *  * `ObjectType.UPGRADES`: Data about upgrade status
+ * * `ObjectType.PLAYER`: Data not included in the other three types
+ * * `ObjectType.WEAPONS_CONSOLE`: Data about ordnance counts and tube status
+ * * `ObjectType.ENGINEERING_CONSOLE`: Data about system status (energy, heat, coolant)
+ * * `ObjectType.UPGRADES`: Data about upgrade status
+ *
  * @author rjwut
  */
 @PacketType(type = CorePacketType.OBJECT_BIT_STREAM)
 class ObjectUpdatePacket(reader: PacketReader) : Packet.Server(reader) {
     private companion object {
-        private val PARSERS = listOf(
-            PlayerShipParser,
-            WeaponsParser,
-            UnobservedObjectParser.Engineering,
-            UpgradesParser,
-            NpcShipParser,
-            BaseParser,
-            MineParser,
-            UnobservedObjectParser.Anomaly,
-            UnobservedObjectParser.Nebula,
-            UnobservedObjectParser.Torpedo,
-            BlackHoleParser,
-            UnobservedObjectParser.Asteroid,
-            UnobservedObjectParser.GenericMesh,
-            CreatureParser,
-            UnobservedObjectParser.Drone,
-        ).associateBy { it.objectType.id }
+        private val PARSERS =
+            listOf(
+                    PlayerShipParser,
+                    WeaponsParser,
+                    UnobservedObjectParser.Engineering,
+                    UpgradesParser,
+                    NpcShipParser,
+                    BaseParser,
+                    MineParser,
+                    UnobservedObjectParser.Anomaly,
+                    UnobservedObjectParser.Nebula,
+                    UnobservedObjectParser.Torpedo,
+                    BlackHoleParser,
+                    UnobservedObjectParser.Asteroid,
+                    UnobservedObjectParser.GenericMesh,
+                    CreatureParser,
+                    UnobservedObjectParser.Drone,
+                )
+                .associateBy { it.objectType.id }
     }
 
-    /**
-     * Returns the updated objects.
-     */
+    /** Returns the updated objects. */
     val objects: List<ArtemisObject<*>>
 
-    /**
-     * Returns the types of updated objects.
-     */
+    /** Returns the types of updated objects. */
     val objectClasses: Set<KClass<out ArtemisObject<*>>>
 
     init {
@@ -66,9 +65,7 @@ class ObjectUpdatePacket(reader: PacketReader) : Packet.Server(reader) {
             val objectType = reader.peekByte()
             if (objectType == 0.toByte()) break
 
-            val parser = requireNotNull(PARSERS[objectType]) {
-                "Invalid object type: $objectType"
-            }
+            val parser = requireNotNull(PARSERS[objectType]) { "Invalid object type: $objectType" }
             parser.parse(reader, timestamp)?.also {
                 objectList.add(it)
                 classes.add(it::class)

@@ -15,27 +15,25 @@ import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
 interface HeartbeatPacketFixture {
-    data object Client : PacketTestFixture.Client<HeartbeatPacket.Client>(
-        packetType = TestPacketTypes.VALUE_INT,
-        expectedPayloadSize = Int.SIZE_BYTES,
-    ) {
+    data object Client :
+        PacketTestFixture.Client<HeartbeatPacket.Client>(
+            packetType = TestPacketTypes.VALUE_INT,
+            expectedPayloadSize = Int.SIZE_BYTES,
+        ) {
         data object Data : PacketTestData.Client<HeartbeatPacket.Client>(HeartbeatPacket.Client) {
             override fun validatePayload(payload: Source) {
-                payload.readIntLe() shouldBeEqual
-                    ValueIntPacket.Subtype.CLIENT_HEARTBEAT.toInt()
+                payload.readIntLe() shouldBeEqual ValueIntPacket.Subtype.CLIENT_HEARTBEAT.toInt()
             }
         }
 
         override val generator: Gen<Data> = Exhaustive.of(Data)
     }
 
-    class Server(
-        arbVersion: Arb<Version> = Arb.version(),
-    ) : PacketTestFixture.Server<HeartbeatPacket.Server>(TestPacketTypes.HEARTBEAT) {
-        data class Data(
-            override val version: Version,
-        ) : PacketTestData.Server<HeartbeatPacket.Server> {
-            override fun buildPayload(): Source = buildPacket { }
+    class Server(arbVersion: Arb<Version> = Arb.version()) :
+        PacketTestFixture.Server<HeartbeatPacket.Server>(TestPacketTypes.HEARTBEAT) {
+        data class Data(override val version: Version) :
+            PacketTestData.Server<HeartbeatPacket.Server> {
+            override fun buildPayload(): Source = buildPacket {}
 
             override fun validate(packet: HeartbeatPacket.Server) {
                 // Nothing to validate

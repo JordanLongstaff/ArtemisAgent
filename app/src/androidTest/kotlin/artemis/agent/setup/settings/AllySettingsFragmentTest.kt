@@ -1,5 +1,6 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -14,16 +15,16 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.PermissionGranter
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class AllySettingsFragmentTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun allySettingsTest() {
@@ -52,19 +53,22 @@ class AllySettingsFragmentTest {
             manuallyReturning.lazySet(viewModel.manuallyReturnFromCommands)
         }
 
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
         SettingsFragmentTest.openSettingsMenu()
 
         val enabled = alliesEnabled.get()
         val showDestroyed = showingDestroyed.get()
         val manualReturn = manuallyReturning.get()
 
-        val sortSettings = booleanArrayOf(
-            sortByClassFirst.get(),
-            sortByEnergy.get(),
-            sortByStatus.get(),
-            sortByClassSecond.get(),
-            sortByName.get(),
-        )
+        val sortSettings =
+            booleanArrayOf(
+                sortByClassFirst.get(),
+                sortByEnergy.get(),
+                sortByStatus.get(),
+                sortByClassSecond.get(),
+                sortByName.get(),
+            )
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
@@ -90,43 +94,30 @@ class AllySettingsFragmentTest {
     private companion object {
         const val ENTRY_INDEX = 3
 
-        val allySortMethodSettings = arrayOf(
-            GroupedToggleButtonSetting(
-                R.id.allySortingClassButton1,
-                R.string.sort_by_class,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.allySortingEnergyButton,
-                R.string.sort_by_energy,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.allySortingStatusButton,
-                R.string.sort_by_status,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.allySortingClassButton2,
-                R.string.sort_by_class,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.allySortingStatusButton,
-                R.string.sort_by_status,
-            ),
-        )
+        val allySortMethodSettings =
+            arrayOf(
+                GroupedToggleButtonSetting(R.id.allySortingClassButton1, R.string.sort_by_class),
+                GroupedToggleButtonSetting(R.id.allySortingEnergyButton, R.string.sort_by_energy),
+                GroupedToggleButtonSetting(R.id.allySortingStatusButton, R.string.sort_by_status),
+                GroupedToggleButtonSetting(R.id.allySortingClassButton2, R.string.sort_by_class),
+                GroupedToggleButtonSetting(R.id.allySortingStatusButton, R.string.sort_by_status),
+            )
 
-        val allySingleToggleSettings = arrayOf(
-            SingleToggleButtonSetting(
-                R.id.showDestroyedAlliesDivider,
-                R.id.showDestroyedAlliesTitle,
-                R.string.show_destroyed_allies,
-                R.id.showDestroyedAlliesButton,
-            ),
-            SingleToggleButtonSetting(
-                R.id.manuallyReturnDivider,
-                R.id.manuallyReturnTitle,
-                R.string.manually_return_from_commands,
-                R.id.manuallyReturnButton,
-            ),
-        )
+        val allySingleToggleSettings =
+            arrayOf(
+                SingleToggleButtonSetting(
+                    R.id.showDestroyedAlliesDivider,
+                    R.id.showDestroyedAlliesTitle,
+                    R.string.show_destroyed_allies,
+                    R.id.showDestroyedAlliesButton,
+                ),
+                SingleToggleButtonSetting(
+                    R.id.manuallyReturnDivider,
+                    R.id.manuallyReturnTitle,
+                    R.string.manually_return_from_commands,
+                    R.id.manuallyReturnButton,
+                ),
+            )
 
         fun testAlliesSubMenuOpen(
             sortMethods: BooleanArray,
@@ -136,9 +127,10 @@ class AllySettingsFragmentTest {
         ) {
             testAllySubMenuSortMethods(sortMethods, shouldTestSortMethods)
 
-            allySingleToggleSettings.zip(
-                listOf(showingDestroyed, manuallyReturning),
-            ).forEach { (setting, isChecked) -> setting.testSingleToggle(isChecked) }
+            allySingleToggleSettings.zip(listOf(showingDestroyed, manuallyReturning)).forEach {
+                (setting, isChecked) ->
+                setting.testSingleToggle(isChecked)
+            }
         }
 
         fun testAlliesSubMenuClosed(isToggleOn: Boolean) {
@@ -192,24 +184,25 @@ class AllySettingsFragmentTest {
         }
 
         fun testAllySubMenuSortByEnergyAndStatus() {
-            listOf(
-                R.id.allySortingEnergyButton to true,
-                R.id.allySortingStatusButton to false,
-            ).forEach { (firstButton, energyFirst) ->
-                clickOn(firstButton)
-                assertChecked(R.id.allySortingStatusButton)
-                ArtemisAgentTestHelpers.assertChecked(R.id.allySortingEnergyButton, energyFirst)
-                assertUnchecked(R.id.allySortingDefaultButton)
+            listOf(R.id.allySortingEnergyButton to true, R.id.allySortingStatusButton to false)
+                .forEach { (firstButton, energyFirst) ->
+                    clickOn(firstButton)
+                    assertChecked(R.id.allySortingStatusButton)
+                    ArtemisAgentTestHelpers.assertChecked(R.id.allySortingEnergyButton, energyFirst)
+                    assertUnchecked(R.id.allySortingDefaultButton)
 
-                clickOn(R.id.allySortingEnergyButton)
-                assertChecked(R.id.allySortingStatusButton)
-                ArtemisAgentTestHelpers.assertChecked(R.id.allySortingEnergyButton, !energyFirst)
+                    clickOn(R.id.allySortingEnergyButton)
+                    assertChecked(R.id.allySortingStatusButton)
+                    ArtemisAgentTestHelpers.assertChecked(
+                        R.id.allySortingEnergyButton,
+                        !energyFirst,
+                    )
 
-                clickOn(R.id.allySortingStatusButton)
-                assertUnchecked(R.id.allySortingStatusButton)
-                assertUnchecked(R.id.allySortingEnergyButton)
-                assertChecked(R.id.allySortingDefaultButton)
-            }
+                    clickOn(R.id.allySortingStatusButton)
+                    assertUnchecked(R.id.allySortingStatusButton)
+                    assertUnchecked(R.id.allySortingEnergyButton)
+                    assertChecked(R.id.allySortingDefaultButton)
+                }
         }
 
         fun testAllySubMenuSortByName() {

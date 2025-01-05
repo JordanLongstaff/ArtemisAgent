@@ -1,5 +1,6 @@
 package artemis.agent.help
 
+import android.Manifest
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.ActivityScenarioManager
@@ -11,6 +12,7 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickBack
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
+import com.adevinta.android.barista.interaction.PermissionGranter
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,8 +20,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class HelpFragmentTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun menuOptionsTest() {
@@ -32,18 +33,19 @@ class HelpFragmentTest {
     }
 
     private companion object {
-        val helpTopics = arrayOf(
-            R.string.help_topics_getting_started to 8,
-            R.string.help_topics_basics to 4,
-            R.string.help_topics_stations to 12,
-            R.string.help_topics_allies to 4,
-            R.string.help_topics_missions to 14,
-            R.string.help_topics_routing to 6,
-            R.string.help_topics_enemies to 12,
-            R.string.help_topics_biomechs to 3,
-            R.string.help_topics_notifications to 16,
-            R.string.help_topics_about to 5,
-        )
+        val helpTopics =
+            arrayOf(
+                R.string.help_topics_getting_started to 8,
+                R.string.help_topics_basics to 4,
+                R.string.help_topics_stations to 12,
+                R.string.help_topics_allies to 4,
+                R.string.help_topics_missions to 14,
+                R.string.help_topics_routing to 6,
+                R.string.help_topics_enemies to 12,
+                R.string.help_topics_biomechs to 3,
+                R.string.help_topics_notifications to 16,
+                R.string.help_topics_about to 5,
+            )
 
         fun assertHelpMenuDisplayed() {
             assertNotDisplayed(R.id.helpTopicTitle)
@@ -57,6 +59,8 @@ class HelpFragmentTest {
         }
 
         fun testHelpFragment(goBack: () -> Unit) {
+            PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
             clickOn(R.id.helpPageButton)
             assertHelpMenuDisplayed()
 

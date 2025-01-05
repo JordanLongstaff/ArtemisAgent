@@ -32,16 +32,17 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
     sealed class ConnectionStatus(
         @StringRes val stringId: Int,
         @ColorRes val color: Int,
-        val spinnerVisibility: Int = View.GONE
+        val spinnerVisibility: Int = View.GONE,
     ) {
-        data object NotConnected :
-            ConnectionStatus(R.string.not_connected, R.color.notConnected)
+        data object NotConnected : ConnectionStatus(R.string.not_connected, R.color.notConnected)
+
         data object Connecting :
             ConnectionStatus(R.string.connecting, R.color.connecting, View.VISIBLE)
-        data object Connected :
-            ConnectionStatus(R.string.connected, R.color.connected)
-        data object Failed :
-            ConnectionStatus(R.string.failed_to_connect, R.color.failedToConnect)
+
+        data object Connected : ConnectionStatus(R.string.connected, R.color.connected)
+
+        data object Failed : ConnectionStatus(R.string.failed_to_connect, R.color.failedToConnect)
+
         data object HeartbeatLost :
             ConnectionStatus(R.string.connection_lost, R.color.heartbeatLost)
     }
@@ -73,18 +74,19 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         prepareScanningSection()
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
-            recentAdapter.servers = it.recentServersList.apply {
-                var addressText = firstOrNull() ?: ""
-                if (viewModel.connectedUrl.value.isBlank()) {
-                    viewModel.addressBarText.also { text ->
-                        if (text.isNotBlank()) {
-                            addressText = text
+            recentAdapter.servers =
+                it.recentServersList.apply {
+                    var addressText = firstOrNull() ?: ""
+                    if (viewModel.connectedUrl.value.isBlank()) {
+                        viewModel.addressBarText.also { text ->
+                            if (text.isNotBlank()) {
+                                addressText = text
+                            }
                         }
                     }
+                    playSoundsOnTextChange = false
+                    binding.addressBar.setText(addressText)
                 }
-                playSoundsOnTextChange = false
-                binding.addressBar.setText(addressText)
-            }
         }
     }
 
@@ -131,9 +133,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
             }
         }
 
-        addressBar.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        addressBar.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.connectionStatus) {
             binding.connectLabel.text = getString(it.stringId)
@@ -219,42 +219,41 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         }
     }
 
-    private class RecentServersAdapter(context: Context) : ArrayAdapter<String>(
-        context,
-        R.layout.generic_data_entry,
-        R.id.entryNameLabel
-    ) {
+    private class RecentServersAdapter(context: Context) :
+        ArrayAdapter<String>(context, R.layout.generic_data_entry, R.id.entryNameLabel) {
         var servers: List<String> = listOf()
         private val suggestions: MutableList<String> = mutableListOf()
-        private val filter = object : Filter() {
-            override fun performFiltering(constraint: CharSequence?): FilterResults =
-                FilterResults().apply {
-                    if (constraint.isNullOrBlank()) {
-                        values = servers.joinToString("\n")
-                        count = servers.size
+        private val filter =
+            object : Filter() {
+                override fun performFiltering(constraint: CharSequence?): FilterResults =
+                    FilterResults().apply {
+                        if (constraint.isNullOrBlank()) {
+                            values = servers.joinToString("\n")
+                            count = servers.size
+                        } else {
+                            val regex =
+                                Regex(
+                                    constraint
+                                        .split('.')
+                                        .filter(String::isNotBlank)
+                                        .joinToString(".*\\..*")
+                                )
+                            val newValues = servers.filter(regex::containsMatchIn)
+                            values = newValues.joinToString("\n")
+                            count = newValues.size
+                        }
+                    }
+
+                override fun publishResults(constraint: CharSequence?, results: FilterResults) {
+                    suggestions.clear()
+                    if (results.count > 0) {
+                        suggestions.addAll(results.values.toString().split('\n'))
+                        notifyDataSetChanged()
                     } else {
-                        val regex = Regex(
-                            constraint
-                                .split('.')
-                                .filter(String::isNotBlank)
-                                .joinToString(".*\\..*")
-                        )
-                        val newValues = servers.filter(regex::containsMatchIn)
-                        values = newValues.joinToString("\n")
-                        count = newValues.size
+                        notifyDataSetInvalidated()
                     }
                 }
-
-            override fun publishResults(constraint: CharSequence?, results: FilterResults) {
-                suggestions.clear()
-                if (results.count > 0) {
-                    suggestions.addAll(results.values.toString().split('\n'))
-                    notifyDataSetChanged()
-                } else {
-                    notifyDataSetInvalidated()
-                }
             }
-        }
 
         override fun getCount(): Int = suggestions.size
 

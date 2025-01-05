@@ -17,11 +17,11 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class DeleteObjectPacketFixture private constructor(
-    arbVersion: Arb<Version>,
-    targetType: ObjectType,
-) : PacketTestFixture.Server<DeleteObjectPacket>(TestPacketTypes.OBJECT_DELETE) {
-    class Data internal constructor(
+class DeleteObjectPacketFixture
+private constructor(arbVersion: Arb<Version>, targetType: ObjectType) :
+    PacketTestFixture.Server<DeleteObjectPacket>(TestPacketTypes.OBJECT_DELETE) {
+    class Data
+    internal constructor(
         override val version: Version,
         private val targetType: ObjectType,
         private val targetID: Int,
@@ -39,9 +39,8 @@ class DeleteObjectPacketFixture private constructor(
 
     override val specName: String = targetType.name
 
-    override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int()) { version, targetID ->
-        Data(version, targetType, targetID)
-    }
+    override val generator: Gen<Data> =
+        Arb.bind(arbVersion, Arb.int()) { version, targetID -> Data(version, targetType, targetID) }
 
     override suspend fun testType(packet: Packet.Server): DeleteObjectPacket =
         packet.shouldBeInstanceOf()

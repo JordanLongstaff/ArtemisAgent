@@ -9,17 +9,14 @@ import com.walkertribe.ian.util.BoolState
 
 /**
  * A player ship.
+ *
  * @author dhleong
  */
 class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(id, timestamp) {
-    /**
-     * Returns whether this player ship has activated a double agent.
-     */
+    /** Returns whether this player ship has activated a double agent. */
     val doubleAgentActive = Property.BoolProperty(timestamp)
 
-    /**
-     * Returns the number of double agents on this player ship.
-     */
+    /** Returns the number of double agents on this player ship. */
     val doubleAgentCount = Property.ByteProperty(timestamp)
 
     /**
@@ -27,23 +24,19 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
      */
     val doubleAgentSecondsLeft = Property.IntProperty(timestamp)
 
-    /**
-     * Returns the alert status of the ship.
-     */
+    /** Returns the alert status of the ship. */
     val alertStatus = Property.ObjectProperty<AlertStatus>(timestamp)
 
     /**
-     * Get this ship's player ship index. Note that this value is zero-based, so
-     * the vessel that is named Artemis will have a ship index of 0. If the ship
-     * is a single-seat craft, this value will be -1.
-     * Unspecified: Byte.MIN_VALUE
+     * Get this ship's player ship index. Note that this value is zero-based, so the vessel that is
+     * named Artemis will have a ship index of 0. If the ship is a single-seat craft, this value
+     * will be -1. Unspecified: Byte.MIN_VALUE
      */
     val shipIndex = Property.ByteProperty(timestamp, Byte.MIN_VALUE)
 
     /**
-     * Returns the ID of the capital ship with which this ship can dock. Only applies
-     * to single-seat craft.
-     * Unspecified: -1
+     * Returns the ID of the capital ship with which this ship can dock. Only applies to single-seat
+     * craft. Unspecified: -1
      */
     val capitalShipID = Property.IntProperty(timestamp)
 
@@ -54,49 +47,35 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
      * a packet when the docking process commences; undocking does not update this property.
      * However, if an existing [ArtemisPlayer] object is docked, is updated by another one, and the
      * update has the ship engaging impulse or warp drive, this property will be set to 0 to
-     * indicate that the ship has undocked.
-     * Unspecified: -1
+     * indicate that the ship has undocked. Unspecified: -1
      */
     val dockingBase = Property.IntProperty(timestamp)
 
-    /**
-     * Returns [BoolState.True] if the player ship is docked; [BoolState.False] otherwise.
-     */
+    /** Returns [BoolState.True] if the player ship is docked; [BoolState.False] otherwise. */
     var docked: BoolState = BoolState.False
 
-    /**
-     * The type of drive system the ship has.
-     * Unspecified: null
-     */
+    /** The type of drive system the ship has. Unspecified: null */
     val driveType = Property.ObjectProperty<DriveType>(timestamp)
 
-    /**
-     * Warp factor, between 0 (not at warp) and [Artemis.MAX_WARP].
-     * Unspecified: -1
-     */
-    val warp = Property.ByteProperty(timestamp) {
-        require(it in -1..Artemis.MAX_WARP) { "Invalid warp factor: $it" }
-        if (it > 0) {
-            docked = BoolState.False
+    /** Warp factor, between 0 (not at warp) and [Artemis.MAX_WARP]. Unspecified: -1 */
+    val warp =
+        Property.ByteProperty(timestamp) {
+            require(it in -1..Artemis.MAX_WARP) { "Invalid warp factor: $it" }
+            if (it > 0) {
+                docked = BoolState.False
+            }
         }
-    }
 
-    /**
-     * Ordnance counts.
-     */
-    val ordnanceCounts = OrdnanceType.entries.map {
-        Property.ByteProperty(timestamp)
-    }.toTypedArray()
+    /** Ordnance counts. */
+    val ordnanceCounts =
+        OrdnanceType.entries.map { Property.ByteProperty(timestamp) }.toTypedArray()
 
     fun getTotalOrdnanceCount(ordnanceType: OrdnanceType): Int {
-        return ordnanceCounts[ordnanceType.ordinal].value + tubes.count {
-            it.contents == ordnanceType
-        }
+        return ordnanceCounts[ordnanceType.ordinal].value +
+            tubes.count { it.contents == ordnanceType }
     }
 
-    /**
-     * Weapons tubes.
-     */
+    /** Weapons tubes. */
     val tubes = Array(Artemis.MAX_TUBES) { WeaponsTube(timestamp) }
 
     override val type: ObjectType = ObjectType.PLAYER_SHIP
@@ -109,28 +88,29 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
         }
     }
 
-    override val hasData: Boolean get() = hasPlayerData || hasWeaponsData || hasUpgradeData
+    override val hasData: Boolean
+        get() = hasPlayerData || hasWeaponsData || hasUpgradeData
 
-    /**
-     * Returns true if this object contains any data that is not upgrades data.
-     */
-    val hasPlayerData: Boolean get() =
-        super.hasData ||
-            alertStatus.hasValue ||
-            shipIndex.hasValue ||
-            capitalShipID.hasValue ||
-            dockingBase.hasValue ||
-            warp.hasValue ||
-            driveType.hasValue
+    /** Returns true if this object contains any data that is not upgrades data. */
+    val hasPlayerData: Boolean
+        get() =
+            super.hasData ||
+                alertStatus.hasValue ||
+                shipIndex.hasValue ||
+                capitalShipID.hasValue ||
+                dockingBase.hasValue ||
+                warp.hasValue ||
+                driveType.hasValue
 
-    val hasWeaponsData: Boolean get() =
-        tubes.any { it.hasData } || ordnanceCounts.any { it.hasValue }
+    val hasWeaponsData: Boolean
+        get() = tubes.any { it.hasData } || ordnanceCounts.any { it.hasValue }
 
-    /**
-     * Returns true if this object contains any upgrades data.
-     */
-    val hasUpgradeData: Boolean get() =
-        doubleAgentActive.hasValue || doubleAgentCount.hasValue || doubleAgentSecondsLeft.hasValue
+    /** Returns true if this object contains any upgrades data. */
+    val hasUpgradeData: Boolean
+        get() =
+            doubleAgentActive.hasValue ||
+                doubleAgentCount.hasValue ||
+                doubleAgentSecondsLeft.hasValue
 
     override fun updates(other: ArtemisPlayer) {
         super.updates(other)
@@ -161,18 +141,12 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
     }
 
     private infix fun updatesWeaponsFor(plr: ArtemisPlayer) {
-        ordnanceCounts.zip(plr.ordnanceCounts).forEach {
-            it.first updates it.second
-        }
+        ordnanceCounts.zip(plr.ordnanceCounts).forEach { it.first updates it.second }
 
-        tubes.zip(plr.tubes).forEach {
-            it.first updates it.second
-        }
+        tubes.zip(plr.tubes).forEach { it.first updates it.second }
     }
 
-    /**
-     * Updates only upgrades data from the given ArtemisPlayer object.
-     */
+    /** Updates only upgrades data from the given ArtemisPlayer object. */
     private infix fun updatesUpgradesFor(plr: ArtemisPlayer) {
         doubleAgentActive updates plr.doubleAgentActive
         doubleAgentCount updates plr.doubleAgentCount

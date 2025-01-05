@@ -5,6 +5,7 @@ import com.walkertribe.ian.protocol.PacketSubtype
 
 /**
  * Sent by the server when the "End Game" button is clicked on the statistics page.
+ *
  * @author rjwut
  */
 @PacketSubtype(subtype = SimpleEventPacket.Subtype.END_GAME)

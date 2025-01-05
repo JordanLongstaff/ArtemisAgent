@@ -1,5 +1,6 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -13,18 +14,18 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.BaristaSeekBarInteractions.setProgressTo
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import com.adevinta.android.barista.interaction.PermissionGranter
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class PersonalSettingsFragmentTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun personalSettingsTest() {
@@ -37,22 +38,21 @@ class PersonalSettingsFragmentTest {
             soundVolume.lazySet((viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt())
         }
 
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
         SettingsFragmentTest.openSettingsMenu()
 
         listOf(
-            { SettingsFragmentTest.closeSettingsSubMenu() },
-            { SettingsFragmentTest.backFromSubMenu() },
-        ).forEachIndexed { index, closeSubMenu ->
-            SettingsFragmentTest.openSettingsSubMenu(7)
-            testPersonalSubMenuOpen(
-                threeDigits.get(),
-                soundVolume.get(),
-                index == 0,
+                { SettingsFragmentTest.closeSettingsSubMenu() },
+                { SettingsFragmentTest.backFromSubMenu() },
             )
+            .forEachIndexed { index, closeSubMenu ->
+                SettingsFragmentTest.openSettingsSubMenu(7)
+                testPersonalSubMenuOpen(threeDigits.get(), soundVolume.get(), index == 0)
 
-            closeSubMenu()
-            testPersonalSubMenuClosed()
-        }
+                closeSubMenu()
+                testPersonalSubMenuClosed()
+            }
     }
 
     private companion object {

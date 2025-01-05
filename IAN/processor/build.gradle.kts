@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
   id("java-library")
   id("kotlin")
+  alias(libs.plugins.ktfmt)
   alias(libs.plugins.detekt)
   alias(libs.plugins.dependency.analysis)
 }
@@ -19,6 +20,10 @@ tasks.compileKotlin {
     jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
     javaParameters = true
   }
+}
+
+ktfmt {
+  kotlinLangStyle()
 }
 
 detekt {

@@ -1,5 +1,6 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.annotation.IdRes
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -20,6 +21,7 @@ import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickBa
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItem
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItemChild
+import com.adevinta.android.barista.interaction.PermissionGranter
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,16 +30,17 @@ import org.junit.runner.RunWith
 @LargeTest
 class SettingsFragmentTest {
     companion object {
-        private val pageTitles = intArrayOf(
-            R.string.settings_menu_client,
-            R.string.settings_menu_connection,
-            R.string.settings_menu_missions,
-            R.string.settings_menu_allies,
-            R.string.settings_menu_enemies,
-            R.string.settings_menu_biomechs,
-            R.string.settings_menu_routing,
-            R.string.settings_menu_personal,
-        )
+        private val pageTitles =
+            intArrayOf(
+                R.string.settings_menu_client,
+                R.string.settings_menu_connection,
+                R.string.settings_menu_missions,
+                R.string.settings_menu_allies,
+                R.string.settings_menu_enemies,
+                R.string.settings_menu_biomechs,
+                R.string.settings_menu_routing,
+                R.string.settings_menu_personal,
+            )
 
         fun openSettingsMenu() {
             clickOn(R.id.settingsPageButton)
@@ -113,14 +116,11 @@ class SettingsFragmentTest {
 
             if (skipToggleTest) return
 
-            listOf(
-                Triple(allButton, noneButton, true),
-                Triple(noneButton, allButton, false),
-            ).let {
-                if (allEnabled) it.reversed() else it
-            }.forEach { (clicked, other, checked) ->
-                testMultipleOptions(clicked, other, settingsButtons, checked, ifEnabled)
-            }
+            listOf(Triple(allButton, noneButton, true), Triple(noneButton, allButton, false))
+                .let { if (allEnabled) it.reversed() else it }
+                .forEach { (clicked, other, checked) ->
+                    testMultipleOptions(clicked, other, settingsButtons, checked, ifEnabled)
+                }
 
             if (anyEnabled && !allEnabled) {
                 settingsButtons.forEach { (button, on) ->
@@ -157,15 +157,8 @@ class SettingsFragmentTest {
             }
         }
 
-        fun testSortPair(
-            @IdRes sortFirst: Int,
-            @IdRes sortSecond: Int,
-            @IdRes defaultSort: Int,
-        ) {
-            listOf(
-                sortFirst to sortSecond,
-                sortSecond to sortFirst,
-            ).forEach { (first, second) ->
+        fun testSortPair(@IdRes sortFirst: Int, @IdRes sortSecond: Int, @IdRes defaultSort: Int) {
+            listOf(sortFirst to sortSecond, sortSecond to sortFirst).forEach { (first, second) ->
                 clickOn(first)
                 assertChecked(first)
                 assertUnchecked(defaultSort)
@@ -180,10 +173,7 @@ class SettingsFragmentTest {
             }
         }
 
-        fun testSortPermutations(
-            @IdRes defaultSort: Int,
-            @IdRes vararg orderToClick: Int,
-        ) {
+        fun testSortPermutations(@IdRes defaultSort: Int, @IdRes vararg orderToClick: Int) {
             val lastIndex = orderToClick.size - 1
             orderToClick.forEachIndexed { index, id ->
                 clickOn(id)
@@ -191,10 +181,7 @@ class SettingsFragmentTest {
             }
         }
 
-        fun testSortSingle(
-            @IdRes sortButton: Int,
-            @IdRes defaultSortButton: Int,
-        ) {
+        fun testSortSingle(@IdRes sortButton: Int, @IdRes defaultSortButton: Int) {
             clickOn(sortButton)
             assertChecked(sortButton)
             assertUnchecked(defaultSortButton)
@@ -203,14 +190,14 @@ class SettingsFragmentTest {
             assertUnchecked(sortButton)
             assertChecked(defaultSortButton)
         }
-
     }
 
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun settingsMenuTest() {
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
         openSettingsMenu()
         assertDisplayed(R.id.settingsReset)
     }

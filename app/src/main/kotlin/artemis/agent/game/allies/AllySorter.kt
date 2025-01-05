@@ -9,13 +9,14 @@ data class AllySorter(
     val sortByStatus: Boolean = false,
     val sortByClassSecond: Boolean = false,
     val sortByName: Boolean = false,
-) : Comparator<ObjectEntry.Ally> by buildSortingComparator(
-    CLASS_COMPARATOR to sortByClassFirst,
-    ENERGY_COMPARATOR to sortByEnergy,
-    STATUS_COMPARATOR to sortByStatus,
-    CLASS_COMPARATOR to sortByClassSecond,
-    NAME_COMPARATOR to sortByName,
-) {
+) :
+    Comparator<ObjectEntry.Ally> by buildSortingComparator(
+        CLASS_COMPARATOR to sortByClassFirst,
+        ENERGY_COMPARATOR to sortByEnergy,
+        STATUS_COMPARATOR to sortByStatus,
+        CLASS_COMPARATOR to sortByClassSecond,
+        NAME_COMPARATOR to sortByName,
+    ) {
     private companion object {
         val CLASS_COMPARATOR: Comparator<ObjectEntry.Ally> = compareByDescending { it.obj.hullId }
 

@@ -12,15 +12,13 @@ import io.kotest.property.exhaustive.of
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-class SetShipPacketFixture private constructor(
-    shipIndex: Int,
-) : PacketTestFixture.Client<SetShipPacket>(
-    packetType = TestPacketTypes.VALUE_INT,
-    expectedPayloadSize = Int.SIZE_BYTES * 2,
-) {
-    class Data internal constructor(
-        private val shipIndex: Int,
-    ) : PacketTestData.Client<SetShipPacket>(SetShipPacket(shipIndex)) {
+class SetShipPacketFixture private constructor(shipIndex: Int) :
+    PacketTestFixture.Client<SetShipPacket>(
+        packetType = TestPacketTypes.VALUE_INT,
+        expectedPayloadSize = Int.SIZE_BYTES * 2,
+    ) {
+    class Data internal constructor(private val shipIndex: Int) :
+        PacketTestData.Client<SetShipPacket>(SetShipPacket(shipIndex)) {
         init {
             packet.shipIndex shouldBeEqual shipIndex
         }

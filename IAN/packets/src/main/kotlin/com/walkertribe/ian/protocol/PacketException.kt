@@ -4,21 +4,18 @@ package com.walkertribe.ian.protocol
  * Thrown when IAN encounters a problem while attempting to read a packet of a known type. Unknown
  * packets don't throw this exception; IAN creates objects for them.
  */
-class PacketException private constructor(
+class PacketException
+private constructor(
     string: String?,
     cause: Throwable?,
     packetType: Int = 0,
-    payload: ByteArray? = null
+    payload: ByteArray? = null,
 ) : Exception(string ?: cause?.let { it.message ?: it::class.simpleName }, cause) {
-    /**
-     * The type value for this packet, or 0 if unknown.
-     */
+    /** The type value for this packet, or 0 if unknown. */
     var packetType: Int = packetType
         private set
 
-    /**
-     * The payload for this packet, or null if unknown.
-     */
+    /** The payload for this packet, or null if unknown. */
     var payload: ByteArray? = payload
         private set
 
@@ -42,7 +39,7 @@ class PacketException private constructor(
     constructor(
         cause: Throwable?,
         packetType: Int,
-        payload: ByteArray?
+        payload: ByteArray?,
     ) : this(null, cause, packetType, payload)
 
     /**
@@ -53,19 +50,16 @@ class PacketException private constructor(
     constructor(
         string: String?,
         packetType: Int,
-        payload: ByteArray?
+        payload: ByteArray?,
     ) : this(string, null, packetType, payload)
 
-    /**
-     * Adds the packet type and payload to this exception.
-     */
+    /** Adds the packet type and payload to this exception. */
     fun appendParsingDetails(packetType: Int, payload: ByteArray) {
         this.packetType = packetType
         this.payload = payload
     }
 
     private companion object {
-        @Suppress("ConstPropertyName")
-        private const val serialVersionUID = 6305993950844264082L
+        @Suppress("ConstPropertyName") private const val serialVersionUID = 6305993950844264082L
     }
 }

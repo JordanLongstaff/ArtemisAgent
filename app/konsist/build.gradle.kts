@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -49,6 +50,10 @@ dependencies {
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)
     testRuntimeOnly(libs.bundles.konsist.runtime)
+}
+
+ktfmt {
+    kotlinLangStyle()
 }
 
 dependencyAnalysis {

@@ -9,13 +9,11 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-class ActivityScenarioManager<A : Activity>(
-    activityClass: Class<A>,
-) : TestRule {
+class ActivityScenarioManager<A : Activity>(activityClass: Class<A>) : TestRule {
     private val activityScenarioRule: ActivityScenarioRule<A> = ActivityScenarioRule(activityClass)
-    private val ruleChain: RuleChain = RuleChain.outerRule(
-        FlakyTestRule().allowFlakyAttemptsByDefault(RETRIES)
-    ).around(activityScenarioRule)
+    private val ruleChain: RuleChain =
+        RuleChain.outerRule(FlakyTestRule().allowFlakyAttemptsByDefault(RETRIES))
+            .around(activityScenarioRule)
 
     fun onActivity(action: ActivityScenario.ActivityAction<A>): ActivityScenario<A> =
         activityScenarioRule.scenario.onActivity(action)

@@ -19,13 +19,10 @@ class SetupFragment : Fragment(R.layout.setup_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
     private val binding: SetupFragmentBinding by fragmentViewBinding()
 
-    enum class Page(
-        val pageClass: Class<out Fragment>,
-        @IdRes val buttonId: Int
-    ) {
+    enum class Page(val pageClass: Class<out Fragment>, @IdRes val buttonId: Int) {
         CONNECT(ConnectFragment::class.java, R.id.connectPageButton),
         SHIPS(ShipsFragment::class.java, R.id.shipsPageButton),
-        SETTINGS(SettingsFragment::class.java, R.id.settingsPageButton)
+        SETTINGS(SettingsFragment::class.java, R.id.settingsPageButton),
     }
 
     private var currentPage: Page? = null
@@ -42,17 +39,11 @@ class SetupFragment : Fragment(R.layout.setup_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.connectPageButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.connectPageButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
-        binding.shipsPageButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.shipsPageButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
-        binding.settingsPageButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.settingsPageButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.setupPageSelector.setOnCheckedChangeListener { _, checkedId ->
             currentPage = Page.entries.find { it.buttonId == checkedId }

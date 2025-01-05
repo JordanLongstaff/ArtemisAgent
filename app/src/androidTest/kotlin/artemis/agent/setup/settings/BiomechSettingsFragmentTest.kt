@@ -1,5 +1,6 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -13,16 +14,16 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.PermissionGranter
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class BiomechSettingsFragmentTest {
-    @get:Rule
-    val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun biomechSettingsTest() {
@@ -45,15 +46,18 @@ class BiomechSettingsFragmentTest {
             biomechsEnabled.lazySet(viewModel.biomechsEnabled)
         }
 
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
         SettingsFragmentTest.openSettingsMenu()
 
         val enabled = biomechsEnabled.get()
-        val sortSettings = booleanArrayOf(
-            sortByClassFirst.get(),
-            sortByStatus.get(),
-            sortByClassSecond.get(),
-            sortByName.get(),
-        )
+        val sortSettings =
+            booleanArrayOf(
+                sortByClassFirst.get(),
+                sortByStatus.get(),
+                sortByClassSecond.get(),
+                sortByName.get(),
+            )
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
@@ -79,24 +83,16 @@ class BiomechSettingsFragmentTest {
     private companion object {
         const val ENTRY_INDEX = 5
 
-        val biomechSortMethodSettings = arrayOf(
-            GroupedToggleButtonSetting(
-                R.id.biomechSortingClassButton1,
-                R.string.sort_by_class,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.biomechSortingStatusButton,
-                R.string.sort_by_status,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.biomechSortingClassButton2,
-                R.string.sort_by_class,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.biomechSortingNameButton,
-                R.string.sort_by_name,
-            ),
-        )
+        val biomechSortMethodSettings =
+            arrayOf(
+                GroupedToggleButtonSetting(R.id.biomechSortingClassButton1, R.string.sort_by_class),
+                GroupedToggleButtonSetting(
+                    R.id.biomechSortingStatusButton,
+                    R.string.sort_by_status,
+                ),
+                GroupedToggleButtonSetting(R.id.biomechSortingClassButton2, R.string.sort_by_class),
+                GroupedToggleButtonSetting(R.id.biomechSortingNameButton, R.string.sort_by_name),
+            )
 
         fun testBiomechsSubMenuOpen(sortMethods: BooleanArray, shouldTestSortMethods: Boolean) {
             testBiomechSubMenuSortMethods(sortMethods, shouldTestSortMethods)

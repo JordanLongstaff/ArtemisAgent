@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
   id("java-library")
   id("kotlin")
+  alias(libs.plugins.ktfmt)
   alias(libs.plugins.detekt)
   alias(libs.plugins.dependency.analysis)
 }
@@ -23,6 +24,10 @@ tasks.compileKotlin {
 }
 
 tasks.assemble.dependsOn(":IAN:annotations:konsist:test")
+
+ktfmt {
+  kotlinLangStyle()
+}
 
 detekt {
   source.setFrom(file("src/main/kotlin"))

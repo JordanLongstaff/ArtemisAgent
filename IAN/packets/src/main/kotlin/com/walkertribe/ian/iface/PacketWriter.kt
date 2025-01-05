@@ -16,15 +16,14 @@ import kotlinx.io.writeIntLe
 /**
  * Facilitates writing packets to a [ByteWriteChannel]. This object may be reused to write as many
  * packets as desired to a single [ByteWriteChannel]. To write a packet, follow these steps:
- *  1. Invoke [start].
- *  1. Write the payload data using the `write*()` methods. Payload data is buffered by the
- *  [PacketWriter], not written immediately to the [ByteWriteChannel].
- *  1. Invoke [flush]. The proper values for the fields in the preamble will be automatically
- *  computed and written, followed by the payload. The entire packet is then flushed to the
- *  [ByteWriteChannel].
+ * 1. Invoke [start].
+ * 1. Write the payload data using the `write*()` methods. Payload data is buffered by the
+ *    [PacketWriter], not written immediately to the [ByteWriteChannel].
+ * 1. Invoke [flush]. The proper values for the fields in the preamble will be automatically
+ *    computed and written, followed by the payload. The entire packet is then flushed to the
+ *    [ByteWriteChannel].
  *
- * Once [flush] has been called, you can start writing another packet by
- * invoking [start] again.
+ * Once [flush] has been called, you can start writing another packet by invoking [start] again.
  *
  * @author Robert J. Walker
  * @author Jordan Longstaff
@@ -32,27 +31,19 @@ import kotlinx.io.writeIntLe
 class PacketWriter(private val outputChannel: ByteWriteChannel) {
     private val buffer: Sink by lazy { Buffer() }
 
-    /**
-     * Starts a packet of the given type.
-     */
+    /** Starts a packet of the given type. */
     fun start(packetType: Int): PacketWriter = apply {
         check(buffer.size == 0) { "Packet was already started" }
         buffer.writeIntLe(packetType)
     }
 
-    /**
-     * Writes an integer (four bytes). You must invoke [start] before calling this function.
-     */
+    /** Writes an integer (four bytes). You must invoke [start] before calling this function. */
     fun writeInt(v: Int): PacketWriter = whileStarted { buffer.writeIntLe(v) }
 
-    /**
-     * Writes an [Enum] value as an int. You must invoke [start] before calling this function.
-     */
+    /** Writes an [Enum] value as an int. You must invoke [start] before calling this function. */
     fun <E : Enum<E>> writeEnumAsInt(v: E): PacketWriter = writeInt(v.ordinal)
 
-    /**
-     * Writes a float (four bytes). You must invoke [start] before calling this method.
-     */
+    /** Writes a float (four bytes). You must invoke [start] before calling this method. */
     fun writeFloat(v: Float): PacketWriter = writeInt(v.toRawBits())
 
     /**

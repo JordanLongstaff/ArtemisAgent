@@ -12,29 +12,21 @@ import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisObject
 
-/**
- * Sends a message to another entity.
- */
+/** Sends a message to another entity. */
 class CommsOutgoingPacket(
     recipient: ArtemisObject<*>,
 
-    /**
-     * The enum value representing the message to send. May include an argument.
-     */
+    /** The enum value representing the message to send. May include an argument. */
     val message: CommsMessage,
-
     vesselData: VesselData,
 ) : Packet.Client(CorePacketType.COMMS_MESSAGE) {
-    /**
-     * The [CommsRecipientType] corresponding to the target object.
-     */
-    val recipientType: CommsRecipientType = requireNotNull(
-        getRecipientType(recipient, vesselData)
-    ) { "Recipient cannot receive messages" }
+    /** The [CommsRecipientType] corresponding to the target object. */
+    val recipientType: CommsRecipientType =
+        requireNotNull(getRecipientType(recipient, vesselData)) {
+            "Recipient cannot receive messages"
+        }
 
-    /**
-     * The ID of the target object.
-     */
+    /** The ID of the target object. */
     val recipientId: Int = recipient.id
 
     init {
@@ -57,23 +49,25 @@ class CommsOutgoingPacket(
         private const val NO_ARG_2 = 0x004f005e
 
         /**
-         * Returns the [CommsRecipientType] that corresponds to the given [ArtemisObject],
-         * or null if the object in question cannot receive Comms messages.
+         * Returns the [CommsRecipientType] that corresponds to the given [ArtemisObject], or null
+         * if the object in question cannot receive Comms messages.
          */
         private fun getRecipientType(
             recipient: ArtemisObject<*>,
             vesselData: VesselData,
-        ): CommsRecipientType? = when (recipient.type) {
-            ObjectType.PLAYER_SHIP -> CommsRecipientType.PLAYER
-            ObjectType.BASE -> CommsRecipientType.BASE
-            ObjectType.NPC_SHIP -> {
-                val npc = recipient as ArtemisNpc
-                val enemy = npc.getVessel(vesselData)?.getFaction(vesselData)?.get(Faction.ENEMY)
-                    ?: npc.isEnemy.value.booleanValue
-                if (enemy) CommsRecipientType.ENEMY else CommsRecipientType.OTHER
+        ): CommsRecipientType? =
+            when (recipient.type) {
+                ObjectType.PLAYER_SHIP -> CommsRecipientType.PLAYER
+                ObjectType.BASE -> CommsRecipientType.BASE
+                ObjectType.NPC_SHIP -> {
+                    val npc = recipient as ArtemisNpc
+                    val enemy =
+                        npc.getVessel(vesselData)?.getFaction(vesselData)?.get(Faction.ENEMY)
+                            ?: npc.isEnemy.value.booleanValue
+                    if (enemy) CommsRecipientType.ENEMY else CommsRecipientType.OTHER
+                }
+                else -> null
             }
-            else -> null
-        }
 
         private fun PacketWriter.writeCommsMessage(message: CommsMessage): PacketWriter = apply {
             writeInt(message.id)

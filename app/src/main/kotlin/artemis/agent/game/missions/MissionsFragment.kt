@@ -67,23 +67,20 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             missionsListView.layoutManager = LinearLayoutManager(view.context)
         }
 
-        activeMissionsButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        activeMissionsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
-        completedMissionsButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        completedMissionsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         val missionListAdapter = MissionListAdapter()
         activeMissionsButton.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    missionsListView.layoutManager = LinearLayoutManager(
-                        missionsListView.context,
-                        RecyclerView.HORIZONTAL,
-                        false
-                    )
+                    missionsListView.layoutManager =
+                        LinearLayoutManager(
+                            missionsListView.context,
+                            RecyclerView.HORIZONTAL,
+                            false,
+                        )
                 }
 
                 missionsListView.adapter = missionListAdapter
@@ -98,10 +95,8 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         completedMissionsButton.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    missionsListView.layoutManager = GridLayoutManager(
-                        missionsListView.context,
-                        viewModel.displayedRewards.size
-                    )
+                    missionsListView.layoutManager =
+                        GridLayoutManager(missionsListView.context, viewModel.displayedRewards.size)
                 }
 
                 missionsListView.adapter = completedAdapter
@@ -114,17 +109,19 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         }
 
         if (viewModel.showingPayouts.value) {
-            completedMissionsButton
-        } else {
-            activeMissionsButton
-        }.isChecked = true
+                completedMissionsButton
+            } else {
+                activeMissionsButton
+            }
+            .isChecked = true
     }
 
     private class MissionsDiffUtilCallback(
         private val oldList: List<SideMissionEntry>,
-        private val newList: List<SideMissionEntry>
+        private val newList: List<SideMissionEntry>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
@@ -135,9 +132,10 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
 
     private class PayoutsDiffUtilCallback(
         private val oldList: List<Pair<RewardType, Int>>,
-        private val newList: List<Pair<RewardType, Int>>
+        private val newList: List<Pair<RewardType, Int>>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
@@ -147,9 +145,8 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             oldList[oldItemPosition].second == newList[newItemPosition].second
     }
 
-    private inner class MissionViewHolder(
-        private val entryBinding: MissionsEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private inner class MissionViewHolder(private val entryBinding: MissionsEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: SideMissionEntry) {
             with(entryBinding) {
                 if (entry.isCompleted) {
@@ -158,20 +155,23 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                     bindInProgress(entry)
                 }
 
-                val rewardList = viewModel.displayedRewards.filter {
-                    entry.rewards[it.ordinal] > 0
-                }.joinToString { reward ->
-                    val value = entry.rewards[reward.ordinal] *
-                        if (reward == RewardType.NUKE) 2 else 1
-                    val name = if (reward == RewardType.PRODUCTION) {
-                        entry.destination.obj.name.value
-                    } else {
-                        null
-                    }
-                    val prefix = name?.let { n -> "$n " } ?: ""
-                    val suffix = if (value > 1) " x$value" else ""
-                    "$prefix${labels[reward.ordinal]}$suffix"
-                }
+                val rewardList =
+                    viewModel.displayedRewards
+                        .filter { entry.rewards[it.ordinal] > 0 }
+                        .joinToString { reward ->
+                            val value =
+                                entry.rewards[reward.ordinal] *
+                                    if (reward == RewardType.NUKE) 2 else 1
+                            val name =
+                                if (reward == RewardType.PRODUCTION) {
+                                    entry.destination.obj.name.value
+                                } else {
+                                    null
+                                }
+                            val prefix = name?.let { n -> "$n " } ?: ""
+                            val suffix = if (value > 1) " x$value" else ""
+                            "$prefix${labels[reward.ordinal]}$suffix"
+                        }
                 rewardsLabel.text = getString(R.string.rewards, rewardList)
             }
         }
@@ -193,35 +193,32 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                 ContextCompat.getColor(
                     root.context,
                     SideMissionStatus.maxOf(
-                        nextTo.missionStatus,
-                        thenTo?.missionStatus ?: SideMissionStatus.ALL_CLEAR
-                    ).backgroundColor
+                            nextTo.missionStatus,
+                            thenTo?.missionStatus ?: SideMissionStatus.ALL_CLEAR,
+                        )
+                        .backgroundColor,
                 )
             )
 
             val nextVessel = nextTo.obj.getVessel(viewModel.vesselData)
-            nextLabel.text = getString(
-                R.string.next_to,
-                nextTo.obj.name.value,
-                nextVessel?.getFaction(viewModel.vesselData)?.name,
-                nextVessel?.name
-            )
+            nextLabel.text =
+                getString(
+                    R.string.next_to,
+                    nextTo.obj.name.value,
+                    nextVessel?.getFaction(viewModel.vesselData)?.name,
+                    nextVessel?.name,
+                )
             val thenVessel = thenTo?.obj?.getVessel(viewModel.vesselData)
-            thenLabel.text = getString(
-                R.string.then_to,
-                thenTo?.run { obj.name.value },
-                thenVessel?.getFaction(viewModel.vesselData)?.name,
-                thenVessel?.name
-            )
+            thenLabel.text =
+                getString(
+                    R.string.then_to,
+                    thenTo?.run { obj.name.value },
+                    thenVessel?.getFaction(viewModel.vesselData)?.name,
+                    thenVessel?.name,
+                )
 
-            missionDirectionLabel.text = getString(
-                R.string.direction,
-                nextTo.heading
-            )
-            missionRangeLabel.text = getString(
-                R.string.range,
-                nextTo.range
-            )
+            missionDirectionLabel.text = getString(R.string.direction, nextTo.heading)
+            missionRangeLabel.text = getString(R.string.range, nextTo.range)
             missionTimeLabel.text = entry.durationText
         }
 
@@ -234,11 +231,12 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                 ContextCompat.getColor(root.context, R.color.completedMissionGreen)
             )
             nextLabel.text = getString(R.string.mission_completed)
-            thenLabel.text = if (viewModel.autoDismissCompletedMissions) {
-                getString(R.string.mission_will_be_removed, seconds)
-            } else {
-                getString(R.string.tap_to_dismiss)
-            }
+            thenLabel.text =
+                if (viewModel.autoDismissCompletedMissions) {
+                    getString(R.string.mission_will_be_removed, seconds)
+                } else {
+                    getString(R.string.tap_to_dismiss)
+                }
             thenLabel.visibility = View.VISIBLE
             thenLabel.alpha = 1f
             missionDirectionLabel.text = ""
@@ -247,9 +245,8 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         }
     }
 
-    private class CompletedViewHolder(
-        private val entryBinding: CompletedMissionsEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private class CompletedViewHolder(private val entryBinding: CompletedMissionsEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(label: String, count: Int) {
             entryBinding.rewardTypeLabel.text = label
             entryBinding.rewardQuantityLabel.text = count.formatString()
@@ -263,11 +260,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MissionViewHolder =
             MissionViewHolder(
-                MissionsEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                MissionsEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: MissionViewHolder, position: Int) {
@@ -275,9 +268,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         }
 
         fun onMissionsUpdate(list: List<SideMissionEntry>) {
-            DiffUtil.calculateDiff(
-                MissionsDiffUtilCallback(missions, list)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(MissionsDiffUtilCallback(missions, list)).dispatchUpdatesTo(this)
             missions = list
         }
     }
@@ -293,7 +284,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                 CompletedMissionsEntryBinding.inflate(
                     LayoutInflater.from(parent.context),
                     parent,
-                    false
+                    false,
                 )
             )
 
@@ -305,9 +296,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         fun onPayoutsUpdate(list: List<Pair<RewardType, Int>>) {
             if (payouts == list) return
 
-            DiffUtil.calculateDiff(
-                PayoutsDiffUtilCallback(payouts, list)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(PayoutsDiffUtilCallback(payouts, list)).dispatchUpdatesTo(this)
             payouts = list
         }
     }

@@ -6,6 +6,7 @@ import com.walkertribe.ian.protocol.core.ValueIntPacket
 
 /**
  * Take or relinquish a bridge console.
+ *
  * @author dhleong
  */
 class SetConsolePacket(console: Console) : ValueIntPacket(Subtype.SET_CONSOLE, console.index) {

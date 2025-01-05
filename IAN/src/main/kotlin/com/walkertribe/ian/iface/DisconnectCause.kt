@@ -4,9 +4,7 @@ import com.walkertribe.ian.protocol.PacketException
 import com.walkertribe.ian.util.Version
 import kotlinx.io.IOException
 
-/**
- * Indicates the reason that the connection was terminated.
- */
+/** Indicates the reason that the connection was terminated. */
 sealed interface DisconnectCause {
     /**
      * The connection was closed from this side; in other words, the user terminated the connection
@@ -38,8 +36,6 @@ sealed interface DisconnectCause {
      */
     data class UnknownError(val throwable: Throwable) : DisconnectCause
 
-    /**
-     * The server version in use is not supported by IAN.
-     */
+    /** The server version in use is not supported by IAN. */
     data class UnsupportedVersion(val version: Version) : DisconnectCause
 }

@@ -16,7 +16,6 @@ import artemis.agent.copy
 import artemis.agent.databinding.SettingsMissionsBinding
 import artemis.agent.databinding.fragmentViewBinding
 import kotlinx.coroutines.launch
-import kotlin.reflect.KMutableProperty1
 
 class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -38,13 +37,14 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val displayRewardButtons = mapOf(
-            binding.rewardsBatteryButton to UserSettingsKt.Dsl::displayRewardBattery,
-            binding.rewardsCoolantButton to UserSettingsKt.Dsl::displayRewardCoolant,
-            binding.rewardsNukeButton to UserSettingsKt.Dsl::displayRewardNukes,
-            binding.rewardsProductionButton to UserSettingsKt.Dsl::displayRewardProduction,
-            binding.rewardsShieldButton to UserSettingsKt.Dsl::displayRewardShield,
-        )
+        val displayRewardButtons =
+            mapOf(
+                binding.rewardsBatteryButton to UserSettingsKt.Dsl::displayRewardBattery,
+                binding.rewardsCoolantButton to UserSettingsKt.Dsl::displayRewardCoolant,
+                binding.rewardsNukeButton to UserSettingsKt.Dsl::displayRewardNukes,
+                binding.rewardsProductionButton to UserSettingsKt.Dsl::displayRewardProduction,
+                binding.rewardsShieldButton to UserSettingsKt.Dsl::displayRewardShield,
+            )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             it.copy {
@@ -70,9 +70,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             }
         }
 
-        binding.autoDismissalButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.autoDismissalButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.autoDismissalButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
@@ -93,9 +91,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
                     it.copy {
-                        displayRewardButtons.values.forEach { setting ->
-                            setting.set(this, true)
-                        }
+                        displayRewardButtons.values.forEach { setting -> setting.set(this, true) }
                     }
                 }
             }
@@ -106,9 +102,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
                     it.copy {
-                        displayRewardButtons.values.forEach { setting ->
-                            setting.set(this, false)
-                        }
+                        displayRewardButtons.values.forEach { setting -> setting.set(this, false) }
                     }
                 }
             }
@@ -119,9 +113,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
 
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {
-                    context.userSettings.updateData {
-                        it.copy { setting.set(this, isChecked) }
-                    }
+                    context.userSettings.updateData { it.copy { setting.set(this, isChecked) } }
                 }
             }
         }
