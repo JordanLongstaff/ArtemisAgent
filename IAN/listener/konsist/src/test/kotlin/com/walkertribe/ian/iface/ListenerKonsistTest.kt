@@ -8,13 +8,12 @@ import io.kotest.datatest.withData
 
 class ListenerKonsistTest :
     DescribeSpec({
-        val listenerScope = Konsist.scopeFromProject("IAN/listener", "main")
-        val allTypes =
-            listenerScope.classes() + listenerScope.interfaces() + listenerScope.objects()
+      val listenerScope = Konsist.scopeFromProject("IAN/listener", "main")
+      val allTypes = listenerScope.classes() + listenerScope.interfaces() + listenerScope.objects()
 
-        describe("All type names begin with Listener") {
-            withData(nameFn = { it.name }, allTypes.withTopLevel()) { cls ->
-                cls.assertTrue { it.hasNameStartingWith("Listener") }
-            }
+      describe("All type names begin with Listener") {
+        withData(nameFn = { it.name }, allTypes.withTopLevel()) { cls ->
+          cls.assertTrue { it.hasNameStartingWith("Listener") }
         }
+      }
     })
