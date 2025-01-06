@@ -26,6 +26,7 @@ tasks.test { useJUnitPlatform() }
 ktfmt { kotlinLangStyle() }
 
 dependencies {
+    testImplementation(projects.ian.testing)
     testImplementation(projects.ian.world)
     testCompileOnly(projects.ian.annotations)
 
