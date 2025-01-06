@@ -31,24 +31,25 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val konsistCollect by tasks.registering {
-    group = "build"
-    description = "Runs all Konsist unit tests of all subprojects."
-}
+val konsistCollect by
+    tasks.registering {
+        group = "build"
+        description = "Runs all Konsist unit tests of all subprojects."
+    }
 
-allprojects.filter { it.path.contains("konsist") }.forEach { project ->
-    project.tasks.whenTaskAdded {
-        if (name == "test") {
-            konsistCollect.dependsOn(path)
+allprojects
+    .filter { it.path.contains("konsist") }
+    .forEach { project ->
+        project.tasks.whenTaskAdded {
+            if (name == "test") {
+                konsistCollect.dependsOn(path)
+            }
         }
     }
-}
 
 tasks.assemble.dependsOn(konsistCollect)
 
-ktfmt {
-    kotlinLangStyle()
-}
+ktfmt { kotlinLangStyle() }
 
 detekt {
     source.setFrom(file("src/main/kotlin"))

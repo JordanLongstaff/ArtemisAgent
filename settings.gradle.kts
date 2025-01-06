@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "ArtemisAgent"
+
 include(
     ":app",
     ":app:konsist",

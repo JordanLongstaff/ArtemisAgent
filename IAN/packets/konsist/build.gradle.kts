@@ -21,13 +21,9 @@ tasks.compileKotlin {
     }
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
+tasks.test { useJUnitPlatform() }
 
-ktfmt {
-    kotlinLangStyle()
-}
+ktfmt { kotlinLangStyle() }
 
 dependencies {
     testImplementation(projects.ian.annotations)
