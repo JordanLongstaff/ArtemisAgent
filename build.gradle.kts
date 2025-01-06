@@ -25,18 +25,19 @@ val minimumSdkVersion: Int by extra(21)
 val javaVersion: JavaVersion by extra(JavaVersion.VERSION_21)
 
 val pitestTimeoutFactor: BigDecimal by extra(BigDecimal(100))
-val pitestMutators: Set<String> by extra(
-    setOf(
-        "STRONGER",
-        "EXTENDED",
-        "EXTREME",
-        "INLINE_CONSTS",
-        "REMOVE_CONDITIONALS",
-        "REMOVE_INCREMENTS",
-        "EXPERIMENTAL_MEMBER_VARIABLE",
-        "EXPERIMENTAL_NAKED_RECEIVER",
+val pitestMutators: Set<String> by
+    extra(
+        setOf(
+            "STRONGER",
+            "EXTENDED",
+            "EXTREME",
+            "INLINE_CONSTS",
+            "REMOVE_CONDITIONALS",
+            "REMOVE_INCREMENTS",
+            "EXPERIMENTAL_MEMBER_VARIABLE",
+            "EXPERIMENTAL_NAKED_RECEIVER",
+        )
     )
-)
 
 plugins {
     base
@@ -49,13 +50,9 @@ plugins {
     alias(libs.plugins.git.hooks)
 }
 
-tasks.detekt {
-    jvmTarget = javaVersion.toString()
-}
+tasks.detekt { jvmTarget = javaVersion.toString() }
 
-tasks.detektBaseline {
-    jvmTarget = javaVersion.toString()
-}
+tasks.detektBaseline { jvmTarget = javaVersion.toString() }
 
 detekt {
     toolVersion = libs.versions.detekt.get()
@@ -66,7 +63,8 @@ detekt {
 gitHooks {
     setHooks(
         mapOf(
-            "pre-commit" to "detektBaseline detektBaselineTest detektBaselineTestFixtures ktfmtFormat",
+            "pre-commit" to
+                "detektBaseline detektBaselineTest detektBaselineTestFixtures ktfmtFormat",
             "pre-push" to ":IAN:konsistCollect :app:konsist:test",
         )
     )
