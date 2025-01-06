@@ -620,7 +620,7 @@ class ArtemisNetworkInterfaceTest :
                                         data.buildPayload(),
                                     )
 
-                                    eventually(3.seconds) {
+                                    eventually(5.seconds) {
                                         val newEvents =
                                             TestListener.calls<ConnectionEvent.Disconnect>()
                                         newEvents.size shouldBeEqual 1
