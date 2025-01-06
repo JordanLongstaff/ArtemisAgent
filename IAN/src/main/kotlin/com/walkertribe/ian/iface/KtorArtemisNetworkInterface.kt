@@ -2,7 +2,6 @@ package com.walkertribe.ian.iface
 
 import com.walkertribe.ian.protocol.Packet
 import com.walkertribe.ian.protocol.PacketException
-import com.walkertribe.ian.protocol.core.setup.VersionPacket
 import com.walkertribe.ian.protocol.core.setup.WelcomePacket
 import com.walkertribe.ian.util.Version
 import io.ktor.network.selector.SelectorManager
@@ -57,8 +56,8 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
     private val listeners = ListenerRegistry()
     override var version: Version = Version.LATEST
         private set(value) {
+            if (field == value) return
             field = value
-            reader.version = value
 
             if (value < Version.MINIMUM || (!debugMode && value > Version.LATEST)) {
                 disconnectCause = DisconnectCause.UnsupportedVersion(value)
@@ -107,8 +106,7 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
                     if (!wasConnected) {
                         listeners.offer(ConnectionEvent.Success(it.message))
                     }
-                },
-                ListenerFunction(VersionPacket::class) { version = it.version },
+                }
             ) + heartbeatManager.listeners
         )
     }
@@ -146,7 +144,10 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
                     while (isRunning) {
                         // read packet and process
                         when (val result = reader.readPacket()) {
-                            is ParseResult.Success -> parseResultsChannel.send(result)
+                            is ParseResult.Success -> {
+                                parseResultsChannel.send(result)
+                                version = reader.version
+                            }
                             is ParseResult.Fail -> throw result.exception
                             else -> {}
                         }
