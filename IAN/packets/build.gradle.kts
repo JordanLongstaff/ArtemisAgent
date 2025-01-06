@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.io)
 
+    testImplementation(projects.ian.testing)
+
     testImplementation(testFixtures(projects.ian.listener))
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(testFixtures(projects.ian.world))

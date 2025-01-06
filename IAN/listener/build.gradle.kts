@@ -46,6 +46,7 @@ dependencies {
 
     implementation(libs.kotlin.reflect)
 
+    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.listener.test)
     testFixturesImplementation(libs.kotlin.reflect)
     testRuntimeOnly(libs.bundles.ian.test.runtime)

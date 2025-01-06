@@ -54,6 +54,7 @@ dependencies {
     testFixturesApi(projects.ian.util)
     testFixturesImplementation(libs.bundles.ian.world.test.fixtures)
 
+    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)

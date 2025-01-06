@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.kotlinx.io)
     api(libs.bundles.ian.udp.api)
 
+    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.udp.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

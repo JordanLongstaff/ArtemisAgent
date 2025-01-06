@@ -4,6 +4,7 @@ plugins {
     id("java-library")
     id("kotlin")
     alias(libs.plugins.ktfmt)
+    alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -21,16 +22,11 @@ tasks.compileKotlin {
     }
 }
 
-tasks.test { useJUnitPlatform() }
-
 ktfmt { kotlinLangStyle() }
 
-dependencies {
-    testImplementation(projects.ian.annotations)
-    testImplementation(projects.ian.packets)
-
-    testImplementation(projects.ian.testing)
-    testImplementation(libs.bundles.konsist.common)
-    testImplementation(libs.bundles.konsist.ian)
-    testRuntimeOnly(libs.bundles.konsist.runtime)
+detekt {
+    source.setFrom(file("src/main/kotlin"))
+    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
 }
+
+dependencies { implementation(libs.kotest.framework.engine) }
