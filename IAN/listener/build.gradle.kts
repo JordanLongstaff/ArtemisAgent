@@ -33,9 +33,7 @@ tasks.test {
 
 tasks.assemble.dependsOn(":IAN:listener:konsist:test")
 
-ktfmt {
-    kotlinLangStyle()
-}
+ktfmt { kotlinLangStyle() }
 
 detekt {
     source.setFrom(file("src/main/kotlin"))
@@ -48,6 +46,7 @@ dependencies {
 
     implementation(libs.kotlin.reflect)
 
+    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.listener.test)
     testFixturesImplementation(libs.kotlin.reflect)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
@@ -55,13 +54,7 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover {
-    currentProject {
-        sources {
-            excludedSourceSets.add("testFixtures")
-        }
-    }
-}
+kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
 
 val pitestMutators: Set<String> by rootProject.extra
 val pitestTimeoutFactor: BigDecimal by rootProject.extra

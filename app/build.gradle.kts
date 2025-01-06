@@ -39,13 +39,9 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    testOptions {
-        execution = "ANDROIDX_TEST_ORCHESTRATOR"
-    }
+    testOptions { execution = "ANDROIDX_TEST_ORCHESTRATOR" }
 
-    kotlinOptions {
-        jvmTarget = javaVersion.toString()
-    }
+    kotlinOptions { jvmTarget = javaVersion.toString() }
 
     buildTypes {
         configureEach {
@@ -57,7 +53,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
 
             ndk.debugSymbolLevel = "FULL"
@@ -113,9 +109,7 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 }
 
-ktfmt {
-    kotlinLangStyle()
-}
+ktfmt { kotlinLangStyle() }
 
 detekt {
     source.setFrom(file("src/main/kotlin"))
@@ -125,19 +119,13 @@ detekt {
 }
 
 protobuf {
-    protoc {
-        artifact = libs.protoc.get().toString()
-    }
+    protoc { artifact = libs.protoc.get().toString() }
 
     generateProtoTasks {
         all().forEach {
             it.builtins {
-                create("java") {
-                    option("lite")
-                }
-                create("kotlin") {
-                    option("lite")
-                }
+                create("java") { option("lite") }
+                create("kotlin") { option("lite") }
             }
         }
     }

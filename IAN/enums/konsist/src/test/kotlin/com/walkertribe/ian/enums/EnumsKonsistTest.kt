@@ -59,11 +59,7 @@ class EnumsKonsistTest :
           val otherClasses =
               enumsScope
                   .classes()
-                  .withoutModifier(
-                      KoModifier.ENUM,
-                      KoModifier.SEALED,
-                      KoModifier.VALUE,
-                  )
+                  .withoutModifier(KoModifier.ENUM, KoModifier.SEALED, KoModifier.VALUE)
                   .withTopLevel()
           val objects = enumsScope.objects(includeNested = false).withTopLevel()
           arrayOf(otherClasses, objects).forEach { set ->

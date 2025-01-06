@@ -91,11 +91,6 @@ private enum class CompanionTest {
   abstract fun testProperty(property: KoPropertyDeclaration, index: Int): Boolean
 
   private companion object {
-    val EXPECTED_BROADCAST =
-        arrayOf(
-            "10.255.255.255",
-            "172.31.255.255",
-            "192.168.255.255",
-        )
+    val EXPECTED_BROADCAST = arrayOf("10.255.255.255", "172.31.255.255", "192.168.255.255")
   }
 }

@@ -4,6 +4,7 @@ import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.ext.list.withAnnotationOf
 import com.lemonappdev.konsist.api.ext.list.withExternalParentNamed
 import com.lemonappdev.konsist.api.ext.list.withNameEndingWith
+import com.lemonappdev.konsist.api.ext.list.withParentNamed
 import com.lemonappdev.konsist.api.ext.list.withParentOf
 import com.lemonappdev.konsist.api.ext.list.withRepresentedTypeOf
 import com.lemonappdev.konsist.api.ext.list.withTopLevel
@@ -25,7 +26,10 @@ class PacketKonsistTest :
         val classNameRegex = Regex("\\.[A-Z].+")
 
         val packetClasses =
-            module.classes().withTopLevel().withParentOf(Packet::class, indirectParents = true) +
+            module
+                .classes()
+                .withTopLevel()
+                .withParentNamed("Packet.Client", "Packet.Server", indirectParents = true) +
                 module.interfaces().withRepresentedTypeOf(HeartbeatPacket::class)
 
         describe("Top-level packet class names end with Packet") {
