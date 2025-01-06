@@ -51,8 +51,19 @@ jobs:
       # - name: Build with Gradle 8.5
       #   run: gradle build
 
-      - name: Publish Test Results
+      - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
         if: always()
         with:
-          files: ${{ github.workspace }}/IAN/**/build/test-results/**/*.xml
+          check_name: Unit Test Results
+          files: |
+            ${{ github.workspace }}/**/build/test-results/**/*.xml
+            !${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
+
+      - name: Publish Konsist Test Results
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
+        if: always()
+        with:
+          check_name: Konsist Test Results
+          files: |
+            ${{ github.workspace }}/**/konsist/build/test-results/**/*.xml

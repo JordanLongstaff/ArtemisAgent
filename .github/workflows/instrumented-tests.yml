@@ -11,10 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
     strategy:
       matrix:
         api-level: [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 ]
@@ -51,8 +47,27 @@ jobs:
           disable-animations: true
           script: ./gradlew connectedCheck
 
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Instrumented Test Results (API ${{ matrix.api-level }})"
+          path: ${{ github.workspace }}/app/build/outputs/androidTest-results/connected/**/*.xml
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
-        if: always()
         with:
-          files: ${{ github.workspace }}/app/build/outputs/androidTest-results/connected/**/*.xml
+          check_name: Instrumented Test Results
+          files: artifacts/**/*.xml
