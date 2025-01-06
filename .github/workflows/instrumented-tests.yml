@@ -49,6 +49,7 @@ jobs:
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: "Instrumented Test Results (API ${{ matrix.api-level }})"
           path: ${{ github.workspace }}/app/build/outputs/androidTest-results/connected/**/*.xml
