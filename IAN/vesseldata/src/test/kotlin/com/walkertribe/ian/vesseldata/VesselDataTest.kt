@@ -13,7 +13,6 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
-import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import korlibs.io.serialization.xml.Xml
@@ -25,7 +24,7 @@ class VesselDataTest :
         val vessels =
             inputStream
                 ?.use { input ->
-                    BufferedReader(InputStreamReader(input)).useLines { lines ->
+                    InputStreamReader(input).useLines { lines ->
                         lines
                             .map { line ->
                                 val attributes = line.split(",")
