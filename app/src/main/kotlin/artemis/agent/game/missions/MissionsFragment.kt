@@ -192,7 +192,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             root.setBackgroundColor(
                 ContextCompat.getColor(
                     root.context,
-                    SideMissionStatus.maxOf(
+                    maxOf(
                             nextTo.missionStatus,
                             thenTo?.missionStatus ?: SideMissionStatus.ALL_CLEAR,
                         )
