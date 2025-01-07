@@ -25,8 +25,8 @@ android {
         applicationId = "artemis.agent"
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 17
-        versionName = "1.0.7"
+        versionCode = 18
+        versionName = "1.0.8"
         multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -39,9 +39,9 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    testOptions { execution = "ANDROIDX_TEST_ORCHESTRATOR" }
-
     kotlinOptions { jvmTarget = javaVersion.toString() }
+
+    testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
 
     buildTypes {
         configureEach {
