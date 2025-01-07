@@ -700,7 +700,8 @@ sealed interface MessageParser {
                             viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also {
                                 ally ->
                                 if (ally.vesselName == vesselName) {
-                                    ally.status = it.getAllyStatus(response)
+                                    if (ally.status != AllyStatus.FLYING_BLIND)
+                                        ally.status = it.getAllyStatus(response)
                                     ally.hasEnergy = response.endsWith(HAS_ENERGY)
                                     ally.checkNebulaStatus()
                                 }

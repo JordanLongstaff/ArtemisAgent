@@ -22,7 +22,6 @@ import artemis.agent.databinding.SelectorPopupBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
-import artemis.agent.game.allies.AllyStatus
 import artemis.agent.game.stations.StationsFragment
 import artemis.agent.generic.GenericDataViewHolder
 import com.walkertribe.ian.enums.BaseMessage
@@ -301,7 +300,7 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             destBuildTimeLabel.visibility = View.GONE
 
             destAllyCommandButton.visibility =
-                if (objEntry.isNormal || objEntry.status == AllyStatus.FLYING_BLIND) {
+                if (objEntry.isInstructable) {
                     destAllyCommandButton.setOnClickListener {
                         viewModel.playSound(SoundEffect.BEEP_1)
                         viewModel.showingDestroyedAllies.value = false
