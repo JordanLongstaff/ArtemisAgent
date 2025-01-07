@@ -49,7 +49,7 @@
         Mine trap. Do not approach under any circumstances.
     </string>
     <string name="ally_status_needs_damcon">
-        Damages detected. Requesting DamCon team member to conduct repairs.
+        Damages reported. Requesting DamCon team member to conduct repairs.
     </string>
     <string name="ally_status_needs_energy">
         Out of energy. Requesting 100 units to start moving.
