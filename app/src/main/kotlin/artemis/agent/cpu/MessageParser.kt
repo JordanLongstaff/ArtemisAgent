@@ -684,26 +684,31 @@ sealed interface MessageParser {
     data object HailResponse : MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
             val message = packet.message
-            val response =
-                OUR_SHIELDS.find(message)?.run { message.substring(value.length + 1) }
-                    ?: return false
-
-            val sender = packet.sender
-            return !sender.startsWith("DS") &&
-                HailResponseEffect.entries.any {
-                    if (!it.appliesTo(response)) return@any false
-                    val splitPoint = sender.lastIndexOf(" ")
-                    val vesselName = sender.substring(0, splitPoint)
-                    val name = sender.substring(splitPoint + 1)
-                    viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also { ally ->
-                        if (ally.vesselName == vesselName) {
-                            ally.status = it.getAllyStatus(response)
-                            ally.hasEnergy = response.endsWith(HAS_ENERGY)
-                            ally.checkNebulaStatus()
+            val responseMatch = OUR_SHIELDS.find(message)
+            return when {
+                responseMatch == null -> false
+                responseMatch.value.length == message.length -> true
+                else -> {
+                    val response = message.substring(responseMatch.value.length + 1)
+                    val sender = packet.sender
+                    !sender.startsWith("DS") &&
+                        HailResponseEffect.entries.any {
+                            if (!it.appliesTo(response)) return@any false
+                            val splitPoint = sender.lastIndexOf(" ")
+                            val vesselName = sender.substring(0, splitPoint)
+                            val name = sender.substring(splitPoint + 1)
+                            viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also {
+                                ally ->
+                                if (ally.vesselName == vesselName) {
+                                    ally.status = it.getAllyStatus(response)
+                                    ally.hasEnergy = response.endsWith(HAS_ENERGY)
+                                    ally.checkNebulaStatus()
+                                }
+                            }
+                            true
                         }
-                    }
-                    true
                 }
+            }
         }
     }
 
