@@ -21,7 +21,7 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
     const val DEFAULT_BLACK_HOLE_CLEARANCE = 500
     const val DEFAULT_MINE_CLEARANCE = 1000
     const val DEFAULT_TYPHON_CLEARANCE = 3000
-    const val DEFAULT_SOUND_VOLUME = 100
+    const val DEFAULT_SOUND_VOLUME = 50
     const val DEFAULT_UPDATE_INTERVAL = 50
     const val DEFAULT_SURRENDER_RANGE = 5000
 
