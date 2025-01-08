@@ -27,19 +27,18 @@ google-services = "4.4.2"
 gradle = "8.7.3"
 gradle-pitest = "1.15.0"
 junit4 = "4.13.2"
-junit5 = "5.11.4"
 koin = "4.0.1"
 koin-annotations = "1.4.0"
 konnection = "1.4.3"
 konsist = "0.17.3"
 korlibs = "6.0.0-alpha2"
 kotest = "5.9.1"
+kotest-arbs = "2.1.2"
 kotest-koin = "1.3.0"
 kotest-pitest = "1.2.0"
 kotlin = "2.1.0"
 kotlin-coroutines = "1.10.1"
 kotlin-datetime = "0.6.1"
-kotlin-faker = "1.16.0"
 kotlin-io = "0.6.0"
 kotlin-json = "1.8.0"
 kotlinpoet = "2.0.0"
@@ -132,12 +131,6 @@ test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-ru
 barista = { module = "com.adevinta.android:barista", version.ref = "barista" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 
-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
-junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit5" }
-
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
-junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit5" }
-
 kotest-assertions-api = { module = "io.kotest:kotest-assertions-api", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
@@ -148,9 +141,9 @@ kotest-framework-api = { module = "io.kotest:kotest-framework-api", version.ref 
 kotest-framework-datatest-jvm = { module = "io.kotest:kotest-framework-datatest-jvm", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-property-arbs-jvm = { module = "io.kotest.extensions:kotest-property-arbs-jvm", version.ref = "kotest-arbs" }
 kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 
-kotlin-faker = { module = "io.github.serpro69:kotlin-faker", version.ref = "kotlin-faker" }
 kotlin-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-json" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -207,15 +200,18 @@ app-debug = [
     "konnection-android-debug",
 ]
 app-test = [
-    "junit-jupiter-api",
-    "junit-jupiter-params",
+    "kotest-assertions-api",
+    "kotest-assertions-core",
+    "kotest-assertions-shared",
+    "kotest-framework-api",
+    "kotest-framework-datatest-jvm",
+    "kotest-property",
+    "kotest-property-arbs-jvm",
     "mockk",
-    "kotlin-faker",
     "kotlin-json",
 ]
 app-test-runtime = [
-    "junit-jupiter-engine",
-    "junit-vintage-engine",
+    "kotest-runner-junit5-jvm",
 ]
 app-androidTest = [
     "kotlinx-coroutines-test",

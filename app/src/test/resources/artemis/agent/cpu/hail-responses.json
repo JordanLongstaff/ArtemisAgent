@@ -3,106 +3,175 @@
     {
       "response": "MALFUNCTION",
       "messages": [
-        "Our shipboard computer has gone haywire!  We can't reboot it!  Please help!"
+        {
+          "long": "Our shipboard computer has gone haywire!  We can't reboot it!  Please help!",
+          "short": "Our shipboard computer..."
+        }
       ]
     },
     {
       "response": "HOSTAGE",
       "messages": [
-        "We are holding this ship hostage!  Bring us 900 energy, and no tricks, or we blow this ship into dust!!"
+        {
+          "long": "We are holding this ship hostage!  Bring us 900 energy, and no tricks, or we blow this ship into dust!!",
+          "short": "We are holding..."
+        }
       ]
     },
     {
       "response": "COMMANDEERED",
       "messages": [
-        "We have commandeered this ship!  Make no attempt to stop us.  If we see you approach, we will blow this ship into dust!!"
+        {
+          "long": "We have commandeered this ship!  Make no attempt to stop us.  If we see you approach, we will blow this ship into dust!!",
+          "short": "We have commandeered..."
+        }
       ]
     },
     {
       "response": "FLYING_BLIND",
       "messages": [
-        "Our sensors are all down!  We're flying blind.  Please guide us to a station for repairs!"
+        {
+          "long": "Our sensors are all down!  We're flying blind.  Please guide us to a station for repairs!",
+          "short": "Our sensors are..."
+        }
       ]
     },
     {
       "response": "AMBASSADOR",
       "messages": [
-        "We're dead in space, our docking ports are destroyed, and our ambassador needs to be rescued.  Can you collect him in your shuttle?"
+        {
+          "long": "We're dead in space, our docking ports are destroyed, and our ambassador needs to be rescued.  Can you collect him in your shuttle?",
+          "short": "We're dead...our ambassador..."
+        }
       ]
     },
     {
       "response": "AMBASSADOR",
       "status": "PIRATE_BOSS",
       "messages": [
-        "We're dead in space, our docking ports are destroyed, and the big boss needs to be elsewhere.  Can you collect him in your shuttle?"
+        {
+          "long": "We're dead in space, our docking ports are destroyed, and the big boss needs to be elsewhere.  Can you collect him in your shuttle?",
+          "short": "We're dead...the big boss..."
+        }
       ]
     },
     {
       "response": "CONTRABAND",
       "messages": [
-        "We are carrying needed supplies to the station.  Please clear our way."
+        {
+          "long": "We are carrying needed supplies to the station.  Please clear our way.",
+          "short": "We are...our way."
+        }
       ]
     },
     {
       "response": "PIRATE_SUPPLIES",
       "messages": [
-        "Hail, Bold Privateer!  We're carrying... questionable... cargo to the station.  If you can keep friendly ships from coming closer than 10,000 meters, we'll reward you when we reach dock."
+        {
+          "long": "Hail, Bold Privateer!  We're carrying... questionable... cargo to the station.  If you can keep friendly ships from coming closer than 10,000 meters, we'll reward you when we reach dock.",
+          "short": "Hail, Bold Privateer..."
+        }
       ]
     },
     {
       "response": "SECURE_DATA",
       "messages": [
-        "We are carrying secret, secure data for your government."
+        {
+          "long": "We are carrying secret, secure data for your government.",
+          "short": "We are...our government."
+        }
       ]
     },
     {
       "response": "PIRATE_DATA",
       "messages": [
-        "Pirate scum!  We're carrying critical data that cannot get into the hands of filthy pirates like you!  Come within 10,000 meters and we'll destroy ourselves!  You are warned."
+        {
+          "long": "Pirate scum!  We're carrying critical data that cannot get into the hands of filthy pirates like you!  Come within 10,000 meters and we'll destroy ourselves!  You are warned.",
+          "short": "Pirate scum..."
+        }
       ]
     },
     {
       "response": "NEEDS_DAMCON",
       "status": "NEED_DAMCON",
       "messages": [
-        "Our engines are damaged and we can't move!  Could you spare a DamCon team to help us?"
+        {
+          "long": "Our engines are damaged and we can't move!  Could you spare a DamCon team to help us?",
+          "short": "Our engines..."
+        }
       ]
     },
     {
       "response": "NEEDS_ENERGY",
       "status": "NEED_ENERGY",
       "messages": [
-        "We're out of energy!  Could you lend us 100 units to get moving?"
+        {
+          "long": "We're out of energy!  Could you lend us 100 units to get moving?",
+          "short": "We're out of..."
+        }
       ]
     },
     {
       "response": "MINE_TRAP",
       "messages": [
-        "We're just moving cargo between the stations in this sector.  That's all.  How are you?"
+        {
+          "long": "We're just moving cargo between the stations in this sector.  That's all.  How are you?",
+          "short": "We're just..."
+        }
       ]
     },
     {
       "response": "FIGHTER_TRAP",
       "messages": [
-        "We're broken down!  Out of energy!  Yeah!  Could you come help us?"
+        {
+          "long": "We're broken down!  Out of energy!  Yeah!  Could you come help us?",
+          "short": "We're broken down..."
+        }
       ]
     },
     {
       "response": "OTHER",
       "status": "NORMAL",
       "messages": [
-        "We're studying the amazing local phenomenon in this sector.",
-        "We're travelling this sector, showing our guests the most beautiful and amazing sights.",
-        "We're moving cargo between the stations in this sector.",
-        "Patrolling this sector.  Standing by to assist.",
-        "We're leaving this sector as fast as we can.  Thanks again for your help!",
-        "We are currently engaging A23.",
-        "We are currently moving to DS1."
+        {
+          "long": "We're studying the amazing local phenomenon in this sector.",
+          "short": "We're studying..."
+        },
+        {
+          "long": "We're travelling this sector, showing our guests the most beautiful and amazing sights.",
+          "short": "We're travelling..."
+        },
+        {
+          "long": "We're moving cargo between the stations in this sector.",
+          "short": "We're moving cargo..."
+        },
+        {
+          "long": "Patrolling this sector.  Standing by to assist.",
+          "short": "Patrolling this sector..."
+        },
+        {
+          "long": "We're leaving this sector as fast as we can.  Thanks again for your help!",
+          "short": "We're leaving this..."
+        },
+        {
+          "long": "We are currently engaging A23.",
+          "short": "We are currently engaging..."
+        },
+        {
+          "long": "We are currently moving to DS1.",
+          "short": "We are currently moving to..."
+        }
       ]
     }
   ],
   "ignored": [
-    "We appreciate your help.  We'll get our engines back online soon.",
-    "We're heading to the station to fully recover, and drop off something for your help."
+    {
+      "long": "We appreciate your help.  We'll get our engines back online soon.",
+      "short": "We appreciate..."
+    },
+    {
+      "long": "We're heading to the station to fully recover, and drop off something for your help.",
+      "short": "We're heading to..."
+    }
   ]
 }

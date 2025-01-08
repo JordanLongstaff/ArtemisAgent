@@ -43,6 +43,7 @@ android {
     kotlinOptions { jvmTarget = javaVersion.toString() }
 
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    testOptions.unitTests.all { it.useJUnitPlatform() }
 
     buildTypes {
         configureEach {

@@ -1,13 +1,24 @@
 package artemis.agent.game.biomechs
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvFileSource
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.equals.shouldBeEqual
 
-class BiomechRageStatusTest {
-    @ParameterizedTest
-    @CsvFileSource(resources = ["/artemis/agent/game/biomechs/rage-status.csv"])
-    fun statusFromRageTest(index: Int, expectedStatus: BiomechRageStatus) {
-        Assertions.assertEquals(expectedStatus, BiomechRageStatus[index])
-    }
-}
+class BiomechRageStatusTest :
+    DescribeSpec({
+        val expectedStatuses =
+            arrayOf(
+                BiomechRageStatus.NEUTRAL,
+                BiomechRageStatus.HOSTILE,
+                BiomechRageStatus.HOSTILE,
+                BiomechRageStatus.HOSTILE,
+                BiomechRageStatus.HOSTILE,
+            )
+
+        describe("BiomechRageStatus") {
+            describe("Status from rage") {
+                expectedStatuses.forEachIndexed { index, status ->
+                    it("$index = $status") { BiomechRageStatus[index] shouldBeEqual status }
+                }
+            }
+        }
+    })

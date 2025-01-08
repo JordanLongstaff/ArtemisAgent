@@ -2,50 +2,49 @@ package artemis.agent.game.misc
 
 import com.walkertribe.ian.enums.AudioCommand
 import com.walkertribe.ian.protocol.core.comm.AudioCommandPacket
-import io.github.serpro69.kfaker.Faker
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.string
+import io.kotest.property.checkAll
 
-class AudioEntryTest {
-    @Test
-    fun propertiesTest() {
-        testEntry { entry, audioId, title ->
-            Assertions.assertEquals(audioId, entry.audioId)
-            Assertions.assertEquals(title, entry.title)
-            Assertions.assertEquals(audioId, entry.hashCode())
-        }
-    }
-
-    @Test
-    fun playPacketTest() {
-        testPacketType(AudioCommand.PLAY) { playPacket }
-    }
-
-    @Test
-    fun dismissPacketTest() {
-        testPacketType(AudioCommand.DISMISS) { dismissPacket }
-    }
-
-    private companion object {
-        val faker by lazy { Faker() }
-
-        fun testEntry(test: (AudioEntry, Int, String) -> Unit) {
-            val audioId = faker.random.nextInt()
-            val title = faker.random.randomString()
-            val entry = AudioEntry(audioId, title)
-            test(entry, audioId, title)
-        }
-
-        fun testPacketType(
-            expectedCommand: AudioCommand,
-            getPacket: AudioEntry.() -> AudioCommandPacket,
-        ) {
-            testEntry { entry, audioId, _ ->
-                val packet = entry.getPacket()
-
-                Assertions.assertEquals(audioId, packet.audioId)
-                Assertions.assertEquals(expectedCommand, packet.command)
+class AudioEntryTest :
+    DescribeSpec({
+        suspend fun testAudioEntry(test: (AudioEntry, Int, String) -> Unit) {
+            checkAll(Arb.int(), Arb.string()) { audioId, title ->
+                test(AudioEntry(audioId, title), audioId, title)
             }
         }
-    }
-}
+
+        suspend fun testPacketType(
+            command: AudioCommand,
+            getPacket: AudioEntry.() -> AudioCommandPacket,
+        ) {
+            testAudioEntry { entry, audioId, _ ->
+                val packet = entry.getPacket()
+                packet.audioId shouldBeEqual audioId
+                packet.command shouldBeEqual command
+            }
+        }
+
+        describe("AudioEntry") {
+            describe("Properties") {
+                it("Audio ID") {
+                    testAudioEntry { entry, audioId, _ -> entry.audioId shouldBeEqual audioId }
+                }
+
+                it("Title") {
+                    testAudioEntry { entry, _, title -> entry.title shouldBeEqual title }
+                }
+
+                it("Hash code") {
+                    testAudioEntry { entry, audioId, _ -> entry.hashCode() shouldBeEqual audioId }
+                }
+            }
+
+            it("Play packet") { testPacketType(AudioCommand.PLAY) { playPacket } }
+
+            it("Dismiss packet") { testPacketType(AudioCommand.DISMISS) { dismissPacket } }
+        }
+    })

@@ -7,84 +7,30 @@ import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.vesseldata.Faction
 import com.walkertribe.ian.vesseldata.Vessel
 import com.walkertribe.ian.world.ArtemisNpc
-import io.mockk.clearMocks
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.int
+import io.kotest.property.checkAll
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
+import io.mockk.unmockkStatic
 
-class EnemyEntryTest {
-    @Test
-    fun cannotTauntTest() {
-        testEnemyEntry {
-            it.tauntStatuses.fill(TauntStatus.INEFFECTIVE)
-            Assertions.assertEquals(CANNOT_TAUNT, it.getTauntCountText(mockContext))
-        }
-    }
-
-    @Test
-    fun tauntCountLowTest() {
-        testEnemyEntry {
-            TAUNT_COUNT_STRINGS.forEachIndexed { count, string ->
-                it.tauntCount = count
-                Assertions.assertEquals(string, it.getTauntCountText(mockContext))
-            }
-        }
-    }
-
-    @Test
-    fun tauntCountHighTest() {
-        testEnemyEntry {
-            for (count in 3..10) {
-                it.tauntCount = count
-                Assertions.assertEquals("Taunted $count times", it.getTauntCountText(mockContext))
-            }
-        }
-    }
-
-    @Test
-    fun normalColorTest() {
-        testEnemyEntry {
-            Assertions.assertEquals(R.color.enemyRed, it.getBackgroundColor(mockContext))
-        }
-    }
-
-    @Test
-    fun duplicitousColorTest() {
-        testEnemyEntry {
-            it.captainStatus = EnemyCaptainStatus.DUPLICITOUS
-            Assertions.assertEquals(R.color.duplicitousOrange, it.getBackgroundColor(mockContext))
-        }
-    }
-
-    @Test
-    fun surrenderedColorTest() {
-        testEnemyEntry {
-            it.enemy.isSurrendered.value = BoolState.True
-            Assertions.assertEquals(R.color.surrenderedYellow, it.getBackgroundColor(mockContext))
-        }
-    }
-
-    private companion object {
-        const val CANNOT_TAUNT = "Cannot taunt"
-        const val TAUNTS_ZERO = "Has not been taunted"
-        const val TAUNTS_ONE = "Taunted once"
-        const val TAUNTS_TWO = "Taunted twice"
-
-        val TAUNT_COUNT_STRINGS = arrayOf(TAUNTS_ZERO, TAUNTS_ONE, TAUNTS_TWO)
-
-        val contextStrings =
-            mapOf(
-                R.string.cannot_taunt to CANNOT_TAUNT,
-                R.string.taunts_zero to TAUNTS_ZERO,
-                R.string.taunts_one to TAUNTS_ONE,
-                R.string.taunts_two to TAUNTS_TWO,
+class EnemyEntryTest :
+    DescribeSpec({
+        val cannotTaunt = "Cannot taunt"
+        val tauntCountStrings =
+            arrayOf(
+                R.string.taunts_zero to "Has not been taunted",
+                R.string.taunts_one to "Taunted once",
+                R.string.taunts_two to "Taunted twice",
             )
 
-        val mockContext by lazy {
+        val contextStrings = tauntCountStrings.toMap() + R.string.cannot_taunt.to(cannotTaunt)
+
+        val mockContext =
             mockk<Context> {
                 contextStrings.forEach { (key, string) -> every { getString(key) } returns string }
                 every { getString(R.string.taunts_many, *varargAny { nArgs == 1 }) } answers
@@ -92,27 +38,58 @@ class EnemyEntryTest {
                         "Taunted ${lastArg<Array<Any?>>().joinToString()} times"
                     }
             }
+
+        mockkStatic(ContextCompat::getColor)
+        every { ContextCompat.getColor(any(), any()) } answers { lastArg() }
+
+        afterSpec {
+            clearAllMocks()
+            unmockkStatic(ContextCompat::getColor)
         }
 
-        @JvmStatic
-        @BeforeAll
-        fun mockkColorCompat() {
-            mockkStatic(ContextCompat::getColor)
-            every { ContextCompat.getColor(any(), any()) } answers { lastArg() }
+        fun create(): EnemyEntry = EnemyEntry(ArtemisNpc(0, 0L), mockk<Vessel>(), mockk<Faction>())
+
+        describe("EnemyEntry") {
+            describe("Taunt count text") {
+                it(cannotTaunt) {
+                    val enemy = create()
+                    enemy.tauntStatuses.fill(TauntStatus.INEFFECTIVE)
+                    enemy.getTauntCountText(mockContext) shouldBeEqual cannotTaunt
+                }
+
+                tauntCountStrings.forEachIndexed { count, (_, string) ->
+                    it(string) {
+                        val enemy = create()
+                        enemy.tauntCount = count
+                        enemy.getTauntCountText(mockContext) shouldBeEqual string
+                    }
+                }
+
+                it("Taunted <count> times") {
+                    val enemy = create()
+                    Arb.int(min = 3).checkAll { count ->
+                        enemy.tauntCount = count
+                        enemy.getTauntCountText(mockContext) shouldBeEqual "Taunted $count times"
+                    }
+                }
+            }
+
+            describe("Color") {
+                val enemy = create()
+
+                it("Normal: red") {
+                    enemy.getBackgroundColor(mockContext) shouldBeEqual R.color.enemyRed
+                }
+
+                it("Surrendered: yellow") {
+                    enemy.enemy.isSurrendered.value = BoolState.True
+                    enemy.getBackgroundColor(mockContext) shouldBeEqual R.color.surrenderedYellow
+                }
+
+                it("Duplicitous: orange") {
+                    enemy.captainStatus = EnemyCaptainStatus.DUPLICITOUS
+                    enemy.getBackgroundColor(mockContext) shouldBeEqual R.color.duplicitousOrange
+                }
+            }
         }
-
-        fun testEnemyEntry(test: (EnemyEntry) -> Unit) {
-            val enemyEntry = EnemyEntry(ArtemisNpc(0, 0L), mockk<Vessel>(), mockk<Faction>())
-
-            test(enemyEntry)
-
-            clearMocks(enemyEntry.vessel, enemyEntry.faction)
-        }
-
-        @JvmStatic
-        @AfterAll
-        fun cleanup() {
-            clearMocks(mockContext)
-        }
-    }
-}
+    })

@@ -1,51 +1,68 @@
 package artemis.agent.game.missions
 
 import artemis.agent.game.ObjectEntry
-import io.github.serpro69.kfaker.Faker
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.datatest.withData
+import io.kotest.inspectors.shouldForAll
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.bind
+import io.kotest.property.arbitrary.enum
+import io.kotest.property.arbitrary.long
+import io.kotest.property.arbitrary.next
+import io.kotest.property.arbs.cars
+import io.kotest.property.checkAll
 
-class SideMissionEntryTest {
-    @Test
-    fun startedTest() {
-        val entry = create()
-        Assertions.assertFalse(entry.isStarted)
+class SideMissionEntryTest :
+    DescribeSpec({
+        val arbAlly = Arb.bind<ObjectEntry.Ally>()
+        val arbReward = Arb.enum<RewardType>()
 
-        entry.associatedShipName = faker.name.nameWithMiddle()
-        Assertions.assertTrue(entry.isStarted)
-    }
-
-    @Test
-    fun completedTest() {
-        val entry = create()
-        Assertions.assertFalse(entry.isCompleted)
-
-        entry.completionTimestamp = faker.random.nextLong(Long.MAX_VALUE)
-        Assertions.assertTrue(entry.isCompleted)
-    }
-
-    @ParameterizedTest
-    @EnumSource(RewardType::class)
-    fun startingRewardTest(firstPayout: RewardType) {
-        val entry = create(firstPayout)
-
-        val startingRewards = IntArray(RewardType.entries.size)
-        startingRewards[firstPayout.ordinal] = 1
-
-        Assertions.assertArrayEquals(startingRewards, entry.rewards)
-    }
-
-    private companion object {
-        val faker by lazy { Faker() }
-
-        fun create(payout: RewardType = faker.random.nextEnum()): SideMissionEntry =
+        fun create(payout: RewardType = arbReward.next()): SideMissionEntry =
             SideMissionEntry(
-                source = faker.randomProvider.randomClassInstance<ObjectEntry.Ally>(),
-                destination = faker.randomProvider.randomClassInstance<ObjectEntry.Ally>(),
+                source = arbAlly.next(),
+                destination = arbAlly.next(),
                 payout = payout,
                 timestamp = System.currentTimeMillis(),
             )
-    }
-}
+
+        describe("SideMissionEntry") {
+            describe("State") {
+                val entry = create()
+
+                it("Not started") { entry.isStarted.shouldBeFalse() }
+
+                it("Starts when associated with a ship name") {
+                    Arb.cars().checkAll {
+                        entry.associatedShipName = it.value
+                        entry.isStarted.shouldBeTrue()
+                    }
+                }
+
+                it("Not completed") { entry.isCompleted.shouldBeFalse() }
+
+                it("Completes when timestamp is set") {
+                    Arb.long(max = Long.MAX_VALUE - 1).checkAll {
+                        entry.completionTimestamp = it
+                        entry.isCompleted.shouldBeTrue()
+                    }
+                }
+            }
+
+            describe("Initial payout") {
+                withData(RewardType.entries) {
+                    val entry = create(it)
+
+                    val expectedPayouts = IntArray(RewardType.entries.size)
+                    entry.rewards.size shouldBeEqual expectedPayouts.size
+
+                    expectedPayouts[it.ordinal] = 1
+                    entry.rewards.zip(expectedPayouts).shouldForAll { (actual, expected) ->
+                        actual shouldBeEqual expected
+                    }
+                }
+            }
+        }
+    })
