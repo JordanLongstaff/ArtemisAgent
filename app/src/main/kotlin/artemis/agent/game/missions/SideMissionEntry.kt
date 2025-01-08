@@ -35,7 +35,7 @@ class SideMissionEntry(
             }
         }
 
-    override fun hashCode(): Int = arrayOf(source, destination).contentHashCode()
+    override fun hashCode(): Int = timestamp.hashCode()
 
     override fun equals(other: Any?): Boolean =
         other is SideMissionEntry && other.timestamp == timestamp
