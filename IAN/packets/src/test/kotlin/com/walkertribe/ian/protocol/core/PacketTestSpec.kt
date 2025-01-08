@@ -28,7 +28,8 @@ import io.mockk.unmockkAll
 import kotlinx.io.Source
 
 @Ignored
-sealed class PacketTestSpec<T : Packet>(
+sealed class PacketTestSpec<T : Packet>
+private constructor(
     val specName: String,
     open val fixtures: List<PacketTestFixture<T>>,
     autoIncludeTests: Boolean = true,

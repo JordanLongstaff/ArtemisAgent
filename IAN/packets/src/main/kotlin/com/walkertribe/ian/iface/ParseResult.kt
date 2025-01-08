@@ -9,7 +9,7 @@ import com.walkertribe.ian.protocol.core.world.ObjectUpdatePacket
  *
  * @author rjwut
  */
-sealed class ParseResult {
+sealed class ParseResult private constructor() {
     internal class Processing : ParseResult()
 
     data object Skip : ParseResult() {

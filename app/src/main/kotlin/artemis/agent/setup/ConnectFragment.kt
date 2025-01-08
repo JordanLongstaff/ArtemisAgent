@@ -29,7 +29,8 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
     private val binding: ConnectFragmentBinding by fragmentViewBinding()
 
-    sealed class ConnectionStatus(
+    sealed class ConnectionStatus
+    private constructor(
         @StringRes val stringId: Int,
         @ColorRes val color: Int,
         val spinnerVisibility: Int = View.GONE,

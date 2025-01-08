@@ -7,7 +7,7 @@ import kotlinx.datetime.Clock
  *
  * @author rjwut
  */
-sealed class ConnectionEvent : ListenerArgument {
+sealed class ConnectionEvent private constructor() : ListenerArgument {
     /**
      * An event that gets thrown when IAN successfully connects to a remote machine.
      *

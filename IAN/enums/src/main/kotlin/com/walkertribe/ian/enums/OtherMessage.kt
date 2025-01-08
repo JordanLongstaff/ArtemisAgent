@@ -5,7 +5,7 @@ package com.walkertribe.ian.enums
  *
  * @author rjwut
  */
-sealed class OtherMessage(override val id: Int) : CommsMessage {
+sealed class OtherMessage private constructor(override val id: Int) : CommsMessage {
     data object Hail : OtherMessage(HAIL)
 
     data object TurnToHeading0 : OtherMessage(TURN_0)
