@@ -890,13 +890,13 @@ internal class RoutingGraph(
         private fun generateRouteKey(
             source: ArtemisShielded<*>,
             destination: ArtemisShielded<*>,
-        ): Int = source.id or (destination.id shl DEST_SHIFT)
+        ): Int = source.id or (destination.id shl Short.SIZE_BITS)
 
         /**
          * Inverts a route key to generate the key that would be generated from the inversion of the
          * path it represents.
          */
-        private fun swapKey(key: Int) = (key shl DEST_SHIFT) or (key ushr DEST_SHIFT)
+        private fun swapKey(key: Int) = (key shl Short.SIZE_BITS) or (key ushr Short.SIZE_BITS)
 
         private fun AgentViewModel.findNeighbors():
             MutableMap<ArtemisObject<*>, MutableSet<ArtemisObject<*>>> {
@@ -945,7 +945,6 @@ internal class RoutingGraph(
 
         // Constants
         private const val TWO_PI = PI.toFloat() * 2
-        private const val DEST_SHIFT = 16
         private const val TOTAL_ANTS = 12
         private const val PHI = 0.1
         private const val MINUS_PHI = 0.9
