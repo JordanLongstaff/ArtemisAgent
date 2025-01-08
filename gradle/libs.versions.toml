@@ -40,7 +40,7 @@ kotlin = "2.1.0"
 kotlin-coroutines = "1.10.1"
 kotlin-datetime = "0.6.1"
 kotlin-io = "0.6.0"
-kotlin-json = "1.8.0"
+kotlin-serialization = "1.8.0"
 kotlinpoet = "2.0.0"
 kover = "0.9.0"
 ksp = "2.1.0-1.0.29"
@@ -144,7 +144,8 @@ kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest"
 kotest-property-arbs-jvm = { module = "io.kotest.extensions:kotest-property-arbs-jvm", version.ref = "kotest-arbs" }
 kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 
-kotlin-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-json" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlin-serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
@@ -200,7 +201,6 @@ app-debug = [
     "konnection-android-debug",
 ]
 app-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-framework-api",
@@ -208,7 +208,9 @@ app-test = [
     "kotest-property",
     "kotest-property-arbs-jvm",
     "mockk",
-    "kotlin-json",
+    "mockk-dsl",
+    "kotlinx-serialization-core",
+    "kotlinx-serialization-json",
 ]
 app-test-runtime = [
     "kotest-runner-junit5-jvm",
