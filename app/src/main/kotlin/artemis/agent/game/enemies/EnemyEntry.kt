@@ -43,6 +43,6 @@ data class EnemyEntry(val enemy: ArtemisNpc, val vessel: Vessel, val faction: Fa
 
     private companion object {
         val TAUNT_COUNT_STRINGS =
-            arrayOf(R.string.taunts_zero, R.string.taunts_one, R.string.taunts_two)
+            intArrayOf(R.string.taunts_zero, R.string.taunts_one, R.string.taunts_two)
     }
 }
