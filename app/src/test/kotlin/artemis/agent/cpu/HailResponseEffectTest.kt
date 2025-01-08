@@ -3,8 +3,8 @@ package artemis.agent.cpu
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class HailResponseEffectTest {
     @Test
@@ -13,7 +13,7 @@ class HailResponseEffectTest {
             allMessages.forEach { message ->
                 val expected = testDataMap[response]?.any { it.messages.contains(message) } != false
                 listOf(message, message + HAS_ENERGY).forEach { string ->
-                    Assert.assertEquals(expected, response.appliesTo(string))
+                    Assertions.assertEquals(expected, response.appliesTo(string))
                 }
             }
         }
@@ -24,7 +24,9 @@ class HailResponseEffectTest {
         testData.ignored.forEach { message ->
             val strings = listOf(message, message + HAS_ENERGY)
             HailResponseEffect.entries.forEach { response ->
-                strings.forEach { string -> Assert.assertFalse(string, response.appliesTo(string)) }
+                strings.forEach { string ->
+                    Assertions.assertFalse(response.appliesTo(string), string)
+                }
             }
         }
     }
@@ -33,7 +35,7 @@ class HailResponseEffectTest {
     fun allyStatusTest() {
         testData.data.forEach { (response, status, messages) ->
             messages.forEach { message ->
-                Assert.assertEquals(status, response.getAllyStatus(message))
+                Assertions.assertEquals(status, response.getAllyStatus(message))
             }
         }
     }

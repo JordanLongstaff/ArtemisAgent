@@ -89,7 +89,10 @@ dependencies {
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
+
     testImplementation(libs.bundles.app.test)
+    testRuntimeOnly(libs.bundles.app.test.runtime)
+
     androidTestImplementation(libs.bundles.app.androidTest)
     androidTestUtil(libs.test.orchestrator)
 

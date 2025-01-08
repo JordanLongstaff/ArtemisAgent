@@ -8,9 +8,9 @@ import io.mockk.mockk
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.junit.AfterClass
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class RouteTaskIncentiveTest {
     @Test
@@ -23,8 +23,8 @@ class RouteTaskIncentiveTest {
             every { allyEntry.hasEnergy } returns data.energy
 
             val matchingIncentives = allIncentives.filter { it.matches(allyEntry) }
-            Assert.assertEquals(1, matchingIncentives.size)
-            Assert.assertEquals(data.incentive, matchingIncentives.first())
+            Assertions.assertEquals(1, matchingIncentives.size)
+            Assertions.assertEquals(data.incentive, matchingIncentives.first())
         }
     }
 
@@ -36,7 +36,7 @@ class RouteTaskIncentiveTest {
             every { allyEntry.status } returns data.status
             every { allyEntry.hasEnergy } returns data.energy
 
-            Assert.assertEquals(data.text, textMap[data.incentive.getTextFor(allyEntry)])
+            Assertions.assertEquals(data.text, textMap[data.incentive.getTextFor(allyEntry)])
         }
     }
 
@@ -64,7 +64,7 @@ class RouteTaskIncentiveTest {
         }
 
         @JvmStatic
-        @AfterClass
+        @AfterAll
         fun cleanup() {
             clearMocks(allyEntry)
         }

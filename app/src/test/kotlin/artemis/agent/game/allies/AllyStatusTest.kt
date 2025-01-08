@@ -3,13 +3,13 @@ package artemis.agent.game.allies
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class AllyStatusTest {
     @Test
     fun sortIndexTest() {
-        testCases.forEach { Assert.assertEquals(it.expectedSortIndex, it.allyStatus.sortIndex) }
+        testCases.forEach { Assertions.assertEquals(it.expectedSortIndex, it.allyStatus.sortIndex) }
     }
 
     @Test
@@ -32,7 +32,7 @@ class AllyStatusTest {
 
         fun testPirateSensitiveEquivalents(isPirate: Boolean) {
             testCases.forEach {
-                Assert.assertEquals(
+                Assertions.assertEquals(
                     it.getStatusForPirate(isPirate),
                     it.allyStatus.getPirateSensitiveEquivalent(isPirate),
                 )

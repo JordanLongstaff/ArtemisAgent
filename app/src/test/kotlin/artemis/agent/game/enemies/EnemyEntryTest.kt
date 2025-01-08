@@ -11,17 +11,17 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import org.junit.AfterClass
-import org.junit.Assert
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
 class EnemyEntryTest {
     @Test
     fun cannotTauntTest() {
         testEnemyEntry {
             it.tauntStatuses.fill(TauntStatus.INEFFECTIVE)
-            Assert.assertEquals(CANNOT_TAUNT, it.getTauntCountText(mockContext))
+            Assertions.assertEquals(CANNOT_TAUNT, it.getTauntCountText(mockContext))
         }
     }
 
@@ -30,7 +30,7 @@ class EnemyEntryTest {
         testEnemyEntry {
             TAUNT_COUNT_STRINGS.forEachIndexed { count, string ->
                 it.tauntCount = count
-                Assert.assertEquals(string, it.getTauntCountText(mockContext))
+                Assertions.assertEquals(string, it.getTauntCountText(mockContext))
             }
         }
     }
@@ -40,21 +40,23 @@ class EnemyEntryTest {
         testEnemyEntry {
             for (count in 3..10) {
                 it.tauntCount = count
-                Assert.assertEquals("Taunted $count times", it.getTauntCountText(mockContext))
+                Assertions.assertEquals("Taunted $count times", it.getTauntCountText(mockContext))
             }
         }
     }
 
     @Test
     fun normalColorTest() {
-        testEnemyEntry { Assert.assertEquals(R.color.enemyRed, it.getBackgroundColor(mockContext)) }
+        testEnemyEntry {
+            Assertions.assertEquals(R.color.enemyRed, it.getBackgroundColor(mockContext))
+        }
     }
 
     @Test
     fun duplicitousColorTest() {
         testEnemyEntry {
             it.captainStatus = EnemyCaptainStatus.DUPLICITOUS
-            Assert.assertEquals(R.color.duplicitousOrange, it.getBackgroundColor(mockContext))
+            Assertions.assertEquals(R.color.duplicitousOrange, it.getBackgroundColor(mockContext))
         }
     }
 
@@ -62,7 +64,7 @@ class EnemyEntryTest {
     fun surrenderedColorTest() {
         testEnemyEntry {
             it.enemy.isSurrendered.value = BoolState.True
-            Assert.assertEquals(R.color.surrenderedYellow, it.getBackgroundColor(mockContext))
+            Assertions.assertEquals(R.color.surrenderedYellow, it.getBackgroundColor(mockContext))
         }
     }
 
@@ -93,7 +95,7 @@ class EnemyEntryTest {
         }
 
         @JvmStatic
-        @BeforeClass
+        @BeforeAll
         fun mockkColorCompat() {
             mockkStatic(ContextCompat::getColor)
             every { ContextCompat.getColor(any(), any()) } answers { lastArg() }
@@ -108,7 +110,7 @@ class EnemyEntryTest {
         }
 
         @JvmStatic
-        @AfterClass
+        @AfterAll
         fun cleanup() {
             clearMocks(mockContext)
         }
