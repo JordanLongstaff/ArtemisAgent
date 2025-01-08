@@ -1,0 +1,108 @@
+{
+  "data": [
+    {
+      "response": "MALFUNCTION",
+      "messages": [
+        "Our shipboard computer has gone haywire!  We can't reboot it!  Please help!"
+      ]
+    },
+    {
+      "response": "HOSTAGE",
+      "messages": [
+        "We are holding this ship hostage!  Bring us 900 energy, and no tricks, or we blow this ship into dust!!"
+      ]
+    },
+    {
+      "response": "COMMANDEERED",
+      "messages": [
+        "We have commandeered this ship!  Make no attempt to stop us.  If we see you approach, we will blow this ship into dust!!"
+      ]
+    },
+    {
+      "response": "FLYING_BLIND",
+      "messages": [
+        "Our sensors are all down!  We're flying blind.  Please guide us to a station for repairs!"
+      ]
+    },
+    {
+      "response": "AMBASSADOR",
+      "messages": [
+        "We're dead in space, our docking ports are destroyed, and our ambassador needs to be rescued.  Can you collect him in your shuttle?"
+      ]
+    },
+    {
+      "response": "AMBASSADOR",
+      "status": "PIRATE_BOSS",
+      "messages": [
+        "We're dead in space, our docking ports are destroyed, and the big boss needs to be elsewhere.  Can you collect him in your shuttle?"
+      ]
+    },
+    {
+      "response": "CONTRABAND",
+      "messages": [
+        "We are carrying needed supplies to the station.  Please clear our way."
+      ]
+    },
+    {
+      "response": "PIRATE_SUPPLIES",
+      "messages": [
+        "Hail, Bold Privateer!  We're carrying... questionable... cargo to the station.  If you can keep friendly ships from coming closer than 10,000 meters, we'll reward you when we reach dock."
+      ]
+    },
+    {
+      "response": "SECURE_DATA",
+      "messages": [
+        "We are carrying secret, secure data for your government."
+      ]
+    },
+    {
+      "response": "PIRATE_DATA",
+      "messages": [
+        "Pirate scum!  We're carrying critical data that cannot get into the hands of filthy pirates like you!  Come within 10,000 meters and we'll destroy ourselves!  You are warned."
+      ]
+    },
+    {
+      "response": "NEEDS_DAMCON",
+      "status": "NEED_DAMCON",
+      "messages": [
+        "Our engines are damaged and we can't move!  Could you spare a DamCon team to help us?"
+      ]
+    },
+    {
+      "response": "NEEDS_ENERGY",
+      "status": "NEED_ENERGY",
+      "messages": [
+        "We're out of energy!  Could you lend us 100 units to get moving?"
+      ]
+    },
+    {
+      "response": "MINE_TRAP",
+      "messages": [
+        "We're just moving cargo between the stations in this sector.  That's all.  How are you?"
+      ]
+    },
+    {
+      "response": "FIGHTER_TRAP",
+      "messages": [
+        "We're broken down!  Out of energy!  Yeah!  Could you come help us?"
+      ]
+    },
+    {
+      "response": "OTHER",
+      "status": "NORMAL",
+      "messages": [
+        "We're studying the amazing local phenomenon in this sector.",
+        "We're travelling this sector, showing our guests the most beautiful and amazing sights.",
+        "We're moving cargo between the stations in this sector.",
+        "Patrolling this sector.  Standing by to assist.",
+        "We're leaving this sector as fast as we can.  Thanks again for your help!",
+        "We are currently engaging A23.",
+        "We are currently moving to DS1."
+      ]
+    }
+  ],
+  "ignored": [
+    "We appreciate your help.  We'll get our engines back online soon.",
+    "We're heading to the station to fully recover, and drop off something for your help."
+  ]
+}

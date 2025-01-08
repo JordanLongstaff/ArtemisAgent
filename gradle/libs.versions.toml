@@ -38,7 +38,9 @@ kotest-pitest = "1.2.0"
 kotlin = "2.1.0"
 kotlin-coroutines = "1.10.1"
 kotlin-datetime = "0.6.1"
+kotlin-faker = "1.16.0"
 kotlin-io = "0.6.0"
+kotlin-json = "1.8.0"
 kotlinpoet = "2.0.0"
 kover = "0.9.0"
 ksp = "2.1.0-1.0.29"
@@ -141,6 +143,9 @@ kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", versio
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 
+kotlin-faker = { module = "io.github.serpro69:kotlin-faker", version.ref = "kotlin-faker" }
+kotlin-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-json" }
+
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
 
@@ -193,6 +198,12 @@ app = [
 app-debug = [
     "leakcanary",
     "konnection-android-debug",
+]
+app-test = [
+    "junit",
+    "mockk",
+    "kotlin-faker",
+    "kotlin-json",
 ]
 app-androidTest = [
     "kotlinx-coroutines-test",
@@ -403,6 +414,7 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
