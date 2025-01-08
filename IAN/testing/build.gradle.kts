@@ -29,4 +29,4 @@ detekt {
     config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
 }
 
-dependencies { implementation(libs.kotest.framework.engine) }
+dependencies { api(libs.kotest.framework.api) }
