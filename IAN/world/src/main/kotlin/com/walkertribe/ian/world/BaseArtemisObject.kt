@@ -5,21 +5,18 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
-import kotlin.reflect.KClass
-import kotlin.reflect.full.primaryConstructor
 
-/**
- * Base implementation for all ArtemisObjects.
- */
+/** Base implementation for all ArtemisObjects. */
 abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     final override val id: Int,
-    final override val timestamp: Long
+    final override val timestamp: Long,
 ) : ArtemisObject<T> {
     override val x = Property.FloatProperty(timestamp)
     override val y = Property.FloatProperty(timestamp)
     override val z = Property.FloatProperty(timestamp)
 
-    override val hasPosition: Boolean get() = x.hasValue && z.hasValue
+    override val hasPosition: Boolean
+        get() = x.hasValue && z.hasValue
 
     override fun distanceTo(other: ArtemisObject<*>): Float {
         check(hasPosition && other.hasPosition) {
@@ -80,7 +77,7 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
         }
         val dX = other.x.value - x.value
         val dZ = other.z.value - z.value
-        return atan2(-dX, -dZ) * RAD_TO_DEG + HALF_CIRCLE
+        return (atan2(dX, dZ) * RAD_TO_DEG + HALF_CIRCLE) % FULL_CIRCLE
     }
 
     override fun updates(other: T) {
@@ -93,23 +90,23 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
         module.onArtemisObject(this)
     }
 
-    /**
-     * Returns true if this object contains any data.
-     */
-    internal open val hasData: Boolean get() = x.hasValue || y.hasValue || z.hasValue
+    /** Returns true if this object contains any data. */
+    internal open val hasData: Boolean
+        get() = x.hasValue || y.hasValue || z.hasValue
 
     override fun equals(other: Any?): Boolean =
         this === other || (other is ArtemisObject<*> && id == other.id && type == other.type)
 
     override fun hashCode(): Int = id
 
-    open class Dsl<T : BaseArtemisObject<T>>(private val objectClass: KClass<T>) {
+    abstract class Dsl<T : BaseArtemisObject<T>> {
         var x: Float = Float.NaN
         var y: Float = Float.NaN
         var z: Float = Float.NaN
 
-        fun create(id: Int, timestamp: Long): T =
-            objectClass.primaryConstructor!!.call(id, timestamp).also(this::updates)
+        fun build(id: Int, timestamp: Long): T = create(id, timestamp).also(this::updates)
+
+        protected abstract fun create(id: Int, timestamp: Long): T
 
         protected open fun isObjectEmpty(obj: T): Boolean = !obj.hasData
 
@@ -128,6 +125,7 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
 
     private companion object {
         private const val HALF_CIRCLE = 180f
+        private const val FULL_CIRCLE = HALF_CIRCLE * 2f
         private const val RAD_TO_DEG = (HALF_CIRCLE / PI).toFloat()
     }
 }

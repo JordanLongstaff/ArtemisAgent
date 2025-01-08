@@ -31,23 +31,21 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
         val enemyListView = binding.enemyListView
         enemyListView.itemAnimator = null
         enemyListView.adapter = enemyStationAdapter
-        enemyListView.layoutManager = GridLayoutManager(
-            view.context,
-            view.resources.configuration.orientation
-        )
+        enemyListView.layoutManager =
+            GridLayoutManager(view.context, view.resources.configuration.orientation)
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.enemyStations) {
             enemyStationAdapter.onStationsUpdate(it)
-            binding.noEnemyStationsLabel.visibility =
-                if (it.isEmpty()) View.VISIBLE else View.GONE
+            binding.noEnemyStationsLabel.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
         }
     }
 
     private class EnemyStationDiffUtilCallback(
         private val oldList: List<Station>,
-        private val newList: List<Station>
+        private val newList: List<Station>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
@@ -59,9 +57,8 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = false
     }
 
-    private class EnemyStationViewHolder(
-        private val entryBinding: EnemyStationEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private class EnemyStationViewHolder(private val entryBinding: EnemyStationEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: Station, viewModel: AgentViewModel) {
             val root = entryBinding.root
             val station = entry.obj
@@ -75,31 +72,26 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
                         CommsOutgoingPacket(
                             entry.obj,
                             BaseMessage.StandByForDockingOrCeaseOperation,
-                            this@apply.vesselData
+                            this@apply.vesselData,
                         )
                     )
                 }
             }
 
-            entryBinding.enemyShieldLabel.text = context.getString(
-                R.string.station_shield,
-                station.shieldsFront.value.coerceAtLeast(0f),
-                station.shieldsFrontMax.value
-            )
-            entryBinding.enemyHeadingLabel.text = context.getString(
-                R.string.direction,
-                entry.heading
-            )
-            entryBinding.enemyRangeLabel.text = context.getString(
-                R.string.range,
-                entry.range
-            )
+            entryBinding.enemyShieldLabel.text =
+                context.getString(
+                    R.string.station_shield,
+                    station.shieldsFront.value.coerceAtLeast(0f),
+                    station.shieldsFrontMax.value,
+                )
+            entryBinding.enemyHeadingLabel.text =
+                context.getString(R.string.direction, entry.heading)
+            entryBinding.enemyRangeLabel.text = context.getString(R.string.range, entry.range)
         }
     }
 
-    private class EnemyStationListAdapter(
-        private val viewModel: AgentViewModel
-    ) : RecyclerView.Adapter<EnemyStationViewHolder>() {
+    private class EnemyStationListAdapter(private val viewModel: AgentViewModel) :
+        RecyclerView.Adapter<EnemyStationViewHolder>() {
         var entries = listOf<Station>()
             private set
 
@@ -107,11 +99,7 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EnemyStationViewHolder =
             EnemyStationViewHolder(
-                EnemyStationEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                EnemyStationEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: EnemyStationViewHolder, position: Int) {
@@ -119,9 +107,8 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
         }
 
         fun onStationsUpdate(list: List<Station>) {
-            DiffUtil.calculateDiff(
-                EnemyStationDiffUtilCallback(entries, list)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(EnemyStationDiffUtilCallback(entries, list))
+                .dispatchUpdatesTo(this)
             entries = list
         }
     }

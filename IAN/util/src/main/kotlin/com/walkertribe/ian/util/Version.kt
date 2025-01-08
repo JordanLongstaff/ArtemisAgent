@@ -3,13 +3,10 @@ package com.walkertribe.ian.util
 /**
  * Version number handling class. Version numbers are defined with semantic versioning
  * (`major.minor.patch`).
+ *
  * @author rjwut
  */
-data class Version(
-    val major: Int,
-    val minor: Int,
-    val patch: Int,
-) : Comparable<Version> {
+data class Version(val major: Int, val minor: Int, val patch: Int) : Comparable<Version> {
     private val hash: Int by lazy {
         major.and(MAJOR_MASK).shl(MAJOR_SHIFT) or
             minor.and(PART_MASK).shl(MINOR_SHIFT) or
@@ -17,16 +14,13 @@ data class Version(
     }
 
     /**
-     * Constructs a Version from integer parts, with the most significant part
-     * first. This constructor can be used to create both modern and legacy
-     * version numbers. Note that this constructor only accepts two or more
-     * parts, as the JVM insists on calling Version(float) if you only provide
-     * one part.
+     * Constructs a Version from integer parts, with the most significant part first. This
+     * constructor can be used to create both modern and legacy version numbers. Note that this
+     * constructor only accepts two or more parts, as the JVM insists on calling Version(float) if
+     * you only provide one part.
      */
     init {
-        require(major >= 0 && minor >= 0 && patch >= 0) {
-            "Negative version numbers not allowed"
-        }
+        require(major >= 0 && minor >= 0 && patch >= 0) { "Negative version numbers not allowed" }
     }
 
     override fun equals(other: Any?): Boolean =
@@ -37,14 +31,13 @@ data class Version(
     override fun toString(): String = "$major.$minor.$patch"
 
     /**
-     * Compares this Version against the given one. If the two Version objects
-     * don't have the same number of parts, the absent parts are treated as zero
-     * (e.g.: 2.1 is the same as 2.1.0).
+     * Compares this Version against the given one. If the two Version objects don't have the same
+     * number of parts, the absent parts are treated as zero (e.g.: 2.1 is the same as 2.1.0).
      */
     override operator fun compareTo(other: Version): Int =
-        major.compareTo(other.major).takeIf { it != 0 } ?:
-        minor.compareTo(other.minor).takeIf { it != 0 } ?:
-        patch.compareTo(other.patch)
+        major.compareTo(other.major).takeIf { it != 0 }
+            ?: minor.compareTo(other.minor).takeIf { it != 0 }
+            ?: patch.compareTo(other.patch)
 
     companion object {
         private const val MAJOR_MASK = 0x000F

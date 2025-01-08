@@ -1,6 +1,7 @@
 package artemis.agent.game.enemies
 
 import artemis.agent.R
+import com.walkertribe.ian.util.buildSortingComparator
 
 data class EnemySorter(
     val sortBySurrendered: Boolean = false,
@@ -8,56 +9,38 @@ data class EnemySorter(
     val sortByFactionReversed: Boolean = false,
     val sortByName: Boolean = false,
     val sortByDistance: Boolean = false,
-) : Comparator<EnemyEntry> {
-    private val comparators: List<Comparator<EnemyEntry>> =
-        mutableListOf<Comparator<EnemyEntry>>().apply {
-            if (sortBySurrendered) add(SURRENDERED_COMPARATOR)
-            if (sortByFaction) add(factionComparator(sortByFactionReversed))
-            if (sortByName) add(NAME_COMPARATOR)
-            if (sortByDistance) add(DISTANCE_COMPARATOR)
+) :
+    Comparator<EnemyEntry> by buildSortingComparator(
+        SURRENDERED_COMPARATOR to sortBySurrendered,
+        FACTION_COMPARATOR.reversedIf(sortByFactionReversed) to sortByFaction,
+        NAME_COMPARATOR to sortByName,
+        DISTANCE_COMPARATOR to sortByDistance,
+    ) {
+    fun buildCategoryMap(enemies: List<EnemyEntry>): List<EnemySortCategory> =
+        when {
+            sortByFaction -> buildCategoryMap(enemies, sortBySurrendered) { it.faction.name }
+            sortByName ->
+                buildCategoryMap(enemies, sortBySurrendered) {
+                    it.enemy.name.value?.substring(0, 1)
+                }
+            sortBySurrendered -> buildCategoryMap(enemies, true) { null }
+            else -> listOf()
         }
-
-    override fun compare(enemy1: EnemyEntry?, enemy2: EnemyEntry?): Int {
-        for (comparator in comparators) {
-            val result = comparator.compare(enemy1, enemy2)
-            if (result != 0) return result
-        }
-        return 0
-    }
-
-    fun buildCategoryMap(enemies: List<EnemyEntry>): List<EnemySortCategory> = when {
-        sortByFaction -> buildCategoryMap(enemies, sortBySurrendered) { it.faction.name }
-        sortByName -> buildCategoryMap(enemies, sortBySurrendered) {
-            it.enemy.name.value?.substring(0, 1)
-        }
-        sortBySurrendered -> buildCategoryMap(enemies, true) { null }
-        else -> listOf()
-    }
 
     private companion object {
-        fun factionComparator(reversed: Boolean): Comparator<EnemyEntry> = buildComparator {
-            val compare = it?.run { faction.id } ?: -1
-            compare * if (reversed) -1 else 1
-        }
+        val FACTION_COMPARATOR: Comparator<EnemyEntry> = compareBy { it.faction.id }
 
-        val NAME_COMPARATOR: Comparator<EnemyEntry> = buildComparator {
-            it?.run { enemy.name.value } ?: ""
-        }
+        val NAME_COMPARATOR: Comparator<EnemyEntry> = compareBy { it.enemy.name.value }
 
-        val DISTANCE_COMPARATOR: Comparator<EnemyEntry> = buildComparator {
-            it?.range ?: Float.MAX_VALUE
-        }
+        val DISTANCE_COMPARATOR: Comparator<EnemyEntry> = compareBy { it.range }
 
-        val SURRENDERED_COMPARATOR: Comparator<EnemyEntry> = buildComparator {
+        val SURRENDERED_COMPARATOR: Comparator<EnemyEntry> = compareBy {
             when {
-                it == null || !it.enemy.isSurrendered.value.booleanValue -> -1
+                !it.enemy.isSurrendered.value.booleanValue -> -1
                 it.captainStatus == EnemyCaptainStatus.DUPLICITOUS -> 0
                 else -> 1
             }
         }
-
-        fun <C : Comparable<C>> buildComparator(map: (EnemyEntry?) -> C): Comparator<EnemyEntry> =
-            Comparator { e1, e2 -> map(e1).compareTo(map(e2)) }
 
         fun buildCategoryMap(
             enemies: List<EnemyEntry>,
@@ -87,5 +70,8 @@ data class EnemySorter(
 
             return categoryMap
         }
+
+        fun <T> Comparator<T>.reversedIf(condition: Boolean): Comparator<T> =
+            if (condition) reversed() else this
     }
 }

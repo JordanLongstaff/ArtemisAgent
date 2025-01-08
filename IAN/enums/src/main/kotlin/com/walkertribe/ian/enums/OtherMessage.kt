@@ -2,23 +2,36 @@ package com.walkertribe.ian.enums
 
 /**
  * Messages that can be sent to civilian NPCs.
+ *
  * @author rjwut
  */
 sealed class OtherMessage(override val id: Int) : CommsMessage {
     data object Hail : OtherMessage(HAIL)
+
     data object TurnToHeading0 : OtherMessage(TURN_0)
+
     data object TurnToHeading90 : OtherMessage(TURN_90)
+
     data object TurnToHeading180 : OtherMessage(TURN_180)
+
     data object TurnToHeading270 : OtherMessage(TURN_270)
+
     data object TurnLeft10Degrees : OtherMessage(TURN_LEFT_10)
+
     data object TurnRight10Degrees : OtherMessage(TURN_RIGHT_10)
+
     data object TurnLeft25Degrees : OtherMessage(TURN_LEFT_25)
+
     data object TurnRight25Degrees : OtherMessage(TURN_RIGHT_25)
+
     data object AttackNearestEnemy : OtherMessage(ATTACK)
+
     data object ProceedToYourDestination : OtherMessage(PROCEED)
+
     data class GoDefend(val targetID: Int) : OtherMessage(DEFEND)
 
-    override val recipientType: CommsRecipientType get() = CommsRecipientType.OTHER
+    override val recipientType: CommsRecipientType
+        get() = CommsRecipientType.OTHER
 
     companion object {
         private const val HAIL = 0

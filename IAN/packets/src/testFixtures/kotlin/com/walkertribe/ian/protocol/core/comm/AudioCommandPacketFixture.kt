@@ -9,27 +9,25 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.map
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
-class AudioCommandPacketFixture private constructor(
-    audioCommand: AudioCommand,
-) : PacketTestFixture.Client<AudioCommandPacket>(
-    packetType = TestPacketTypes.CONTROL_MESSAGE,
-    expectedPayloadSize = Int.SIZE_BYTES * 2,
-) {
-    class Data internal constructor(
-        private val audioID: Int,
-        private val audioCommand: AudioCommand,
-    ) : PacketTestData.Client<AudioCommandPacket>(AudioCommandPacket(audioID, audioCommand)) {
+class AudioCommandPacketFixture private constructor(audioCommand: AudioCommand) :
+    PacketTestFixture.Client<AudioCommandPacket>(
+        packetType = TestPacketTypes.CONTROL_MESSAGE,
+        expectedPayloadSize = Int.SIZE_BYTES * 2,
+    ) {
+    class Data
+    internal constructor(private val audioID: Int, private val audioCommand: AudioCommand) :
+        PacketTestData.Client<AudioCommandPacket>(AudioCommandPacket(audioID, audioCommand)) {
         init {
             packet.audioId shouldBeEqual audioID
             packet.command shouldBeEqual audioCommand
         }
 
-        override fun validatePayload(payload: ByteReadPacket) {
-            payload.readIntLittleEndian() shouldBeEqual audioID
-            payload.readIntLittleEndian() shouldBeEqual audioCommand.ordinal
+        override fun validatePayload(payload: Source) {
+            payload.readIntLe() shouldBeEqual audioID
+            payload.readIntLe() shouldBeEqual audioCommand.ordinal
         }
     }
 

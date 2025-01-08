@@ -27,87 +27,87 @@ import io.kotest.property.arbitrary.pair
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 
-class ShipTest : DescribeSpec({
-    describe("Ship") {
-        val ships = mutableListOf<Ship>()
+class ShipTest :
+    DescribeSpec({
+        describe("Ship") {
+            val ships = mutableListOf<Ship>()
 
-        describe("Constructor") {
-            it("With no accent colour") {
-                checkAll(
-                    Arb.string().orNull(),
-                    Arb.int(),
-                    Arb.enum<DriveType>(),
-                ) { name, shipType, driveType ->
-                    collect(if (name == null) "Does not have name" else "Has name")
+            describe("Constructor") {
+                it("With no accent colour") {
+                    checkAll(Arb.string().orNull(), Arb.int(), Arb.enum<DriveType>()) {
+                        name,
+                        shipType,
+                        driveType ->
+                        collect(if (name == null) "Does not have name" else "Has name")
 
-                    val ship = Ship(name, shipType, driveType)
-                    ship.accentColor.shouldBeNaN()
-                    ship.hue.shouldBeNaN()
-                    ships.add(ship)
+                        val ship = Ship(name, shipType, driveType)
+                        ship.accentColor.shouldBeNaN()
+                        ship.hue.shouldBeNaN()
+                        ships.add(ship)
+                    }
                 }
-            }
 
-            it("With specified accent colour") {
-                checkAll(
-                    Arb.string().orNull(),
-                    Arb.int(),
-                    Arb.numericFloat(min = 0f, max = 1f),
-                    Arb.enum<DriveType>(),
-                ) { name, shipType, accentColor, driveType ->
-                    collect(if (name == null) "Does not have name" else "Has name")
+                it("With specified accent colour") {
+                    checkAll(
+                        Arb.string().orNull(),
+                        Arb.int(),
+                        Arb.numericFloat(min = 0f, max = 1f),
+                        Arb.enum<DriveType>(),
+                    ) { name, shipType, accentColor, driveType ->
+                        collect(if (name == null) "Does not have name" else "Has name")
 
-                    val ship = Ship(name, shipType, driveType, accentColor)
-                    ship.accentColor.shouldNotBeNaN()
-                    ship.hue.shouldNotBeNaN()
-                    ship.hue.shouldBeWithinPercentageOf(accentColor * Ship.HUE_RANGE, EPSILON)
-                    ships.add(ship)
-                }
-            }
-        }
-
-        describe("Cannot construct with accent colour out of range") {
-            withData(
-                nameFn = { it.first },
-                "Too low" to Arb.negativeFloat(),
-                "Too high" to Arb.numericFloat(min = 1.001f),
-            ) { (_, arbAccentColor) ->
-                checkAll(
-                    Arb.string().orNull(),
-                    Arb.int(),
-                    arbAccentColor,
-                    Arb.enum<DriveType>(),
-                ) { name, shipType, accentColor, driveType ->
-                    shouldThrow<IllegalArgumentException> {
-                        Ship(name, shipType, driveType, accentColor)
+                        val ship = Ship(name, shipType, driveType, accentColor)
+                        ship.accentColor.shouldNotBeNaN()
+                        ship.hue.shouldNotBeNaN()
+                        ship.hue.shouldBeWithinPercentageOf(accentColor * Ship.HUE_RANGE, EPSILON)
+                        ships.add(ship)
                     }
                 }
             }
-        }
 
-        describe("Vessel") {
-            it("Null if not found in vessel data") {
-                ships.forEach { it.getVessel(VesselData.Empty).shouldBeNull() }
+            describe("Cannot construct with accent colour out of range") {
+                withData(
+                    nameFn = { it.first },
+                    "Too low" to Arb.negativeFloat(),
+                    "Too high" to Arb.numericFloat(min = 1.001f),
+                ) { (_, arbAccentColor) ->
+                    checkAll(
+                        Arb.string().orNull(),
+                        Arb.int(),
+                        arbAccentColor,
+                        Arb.enum<DriveType>(),
+                    ) { name, shipType, accentColor, driveType ->
+                        shouldThrow<IllegalArgumentException> {
+                            Ship(name, shipType, driveType, accentColor)
+                        }
+                    }
+                }
             }
 
-            it("Retrieved from vessel data if found") {
-                TestVessel.arbitrary().flatMap {
-                    Arb.pair(
-                        Arb.vesselData(
-                            factions = listOf(),
-                            vessels = Arb.of(it),
-                            numVessels = 1..1,
-                        ),
-                        Arb.bind(
-                            Arb.string().orNull(),
-                            Arb.enum<DriveType>(),
-                        ) { name, drive ->
-                            Ship(name = name, shipType = it.id, drive = drive)
+            describe("Vessel") {
+                it("Null if not found in vessel data") {
+                    ships.forEach { it.getVessel(VesselData.Empty).shouldBeNull() }
+                }
+
+                it("Retrieved from vessel data if found") {
+                    TestVessel.arbitrary()
+                        .flatMap {
+                            Arb.pair(
+                                Arb.vesselData(
+                                    factions = listOf(),
+                                    vessels = Arb.of(it),
+                                    numVessels = 1..1,
+                                ),
+                                Arb.bind(Arb.string().orNull(), Arb.enum<DriveType>()) { name, drive
+                                    ->
+                                    Ship(name = name, shipType = it.id, drive = drive)
+                                },
+                            )
                         }
-                    )
-                }.checkAll { (vesselData, ship) ->
-                    ship.getVessel(vesselData).shouldNotBeNull()
+                        .checkAll { (vesselData, ship) ->
+                            ship.getVessel(vesselData).shouldNotBeNull()
+                        }
                 }
             }
         }
-    }
-})
+    })

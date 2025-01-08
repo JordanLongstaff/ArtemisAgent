@@ -8,12 +8,16 @@ class WeaponsTube(timestamp: Long) {
     val lastContents = Property.ObjectProperty<OrdnanceType>(timestamp)
 
     var contents: OrdnanceType?
-        get() = lastContents.value?.takeIf {
-            state.value == TubeState.LOADED || state.value == TubeState.LOADING
+        get() =
+            lastContents.value?.takeIf {
+                state.value == TubeState.LOADED || state.value == TubeState.LOADING
+            }
+        set(ordnanceType) {
+            lastContents.value = ordnanceType
         }
-        set(ordnanceType) { lastContents.value = ordnanceType }
 
-    val hasData: Boolean get() = state.hasValue || lastContents.hasValue
+    val hasData: Boolean
+        get() = state.hasValue || lastContents.hasValue
 
     infix fun updates(tube: WeaponsTube) {
         state updates tube.state

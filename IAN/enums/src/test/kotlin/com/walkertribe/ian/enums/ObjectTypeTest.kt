@@ -14,32 +14,29 @@ import io.kotest.property.arbitrary.negativeInt
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.of
 
-class ObjectTypeTest : DescribeSpec({
-    val expectedIDs = (1..16).toSortedSet() - setOf(9)
+class ObjectTypeTest :
+    DescribeSpec({
+        val expectedIDs = (1..16).toSortedSet() - setOf(9)
 
-    withData(
-        nameFn = { "Object type #${it.second}: ${it.first}" },
-        ObjectType.entries.zip(expectedIDs)
-    ) { (objectType, id) ->
-        objectType.id shouldBeEqual id.toByte()
-        ObjectType[id].shouldNotBeNull() shouldBeEqual objectType
-    }
+        withData(
+            nameFn = { "Object type #${it.second}: ${it.first}" },
+            ObjectType.entries.zip(expectedIDs),
+        ) { (objectType, id) ->
+            objectType.id shouldBeEqual id.toByte()
+            ObjectType[id].shouldNotBeNull() shouldBeEqual objectType
+        }
 
-    it("Object type 0 returns null") {
-        ObjectType[0].shouldBeNull()
-    }
+        it("Object type 0 returns null") { ObjectType[0].shouldBeNull() }
 
-    val highestObjectID = ObjectType.entries.maxOf { it.id.toInt() }
-    describe("Invalid object type throws") {
-        withData<Pair<String, Gen<Int>>>(
-            nameFn = { it.first },
-            "9" to Exhaustive.of(9),
-            "Negative number" to Arb.negativeInt(),
-            "Too high" to Arb.int(min = highestObjectID + 1),
-        ) { (_, testGen) ->
-            testGen.checkAll {
-                shouldThrow<IllegalArgumentException> { ObjectType[it] }
+        val highestObjectID = ObjectType.entries.maxOf { it.id.toInt() }
+        describe("Invalid object type throws") {
+            withData<Pair<String, Gen<Int>>>(
+                nameFn = { it.first },
+                "9" to Exhaustive.of(9),
+                "Negative number" to Arb.negativeInt(),
+                "Too high" to Arb.int(min = highestObjectID + 1),
+            ) { (_, testGen) ->
+                testGen.checkAll { shouldThrow<IllegalArgumentException> { ObjectType[it] } }
             }
         }
-    }
-})
+    })

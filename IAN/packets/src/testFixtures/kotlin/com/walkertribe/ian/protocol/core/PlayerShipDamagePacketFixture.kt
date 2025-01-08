@@ -12,25 +12,23 @@ import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.numericFloat
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeFloatLittleEndian
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeFloatLe
+import kotlinx.io.writeIntLe
 
-class PlayerShipDamagePacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<PlayerShipDamagePacket>(
-    TestPacketTypes.SIMPLE_EVENT,
-) {
-    class Data internal constructor(
+class PlayerShipDamagePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<PlayerShipDamagePacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data
+    internal constructor(
         override val version: Version,
         private val shipIndex: Int,
         private val damageDuration: Float,
     ) : PacketTestData.Server<PlayerShipDamagePacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.PLAYER_SHIP_DAMAGE.toInt())
-            writeIntLittleEndian(shipIndex)
-            writeFloatLittleEndian(damageDuration)
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.PLAYER_SHIP_DAMAGE.toInt())
+            writeIntLe(shipIndex)
+            writeFloatLe(damageDuration)
         }
 
         override fun validate(packet: PlayerShipDamagePacket) {

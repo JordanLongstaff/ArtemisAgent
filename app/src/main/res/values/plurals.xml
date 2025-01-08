@@ -8,6 +8,10 @@
         <item quantity="one">1 BioMech</item>
         <item quantity="other">%d BioMechs</item>
     </plurals>
+    <plurals name="enemies">
+        <item quantity="one">1 enemy</item>
+        <item quantity="other">%d enemies</item>
+    </plurals>
     <plurals name="enemy_stations">
         <item quantity="one">1 enemy station</item>
         <item quantity="other">%d enemy stations</item>
@@ -27,5 +31,9 @@
     <plurals name="side_missions_for_ally">
         <item quantity="one">Has 1 side mission.</item>
         <item quantity="other">Has %d side missions.</item>
+    </plurals>
+    <plurals name="surrenders">
+        <item quantity="one">1 surrender</item>
+        <item quantity="other">%d surrenders</item>
     </plurals>
 </resources>

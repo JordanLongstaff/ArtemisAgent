@@ -30,34 +30,32 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
 
         val adapter = BiomechListAdapter(viewModel)
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.biomechs) {
-            adapter.update(it)
-        }
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.biomechs) { adapter.update(it) }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.biomechRage) { rage ->
             val bgColor = ContextCompat.getColor(context, rage.color)
             biomechsListView.setBackgroundColor(bgColor)
             binding.biomechRageBackground.setBackgroundColor(bgColor)
 
-            binding.biomechRageLabel.text = getString(
-                R.string.biomech_rage,
-                rage.name
-            )
+            binding.biomechRageLabel.text = getString(R.string.biomech_rage, rage.name)
         }
 
         biomechsListView.itemAnimator = null
         biomechsListView.adapter = adapter
-        biomechsListView.layoutManager = GridLayoutManager(
-            context,
-            COLUMNS[view.resources.configuration.orientation - Configuration.ORIENTATION_PORTRAIT]
-        )
+        biomechsListView.layoutManager =
+            GridLayoutManager(
+                context,
+                COLUMNS[
+                    view.resources.configuration.orientation - Configuration.ORIENTATION_PORTRAIT],
+            )
     }
 
     private class BiomechDiffUtilCallback(
         private val oldList: List<BiomechEntry>,
-        private val newList: List<BiomechEntry>
+        private val newList: List<BiomechEntry>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
@@ -73,22 +71,18 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
         }
     }
 
-    private class BiomechViewHolder(
-        val entryBinding: BiomechEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private class BiomechViewHolder(val entryBinding: BiomechEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: BiomechEntry, viewModel: AgentViewModel) {
             entryBinding.root.setOnClickListener { entry.freeze(viewModel) }
             entryBinding.biomechNameLabel.text = viewModel.getFullNameForShip(entry.biomech)
-            entryBinding.biomechStatusLabel.text = entry.getFrozenStatusText(
-                viewModel,
-                entryBinding.root.context
-            )
+            entryBinding.biomechStatusLabel.text =
+                entry.getFrozenStatusText(viewModel, entryBinding.root.context)
         }
     }
 
-    private class BiomechListAdapter(
-        private val viewModel: AgentViewModel
-    ) : RecyclerView.Adapter<BiomechViewHolder>() {
+    private class BiomechListAdapter(private val viewModel: AgentViewModel) :
+        RecyclerView.Adapter<BiomechViewHolder>() {
         var entries = listOf<BiomechEntry>()
             private set
 
@@ -96,11 +90,7 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BiomechViewHolder =
             BiomechViewHolder(
-                BiomechEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                BiomechEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: BiomechViewHolder, position: Int) {
@@ -108,17 +98,16 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
         }
 
         fun update(value: List<BiomechEntry>) {
-            DiffUtil.calculateDiff(
-                BiomechDiffUtilCallback(entries, value)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(BiomechDiffUtilCallback(entries, value)).dispatchUpdatesTo(this)
             entries = value
         }
     }
 
     private companion object {
-        val COLUMNS = arrayOf(
-            1, // portrait
-            3, // landscape
-        )
+        val COLUMNS =
+            arrayOf(
+                1, // portrait
+                3, // landscape
+            )
     }
 }

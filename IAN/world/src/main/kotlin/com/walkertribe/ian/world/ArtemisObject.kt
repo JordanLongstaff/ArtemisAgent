@@ -4,87 +4,62 @@ import com.walkertribe.ian.enums.ObjectType
 import com.walkertribe.ian.iface.ListenerArgument
 
 /**
- * This interface represents information about an object in the game world. It
- * may contain all the information known about that object, or just updates.
- * Every object has the following properties:
- *  * an ID
- *  * a type
- *  * a position (x, y, z)
+ * This interface represents information about an object in the game world. It may contain all the
+ * information known about that object, or just updates. Every object has the following properties:
+ * * an ID
+ * * a type
+ * * a position (x, y, z)
  *
- * Many objects also have a name, but not all of them do, and the name is not
- * guaranteed to be unique. However, any one update is only guaranteed to
- * specify the ID.
+ * Many objects also have a name, but not all of them do, and the name is not guaranteed to be
+ * unique. However, any one update is only guaranteed to specify the ID.
  *
  * <h2>Unspecified properties vs. unknown properties</h2>
- * A property is unspecified if no value has been given for it. Since object
- * update packets typically contain values for properties which have changed,
- * other properties will be unspecified. To avoid instantiating a lot of
- * objects, special values are used to indicate whether a primitive property is
- * unspecified. The documentation for each property's accessor method will tell
- * you what that value is. The "unspecified" value depends on the property's
- * type and what its permissible values are:
+ * A property is unspecified if no value has been given for it. Since object update packets
+ * typically contain values for properties which have changed, other properties will be unspecified.
+ * To avoid instantiating a lot of objects, special values are used to indicate whether a primitive
+ * property is unspecified. The documentation for each property's accessor method will tell you what
+ * that value is. The "unspecified" value depends on the property's type and what its permissible
+ * values are:
  *
- * <dl>
- * <dt>BoolState</dt>
- * <dd>BoolState.Unknown</dd>
- * <dt>Other Objects</dt>
- * <dd>null</dd>
- * <dt>float</dt>
- * <dd>Float.NaN</dd>
- * <dt>Other numeric primitives</dt>
- * <dd>-1, or the type's MIN_VALUE if -1 is a permissible value
- * for that property</dd></dl>
+ * <dl> <dt>BoolState</dt> <dd>BoolState.Unknown</dd> <dt>Other Objects</dt> <dd>null</dd>
+ * <dt>float</dt> <dd>Float.NaN</dd> <dt>Other numeric primitives</dt> <dd>-1, or the type's
+ * MIN_VALUE if -1 is a permissible value for that property</dd></dl>
  *
- * An unknown property is one whose purpose is currently unknown. It may have a
- * specified value, but we don't know what that value means. IAN is capable of
- * tracking unknown property values, but this capability is really only useful
- * for people who are trying to determine what these properties mean.
+ * An unknown property is one whose purpose is currently unknown. It may have a specified value, but
+ * we don't know what that value means. IAN is capable of tracking unknown property values, but this
+ * capability is really only useful for people who are trying to determine what these properties
+ * mean.
  *
  * <h2>Updating objects</h2>
- * The ObjectUpdatePacket produces objects which implement this interface.
- * These objects will contain only the property values that were updated by
- * that packet; all other values will be unspecified. You can use the
- * updateFrom() method to transfer all specified properties from one object to
- * another; this allows you to keep around a single instance that always has the
- * latest known state for that world object.
+ * The ObjectUpdatePacket produces objects which implement this interface. These objects will
+ * contain only the property values that were updated by that packet; all other values will be
+ * unspecified. You can use the updateFrom() method to transfer all specified properties from one
+ * object to another; this allows you to keep around a single instance that always has the latest
+ * known state for that world object.
  *
  * <h2>Object positions</h2>
- * A sector is a three-dimensional rectangular prism. From the perspective of a
- * ship with a heading of 0 degrees, the X axis runs from port to starboard, the
- * Y axis runs up and down, and the Z axis runs bow to stern. The boundaries of
- * the sector are (0, 500, 0) (top northeast corner) to (100000, -500, 100000)
- * (bottom southwest corner). However, some objects, such as asteroids and
+ * A sector is a three-dimensional rectangular prism. From the perspective of a ship with a heading
+ * of 0 degrees, the X axis runs from port to starboard, the Y axis runs up and down, and the Z axis
+ * runs bow to stern. The boundaries of the sector are (0, 500, 0) (top northeast corner) to
+ * (100000, -500, 100000) (bottom southwest corner). However, some objects, such as asteroids and
  * nebulae, may lie outside these bounds.
  *
  * @author dhleong
  */
 interface ArtemisObject<T : ArtemisObject<T>> : ListenerArgument {
-    /**
-     * The object's unique identifier. This property should always be specified.
-     */
+    /** The object's unique identifier. This property should always be specified. */
     val id: Int
 
-    /**
-     * The object's type.
-     */
+    /** The object's type. */
     val type: ObjectType
 
-    /**
-     * The object's position along the X-axis.
-     * Unspecified: Float.NaN
-     */
+    /** The object's position along the X-axis. Unspecified: Float.NaN */
     val x: Property.FloatProperty
 
-    /**
-     * The object's position along the Y-axis
-     * Unspecified: Float.NaN
-     */
+    /** The object's position along the Y-axis Unspecified: Float.NaN */
     val y: Property.FloatProperty
 
-    /**
-     * The object's position along the Z-axis
-     * Unspecified: Float.NaN
-     */
+    /** The object's position along the Z-axis Unspecified: Float.NaN */
     val z: Property.FloatProperty
 
     /**
@@ -124,9 +99,7 @@ interface ArtemisObject<T : ArtemisObject<T>> : ListenerArgument {
      */
     infix fun horizontalDistanceSquaredTo(other: ArtemisObject<*>): Float
 
-    /**
-     * Returns the direction this object would have to travel to reach the given object.
-     */
+    /** Returns the direction this object would have to travel to reach the given object. */
     infix fun headingTo(other: ArtemisObject<*>): Float
 
     /**

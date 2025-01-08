@@ -21,14 +21,11 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
     const val DEFAULT_BLACK_HOLE_CLEARANCE = 500
     const val DEFAULT_MINE_CLEARANCE = 1000
     const val DEFAULT_TYPHON_CLEARANCE = 3000
-    const val DEFAULT_SOUND_VOLUME = 100
+    const val DEFAULT_SOUND_VOLUME = 50
     const val DEFAULT_UPDATE_INTERVAL = 50
     const val DEFAULT_SURRENDER_RANGE = 5000
 
-    val Context.userSettings by dataStore(
-        fileName = USER_SETTINGS_FILE_NAME,
-        serializer = this,
-    )
+    val Context.userSettings by dataStore(fileName = USER_SETTINGS_FILE_NAME, serializer = this)
 
     override suspend fun readFrom(input: InputStream): UserSettingsOuterClass.UserSettings {
         try {
@@ -43,8 +40,8 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
     }
 
     override val defaultValue: UserSettingsOuterClass.UserSettings = userSettings {
-        vesselDataLocation = UserSettingsOuterClass.UserSettings.VesselDataLocation
-            .VESSEL_DATA_LOCATION_DEFAULT
+        vesselDataLocation =
+            UserSettingsOuterClass.UserSettings.VesselDataLocation.VESSEL_DATA_LOCATION_DEFAULT
         serverPort = DEFAULT_SERVER_PORT
         recentAddressLimit = DEFAULT_ADDRESS_LIMIT
         recentAddressLimitEnabled = false
@@ -122,5 +119,8 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         theme = UserSettingsOuterClass.UserSettings.Theme.THEME_DEFAULT
         threeDigitDirections = true
         soundVolume = DEFAULT_SOUND_VOLUME
+
+        showNetworkInfo = true
+        alwaysScanPublic = false
     }
 }

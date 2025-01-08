@@ -2,6 +2,7 @@ package com.walkertribe.ian.enums
 
 /**
  * The bridge consoles.
+ *
  * @author rjwut
  */
 @JvmInline

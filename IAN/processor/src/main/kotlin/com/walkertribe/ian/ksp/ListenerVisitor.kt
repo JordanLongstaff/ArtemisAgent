@@ -29,37 +29,45 @@ class ListenerVisitor(
 
         val listenerFunctionClass = ClassName("com.walkertribe.ian.iface", "ListenerFunction")
 
-        val listenerModuleBuilder = PropertySpec.builder(
-            "listeners",
-            List::class.asClassName().plusParameter(
-                listenerFunctionClass.plusParameter(
-                    WildcardTypeName.producerOf(ListenerArgument::class),
-                ),
-            ),
-        ).receiver(classDeclaration.toClassName()).addOriginatingKSFile(containingFile)
+        val listenerModuleBuilder =
+            PropertySpec.builder(
+                    "listeners",
+                    List::class.asClassName()
+                        .plusParameter(
+                            listenerFunctionClass.plusParameter(
+                                WildcardTypeName.producerOf(ListenerArgument::class)
+                            )
+                        ),
+                )
+                .receiver(classDeclaration.toClassName())
+                .addOriginatingKSFile(containingFile)
 
-        val moduleGetterSpec = FunSpec.getterBuilder()
-            .addStatement(
-                "return listOf(%L)",
-                functions.joinToString { fn ->
-                    fn.parameters.joinToString { param ->
-                        val paramClassName = param.type.resolve().declaration.simpleName.asString()
-                        "\nListenerFunction($paramClassName::class, this::$fn)"
-                    }
-                },
-            )
+        val moduleGetterSpec =
+            FunSpec.getterBuilder()
+                .addStatement(
+                    "return listOf(%L)",
+                    functions.joinToString { fn ->
+                        fn.parameters.joinToString { param ->
+                            val paramClassName =
+                                param.type.resolve().declaration.simpleName.asString()
+                            "\nListenerFunction($paramClassName::class, this::$fn)"
+                        }
+                    },
+                )
 
-        val fileSpecBuilder = FileSpec.builder(packageName, fileName)
-            .addImport(listenerFunctionClass.packageName, listenerFunctionClass.simpleName)
-            .addProperty(listenerModuleBuilder.getter(moduleGetterSpec.build()).build())
+        val fileSpecBuilder =
+            FileSpec.builder(packageName, fileName)
+                .addProperty(listenerModuleBuilder.getter(moduleGetterSpec.build()).build())
 
-        functions.flatMap { it.parameters }.forEach { param ->
-            val paramTypeName = param.type.toTypeName() as ClassName
-            fileSpecBuilder.addImport(
-                paramTypeName.enclosingClassName()?.canonicalName ?: paramTypeName.packageName,
-                paramTypeName.simpleName,
-            )
-        }
+        functions
+            .flatMap { it.parameters }
+            .forEach { param ->
+                val paramTypeName = param.type.toTypeName() as ClassName
+                fileSpecBuilder.addImport(
+                    paramTypeName.enclosingClassName()?.canonicalName ?: paramTypeName.packageName,
+                    paramTypeName.simpleName,
+                )
+            }
 
         fileSpecBuilder.build().writeTo(codeGenerator, aggregating = false)
     }

@@ -1,21 +1,24 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.annotation.IdRes
-import androidx.annotation.StringRes
+import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertEnabled
+import com.adevinta.android.barista.assertion.BaristaListAssertions.assertDisplayedAtPosition
 import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
+import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickBack
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItem
 import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItemChild
-import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.PermissionGranter
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -24,16 +27,17 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class SettingsFragmentTest {
     companion object {
-        private val pageTitles = intArrayOf(
-            R.string.settings_menu_client,
-            R.string.settings_menu_connection,
-            R.string.settings_menu_missions,
-            R.string.settings_menu_allies,
-            R.string.settings_menu_enemies,
-            R.string.settings_menu_biomechs,
-            R.string.settings_menu_routing,
-            R.string.settings_menu_personal,
-        )
+        private val pageTitles =
+            intArrayOf(
+                R.string.settings_menu_client,
+                R.string.settings_menu_connection,
+                R.string.settings_menu_missions,
+                R.string.settings_menu_allies,
+                R.string.settings_menu_enemies,
+                R.string.settings_menu_biomechs,
+                R.string.settings_menu_routing,
+                R.string.settings_menu_personal,
+            )
 
         fun openSettingsMenu() {
             clickOn(R.id.settingsPageButton)
@@ -68,6 +72,11 @@ class SettingsFragmentTest {
             assertSettingsMainMenuDisplayed()
         }
 
+        fun backFromSubMenu() {
+            clickBack()
+            assertSettingsMainMenuDisplayed()
+        }
+
         private fun assertSettingsMainMenuDisplayed() {
             assertDisplayed(R.id.settingsPageTitle, R.string.settings)
             assertNotDisplayed(R.id.settingsBack)
@@ -76,51 +85,44 @@ class SettingsFragmentTest {
             assertRecyclerViewItemCount(R.id.settingsPageMenu, pageTitles.size)
         }
 
-        fun testAllEnabled(
-            @IdRes allButton: Int,
-            @IdRes noneButton: Int,
-            buttons: IntArray,
-            skipToggleTest: Boolean,
-        ) {
-            assertDisabled(allButton)
-            assertEnabled(noneButton)
-
-            if (skipToggleTest) return
-
-            listOf(
-                Triple(noneButton, allButton, false),
-                Triple(allButton, noneButton, true),
-            ).forEach { (clicked, other, checked) ->
-                testMultipleOptions(clicked, other, buttons, checked)
-            }
+        fun assertSettingsMenuEntryToggleState(index: Int, isOn: Boolean) {
+            assertDisplayedAtPosition(
+                R.id.settingsPageMenu,
+                index,
+                R.id.settingsEntryToggle,
+                if (isOn) R.string.on else R.string.off,
+            )
         }
 
-        fun testNotAllEnabled(
+        fun testSettingsWithAllAndNone(
             @IdRes allButton: Int,
             @IdRes noneButton: Int,
-            buttons: IntArray,
-            enabled: BooleanArray,
+            settingsButtons: List<Pair<Int, Boolean>>,
             skipToggleTest: Boolean,
             ifEnabled: ((Int, Boolean) -> Unit)? = null,
         ) {
-            val anyEnabled = enabled.any { it }
+            val anyEnabled = settingsButtons.any { it.second }
+            val allEnabled = settingsButtons.all { it.second }
 
-            assertEnabled(allButton)
-            artemis.agent.ArtemisAgentTestHelpers.assertEnabled(noneButton, anyEnabled)
+            ArtemisAgentTestHelpers.assertEnabled(allButton, !allEnabled)
+            ArtemisAgentTestHelpers.assertEnabled(noneButton, anyEnabled)
+
+            settingsButtons.forEach { (button, isChecked) ->
+                ArtemisAgentTestHelpers.assertChecked(button, isChecked)
+            }
 
             if (skipToggleTest) return
 
-            listOf(
-                Triple(allButton, noneButton, true),
-                Triple(noneButton, allButton, false),
-            ).forEach { (clicked, other, checked) ->
-                testMultipleOptions(clicked, other, buttons, checked, ifEnabled)
-            }
+            listOf(Triple(allButton, noneButton, true), Triple(noneButton, allButton, false))
+                .let { if (allEnabled) it.reversed() else it }
+                .forEach { (clicked, other, checked) ->
+                    testMultipleOptions(clicked, other, settingsButtons, checked, ifEnabled)
+                }
 
-            if (anyEnabled) {
-                enabled.forEachIndexed { index, on ->
+            if (anyEnabled && !allEnabled) {
+                settingsButtons.forEach { (button, on) ->
                     if (on) {
-                        clickOn(buttons[index])
+                        clickOn(button)
                     }
                 }
                 assertEnabled(noneButton)
@@ -130,19 +132,19 @@ class SettingsFragmentTest {
         private fun testMultipleOptions(
             @IdRes allButton: Int,
             @IdRes otherButton: Int,
-            buttons: IntArray,
+            buttons: List<Pair<Int, Boolean>>,
             checked: Boolean,
             ifEnabled: ((Int, Boolean) -> Unit)? = null,
         ) {
             clickOn(allButton)
-            buttons.forEachIndexed { index, button ->
-                artemis.agent.ArtemisAgentTestHelpers.assertChecked(button, checked)
+            buttons.forEachIndexed { index, (button, _) ->
+                ArtemisAgentTestHelpers.assertChecked(button, checked)
                 ifEnabled?.invoke(index, checked)
             }
             assertEnabled(otherButton)
             assertDisabled(allButton)
 
-            buttons.forEach { button ->
+            buttons.forEach { (button, _) ->
                 booleanArrayOf(true, false).forEach { on ->
                     clickOn(button)
                     artemis.agent.ArtemisAgentTestHelpers.assertChecked(button, checked != on)
@@ -152,15 +154,8 @@ class SettingsFragmentTest {
             }
         }
 
-        fun testSortPair(
-            @IdRes sortFirst: Int,
-            @IdRes sortSecond: Int,
-            @IdRes defaultSort: Int,
-        ) {
-            listOf(
-                sortFirst to sortSecond,
-                sortSecond to sortFirst,
-            ).forEach { (first, second) ->
+        fun testSortPair(@IdRes sortFirst: Int, @IdRes sortSecond: Int, @IdRes defaultSort: Int) {
+            listOf(sortFirst to sortSecond, sortSecond to sortFirst).forEach { (first, second) ->
                 clickOn(first)
                 assertChecked(first)
                 assertUnchecked(defaultSort)
@@ -175,10 +170,7 @@ class SettingsFragmentTest {
             }
         }
 
-        fun testSortPermutations(
-            @IdRes defaultSort: Int,
-            @IdRes vararg orderToClick: Int,
-        ) {
+        fun testSortPermutations(@IdRes defaultSort: Int, @IdRes vararg orderToClick: Int) {
             val lastIndex = orderToClick.size - 1
             orderToClick.forEachIndexed { index, id ->
                 clickOn(id)
@@ -186,10 +178,7 @@ class SettingsFragmentTest {
             }
         }
 
-        fun testSortSingle(
-            @IdRes sortButton: Int,
-            @IdRes defaultSortButton: Int,
-        ) {
+        fun testSortSingle(@IdRes sortButton: Int, @IdRes defaultSortButton: Int) {
             clickOn(sortButton)
             assertChecked(sortButton)
             assertUnchecked(defaultSortButton)
@@ -198,25 +187,13 @@ class SettingsFragmentTest {
             assertUnchecked(sortButton)
             assertChecked(defaultSortButton)
         }
-
-        fun testSingleToggleSetting(
-            @IdRes dividerId: Int,
-            @IdRes titleId: Int,
-            @StringRes titleText: Int,
-            @IdRes buttonId: Int,
-            isChecked: Boolean,
-        ) {
-            scrollTo(dividerId)
-            assertDisplayed(titleId, titleText)
-            assertDisplayed(buttonId)
-            artemis.agent.ArtemisAgentTestHelpers.assertChecked(buttonId, isChecked)
-        }
     }
 
     @Test
     fun settingsMenuTest() {
         Robolectric.buildActivity(MainActivity::class.java).use {
             it.setup()
+            PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
             openSettingsMenu()
             assertDisplayed(R.id.settingsReset)

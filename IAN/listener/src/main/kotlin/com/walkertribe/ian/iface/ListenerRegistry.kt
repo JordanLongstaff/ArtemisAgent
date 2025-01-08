@@ -1,19 +1,18 @@
 package com.walkertribe.ian.iface
 
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Contains [ListenerModule]s to be invoked when a corresponding event occurs.
+ *
  * @author rjwut
  */
 class ListenerRegistry {
     private val listeners: MutableStateFlow<List<ListenerModule>> = MutableStateFlow(listOf())
 
-    /**
-     * Registers all functions in the given [ListenerModule] with the registry.
-     */
+    /** Registers all functions in the given [ListenerModule] with the registry. */
     fun register(module: ListenerModule) {
         listeners.value += module
     }
@@ -25,16 +24,12 @@ class ListenerRegistry {
     fun <T : ListenerArgument> listeningFor(kClass: KClass<T>): List<ListenerModule> =
         listeners.value.filter { it.acceptedTypes.any(kClass::isSubclassOf) }
 
-    /**
-     * Notifies interested listeners about this argument.
-     */
+    /** Notifies interested listeners about this argument. */
     fun offer(argument: ListenerArgument) {
         listeners.value.forEach(argument::offerTo)
     }
 
-    /**
-     * Removes all listeners from the registry.
-     */
+    /** Removes all listeners from the registry. */
     fun clear() {
         listeners.value = listOf()
     }

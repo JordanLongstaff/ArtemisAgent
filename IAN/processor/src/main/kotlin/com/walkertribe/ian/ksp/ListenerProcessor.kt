@@ -22,15 +22,15 @@ class ListenerProcessor(private val codeGenerator: CodeGenerator) : SymbolProces
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val listenerClassName = Listener::class.qualifiedName ?: return emptyList()
 
-        val functionSymbols = resolver.getSymbolsWithAnnotation(listenerClassName)
-            .filterIsInstance<KSFunctionDeclaration>()
-            .groupBy {
-                it.parentDeclaration?.qualifiedName?.asString() ?: ""
-            }.toSortedMap()
+        val functionSymbols =
+            resolver
+                .getSymbolsWithAnnotation(listenerClassName)
+                .filterIsInstance<KSFunctionDeclaration>()
+                .groupBy { it.parentDeclaration?.qualifiedName?.asString() ?: "" }
+                .toSortedMap()
 
-        val classSymbols = functionSymbols.keys.mapNotNull {
-            resolver.getClassDeclarationByName(it)
-        }
+        val classSymbols =
+            functionSymbols.keys.mapNotNull { resolver.getClassDeclarationByName(it) }
 
         classSymbols.forEach {
             val functions = it.qualifiedName?.run { functionSymbols[asString()] } ?: return@forEach
@@ -44,40 +44,47 @@ class ListenerProcessor(private val codeGenerator: CodeGenerator) : SymbolProces
         val listenerFunctionClass = ClassName("com.walkertribe.ian.iface", "ListenerFunction")
 
         defaultFunctionsGrouped.forEach { (packageName, functions) ->
-            val fileSpecBuilder = FileSpec.builder(packageName, "DefaultListenersKt")
-                .addImport(listenerFunctionClass.packageName, listenerFunctionClass.simpleName)
+            val fileSpecBuilder =
+                FileSpec.builder(packageName, "DefaultListenersKt")
+                    .addImport(listenerFunctionClass.packageName, listenerFunctionClass.simpleName)
 
-            functions.flatMap { it.parameters }.forEach { param ->
-                val paramTypeName = param.type.toTypeName() as ClassName
-                fileSpecBuilder.addImport(
-                    paramTypeName.enclosingClassName()?.canonicalName ?: paramTypeName.packageName,
-                    paramTypeName.simpleName,
-                )
-            }
+            functions
+                .flatMap { it.parameters }
+                .forEach { param ->
+                    val paramTypeName = param.type.toTypeName() as ClassName
+                    fileSpecBuilder.addImport(
+                        paramTypeName.enclosingClassName()?.canonicalName
+                            ?: paramTypeName.packageName,
+                        paramTypeName.simpleName,
+                    )
+                }
 
-            val moduleGetterSpec = FunSpec.getterBuilder()
-                .addStatement(
-                    "return listOf(%L)",
-                    functions.joinToString { fn ->
-                        fn.parameters.joinToString { param ->
-                            "ListenerFunction<${param.type.toTypeName()}>(::$fn)"
-                        }
-                    },
-                )
+            val moduleGetterSpec =
+                FunSpec.getterBuilder()
+                    .addStatement(
+                        "return listOf(%L)",
+                        functions.joinToString { fn ->
+                            fn.parameters.joinToString { param ->
+                                "ListenerFunction<${param.type.toTypeName()}>(::$fn)"
+                            }
+                        },
+                    )
 
-            val listenerModuleBuilder = PropertySpec.builder(
-                "defaultListeners",
-                List::class.asClassName().plusParameter(
-                    listenerFunctionClass.plusParameter(ListenerArgument::class.asTypeName()),
-                ),
-            ).getter(moduleGetterSpec.build())
+            val listenerModuleBuilder =
+                PropertySpec.builder(
+                        "defaultListeners",
+                        List::class.asClassName()
+                            .plusParameter(
+                                listenerFunctionClass.plusParameter(
+                                    ListenerArgument::class.asTypeName()
+                                )
+                            ),
+                    )
+                    .getter(moduleGetterSpec.build())
 
             fileSpecBuilder.addProperty(listenerModuleBuilder.build())
 
-            fileSpecBuilder.build().writeTo(
-                codeGenerator = codeGenerator,
-                aggregating = false,
-            )
+            fileSpecBuilder.build().writeTo(codeGenerator = codeGenerator, aggregating = false)
         }
 
         return emptyList()

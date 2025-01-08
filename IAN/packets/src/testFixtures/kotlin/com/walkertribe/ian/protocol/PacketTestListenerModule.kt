@@ -11,8 +11,7 @@ object PacketTestListenerModule : PacketListenerModule {
     val packets = mutableListOf<Packet.Server>()
     val objects = mutableListOf<ArtemisObject<*>>()
 
-    override val acceptedTypes: Set<KClass<out ListenerArgument>> =
-        setOf(Packet.Server::class)
+    override val acceptedTypes: Set<KClass<out ListenerArgument>> = setOf(Packet.Server::class)
 
     override val packetListeners: List<ListenerFunction<out Packet.Server>> =
         listOf(ListenerFunction(Packet.Server::class, packets::add))

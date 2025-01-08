@@ -2,6 +2,7 @@ package com.walkertribe.ian.protocol
 
 /**
  * Interface for classes which provide support for a set of packets.
+ *
  * @author rjwut
  */
 interface Protocol {

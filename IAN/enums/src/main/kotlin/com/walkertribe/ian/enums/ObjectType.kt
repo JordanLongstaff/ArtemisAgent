@@ -2,6 +2,7 @@ package com.walkertribe.ian.enums
 
 /**
  * World object types.
+ *
  * @author rjwut
  */
 enum class ObjectType {
@@ -21,9 +22,7 @@ enum class ObjectType {
     CREATURE,
     DRONE;
 
-    /**
-     * Returns the ID of this type.
-     */
+    /** Returns the ID of this type. */
     val id: Byte by lazy {
         var id = ordinal + 1
         if (this >= NEBULA) id++

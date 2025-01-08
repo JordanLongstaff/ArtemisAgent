@@ -24,28 +24,29 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
 
     private var volume: Int
         get() = (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
-        set(value) { viewModel.volume = value.toFloat() }
+        set(value) {
+            viewModel.volume = value.toFloat()
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val themeOptionButtons = arrayOf(
-            binding.themeDefaultButton,
-            binding.themeRedButton,
-            binding.themeGreenButton,
-            binding.themeYellowButton,
-            binding.themeBlueButton,
-            binding.themePurpleButton,
-        )
+        val themeOptionButtons =
+            arrayOf(
+                binding.themeDefaultButton,
+                binding.themeRedButton,
+                binding.themeGreenButton,
+                binding.themeYellowButton,
+                binding.themeBlueButton,
+                binding.themePurpleButton,
+            )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             themeOptionButtons[it.themeValue].isChecked = true
 
             binding.threeDigitDirectionsButton.isChecked = it.threeDigitDirections
-            binding.threeDigitDirectionsLabel.text = getString(
-                R.string.direction,
-                if (it.threeDigitDirections) "000" else "0"
-            )
+            binding.threeDigitDirectionsLabel.text =
+                getString(R.string.direction, if (it.threeDigitDirections) "000" else "0")
 
             binding.soundVolumeBar.progress = it.soundVolume
         }
@@ -55,9 +56,7 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
             button.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     viewModel.viewModelScope.launch {
-                        button.context.userSettings.updateData {
-                            it.copy { themeValue = index }
-                        }
+                        button.context.userSettings.updateData { it.copy { themeValue = index } }
                     }
                 }
             }
@@ -82,7 +81,7 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
                     progress: Int,
-                    fromUser: Boolean
+                    fromUser: Boolean,
                 ) {
                     volume = progress
                     binding.soundVolumeLabel.text = progress.formatString()
@@ -95,11 +94,7 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
                     viewModel.playSound(SoundEffect.BEEP_2)
                     viewModel.viewModelScope.launch {
-                        view.context.userSettings.updateData {
-                            it.copy {
-                                soundVolume = volume
-                            }
-                        }
+                        view.context.userSettings.updateData { it.copy { soundVolume = volume } }
                     }
                 }
             }

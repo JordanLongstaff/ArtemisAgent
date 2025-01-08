@@ -3,9 +3,12 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 plugins {
     id("com.android.application")
     kotlin("android")
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.crashlytics)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -22,11 +25,12 @@ android {
         applicationId = "artemis.agent"
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 1
-        versionName = "0.1.0"
-
+        versionCode = 18
+        versionName = "1.0.8"
         multiDexEnabled = true
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
     compileOptions {
@@ -35,15 +39,9 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions {
-        jvmTarget = javaVersion.toString()
-    }
+    kotlinOptions { jvmTarget = javaVersion.toString() }
 
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-    }
+    testOptions.unitTests.isIncludeAndroidResources = true
 
     buildTypes {
         configureEach {
@@ -55,7 +53,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
 
             ndk.debugSymbolLevel = "FULL"
@@ -77,29 +75,32 @@ android {
 
 dependencies {
     implementation(fileTree(baseDir = "libs") { include("*.jar") })
-    implementation(project(":IAN"))
-    implementation(project(":IAN:enums"))
-    implementation(project(":IAN:listener"))
-    implementation(project(":IAN:packets"))
-    implementation(project(":IAN:udp"))
-    implementation(project(":IAN:util"))
-    implementation(project(":IAN:vesseldata"))
-    implementation(project(":IAN:world"))
+    implementation(projects.ian)
+    implementation(projects.ian.enums)
+    implementation(projects.ian.listener)
+    implementation(projects.ian.packets)
+    implementation(projects.ian.udp)
+    implementation(projects.ian.util)
+    implementation(projects.ian.vesseldata)
+    implementation(projects.ian.world)
 
-    ksp(project(":IAN:processor"))
+    ksp(projects.ian.processor)
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
     testImplementation(libs.bundles.app.test)
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
+
     constraints {
-        testImplementation(libs.jsoup) {
-            because("Version 1.14.2 patches a high-level security vulnerability")
-        }
-        testImplementation(libs.guava) {
+        implementation(libs.guava) {
             because("Version 32.0.0-android patches a moderate security vulnerability")
         }
-        testImplementation(libs.accessibility.test.framework) {
+        androidTestImplementation(libs.jsoup) {
+            because("Version 1.14.2 patches a high-level security vulnerability")
+        }
+        androidTestImplementation(libs.accessibility.test.framework) {
             because("Needed to resolve static method registerDefaultInstance")
         }
         testImplementation(libs.espresso.core) {
@@ -110,6 +111,8 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 }
 
+ktfmt { kotlinLangStyle() }
+
 detekt {
     source.setFrom(file("src/main/kotlin"))
     config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
@@ -118,19 +121,13 @@ detekt {
 }
 
 protobuf {
-    protoc {
-        artifact = libs.protoc.get().toString()
-    }
+    protoc { artifact = libs.protoc.get().toString() }
 
     generateProtoTasks {
         all().forEach {
             it.builtins {
-                create("java") {
-                    option("lite")
-                }
-                create("kotlin") {
-                    option("lite")
-                }
+                create("java") { option("lite") }
+                create("kotlin") { option("lite") }
             }
         }
     }

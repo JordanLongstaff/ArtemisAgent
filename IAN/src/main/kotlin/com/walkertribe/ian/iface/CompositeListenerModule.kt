@@ -12,20 +12,18 @@ data class CompositeListenerModule(
     override val artemisObjectListeners: List<ListenerFunction<out ArtemisObject<*>>>,
 ) : ConnectionEventListenerModule, PacketListenerModule, ArtemisObjectListenerModule {
     override val acceptedTypes: Set<KClass<out ListenerArgument>> by lazy {
-        (connectionEventListeners + packetListeners + artemisObjectListeners).map {
-            it.argumentClass
-        }.toSet()
+        (connectionEventListeners + packetListeners + artemisObjectListeners)
+            .map { it.argumentClass }
+            .toSet()
     }
 
-    constructor(allListeners: List<ListenerFunction<out ListenerArgument>>) : this(
-        connectionEventListeners = allListeners.mapNotNull {
-            it.checkIfAccepting(ConnectionEvent::class)
-        },
-        packetListeners = allListeners.mapNotNull {
-            it.checkIfAccepting(Packet.Server::class)
-        },
-        artemisObjectListeners = allListeners.mapNotNull {
-            it.checkIfAccepting(ArtemisObject::class)
-        },
+    constructor(
+        allListeners: List<ListenerFunction<out ListenerArgument>>
+    ) : this(
+        connectionEventListeners =
+            allListeners.mapNotNull { it.checkIfAccepting(ConnectionEvent::class) },
+        packetListeners = allListeners.mapNotNull { it.checkIfAccepting(Packet.Server::class) },
+        artemisObjectListeners =
+            allListeners.mapNotNull { it.checkIfAccepting(ArtemisObject::class) },
     )
 }

@@ -9,23 +9,20 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.map
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
-class PausePacketFixture private constructor(
-    arbVersion: Arb<Version>,
-    isPaused: BoolState,
-) : PacketTestFixture.Server<PausePacket>(TestPacketTypes.SIMPLE_EVENT) {
+class PausePacketFixture private constructor(arbVersion: Arb<Version>, isPaused: BoolState) :
+    PacketTestFixture.Server<PausePacket>(TestPacketTypes.SIMPLE_EVENT) {
     override val specName: String = "Paused: $isPaused"
 
-    class Data internal constructor(
-        override val version: Version,
-        private val isPaused: BoolState,
-    ) : PacketTestData.Server<PausePacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.PAUSE.toInt())
-            writeIntLittleEndian(if (isPaused.booleanValue) 1 else 0)
+    class Data
+    internal constructor(override val version: Version, private val isPaused: BoolState) :
+        PacketTestData.Server<PausePacket> {
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.PAUSE.toInt())
+            writeIntLe(if (isPaused.booleanValue) 1 else 0)
         }
 
         override fun validate(packet: PausePacket) {
@@ -35,8 +32,7 @@ class PausePacketFixture private constructor(
 
     override val generator: Gen<Data> = arbVersion.map { Data(it, isPaused) }
 
-    override suspend fun testType(packet: Packet.Server): PausePacket =
-        packet.shouldBeInstanceOf()
+    override suspend fun testType(packet: Packet.Server): PausePacket = packet.shouldBeInstanceOf()
 
     companion object {
         fun allFixtures(arbVersion: Arb<Version> = Arb.version()): List<PausePacketFixture> =

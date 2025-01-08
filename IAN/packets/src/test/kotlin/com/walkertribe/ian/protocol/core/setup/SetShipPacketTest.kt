@@ -10,10 +10,11 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.negativeInt
 import io.kotest.property.checkAll
 
-class SetShipPacketTest : PacketTestSpec.Client<SetShipPacket>(
-    specName = "SetShipPacket",
-    fixtures = SetShipPacketFixture.ALL,
-) {
+class SetShipPacketTest :
+    PacketTestSpec.Client<SetShipPacket>(
+        specName = "SetShipPacket",
+        fixtures = SetShipPacketFixture.ALL,
+    ) {
     override suspend fun DescribeSpecContainerScope.describeMore() {
         describe("Invalid ship index throws") {
             withData(
@@ -21,9 +22,7 @@ class SetShipPacketTest : PacketTestSpec.Client<SetShipPacket>(
                 "Negative" to Arb.negativeInt(),
                 "Too high" to Arb.int(min = Artemis.SHIP_COUNT),
             ) { (_, arbInt) ->
-                arbInt.checkAll {
-                    shouldThrow<IllegalArgumentException> { SetShipPacket(it) }
-                }
+                arbInt.checkAll { shouldThrow<IllegalArgumentException> { SetShipPacket(it) } }
             }
         }
     }

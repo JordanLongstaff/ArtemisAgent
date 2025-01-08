@@ -8,13 +8,16 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.nonNegativeInt
 import io.kotest.property.checkAll
 
-class RawPacketTest : DescribeSpec({
-    describe("RawPacket") {
-        it("Constructor") {
-            checkAll(
-                Arb.int(),
-                Arb.byteArray(Arb.nonNegativeInt(UShort.MAX_VALUE.toInt()), Arb.byte()),
-            ) { packetType, payload -> Packet.Raw(packetType, payload) }
+class RawPacketTest :
+    DescribeSpec({
+        describe("RawPacket") {
+            it("Constructor") {
+                checkAll(
+                    Arb.int(),
+                    Arb.byteArray(Arb.nonNegativeInt(UShort.MAX_VALUE.toInt()), Arb.byte()),
+                ) { packetType, payload ->
+                    Packet.Raw(packetType, payload)
+                }
+            }
         }
-    }
-})
+    })

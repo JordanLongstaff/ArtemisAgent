@@ -85,4 +85,7 @@ message UserSettings {
     bool show_enemy_intel = 58;
     bool show_taunt_statuses = 59;
     bool disable_ineffective_taunts = 60;
+
+    bool show_network_info = 61;
+    bool always_scan_public = 62;
 }

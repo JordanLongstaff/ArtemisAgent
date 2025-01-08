@@ -6,34 +6,28 @@ import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
-sealed class ButtonClickPacketFixture private constructor(
-    override val specName: String,
-    arbPacket: Arb<ButtonClickPacket>,
-) : PacketTestFixture.Client<ButtonClickPacket>(
-    packetType = TestPacketTypes.VALUE_INT,
-    expectedPayloadSize = PAYLOAD_SIZE,
-) {
-    class Data internal constructor(
-        packet: ButtonClickPacket,
-    ) : PacketTestData.Client<ButtonClickPacket>(packet) {
-        override fun validatePayload(payload: ByteReadPacket) {
-            payload.readIntLittleEndian() shouldBeEqual ValueIntPacket.Subtype.BUTTON_CLICK.toInt()
-            payload.readIntLittleEndian() shouldBeEqual 0x0d
-            payload.readIntLittleEndian() shouldBeEqual packet.hash
+sealed class ButtonClickPacketFixture
+private constructor(override val specName: String, arbPacket: Arb<ButtonClickPacket>) :
+    PacketTestFixture.Client<ButtonClickPacket>(
+        packetType = TestPacketTypes.VALUE_INT,
+        expectedPayloadSize = PAYLOAD_SIZE,
+    ) {
+    class Data internal constructor(packet: ButtonClickPacket) :
+        PacketTestData.Client<ButtonClickPacket>(packet) {
+        override fun validatePayload(payload: Source) {
+            payload.readIntLe() shouldBeEqual ValueIntPacket.Subtype.BUTTON_CLICK.toInt()
+            payload.readIntLe() shouldBeEqual 0x0d
+            payload.readIntLe() shouldBeEqual packet.hash
         }
     }
 
-    data object Hash : ButtonClickPacketFixture(
-        "Primary constructor",
-        Arb.bind(),
-    )
-    data object Label : ButtonClickPacketFixture(
-        "Label constructor",
-        Arb.string().map(::ButtonClickPacket),
-    )
+    data object Hash : ButtonClickPacketFixture("Primary constructor", Arb.bind())
+
+    data object Label :
+        ButtonClickPacketFixture("Label constructor", Arb.string().map(::ButtonClickPacket))
 
     override val generator: Gen<Data> = arbPacket.map(::Data)
 

@@ -1,7 +1,7 @@
 package com.walkertribe.ian.util
 
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readBytes
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
 
 /**
  * Provides easy reading and writing of bits in a bit field. The bytes are little-endian, so in the
@@ -17,37 +17,32 @@ import io.ktor.utils.io.core.readBytes
  * @author rjwut
  */
 class BitField(private val bitCount: Int) {
-    private val bytes: ByteArray = ByteArray(
-        countBytes(
-            bitCount.also {
-                require(it >= 0) { "Bit field cannot have a negative number of bits" }
-            }
+    private val bytes: ByteArray =
+        ByteArray(
+            countBytes(
+                bitCount.also {
+                    require(it >= 0) { "Bit field cannot have a negative number of bits" }
+                }
+            )
         )
-    )
 
     /**
-     * Creates a BitField large enough to accommodate the enumerated bits, and
-     * stores the indicated bytes in it.
+     * Creates a BitField large enough to accommodate the enumerated bits, and stores the indicated
+     * bytes in it.
      */
-    internal constructor(bitCount: Int, packet: ByteReadPacket) : this(bitCount) {
-        packet.readBytes(byteCount).copyInto(this.bytes)
+    internal constructor(bitCount: Int, packet: Source) : this(bitCount) {
+        packet.readByteArray(byteCount).copyInto(this.bytes)
     }
 
-    /**
-     * Returns the number of bytes in this BitField.
-     */
+    /** Returns the number of bytes in this BitField. */
     val byteCount: Int by lazy { bytes.size }
 
-    /**
-     * Returns true if the indicated bit is 1, false if it's 0.
-     */
+    /** Returns true if the indicated bit is 1, false if it's 0. */
     operator fun get(bitIndex: Int): Boolean =
         bitIndex in 0 until bitCount &&
             bytes[bitIndex shr BYTE_INDEX_SHIFT].toInt() and (1 shl bitIndex % Byte.SIZE_BITS) != 0
 
-    /**
-     * If value is true, the indicated bit is set to 1; otherwise, it's set to 0.
-     */
+    /** If value is true, the indicated bit is set to 1; otherwise, it's set to 0. */
     operator fun set(bitIndex: Int, value: Boolean) {
         if (bitIndex !in 0 until bitCount) return
         val byteIndex = bitIndex / Byte.SIZE_BITS
@@ -69,4 +64,4 @@ class BitField(private val bitCount: Int) {
  */
 fun countBytes(bitCount: Int): Int = bitCount / Byte.SIZE_BITS + 1
 
-fun ByteReadPacket.readBitField(bitCount: Int): BitField = BitField(bitCount, this)
+fun Source.readBitField(bitCount: Int): BitField = BitField(bitCount, this)

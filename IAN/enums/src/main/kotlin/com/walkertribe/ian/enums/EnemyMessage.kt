@@ -2,6 +2,7 @@ package com.walkertribe.ian.enums
 
 /**
  * Messages that can be sent to enemy NPCs.
+ *
  * @author rjwut
  */
 enum class EnemyMessage : CommsMessage {
@@ -10,6 +11,9 @@ enum class EnemyMessage : CommsMessage {
     TAUNT_2,
     TAUNT_3;
 
-    override val id: Int get() = ordinal
-    override val recipientType: CommsRecipientType get() = CommsRecipientType.ENEMY
+    override val id: Int
+        get() = ordinal
+
+    override val recipientType: CommsRecipientType
+        get() = CommsRecipientType.ENEMY
 }

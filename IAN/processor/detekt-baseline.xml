@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
-  <CurrentIssues>
-    <ID>LongMethod:PacketProcessor.kt$PacketProcessor$@OptIn(KspExperimental::class) override fun process(resolver: Resolver): List&lt;KSAnnotated&gt;</ID>
-    <ID>ReturnCount:PacketProcessor.kt$PacketProcessor$@OptIn(KspExperimental::class) override fun process(resolver: Resolver): List&lt;KSAnnotated&gt;</ID>
-  </CurrentIssues>
-</SmellBaseline>

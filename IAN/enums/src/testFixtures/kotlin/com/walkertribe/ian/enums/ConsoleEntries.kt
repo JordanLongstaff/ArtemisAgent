@@ -9,4 +9,5 @@ private val allConsoles by lazy {
     )
 }
 
-val Console.Companion.entries get() = allConsoles
+val Console.Companion.entries
+    get() = allConsoles

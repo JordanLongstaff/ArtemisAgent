@@ -6,6 +6,7 @@ import com.walkertribe.ian.util.BoolState
 
 /**
  * Notifies the client that the game has paused or unpaused.
+ *
  * @author rjwut
  */
 @PacketSubtype(subtype = SimpleEventPacket.Subtype.PAUSE)

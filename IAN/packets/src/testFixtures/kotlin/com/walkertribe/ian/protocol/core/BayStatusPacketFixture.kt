@@ -12,11 +12,12 @@ import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
-class BayStatusPacketFixture private constructor(
+class BayStatusPacketFixture
+private constructor(
     override val specName: String,
     shouldWriteBayNumber: Boolean,
     versionArb: Arb<Version>,
@@ -34,17 +35,17 @@ class BayStatusPacketFixture private constructor(
         val shouldWriteBayNumber: Boolean,
         val bays: List<Bay>,
     ) : PacketTestData.Server<BayStatusPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
+        override fun buildPayload(): Source = buildPacket {
             bays.forEach {
-                writeIntLittleEndian(it.id)
+                writeIntLe(it.id)
                 if (shouldWriteBayNumber) {
-                    writeIntLittleEndian(it.bayNumber)
+                    writeIntLe(it.bayNumber)
                 }
                 writeString(it.name)
                 writeString(it.className)
-                writeIntLittleEndian(it.refitTime)
+                writeIntLe(it.refitTime)
             }
-            writeIntLittleEndian(0)
+            writeIntLe(0)
         }
 
         override fun validate(packet: BayStatusPacket) {
@@ -52,36 +53,36 @@ class BayStatusPacketFixture private constructor(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(
-        versionArb,
-        Arb.list(
-            Arb.bind(
-                Arb.int().filter { it != 0 },
-                Arb.int(),
-                Arb.string(),
-                Arb.string(),
-                Arb.int(),
-            ) { id, bayNumber, name, className, refitTime ->
-                Bay(id, bayNumber, name, className, refitTime)
-            },
-        ),
-    ) { version, bays -> Data(version, shouldWriteBayNumber, bays) }
+    override val generator: Gen<Data> =
+        Arb.bind(
+            versionArb,
+            Arb.list(
+                Arb.bind(
+                    Arb.int().filter { it != 0 },
+                    Arb.int(),
+                    Arb.string(),
+                    Arb.string(),
+                    Arb.int(),
+                ) { id, bayNumber, name, className, refitTime ->
+                    Bay(id, bayNumber, name, className, refitTime)
+                }
+            ),
+        ) { version, bays ->
+            Data(version, shouldWriteBayNumber, bays)
+        }
 
     override suspend fun testType(packet: Packet.Server): BayStatusPacket =
         packet.shouldBeInstanceOf()
 
     companion object {
-        val ALL = listOf(
-            BayStatusPacketFixture(
-                "Before version 2.6.0",
-                false,
-                Arb.version(2, 3..5),
-            ),
-            BayStatusPacketFixture(
-                "Since version 2.6.0",
-                true,
-                Arb.version(2, Arb.int(min = 6)),
-            ),
-        )
+        val ALL =
+            listOf(
+                BayStatusPacketFixture("Before version 2.6.0", false, Arb.version(2, 3..5)),
+                BayStatusPacketFixture(
+                    "Since version 2.6.0",
+                    true,
+                    Arb.version(2, Arb.int(min = 6)),
+                ),
+            )
     }
 }

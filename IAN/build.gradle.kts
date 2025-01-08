@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -30,20 +31,25 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val konsistCollect by tasks.registering {
-    group = "build"
-    description = "Runs all Konsist unit tests of all subprojects."
-}
+val konsistCollect by
+    tasks.registering {
+        group = "build"
+        description = "Runs all Konsist unit tests of all subprojects."
+    }
 
-allprojects.filter { it.path.contains("konsist") }.forEach { project ->
-    project.tasks.whenTaskAdded {
-        if (name == "test") {
-            konsistCollect.dependsOn(path)
+allprojects
+    .filter { it.path.contains("konsist") }
+    .forEach { project ->
+        project.tasks.whenTaskAdded {
+            if (name == "test") {
+                konsistCollect.dependsOn(path)
+            }
         }
     }
-}
 
 tasks.assemble.dependsOn(konsistCollect)
+
+ktfmt { kotlinLangStyle() }
 
 detekt {
     source.setFrom(file("src/main/kotlin"))
@@ -51,26 +57,27 @@ detekt {
 }
 
 dependencies {
-    compileOnly(project(":IAN:annotations"))
+    compileOnly(projects.ian.annotations)
 
-    api(project(":IAN:enums"))
-    api(project(":IAN:listener"))
-    api(project(":IAN:packets"))
-    api(project(":IAN:util"))
-    api(project(":IAN:world"))
+    api(projects.ian.enums)
+    api(projects.ian.listener)
+    api(projects.ian.packets)
+    api(projects.ian.util)
+    api(projects.ian.world)
 
     api(libs.kotlin.stdlib)
 
-    ksp(project(":IAN:processor"))
+    ksp(projects.ian.processor)
     ksp(libs.ksp.koin)
 
     implementation(libs.bundles.ian)
 
     runtimeOnly(libs.kotlin.reflect)
 
-    testImplementation(testFixtures(project(":IAN:listener")))
-    testImplementation(testFixtures(project(":IAN:packets")))
-    testImplementation(testFixtures(project(":IAN:util")))
+    testImplementation(projects.ian.testing)
+    testImplementation(testFixtures(projects.ian.listener))
+    testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.util))
     testImplementation(libs.bundles.ian.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

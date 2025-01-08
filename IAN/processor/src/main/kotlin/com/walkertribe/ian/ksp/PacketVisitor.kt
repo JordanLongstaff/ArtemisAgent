@@ -20,9 +20,7 @@ class PacketVisitor(private val codeGenerator: CodeGenerator) : KSVisitorVoid() 
         val containingFile = classDeclaration.containingFile ?: return
         val packageName = classDeclaration.packageName.asString()
         val className = classDeclaration.simpleName.asString()
-        val parentName = classDeclaration.parentDeclaration?.run {
-            simpleName.asString()
-        }
+        val parentName = classDeclaration.parentDeclaration?.run { simpleName.asString() }
         val fileName = PacketProcessor.makeFactoryClassName(classDeclaration)
         val fullPacketName = listOfNotNull(parentName, className).joinToString(".")
 
@@ -30,28 +28,35 @@ class PacketVisitor(private val codeGenerator: CodeGenerator) : KSVisitorVoid() 
         val packetClassName = ClassName(packageName, fullPacketName.split("."))
         val packetReaderClassName = ClassName("com.walkertribe.ian.iface", "PacketReader")
 
-        val objectBuilder = TypeSpec.objectBuilder(fileName)
-            .addModifiers(KModifier.INTERNAL)
-            .addSuperinterface(factoryClassName.plusParameter(packetClassName))
-            .addOriginatingKSFile(containingFile)
+        val objectBuilder =
+            TypeSpec.objectBuilder(fileName)
+                .addModifiers(KModifier.INTERNAL)
+                .addSuperinterface(factoryClassName.plusParameter(packetClassName))
+                .addOriginatingKSFile(containingFile)
 
-        val factoryClassBuilder = PropertySpec.builder(
-            "factoryClass",
-            KClass::class.asTypeName().plusParameter(packetClassName),
-            KModifier.OVERRIDE,
-        ).initializer("%T::class", packetClassName)
+        val factoryClassBuilder =
+            PropertySpec.builder(
+                    "factoryClass",
+                    KClass::class.asTypeName().plusParameter(packetClassName),
+                    KModifier.OVERRIDE,
+                )
+                .initializer("%T::class", packetClassName)
 
-        val buildFunBuilder = FunSpec.builder("build")
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter("reader", packetReaderClassName)
-            .returns(packetClassName)
-            .addStatement("return %T(reader)", packetClassName)
+        val buildFunBuilder =
+            FunSpec.builder("build")
+                .addModifiers(KModifier.OVERRIDE)
+                .addParameter("reader", packetReaderClassName)
+                .returns(packetClassName)
+                .addStatement("return %T(reader)", packetClassName)
 
-        FileSpec.builder(packageName, fileName).addType(
-            objectBuilder
-                .addProperty(factoryClassBuilder.build())
-                .addFunction(buildFunBuilder.build())
-                .build()
-        ).build().writeTo(codeGenerator, aggregating = false)
+        FileSpec.builder(packageName, fileName)
+            .addType(
+                objectBuilder
+                    .addProperty(factoryClassBuilder.build())
+                    .addFunction(buildFunBuilder.build())
+                    .build()
+            )
+            .build()
+            .writeTo(codeGenerator, aggregating = false)
     }
 }

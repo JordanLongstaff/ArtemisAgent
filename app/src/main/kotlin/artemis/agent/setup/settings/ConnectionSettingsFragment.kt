@@ -65,6 +65,19 @@ class ConnectionSettingsFragment : Fragment(R.layout.settings_connection) {
             connectionTimeoutBinder.timeInSeconds = it.connectionTimeoutSeconds
             heartbeatTimeoutBinder.timeInSeconds = it.serverTimeoutSeconds
             scanTimeoutBinder.timeInSeconds = it.scanTimeoutSeconds
+            binding.alwaysScanPublicButton.isChecked = it.alwaysScanPublic
+        }
+
+        binding.alwaysScanPublicButton.setOnClickListener {
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        binding.alwaysScanPublicButton.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.viewModelScope.launch {
+                binding.root.context.userSettings.updateData {
+                    it.copy { alwaysScanPublic = isChecked }
+                }
+            }
         }
     }
 

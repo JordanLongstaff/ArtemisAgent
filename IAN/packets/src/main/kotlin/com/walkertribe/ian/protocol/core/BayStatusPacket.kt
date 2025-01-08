@@ -7,6 +7,7 @@ import com.walkertribe.ian.util.Version
 
 /**
  * Updates the current status of the single-seat craft bays.
+ *
  * @author rjwut
  */
 @PacketType(type = CorePacketType.CARRIER_RECORD)

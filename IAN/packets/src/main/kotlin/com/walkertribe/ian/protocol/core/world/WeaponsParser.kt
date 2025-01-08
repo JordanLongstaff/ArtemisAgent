@@ -25,15 +25,16 @@ object WeaponsParser : AbstractObjectParser<ArtemisPlayer>(ObjectType.WEAPONS_CO
     data class TubeTimeBit(val index: Int) : Bit {
         override fun getIndex(version: Version): Int {
             val countOrdnanceTypes = OrdnanceType.countForVersion(version)
-            return countOrdnanceTypes + index +
-                if (countOrdnanceTypes < OrdnanceType.size) 1 else 0
+            return countOrdnanceTypes + index + if (countOrdnanceTypes < OrdnanceType.size) 1 else 0
         }
     }
 
     data class TubeStateBit(val index: Int) : Bit {
         override fun getIndex(version: Version): Int {
             val countOrdnanceTypes = OrdnanceType.countForVersion(version)
-            return countOrdnanceTypes + Artemis.MAX_TUBES + index +
+            return countOrdnanceTypes +
+                Artemis.MAX_TUBES +
+                index +
                 if (countOrdnanceTypes < OrdnanceType.size) 1 else 0
         }
     }
@@ -41,40 +42,43 @@ object WeaponsParser : AbstractObjectParser<ArtemisPlayer>(ObjectType.WEAPONS_CO
     data class TubeContentsBit(val index: Int) : Bit {
         override fun getIndex(version: Version): Int {
             val countOrdnanceTypes = OrdnanceType.countForVersion(version)
-            return countOrdnanceTypes + Artemis.MAX_TUBES * 2 + index +
+            return countOrdnanceTypes +
+                Artemis.MAX_TUBES * 2 +
+                index +
                 if (countOrdnanceTypes < OrdnanceType.size) 1 else 0
         }
     }
 
     private val ALL_BITS =
-        OrdnanceType.entries.map(WeaponsParser::OrdnanceCountBit) + UnknownBit +
+        OrdnanceType.entries.map(WeaponsParser::OrdnanceCountBit) +
+            UnknownBit +
             0.until(Artemis.MAX_TUBES).flatMap {
                 listOf(TubeTimeBit(it), TubeStateBit(it), TubeContentsBit(it))
             }
 
-    override fun parseDsl(reader: PacketReader) = ArtemisPlayer.WeaponsDsl.apply {
-        OrdnanceType.entries.forEach {
-            ordnanceCounts[it] = reader.readByte(OrdnanceCountBit(it))
-        }
+    override fun parseDsl(reader: PacketReader) =
+        ArtemisPlayer.Dsl.Weapons.apply {
+            OrdnanceType.entries.forEach {
+                ordnanceCounts[it] = reader.readByte(OrdnanceCountBit(it))
+            }
 
-        reader.readByte(UnknownBit)
+            reader.readByte(UnknownBit)
 
-        repeat(Artemis.MAX_TUBES) {
-            reader.readFloat(TubeTimeBit(it))
-        }
+            repeat(Artemis.MAX_TUBES) { reader.readFloat(TubeTimeBit(it)) }
 
-        repeat(Artemis.MAX_TUBES) {
-            tubeStates[it] = reader.readByteAsEnum<TubeState>(TubeStateBit(it))
-        }
+            repeat(Artemis.MAX_TUBES) {
+                tubeStates[it] = reader.readByteAsEnum<TubeState>(TubeStateBit(it))
+            }
 
-        repeat(Artemis.MAX_TUBES) {
-            val contentsBit = TubeContentsBit(it)
-            when (tubeStates[it]) {
-                null, TubeState.UNLOADED -> reader.readByte(contentsBit)
-                else -> tubeContents[it] = reader.readByteAsEnum<OrdnanceType>(contentsBit)
+            repeat(Artemis.MAX_TUBES) {
+                val contentsBit = TubeContentsBit(it)
+                when (tubeStates[it]) {
+                    null,
+                    TubeState.UNLOADED -> reader.readByte(contentsBit)
+                    else -> tubeContents[it] = reader.readByteAsEnum<OrdnanceType>(contentsBit)
+                }
             }
         }
-    }
 
     override fun getBitCount(version: Version): Int = ALL_BITS.count { it.getIndex(version) >= 0 }
 }

@@ -4,9 +4,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 
-class GenericDataAdapter(
-    private val onClickItem: (GenericDataViewHolder) -> Unit = { },
-) : RecyclerView.Adapter<GenericDataViewHolder>() {
+class GenericDataAdapter(private val onClickItem: (GenericDataViewHolder) -> Unit = {}) :
+    RecyclerView.Adapter<GenericDataViewHolder>() {
     private var entries = listOf<GenericDataEntry>()
 
     override fun getItemCount(): Int = entries.size
@@ -22,9 +21,7 @@ class GenericDataAdapter(
     fun onListUpdate(list: List<GenericDataEntry>) {
         if (entries == list) return
 
-        DiffUtil.calculateDiff(
-            GenericDataDiffUtilCallback(entries, list)
-        ).dispatchUpdatesTo(this)
+        DiffUtil.calculateDiff(GenericDataDiffUtilCallback(entries, list)).dispatchUpdatesTo(this)
         entries = list
     }
 }
