@@ -38,7 +38,7 @@ jobs:
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew build
+        run: ./gradlew build koverXmlReport
 
       # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
       # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
@@ -67,3 +67,20 @@ jobs:
           check_name: Konsist Test Results
           files: |
             ${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
+
+      - name: Frontend Code Coverage Report
+        uses: mi-kas/kover-report@v1.9
+        with:
+          title: Frontend Code Coverage
+          path: ${{ github.workspace }}/app/**/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
+
+      - name: Backend Code Coverage Report
+        uses: mi-kas/kover-report@v1.9
+        with:
+          title: Backend Code Coverage
+          path: ${{ github.workspace }}/IAN/**/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
+          min-coverage-overall: 90
