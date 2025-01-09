@@ -72,7 +72,7 @@ jobs:
         uses: mi-kas/kover-report@v1.9
         with:
           title: Frontend Code Coverage
-          path: ${{ github.workspace }}/app/**/build/reports/kover/report.xml
+          path: ${{ github.workspace }}/app/build/reports/kover/report.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
 
@@ -80,7 +80,15 @@ jobs:
         uses: mi-kas/kover-report@v1.9
         with:
           title: Backend Code Coverage
-          path: ${{ github.workspace }}/IAN/**/build/reports/kover/report.xml
+          path: |
+            ${{ github.workspace }}/IAN/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/enums/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/listener/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/packets/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/udp/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/util/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/vesseldata/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/world/build/reports/kover/report.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
           min-coverage-overall: 90
