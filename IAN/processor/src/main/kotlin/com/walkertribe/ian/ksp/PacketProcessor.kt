@@ -23,8 +23,8 @@ import com.walkertribe.ian.protocol.PacketSubtype
 import com.walkertribe.ian.protocol.PacketType
 import com.walkertribe.ian.util.JamCrc
 import com.walkertribe.ian.util.Util.toHex
-import org.koin.core.annotation.Single
 import kotlin.reflect.KClass
+import org.koin.core.annotation.Single
 
 class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcessor {
     private val visitor: PacketVisitor by lazy { PacketVisitor(codeGenerator) }
@@ -40,23 +40,27 @@ class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcesso
 
         val abstractSymbols =
             symbols.values.filter { it.isAbstract() }.map { it.simpleName.asString() }.toSortedSet()
-        val subtypeMap = subtypeSymbols.values.groupBy { cls ->
-            cls.superTypes.map { superType ->
-                superType.resolve().declaration.simpleName.asString()
-            }.first(abstractSymbols::contains)
-        }
+        val subtypeMap =
+            subtypeSymbols.values.groupBy { cls ->
+                cls.superTypes
+                    .map { superType -> superType.resolve().declaration.simpleName.asString() }
+                    .first(abstractSymbols::contains)
+            }
 
         val fileSpecBuilder = FileSpec.builder(MAIN_PACKAGE, FILENAME)
-        packetClasses.filterNot { it.packageName.asString() == MAIN_PACKAGE }.forEach {
-            fileSpecBuilder.addImport(it.packageName.asString(), makeFactoryClassName(it))
-        }
+        packetClasses
+            .filterNot { it.packageName.asString() == MAIN_PACKAGE }
+            .forEach {
+                fileSpecBuilder.addImport(it.packageName.asString(), makeFactoryClassName(it))
+            }
 
-        val getFactoryFunBuilder = FunSpec.builder("getFactory")
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter("type", Int::class)
-            .addParameter("subtype", Byte::class)
-            .returns(factoryClassWildcardName.copy(nullable = true))
-            .beginControlFlow("return when (type)")
+        val getFactoryFunBuilder =
+            FunSpec.builder("getFactory")
+                .addModifiers(KModifier.OVERRIDE)
+                .addParameter("type", Int::class)
+                .addParameter("subtype", Byte::class)
+                .returns(factoryClassWildcardName.copy(nullable = true))
+                .beginControlFlow("return when (type)")
 
         abstractSymbols.forEach { cls ->
             getFactoryFunBuilder.addStatement(
@@ -65,35 +69,20 @@ class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcesso
             )
         }
 
-        getFactoryFunBuilder.addStatement("else -> FACTORY_MAP[type]")
-            .endControlFlow()
+        getFactoryFunBuilder.addStatement("else -> FACTORY_MAP[type]").endControlFlow()
 
-        val protocolCompanionBuilder = TypeSpec.companionObjectBuilder()
-            .addModifiers(KModifier.PRIVATE)
-            .addSymbolProperties("", symbols, "%L") { it.toString() }
+        val protocolCompanionBuilder = makeCompanionBuilder(symbols, subtypeMap)
 
-        subtypeMap.forEach { (parentName, subtypeClasses) ->
-            protocolCompanionBuilder.addSymbolProperties(
-                makeConstantName(parentName) + "_",
-                subtypeClasses.associateBy {
-                    it.getAnnotationsByType(PacketSubtype::class).first().subtype
-                }.toSortedMap(),
-                "0x%L",
-            ) { it.toHex() }
-        }
-
-        val protocolClassBuilder = TypeSpec.classBuilder(FILENAME)
-            .addSuperinterface(ClassName(MAIN_PACKAGE, "Protocol"))
-            .addAnnotation(Single::class)
-            .addFunction(getFactoryFunBuilder.build())
-            .addType(protocolCompanionBuilder.build())
+        val protocolClassBuilder =
+            TypeSpec.classBuilder(FILENAME)
+                .addSuperinterface(ClassName(MAIN_PACKAGE, "Protocol"))
+                .addAnnotation(Single::class)
+                .addFunction(getFactoryFunBuilder.build())
+                .addType(protocolCompanionBuilder.build())
 
         fileSpecBuilder.addType(protocolClassBuilder.build())
 
-        fileSpecBuilder.build().writeTo(
-            codeGenerator = codeGenerator,
-            aggregating = false,
-        )
+        fileSpecBuilder.build().writeTo(codeGenerator = codeGenerator, aggregating = false)
 
         return emptyList()
     }
@@ -115,9 +104,7 @@ class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcesso
             val factoryName = factoryNames[className]
             if (factoryName != null) return factoryName
 
-            val parentName = classDeclaration.parentDeclaration?.run {
-                simpleName.asString()
-            }
+            val parentName = classDeclaration.parentDeclaration?.run { simpleName.asString() }
             val newFactoryName = "${className}${parentName ?: ""}Factory"
             factoryNames[className] = newFactoryName
             return newFactoryName
@@ -132,11 +119,42 @@ class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcesso
             if (constantName != null) return constantName
 
             val uppercase = className.indices.filter { className[it].isUpperCase() }.drop(1).toSet()
-            val newConstantName = className.toCharArray().mapIndexed { index, c ->
-                if (uppercase.contains(index)) "_$c" else "$c".uppercase()
-            }.joinToString("")
+            val newConstantName =
+                className
+                    .toCharArray()
+                    .mapIndexed { index, c ->
+                        if (uppercase.contains(index)) "_$c" else "$c".uppercase()
+                    }
+                    .joinToString("")
             constantNames[className] = newConstantName
             return newConstantName
+        }
+
+        @OptIn(KspExperimental::class)
+        private fun makeCompanionBuilder(
+            mainPacketClasses: Map<Int, KSClassDeclaration>,
+            subtypePacketClasses: Map<String, List<KSClassDeclaration>>,
+        ): TypeSpec.Builder {
+            val protocolCompanionBuilder =
+                TypeSpec.companionObjectBuilder()
+                    .addModifiers(KModifier.PRIVATE)
+                    .addSymbolProperties("", mainPacketClasses, "%L") { it.toString() }
+
+            subtypePacketClasses.forEach { (parentName, subtypeClasses) ->
+                protocolCompanionBuilder.addSymbolProperties(
+                    makeConstantName(parentName) + "_",
+                    subtypeClasses
+                        .associateBy {
+                            it.getAnnotationsByType(PacketSubtype::class).first().subtype
+                        }
+                        .toSortedMap(),
+                    "0x%L",
+                ) {
+                    it.toHex()
+                }
+            }
+
+            return protocolCompanionBuilder
         }
 
         private inline fun <reified N : Number> TypeSpec.Builder.addSymbolProperties(
@@ -144,44 +162,50 @@ class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcesso
             symbols: Map<N, KSClassDeclaration>,
             format: String,
             literalFn: (N) -> String,
-        ) : TypeSpec.Builder {
-            val factoryMapBuilder = PropertySpec.builder(
-                "${typeName}FACTORY_MAP",
-                Map::class.asTypeName().parameterizedBy(
-                    N::class.asTypeName(),
-                    factoryClassWildcardName,
-                ),
-                KModifier.PRIVATE,
-            ).initializer(
-                symbols.values.filter {
-                    !it.isAbstract()
-                }.joinToString(prefix = "mapOf(", postfix = "\n)") {
-                    val factoryName = makeFactoryClassName(it)
-                    "\n${typeName}${makeConstantName(it)} to $factoryName"
-                }
-            )
+        ): TypeSpec.Builder {
+            val factoryMapBuilder =
+                PropertySpec.builder(
+                        "${typeName}FACTORY_MAP",
+                        Map::class.asTypeName()
+                            .parameterizedBy(N::class.asTypeName(), factoryClassWildcardName),
+                        KModifier.PRIVATE,
+                    )
+                    .initializer(
+                        symbols.values
+                            .filter { !it.isAbstract() }
+                            .joinToString(prefix = "mapOf(", postfix = "\n)") {
+                                val factoryName = makeFactoryClassName(it)
+                                "\n${typeName}${makeConstantName(it)} to $factoryName"
+                            }
+                    )
 
             return addProperties(
-                symbols.map { (key, symbol) ->
-                    PropertySpec.builder(
-                        "$typeName${makeConstantName(symbol)}",
-                        N::class,
-                        KModifier.PRIVATE,
-                        KModifier.CONST,
-                    ).initializer(format, literalFn(key)).build()
-                }
-            ).addProperty(factoryMapBuilder.build())
+                    symbols.map { (key, symbol) ->
+                        PropertySpec.builder(
+                                "$typeName${makeConstantName(symbol)}",
+                                N::class,
+                                KModifier.PRIVATE,
+                                KModifier.CONST,
+                            )
+                            .initializer(format, literalFn(key))
+                            .build()
+                    }
+                )
+                .addProperty(factoryMapBuilder.build())
         }
 
         @KspExperimental
         private fun <T : Annotation, R : Comparable<R>> Resolver.getAnnotatedSymbolsMap(
             kClass: KClass<T>,
             associateFn: (T) -> R,
-        ): Map<R, KSClassDeclaration> = kClass.qualifiedName?.let { className ->
-            getSymbolsWithAnnotation(className)
-                .filterIsInstance<KSClassDeclaration>()
-                .associateBy { associateFn(it.getAnnotationsByType(kClass).first()) }
-                .toSortedMap()
-        }.orEmpty()
+        ): Map<R, KSClassDeclaration> =
+            kClass.qualifiedName
+                ?.let { className ->
+                    getSymbolsWithAnnotation(className)
+                        .filterIsInstance<KSClassDeclaration>()
+                        .associateBy { associateFn(it.getAnnotationsByType(kClass).first()) }
+                        .toSortedMap()
+                }
+                .orEmpty()
     }
 }

@@ -30,33 +30,35 @@ class ListenerArgumentVisitor(private val codeGenerator: CodeGenerator) : KSVisi
         val argClassNameLowercase = argClassName.let { it[0].lowercase() + it.substring(1) }
         val listPropertyName = "${argClassNameLowercase}Listeners"
 
-        val listenerArgumentTypeName = classDeclaration.toClassName().let {
-            if (classDeclaration.typeParameters.isEmpty()) it else it.parameterizedBy(
-                classDeclaration.typeParameters.map { STAR }
-            )
-        }
+        val listenerArgumentTypeName =
+            classDeclaration.toClassName().let {
+                if (classDeclaration.typeParameters.isEmpty()) it
+                else it.parameterizedBy(classDeclaration.typeParameters.map { STAR })
+            }
 
-        val overrideFunBuilder = FunSpec.builder("on$argClassName")
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter("arg", ListenerArgument::class.asClassName())
-            .beginControlFlow("if (arg is %T)", listenerArgumentTypeName)
-            .addStatement(
-                "%L.forEach { it.offer(arg) }",
-                listPropertyName,
-            ).endControlFlow()
+        val overrideFunBuilder =
+            FunSpec.builder("on$argClassName")
+                .addModifiers(KModifier.OVERRIDE)
+                .addParameter("arg", ListenerArgument::class.asClassName())
+                .beginControlFlow("if (arg is %T)", listenerArgumentTypeName)
+                .addStatement("%L.forEach { it.offer(arg) }", listPropertyName)
+                .endControlFlow()
 
-        val listenerModuleBuilder = TypeSpec.interfaceBuilder(argModuleName)
-            .addSuperinterface(ListenerModule::class)
-            .addProperty(
-                listPropertyName,
-                List::class.asClassName().plusParameter(
-                    ListenerFunction::class.asClassName().plusParameter(
-                        WildcardTypeName.producerOf(listenerArgumentTypeName),
-                    ),
-                ),
-            )
-            .addFunction(overrideFunBuilder.build())
-            .addOriginatingKSFile(containingFile)
+        val listenerModuleBuilder =
+            TypeSpec.interfaceBuilder(argModuleName)
+                .addSuperinterface(ListenerModule::class)
+                .addProperty(
+                    listPropertyName,
+                    List::class.asClassName()
+                        .plusParameter(
+                            ListenerFunction::class.asClassName()
+                                .plusParameter(
+                                    WildcardTypeName.producerOf(listenerArgumentTypeName)
+                                )
+                        ),
+                )
+                .addFunction(overrideFunBuilder.build())
+                .addOriginatingKSFile(containingFile)
 
         FileSpec.builder(packageName, argModuleName)
             .addType(listenerModuleBuilder.build())

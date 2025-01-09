@@ -10,21 +10,16 @@ import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
-class GameOverReasonPacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<GameOverReasonPacket>(TestPacketTypes.SIMPLE_EVENT) {
-    class Data internal constructor(
-        override val version: Version,
-        private val text: List<String>,
-    ) : PacketTestData.Server<GameOverReasonPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(
-                SimpleEventPacket.Subtype.GAME_OVER_REASON.toInt()
-            )
+class GameOverReasonPacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<GameOverReasonPacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version, private val text: List<String>) :
+        PacketTestData.Server<GameOverReasonPacket> {
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.GAME_OVER_REASON.toInt())
             text.forEach { str -> writeString(str) }
         }
 

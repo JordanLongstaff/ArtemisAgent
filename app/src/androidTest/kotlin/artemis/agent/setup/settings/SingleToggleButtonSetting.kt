@@ -4,6 +4,7 @@ import androidx.annotation.IdRes
 import androidx.annotation.StringRes
 import artemis.agent.ArtemisAgentTestHelpers
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
+import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 
 class SingleToggleButtonSetting(
@@ -17,5 +18,11 @@ class SingleToggleButtonSetting(
         assertDisplayed(label, text)
         assertDisplayed(button)
         ArtemisAgentTestHelpers.assertChecked(button, isChecked)
+    }
+
+    fun testNotExist() {
+        assertNotExist(divider)
+        assertNotExist(button)
+        assertNotExist(text)
     }
 }

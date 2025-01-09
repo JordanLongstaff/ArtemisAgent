@@ -3,7 +3,8 @@ package artemis.agent.game.biomechs
 import android.content.Context
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.TimerText
 import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 import com.walkertribe.ian.world.ArtemisNpc
@@ -12,19 +13,19 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     private var timesFrozen = 0
     var isFrozen = false
         private set
+
     private var freezeStartTime = 0L
     private var freezeSent = false
     private var isReadyToReanimate = false
 
-    val canFreezeAgain: Boolean get() = timesFrozen < MAX_FREEZES
+    val canFreezeAgain: Boolean
+        get() = timesFrozen < MAX_FREEZES
 
     fun getFrozenStatusText(viewModel: AgentViewModel, context: Context): String {
-        val (minutes, seconds) =
-            AgentViewModel.getTimeToEnd(freezeStartTime + viewModel.biomechFreezeTime)
+        val timer = TimerText.getTimeUntil(freezeStartTime + viewModel.biomechFreezeTime)
 
         return when {
-            seconds > 0 || minutes > 0 ->
-                context.getString(R.string.biomech_frozen, minutes, seconds)
+            timer != "0:00" -> context.getString(R.string.biomech_frozen, timer)
             !canFreezeAgain -> context.getString(R.string.biomech_cannot_freeze)
             isFrozen -> context.getString(R.string.biomech_will_move)
             else -> context.getString(R.string.biomech_moving)
@@ -43,11 +44,7 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
         freezeSent = true
         viewModel.playSound(SoundEffect.BEEP_1)
         viewModel.sendToServer(
-            CommsOutgoingPacket(
-                biomech,
-                EnemyMessage.entries[++timesFrozen],
-                viewModel.vesselData
-            )
+            CommsOutgoingPacket(biomech, EnemyMessage.entries[++timesFrozen], viewModel.vesselData)
         )
     }
 
@@ -61,11 +58,7 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     }
 
     fun onFreezeTimeExpired(elapsedTime: Long): Boolean {
-        if (
-            !isFrozen ||
-            isReadyToReanimate ||
-            elapsedTime < freezeStartTime
-        ) {
+        if (!isFrozen || isReadyToReanimate || elapsedTime < freezeStartTime) {
             return false
         }
         isReadyToReanimate = true

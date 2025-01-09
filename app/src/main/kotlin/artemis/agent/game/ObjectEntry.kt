@@ -11,27 +11,28 @@ import artemis.agent.R
 import artemis.agent.game.allies.AllySortIndex
 import artemis.agent.game.allies.AllyStatus
 import artemis.agent.game.missions.SideMissionStatus
+import artemis.agent.util.TimerText
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.ArtemisBase
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisShielded
 import java.util.SortedMap
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     val obj: Obj,
-    @PluralsRes private val missionsTextRes: Int
+    @PluralsRes private val missionsTextRes: Int,
 ) {
-    class Ally(
-        npc: ArtemisNpc,
-        val vesselName: String,
-        private val isDeepStrikeShip: Boolean
-    ) : ObjectEntry<ArtemisNpc>(npc, R.plurals.side_missions_for_ally) {
+    class Ally(npc: ArtemisNpc, val vesselName: String, private val isDeepStrikeShip: Boolean) :
+        ObjectEntry<ArtemisNpc>(npc, R.plurals.side_missions_for_ally) {
         var status: AllyStatus = AllyStatus.NORMAL
             set(value) {
                 field = value
                 isHailed = true
             }
+
         var hasEnergy: Boolean = false
         var destination: String? = null
         var isAttacking: Boolean = false
@@ -39,18 +40,25 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
         var direction: Int? = null
 
         private var isHailed: Boolean = false
-        val isTrap: Boolean get() = status.sortIndex == AllySortIndex.TRAP
-        val isNormal: Boolean get() = status.sortIndex == AllySortIndex.NORMAL
-        val isDamaged: Boolean get() =
-            obj.shieldsFront < obj.shieldsFrontMax || obj.shieldsRear < obj.shieldsRearMax
-        val isInstructable: Boolean get() = isHailed &&
-            (isNormal || status == AllyStatus.FLYING_BLIND)
+        val isTrap: Boolean
+            get() = status.sortIndex == AllySortIndex.TRAP
 
-        override val missionStatus: SideMissionStatus get() = when {
-            isDamaged -> SideMissionStatus.DAMAGED
-            status.sortIndex <= AllySortIndex.COMMANDEERED -> SideMissionStatus.OVERTAKEN
-            else -> SideMissionStatus.ALL_CLEAR
-        }
+        val isNormal: Boolean
+            get() = status.sortIndex == AllySortIndex.NORMAL
+
+        val isDamaged: Boolean
+            get() = obj.shieldsFront < obj.shieldsFrontMax || obj.shieldsRear < obj.shieldsRearMax
+
+        val isInstructable: Boolean
+            get() = isHailed && (isNormal || status == AllyStatus.FLYING_BLIND)
+
+        override val missionStatus: SideMissionStatus
+            get() =
+                when {
+                    isDamaged -> SideMissionStatus.DAMAGED
+                    status.sortIndex <= AllySortIndex.COMMANDEERED -> SideMissionStatus.OVERTAKEN
+                    else -> SideMissionStatus.ALL_CLEAR
+                }
 
         override fun getBackgroundColor(context: Context): Int =
             ContextCompat.getColor(
@@ -59,7 +67,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
                     R.color.allyStatusBackgroundYellow
                 } else {
                     status.backgroundColor
-                }
+                },
             )
 
         fun checkNebulaStatus() {
@@ -72,25 +80,23 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
         }
     }
 
-    class Station(
-        station: ArtemisBase,
-        vesselData: VesselData,
-    ) : ObjectEntry<ArtemisBase>(station, R.plurals.side_missions) {
+    class Station(station: ArtemisBase, vesselData: VesselData) :
+        ObjectEntry<ArtemisBase>(station, R.plurals.side_missions) {
         var fighters: Int = 0
         var isDocking: Boolean = false
         var isDocked: Boolean = false
         var isStandingBy: Boolean = false
         var speedFactor: Int = 1
-        private val normalProductionCoefficient: Int = station.getVessel(vesselData)?.run {
-            (productionCoefficient * 2).toInt()
-        } ?: 2
+        private val normalProductionCoefficient: Int =
+            station.getVessel(vesselData)?.run { (productionCoefficient * 2).toInt() } ?: 2
         var builtOrdnanceType: OrdnanceType = OrdnanceType.TORPEDO
             set(type) {
                 if (setMissile) return
                 startTime = System.currentTimeMillis()
                 field = type
                 if (firstMissile && !midBuild) {
-                    val buildTime = (type.buildTime shl 1) / normalProductionCoefficient / speedFactor
+                    val buildTime =
+                        (type.buildTime shl 1) / normalProductionCoefficient / speedFactor
                     endTime = startTime + buildTime
                 }
                 firstMissile = true
@@ -99,12 +105,13 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         val ordnanceStock: SortedMap<OrdnanceType, Int> = sortedMapOf()
 
-        override val missionStatus: SideMissionStatus get() =
-            if (obj.shieldsFront < obj.shieldsFrontMax) {
-                SideMissionStatus.DAMAGED
-            } else {
-                SideMissionStatus.ALL_CLEAR
-            }
+        override val missionStatus: SideMissionStatus
+            get() =
+                if (obj.shieldsFront < obj.shieldsFrontMax) {
+                    SideMissionStatus.DAMAGED
+                } else {
+                    SideMissionStatus.ALL_CLEAR
+                }
 
         override fun getBackgroundColor(context: Context): Int {
             val shields = obj.shieldsFront.value
@@ -129,7 +136,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         fun setBuildMinutes(minutes: Int) {
             if (firstMissile || setMissile) return
-            endTime = System.currentTimeMillis() + ONE_MINUTE * minutes
+            endTime = System.currentTimeMillis() + minutes.minutes.inWholeMilliseconds
         }
 
         fun recalibrateSpeed(endOfBuild: Long) {
@@ -139,9 +146,10 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
             }
             val recalibrateTime = endOfBuild - startTime
             val buildTime = endTime - startTime
-            speedFactor = (
-                (speedFactor * buildTime + (recalibrateTime ushr 1)) / recalibrateTime
-                ).toInt().coerceAtLeast(1)
+            speedFactor =
+                ((speedFactor * buildTime + (recalibrateTime ushr 1)) / recalibrateTime)
+                    .toInt()
+                    .coerceAtLeast(1)
         }
 
         fun reconcileSpeed(minutes: Int) {
@@ -150,17 +158,17 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
             val normalTime = (builtOrdnanceType.buildTime shl 1) / normalProductionCoefficient
             val predictedTime = normalTime / speedFactor
-            val predictedMinutes = (predictedTime - 1) / ONE_MINUTE + 1
+            val predictedMinutes = (predictedTime - 1).milliseconds.inWholeMinutes + 1
             if (predictedMinutes.toInt() == minutes) return
 
             val estimatedSpeed = ((predictedMinutes - 1) / minutes + 1).toInt()
             val expectedTime = normalTime / estimatedSpeed
-            val expectedMinutes = (expectedTime - 1) / ONE_MINUTE + 1
+            val expectedMinutes = (expectedTime - 1).milliseconds.inWholeMinutes + 1
 
             val actualTime: Long
             if (expectedMinutes < minutes) {
                 speedFactor = estimatedSpeed - 1
-                actualTime = minutes * ONE_MINUTE.toLong()
+                actualTime = minutes.minutes.inWholeMilliseconds
             } else {
                 speedFactor = estimatedSpeed
                 actualTime = expectedTime
@@ -177,55 +185,50 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
             midBuild = false
         }
 
-        fun getSpeedText(context: Context): String = context.getString(
-            R.string.station_speed,
-            speedFactor * normalProductionCoefficient * BASE_SPEED
-        )
+        fun getSpeedText(context: Context): String =
+            context.getString(
+                R.string.station_speed,
+                speedFactor * normalProductionCoefficient * BASE_SPEED,
+            )
 
-        fun getFightersText(context: Context): String = context.resources.getQuantityString(
-            R.plurals.replacement_fighters,
-            fighters,
-            fighters
-        )
+        fun getFightersText(context: Context): String =
+            context.resources.getQuantityString(R.plurals.replacement_fighters, fighters, fighters)
 
         @get:StringRes
-        val statusString: Int? get() = when {
-            isDocked -> R.string.docked
-            isDocking -> R.string.docking
-            isStandingBy -> R.string.standby
-            else -> null
-        }
+        val statusString: Int?
+            get() =
+                when {
+                    isDocked -> R.string.docked
+                    isDocking -> R.string.docking
+                    isStandingBy -> R.string.standby
+                    else -> null
+                }
 
         fun getOrdnanceText(
             viewModel: AgentViewModel,
             context: Context,
-            ordnanceType: OrdnanceType
+            ordnanceType: OrdnanceType,
         ): String =
             if (ordnanceStock.containsKey(ordnanceType)) {
                 context.getString(
                     R.string.stock_of_ordnance,
                     ordnanceStock[ordnanceType],
-                    ordnanceType.getLabelFor(viewModel.version)
+                    ordnanceType.getLabelFor(viewModel.version),
                 )
             } else {
                 ""
             }
 
-        fun getTimerText(context: Context): String {
-            val (minutes, seconds) = AgentViewModel.getTimeToEnd(endTime)
-            return context.getString(R.string.build_timer, minutes, seconds)
-        }
+        fun getTimerText(context: Context): String =
+            context.getString(R.string.build_timer, TimerText.getTimeUntil(endTime))
     }
 
     var missions: Int = 0
     var heading: String = ""
     var range: Float = 0f
 
-    fun getMissionsText(context: Context): String = context.resources.getQuantityString(
-        missionsTextRes,
-        missions,
-        missions
-    )
+    fun getMissionsText(context: Context): String =
+        context.resources.getQuantityString(missionsTextRes, missions, missions)
 
     override fun hashCode(): Int = obj.hashCode()
 
@@ -233,27 +236,24 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
     override fun toString(): String = obj.toString()
 
-    @ColorInt
-    abstract fun getBackgroundColor(context: Context): Int
+    @ColorInt abstract fun getBackgroundColor(context: Context): Int
 
     abstract val missionStatus: SideMissionStatus
 
     companion object {
-        private const val ONE_MINUTE =
-            AgentViewModel.SECONDS_PER_MINUTE * AgentViewModel.SECONDS_TO_MILLIS
         private const val BASE_SPEED = 0.5f
 
         fun getStationColorForShieldPercent(percent: Float, context: Context): Int =
-            GRADIENT.find { percent >= it.first }?.let {
-                ContextCompat.getColor(context, it.second)
-            } ?: Color.TRANSPARENT
+            GRADIENT.find { percent >= it.first }
+                ?.let { ContextCompat.getColor(context, it.second) } ?: Color.TRANSPARENT
 
-        private val GRADIENT = arrayOf(
-            Pair(1.0f, R.color.stationShieldFull),
-            Pair(0.7f, R.color.stationShieldDamaged),
-            Pair(0.4f, R.color.stationShieldModerate),
-            Pair(0.2f, R.color.stationShieldSevere),
-            Pair(0.0f, R.color.stationShieldCritical)
-        )
+        private val GRADIENT =
+            arrayOf(
+                Pair(1.0f, R.color.stationShieldFull),
+                Pair(0.7f, R.color.stationShieldDamaged),
+                Pair(0.4f, R.color.stationShieldModerate),
+                Pair(0.2f, R.color.stationShieldSevere),
+                Pair(0.0f, R.color.stationShieldCritical),
+            )
     }
 }

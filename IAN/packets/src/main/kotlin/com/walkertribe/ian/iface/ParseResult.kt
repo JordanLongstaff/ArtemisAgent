@@ -6,34 +6,37 @@ import com.walkertribe.ian.protocol.core.world.ObjectUpdatePacket
 
 /**
  * Object which reports the results of a packet parsing attempt.
+ *
  * @author rjwut
  */
-sealed class ParseResult {
+sealed class ParseResult private constructor() {
     internal class Processing : ParseResult()
 
-    class Success(
-        /**
-         * Returns the packet object that was parsed.
-         */
-        val packet: Packet.Server,
+    data object Skip : ParseResult() {
+        override fun addListeners(listeners: Iterable<ListenerModule>) {
+            error("Cannot add listeners; packet is not recognized")
+        }
+    }
 
+    class Success(
+        /** Returns the packet object that was parsed. */
+        val packet: Packet.Server,
         prevResult: ParseResult,
     ) : ParseResult() {
         init {
             addListeners(prevResult.interestedListeners)
         }
 
-        override fun fireListeners() {
+        fun fireListeners() {
             interestedListeners.forEach(packet::offerTo)
         }
     }
 
     data class Fail(
         /**
-         * Return any exception that occurred while parsing the packet. This
-         * is only for non-fatal exceptions. A fatal exception (one occurring before
-         * the payload can be read) should cause the exception to be thrown
-         * instead.
+         * Return any exception that occurred while parsing the packet. This is only for non-fatal
+         * exceptions. A fatal exception (one occurring before the payload can be read) should cause
+         * the exception to be thrown instead.
          */
         val exception: PacketException
     ) : ParseResult() {
@@ -54,17 +57,9 @@ sealed class ParseResult {
 
     /**
      * Returns true if the packet was of interest to any listeners. Note that in the case of an
-     * [ObjectUpdatePacket], there may be listeners that aren't interested in the packet itself,
-     * but are interested in certain types of objects the packet may contain.
+     * [ObjectUpdatePacket], there may be listeners that aren't interested in the packet itself, but
+     * are interested in certain types of objects the packet may contain.
      */
-    val isInteresting: Boolean get() = interestedListeners.isNotEmpty()
-
-    /**
-     * Fire the listeners that were interested in this packet or its contents.
-     */
-    open fun fireListeners() {
-        throw UnsupportedOperationException(
-            "${this::class.simpleName} parse result cannot send packet to listeners"
-        )
-    }
+    val isInteresting: Boolean
+        get() = interestedListeners.isNotEmpty()
 }

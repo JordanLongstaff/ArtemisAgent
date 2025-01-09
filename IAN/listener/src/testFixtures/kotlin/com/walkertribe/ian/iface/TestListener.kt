@@ -13,11 +13,11 @@ object TestListener {
         callsMap[arg::class]?.add(arg)
     }
 
-    fun <T : ListenerArgument> calls(kClass: KClass<T>): List<T> = callsMap.filterKeys {
-        it.isSubclassOf(kClass)
-    }.flatMap {
-        it.value
-    }.filterIsInstance(kClass.java)
+    fun <T : ListenerArgument> calls(kClass: KClass<T>): List<T> =
+        callsMap
+            .filterKeys { it.isSubclassOf(kClass) }
+            .flatMap { it.value }
+            .filterIsInstance(kClass.java)
 
     inline fun <reified T : ListenerArgument> calls(): List<T> = calls(T::class)
 
