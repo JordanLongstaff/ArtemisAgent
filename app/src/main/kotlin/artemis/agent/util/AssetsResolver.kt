@@ -1,4 +1,4 @@
-package artemis.agent
+package artemis.agent.util
 
 import android.content.res.AssetManager
 import com.walkertribe.ian.util.PathResolver

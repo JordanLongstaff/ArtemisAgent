@@ -14,13 +14,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.ConnectFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
+import artemis.agent.util.SoundEffect
 import com.walkertribe.ian.protocol.udp.PrivateNetworkType
 import dev.tmapps.konnection.Konnection
 import dev.tmapps.konnection.NetworkConnection

@@ -1,8 +1,7 @@
 package artemis.agent.game.missions
 
-import artemis.agent.AgentViewModel
 import artemis.agent.game.ObjectEntry
-import kotlin.time.Duration.Companion.milliseconds
+import artemis.agent.util.TimerText
 
 class SideMissionEntry(
     val source: ObjectEntry<*>,
@@ -21,19 +20,7 @@ class SideMissionEntry(
         get() = completionTimestamp != Long.MAX_VALUE
 
     val durationText: String
-        get() {
-            val duration = System.currentTimeMillis() - timestamp
-            val totalSeconds = duration.milliseconds.inWholeSeconds
-            val (totalMinutes, seconds) = AgentViewModel.getTimer(totalSeconds.toInt())
-            val secondsString = seconds.toString().padStart(2, '0')
-            val (hours, minutes) = AgentViewModel.getTimer(totalMinutes)
-
-            return if (hours > 0) {
-                "$hours:${minutes.toString().padStart(2, '0')}:$secondsString"
-            } else {
-                "$minutes:$secondsString"
-            }
-        }
+        get() = TimerText.getTimeSince(timestamp)
 
     override fun hashCode(): Int = timestamp.hashCode()
 

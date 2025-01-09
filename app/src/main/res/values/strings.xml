@@ -72,13 +72,13 @@
     <string name="back">Back</string>
     <string name="biomech_rage">Status: %1$s</string>
     <string name="biomech_cannot_freeze">Freeze limit reached; cannot freeze again</string>
-    <string name="biomech_frozen">Frozen - reanimation estimated in %1$d:%2$02d</string>
+    <string name="biomech_frozen">Frozen - reanimation estimated in %1$s</string>
     <string name="biomech_moving">Mobile; touch to freeze</string>
     <string name="biomech_notification">Reanimation imminent.</string>
     <string name="biomech_will_move">Frozen - reanimation imminent</string>
     <string name="border_war_status">Border War: %1$s</string>
     <string name="build">Build</string>
-    <string name="build_timer">ready in %1$d:%2$02d</string>
+    <string name="build_timer">ready in %1$s</string>
     <string name="building">Building:</string>
     <string name="cancel">Cancel</string>
     <string name="cannot_taunt">Cannot taunt</string>
@@ -550,7 +550,7 @@
     <string name="kilometres">km</string>
     <string name="left">Left</string>
     <string name="manually_return_from_commands">Manually return from commands</string>
-    <string name="manufacturing_torpedoes">Torpedoes will be ready in %1$d:%2$02d.</string>
+    <string name="manufacturing_torpedoes">Torpedoes will be ready in %1$s.</string>
     <string name="manufacturing_torpedoes_ready">Torpedoes ready.</string>
     <string name="milliseconds">ms</string>
     <string name="mission_battery">Battery</string>

@@ -3,7 +3,8 @@ package artemis.agent.game.biomechs
 import android.content.Context
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.TimerText
 import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 import com.walkertribe.ian.world.ArtemisNpc
@@ -21,12 +22,10 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
         get() = timesFrozen < MAX_FREEZES
 
     fun getFrozenStatusText(viewModel: AgentViewModel, context: Context): String {
-        val (minutes, seconds) =
-            AgentViewModel.getTimeToEnd(freezeStartTime + viewModel.biomechFreezeTime)
+        val timer = TimerText.getTimeUntil(freezeStartTime + viewModel.biomechFreezeTime)
 
         return when {
-            seconds > 0 || minutes > 0 ->
-                context.getString(R.string.biomech_frozen, minutes, seconds)
+            timer != "0:00" -> context.getString(R.string.biomech_frozen, timer)
             !canFreezeAgain -> context.getString(R.string.biomech_cannot_freeze)
             isFrozen -> context.getString(R.string.biomech_will_move)
             else -> context.getString(R.string.biomech_moving)

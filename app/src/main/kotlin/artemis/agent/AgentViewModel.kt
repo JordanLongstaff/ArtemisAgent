@@ -34,6 +34,10 @@ import artemis.agent.help.HelpFragment
 import artemis.agent.setup.ConnectFragment.ConnectionStatus
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.AssetsResolver
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.TimerText
+import artemis.agent.util.TimerText.timerString
 import com.walkertribe.ian.enums.AlertStatus
 import com.walkertribe.ian.enums.AudioMode
 import com.walkertribe.ian.enums.Console
@@ -595,10 +599,11 @@ class AgentViewModel(application: Application) :
     }
 
     /** Returns the string that displays time left for an ally to finish building torpedoes. */
-    fun getManufacturingTimer(context: Context): String {
-        val (minutes, seconds) = getTimeToEnd(torpedoFinishTime)
-        return context.getString(R.string.manufacturing_torpedoes, minutes, seconds)
-    }
+    fun getManufacturingTimer(context: Context): String =
+        context.getString(
+            R.string.manufacturing_torpedoes,
+            TimerText.getTimeUntil(torpedoFinishTime),
+        )
 
     /** Checks to see whether the given object still exists. */
     private fun checkRoutePointExists(entry: ObjectEntry<*>): Boolean =
@@ -1113,8 +1118,7 @@ class AgentViewModel(application: Application) :
                 if (it < 0) {
                     "${playerShip?.doubleAgentCount?.value?.coerceAtLeast(0) ?: 0}"
                 } else {
-                    val (minutes, seconds) = getTimer(it)
-                    "$minutes:${seconds.toString().padStart(2, '0')}"
+                    it.seconds.timerString(false)
                 }
             }
 
@@ -1657,15 +1661,6 @@ class AgentViewModel(application: Application) :
                 R.style.Theme_ArtemisAgent_Blue,
                 R.style.Theme_ArtemisAgent_Purple,
             )
-
-        fun getTimeToEnd(endTime: Long): Pair<Int, Int> {
-            val timeRemaining = 1.seconds + (endTime - System.currentTimeMillis() - 1).milliseconds
-            val totalSeconds = timeRemaining.inWholeSeconds.coerceAtLeast(0L)
-            return getTimer(totalSeconds.toInt())
-        }
-
-        fun getTimer(totalSeconds: Int): Pair<Int, Int> =
-            totalSeconds.seconds.toComponents { minutes, seconds, _ -> minutes.toInt() to seconds }
 
         fun Int.formatString(): String = toString().format(Locale.getDefault())
     }

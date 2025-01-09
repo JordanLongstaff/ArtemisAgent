@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.RouteEntryBinding
 import artemis.agent.databinding.RouteFragmentBinding
@@ -24,6 +23,7 @@ import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
 import artemis.agent.game.stations.StationsFragment
 import artemis.agent.generic.GenericDataViewHolder
+import artemis.agent.util.SoundEffect
 import com.walkertribe.ian.enums.BaseMessage
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket

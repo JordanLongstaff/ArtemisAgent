@@ -13,12 +13,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.EnemiesEntryBinding
 import artemis.agent.databinding.EnemiesFragmentBinding
 import artemis.agent.databinding.TauntEntryBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
 import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 import com.walkertribe.ian.vesseldata.Taunt
