@@ -29,10 +29,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.databinding.ActivityMainBinding
 import artemis.agent.game.GameFragment
@@ -41,6 +37,7 @@ import artemis.agent.help.HelpFragment
 import artemis.agent.setup.ConnectFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -49,10 +46,7 @@ import com.walkertribe.ian.iface.DisconnectCause
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /** The main application activity. */
@@ -793,14 +787,5 @@ class MainActivity : AppCompatActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE
                 else 0
             )
-    }
-}
-
-fun <T> LifecycleOwner.collectLatestWhileStarted(
-    flow: Flow<T>,
-    block: suspend CoroutineScope.(T) -> Unit,
-) {
-    lifecycleScope.launch {
-        repeatOnLifecycle(Lifecycle.State.STARTED) { flow.collectLatest { this.block(it) } }
     }
 }

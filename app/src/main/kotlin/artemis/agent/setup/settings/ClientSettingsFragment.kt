@@ -13,11 +13,11 @@ import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsClientBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class ClientSettingsFragment : Fragment(R.layout.settings_client) {

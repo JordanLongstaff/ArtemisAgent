@@ -5,7 +5,7 @@ import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import artemis.agent.ActivityScenarioManager
 import artemis.agent.MainActivity
-import kotlin.io.path.createTempDirectory
+import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.junit.Assert
 import org.junit.Rule
@@ -24,8 +24,8 @@ class AssetsResolverTest {
 
     @Test
     fun copyTest() {
-        val tempFile = createTempDirectory("dat")
-        Assert.assertTrue(resolver.copyVesselDataTo(tempFile.toFile()))
+        val tempPath = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "dat"
+        Assert.assertTrue(resolver.copyVesselDataTo(tempPath.toFile()))
     }
 
     private companion object {

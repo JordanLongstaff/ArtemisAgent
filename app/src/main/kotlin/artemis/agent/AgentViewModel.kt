@@ -699,7 +699,6 @@ class AgentViewModel(application: Application) :
      */
     private fun setupFilePathResolver(storageDir: File): FilePathResolver? {
         val datDir = File(storageDir, "dat")
-        if (!datDir.exists()) datDir.mkdirs()
 
         return if (assetsResolver.copyVesselDataTo(datDir)) {
             FilePathResolver(storageDir.toOkioPath())

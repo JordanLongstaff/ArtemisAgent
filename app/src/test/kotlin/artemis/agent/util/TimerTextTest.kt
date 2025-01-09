@@ -5,18 +5,26 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.duration
-import io.kotest.property.arbitrary.nonNegativeLong
+import io.kotest.property.arbitrary.nonPositiveLong
 import io.kotest.property.checkAll
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlinx.datetime.Clock
 
 class TimerTextTest :
     DescribeSpec({
         describe("TimerText") {
-            val underOneHour = Arb.duration(0.seconds..(1.hours - 1.5.seconds))
-            val overOneHour = Arb.duration(1.hours..(100.hours - 1.5.seconds))
+            fun arbDuration(range: ClosedRange<Duration>): Arb<Duration> =
+                Arb.duration(range, DurationUnit.MILLISECONDS)
+
+            val underOneHour = arbDuration(0.seconds..(1.hours - 1.seconds))
+            val overOneHour = arbDuration(1.hours..100.hours)
 
             val minutesPerHour = 1.hours.inWholeMinutes
             val secondsPerMinute = 1.minutes.inWholeSeconds
@@ -43,6 +51,12 @@ class TimerTextTest :
                 return "$hoursPrefix$minutes:$secondPadding$seconds"
             }
 
+            val now = Clock.System.now()
+            mockkObject(Clock.System)
+            every { Clock.System.now() } returns now
+
+            afterSpec { unmockkObject(Clock.System) }
+
             describe("Arbitrary") {
                 listOf("up" to true, "down" to false).forEach { (direction, roundUp) ->
                     describe("Rounding $direction") {
@@ -64,8 +78,7 @@ class TimerTextTest :
 
             describe("Time until") {
                 it("Earlier time") {
-                    val currentTime = System.currentTimeMillis()
-                    Arb.nonNegativeLong(max = currentTime).checkAll { time ->
+                    Arb.nonPositiveLong().checkAll { time ->
                         TimerText.getTimeUntil(time) shouldBeEqual "0:00"
                     }
                 }
@@ -76,7 +89,7 @@ class TimerTextTest :
                             it("${it.first} one hour") {
                                 it.second.checkAll { duration ->
                                     TimerText.getTimeUntil(
-                                        System.currentTimeMillis() + duration.inWholeMilliseconds
+                                        (now + duration).toEpochMilliseconds()
                                     ) shouldBeEqual duration.expectedTimerString(true, it.third)
                                 }
                             }
@@ -90,7 +103,7 @@ class TimerTextTest :
                         it("${it.first} one hour") {
                             it.second.checkAll { duration ->
                                 TimerText.getTimeSince(
-                                    System.currentTimeMillis() - duration.inWholeMilliseconds
+                                    (now - duration).toEpochMilliseconds()
                                 ) shouldBeEqual duration.expectedTimerString(false, it.third)
                             }
                         }

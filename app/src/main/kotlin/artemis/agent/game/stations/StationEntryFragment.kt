@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.SelectorEntryBinding
 import artemis.agent.databinding.SelectorPopupBinding
 import artemis.agent.databinding.StationEntryBinding
@@ -28,6 +27,7 @@ import artemis.agent.game.ObjectEntry.Station
 import artemis.agent.game.route.RouteObjective
 import artemis.agent.generic.GenericDataViewHolder
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.enums.BaseMessage
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket

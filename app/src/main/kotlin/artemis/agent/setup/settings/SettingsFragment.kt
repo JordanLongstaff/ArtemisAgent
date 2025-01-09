@@ -16,11 +16,11 @@ import artemis.agent.UserSettingsOuterClass.UserSettings
 import artemis.agent.UserSettingsSerializer
 import artemis.agent.UserSettingsSerializer.defaultValue
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlin.reflect.KMutableProperty1
 import kotlinx.coroutines.launch
 

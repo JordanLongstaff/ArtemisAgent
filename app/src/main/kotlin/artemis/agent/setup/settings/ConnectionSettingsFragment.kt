@@ -8,11 +8,11 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.R
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsConnectionBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class ConnectionSettingsFragment : Fragment(R.layout.settings_connection) {

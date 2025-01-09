@@ -17,6 +17,8 @@ class AssetsResolver(manager: AssetManager) : PathResolver {
 
     fun copyVesselDataTo(datDir: File): Boolean =
         try {
+            if (!datDir.exists()) datDir.mkdirs()
+
             fileSystem.list(PathResolver.DAT).forEach {
                 val outFile = File(datDir, it.name)
                 if (outFile.exists()) return@forEach

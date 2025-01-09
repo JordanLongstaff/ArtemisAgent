@@ -16,10 +16,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.HelpFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 
 class HelpFragment : Fragment(R.layout.help_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
