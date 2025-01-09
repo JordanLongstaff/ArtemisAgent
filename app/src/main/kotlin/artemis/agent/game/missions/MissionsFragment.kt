@@ -15,13 +15,13 @@ import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.CompletedMissionsEntryBinding
 import artemis.agent.databinding.MissionsEntryBinding
 import artemis.agent.databinding.MissionsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.ObjectEntry
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlin.math.sign
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow

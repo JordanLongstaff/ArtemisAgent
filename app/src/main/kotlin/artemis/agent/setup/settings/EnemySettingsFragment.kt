@@ -14,11 +14,11 @@ import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsEnemiesBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {

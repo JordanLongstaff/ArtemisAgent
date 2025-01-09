@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.AlliesEntryBinding
 import artemis.agent.databinding.AlliesFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
@@ -25,6 +24,7 @@ import artemis.agent.game.ObjectEntry.Ally
 import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.enums.GoDefend
 import com.walkertribe.ian.enums.OtherMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket

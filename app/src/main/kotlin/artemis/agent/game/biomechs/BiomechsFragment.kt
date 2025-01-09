@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.BiomechEntryBinding
 import artemis.agent.databinding.BiomechsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.collectLatestWhileStarted
 
 class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()

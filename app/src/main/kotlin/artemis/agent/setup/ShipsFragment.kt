@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.ShipEntryBinding
 import artemis.agent.databinding.ShipsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.protocol.core.setup.Ship
 
 class ShipsFragment : Fragment(R.layout.ships_fragment) {
