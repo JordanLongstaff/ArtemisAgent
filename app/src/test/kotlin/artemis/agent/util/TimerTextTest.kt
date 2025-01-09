@@ -9,15 +9,16 @@ import io.kotest.property.arbitrary.nonNegativeLong
 import io.kotest.property.checkAll
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class TimerTextTest :
     DescribeSpec({
         describe("TimerText") {
-            val tolerance = 1.seconds
-            val underOneHour = Arb.duration(0.seconds..(1.hours - tolerance))
-            val overOneHour = Arb.duration((1.hours + tolerance)..(100.hours - tolerance))
+            val tolerance = 1.milliseconds
+            val underOneHour = Arb.duration(0.seconds..1.hours)
+            val overOneHour = Arb.duration(1.hours..100.hours)
 
             val minutesPerHour = 1.hours.inWholeMinutes
             val secondsPerMinute = 1.minutes.inWholeSeconds
@@ -76,8 +77,12 @@ class TimerTextTest :
                         .forEach {
                             it("${it.first} one hour") {
                                 it.second.checkAll { duration ->
+                                    val endTime =
+                                        duration +
+                                            System.currentTimeMillis().milliseconds +
+                                            tolerance
                                     TimerText.getTimeUntil(
-                                        System.currentTimeMillis() + duration.inWholeMilliseconds
+                                        endTime.inWholeMilliseconds
                                     ) shouldBeEqual duration.expectedTimerString(true, it.third)
                                 }
                             }
@@ -90,8 +95,9 @@ class TimerTextTest :
                     .forEach {
                         it("${it.first} one hour") {
                             it.second.checkAll { duration ->
+                                val adjusted = duration + tolerance
                                 TimerText.getTimeSince(
-                                    System.currentTimeMillis() - duration.inWholeMilliseconds
+                                    System.currentTimeMillis() - adjusted.inWholeMilliseconds
                                 ) shouldBeEqual duration.expectedTimerString(false, it.third)
                             }
                         }
