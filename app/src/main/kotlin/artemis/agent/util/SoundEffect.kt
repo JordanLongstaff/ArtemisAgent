@@ -1,6 +1,7 @@
-package artemis.agent
+package artemis.agent.util
 
 import androidx.annotation.RawRes
+import artemis.agent.R
 
 enum class SoundEffect(@RawRes val soundId: Int) {
     BEEP_1(R.raw.beep1),

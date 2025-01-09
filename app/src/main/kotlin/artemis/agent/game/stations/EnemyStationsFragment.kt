@@ -11,12 +11,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.EnemyStationEntryBinding
 import artemis.agent.databinding.EnemyStationsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.ObjectEntry.Station
+import artemis.agent.util.SoundEffect
 import com.walkertribe.ian.enums.BaseMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 

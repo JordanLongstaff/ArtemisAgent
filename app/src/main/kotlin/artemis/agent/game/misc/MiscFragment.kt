@@ -14,11 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.AudioEntryBinding
 import artemis.agent.databinding.MiscFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 

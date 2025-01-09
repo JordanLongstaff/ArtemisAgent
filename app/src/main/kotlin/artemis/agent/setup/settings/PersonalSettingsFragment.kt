@@ -10,12 +10,12 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsPersonalBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
 import kotlinx.coroutines.launch
 
 class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {

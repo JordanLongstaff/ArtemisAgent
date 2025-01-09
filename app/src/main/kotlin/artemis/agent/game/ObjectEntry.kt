@@ -11,6 +11,7 @@ import artemis.agent.R
 import artemis.agent.game.allies.AllySortIndex
 import artemis.agent.game.allies.AllyStatus
 import artemis.agent.game.missions.SideMissionStatus
+import artemis.agent.util.TimerText
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.ArtemisBase
@@ -218,10 +219,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
                 ""
             }
 
-        fun getTimerText(context: Context): String {
-            val (minutes, seconds) = AgentViewModel.getTimeToEnd(endTime)
-            return context.getString(R.string.build_timer, minutes, seconds)
-        }
+        fun getTimerText(context: Context): String =
+            context.getString(R.string.build_timer, TimerText.getTimeUntil(endTime))
     }
 
     var missions: Int = 0

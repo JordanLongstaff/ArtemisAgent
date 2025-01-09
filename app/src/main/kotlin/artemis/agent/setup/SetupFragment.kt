@@ -8,12 +8,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.SetupFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.SoundEffect
 
 class SetupFragment : Fragment(R.layout.setup_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()

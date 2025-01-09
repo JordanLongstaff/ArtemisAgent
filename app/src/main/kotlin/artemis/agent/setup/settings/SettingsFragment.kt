@@ -11,7 +11,6 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsOuterClass.UserSettings
 import artemis.agent.UserSettingsSerializer
@@ -21,6 +20,7 @@ import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
 import kotlin.reflect.KMutableProperty1
 import kotlinx.coroutines.launch
 

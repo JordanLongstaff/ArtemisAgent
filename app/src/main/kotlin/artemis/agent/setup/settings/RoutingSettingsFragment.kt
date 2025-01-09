@@ -14,13 +14,13 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsRoutingBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
 import kotlin.reflect.KMutableProperty1
 import kotlinx.coroutines.launch
 

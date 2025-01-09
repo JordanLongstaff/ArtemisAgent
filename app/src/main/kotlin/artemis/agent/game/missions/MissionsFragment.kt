@@ -15,13 +15,15 @@ import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.CompletedMissionsEntryBinding
 import artemis.agent.databinding.MissionsEntryBinding
 import artemis.agent.databinding.MissionsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.ObjectEntry
+import artemis.agent.util.SoundEffect
+import kotlin.math.sign
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -223,8 +225,6 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         }
 
         private fun MissionsEntryBinding.bindCompleted(entry: SideMissionEntry) {
-            val seconds = AgentViewModel.getTimeToEnd(entry.completionTimestamp).second
-
             root.setOnClickListener { viewModel.allMissions.remove(entry) }
 
             root.setBackgroundColor(
@@ -233,6 +233,9 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             nextLabel.text = getString(R.string.mission_completed)
             thenLabel.text =
                 if (viewModel.autoDismissCompletedMissions) {
+                    val timeToDismiss = System.currentTimeMillis() - entry.completionTimestamp
+                    val seconds =
+                        timeToDismiss.milliseconds.toComponents { sec, nano -> sec + nano.sign }
                     getString(R.string.mission_will_be_removed, seconds)
                 } else {
                     getString(R.string.tap_to_dismiss)

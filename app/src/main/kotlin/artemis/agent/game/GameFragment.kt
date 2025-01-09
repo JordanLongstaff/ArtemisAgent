@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.GameFragmentBinding
 import artemis.agent.databinding.SelectorEntryBinding
@@ -31,6 +30,7 @@ import artemis.agent.game.route.RouteFragment
 import artemis.agent.game.route.RouteObjective
 import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
+import artemis.agent.util.SoundEffect
 import com.walkertribe.ian.enums.AlertStatus
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.protocol.core.comm.ToggleRedAlertPacket
