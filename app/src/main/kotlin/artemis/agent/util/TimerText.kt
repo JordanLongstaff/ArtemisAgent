@@ -2,16 +2,18 @@ package artemis.agent.util
 
 import kotlin.math.sign
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 object TimerText {
     fun getTimeSince(startTime: Long): String =
-        (System.currentTimeMillis() - startTime).milliseconds.timerString(false)
+        (Clock.System.now() - Instant.fromEpochMilliseconds(startTime)).timerString(false)
 
     fun getTimeUntil(endTime: Long): String =
-        maxOf(0L, endTime - System.currentTimeMillis()).milliseconds.timerString(true)
+        maxOf(Duration.ZERO, Instant.fromEpochMilliseconds(endTime) - Clock.System.now())
+            .timerString(true)
 
     fun Duration.timerString(roundUp: Boolean): String {
         val rounded = this + if (roundUp) 1.seconds - 1.nanoseconds else Duration.ZERO
