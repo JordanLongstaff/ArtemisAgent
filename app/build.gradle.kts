@@ -3,6 +3,7 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 plugins {
     id("com.android.application")
     kotlin("android")
+    kotlin("plugin.serialization")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.protobuf)
@@ -42,6 +43,7 @@ android {
     kotlinOptions { jvmTarget = javaVersion.toString() }
 
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    testOptions.unitTests.all { it.useJUnitPlatform() }
 
     buildTypes {
         configureEach {
@@ -88,6 +90,10 @@ dependencies {
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
+
+    testImplementation(libs.bundles.app.test)
+    testRuntimeOnly(libs.bundles.app.test.runtime)
+
     androidTestImplementation(libs.bundles.app.androidTest)
     androidTestUtil(libs.test.orchestrator)
 

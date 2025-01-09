@@ -588,7 +588,7 @@
     <string name="reason_commandeered">liberate commandeered ship</string>
     <string name="reason_has_energy">receive energy</string>
     <string name="reason_hostage">rescue hostages</string>
-    <string name="reason_malfunction">reset broken computer</string>
+    <string name="reason_malfunction">reset computer</string>
     <string name="reason_needs_damcon">transfer DamCon personnel</string>
     <string name="reason_needs_energy">deliver energy</string>
     <string name="reason_pirate_boss">pick up boss</string>
