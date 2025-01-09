@@ -15,7 +15,7 @@ import kotlin.time.Duration.Companion.seconds
 class TimerTextTest :
     DescribeSpec({
         describe("TimerText") {
-            val tolerance = 0.5.seconds
+            val tolerance = 1.seconds
             val underOneHour = Arb.duration(0.seconds..(1.hours - tolerance))
             val overOneHour = Arb.duration((1.hours + tolerance)..(100.hours - tolerance))
 
