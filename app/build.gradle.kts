@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
 
+    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
 
