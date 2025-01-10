@@ -91,4 +91,21 @@ jobs:
             ${{ github.workspace }}/IAN/world/build/reports/kover/report.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
-          min-coverage-overall: 90
+          min-coverage-overall: 99
+
+      - name: Total Code Coverage Report
+        uses: mi-kas/kover-report@v1.9
+        with:
+          title: Total Code Coverage
+          path: |
+            ${{ github.workspace }}/app/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/enums/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/listener/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/packets/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/udp/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/util/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/vesseldata/build/reports/kover/report.xml
+            ${{ github.workspace }}/IAN/world/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
