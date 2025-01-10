@@ -65,10 +65,10 @@ jobs:
       - name: Download Test Results
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: tests
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
         with:
           check_name: Instrumented Test Results
-          files: artifacts/**/*.xml
+          files: tests/**/*.xml
