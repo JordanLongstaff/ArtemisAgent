@@ -10,8 +10,8 @@
     {
       "groupName": "kotlin and ksp",
       "matchPackageNames": [
-        "kotlin",
-        "ksp"
+        "/^org\\.jetbrains\\.kotlin:(?:[\\w-]+)$/",
+        "/^com\\.google\\.devtools\\.ksp:(?:[\\w-]+)$/"
       ]
     }
   ]
