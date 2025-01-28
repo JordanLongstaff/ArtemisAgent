@@ -17,7 +17,6 @@
     <ID>LongParameterList:RoutingGraph.kt$RoutingGraph$( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY, )</ID>
     <ID>LoopWithTooManyJumpStatements:RoutingGraph.kt$RoutingGraph$while</ID>
     <ID>NestedBlockDepth:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
-    <ID>NestedBlockDepth:CPU.kt$CPU$private fun onNpcCreate(npc: ArtemisNpc): Boolean</ID>
     <ID>ReturnCount:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
     <ID>TooManyFunctions:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
     <ID>TooManyFunctions:CPU.kt$CPU : CoroutineScope</ID>

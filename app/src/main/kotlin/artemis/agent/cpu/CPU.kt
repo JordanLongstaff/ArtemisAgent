@@ -425,32 +425,32 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     private fun onNpcCreate(npc: ArtemisNpc): Boolean =
         viewModel.run {
             val vessel = npc.getVessel(vesselData) ?: return@run false
-            val faction = vessel.getFaction(vesselData) ?: return@run false
-            when {
-                faction[Faction.FRIENDLY] ->
-                    npc.name.value?.also {
-                        if (allyShips.isEmpty()) {
-                            alliesExist = true
+            vessel.getFaction(vesselData)?.also { faction ->
+                when {
+                    faction[Faction.FRIENDLY] ->
+                        npc.name.value?.also {
+                            if (allyShips.isEmpty()) {
+                                alliesExist = true
+                            }
+                            allyShipIndex[it] = npc.id
+                            allyShips[npc.id] = ObjectEntry.Ally(npc, vessel.name, isDeepStrike)
+                            sendToServer(CommsOutgoingPacket(npc, OtherMessage.Hail, vesselData))
                         }
-                        allyShipIndex[it] = npc.id
-                        allyShips[npc.id] = ObjectEntry.Ally(npc, vessel.name, isDeepStrike)
-                        sendToServer(CommsOutgoingPacket(npc, OtherMessage.Hail, vesselData))
+                    faction[Faction.BIOMECH] -> {
+                        biomechsExist = true
+                        if (playerShip?.let { npc.hasBeenScannedBy(it).booleanValue } == true) {
+                            scannedBiomechs.add(BiomechEntry(npc))
+                        } else {
+                            unscannedBiomechs[npc.id] = npc
+                        }
                     }
-                faction[Faction.BIOMECH] -> {
-                    biomechsExist = true
-                    if (playerShip?.let { npc.hasBeenScannedBy(it).booleanValue } == true) {
-                        scannedBiomechs.add(BiomechEntry(npc))
-                    } else {
-                        unscannedBiomechs[npc.id] = npc
-                    }
+                    faction[Faction.ENEMY] ->
+                        npc.name.value?.also {
+                            enemies[npc.id] = EnemyEntry(npc, vessel, faction)
+                            enemyNameIndex[it] = npc.id
+                        }
                 }
-                faction[Faction.ENEMY] ->
-                    npc.name.value?.also {
-                        enemies[npc.id] = EnemyEntry(npc, vessel, faction)
-                        enemyNameIndex[it] = npc.id
-                    }
-            }
-            true
+            } != null
         }
 
     @Listener
