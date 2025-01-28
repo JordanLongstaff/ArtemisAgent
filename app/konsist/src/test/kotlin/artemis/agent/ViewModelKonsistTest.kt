@@ -1,7 +1,9 @@
 package artemis.agent
 
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import com.lemonappdev.konsist.api.Konsist
-import com.lemonappdev.konsist.api.ext.list.withParent
+import com.lemonappdev.konsist.api.ext.list.withParentOf
 import com.lemonappdev.konsist.api.verify.assertTrue
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equals.shouldBeEqual
@@ -9,9 +11,9 @@ import io.kotest.matchers.equals.shouldBeEqual
 class ViewModelKonsistTest :
     DescribeSpec({
         val viewModelClasses =
-            Konsist.scopeFromModule("app").classes().withParent {
-                it.hasNameEndingWith("ViewModel")
-            }
+            Konsist.scopeFromModule("app")
+                .classes()
+                .withParentOf(ViewModel::class, AndroidViewModel::class)
 
         it("Only one ViewModel class exists") { viewModelClasses.size shouldBeEqual 1 }
 

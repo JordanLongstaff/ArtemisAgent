@@ -399,6 +399,7 @@ konsist-common = [
 ]
 konsist-app = [
     "fragment",
+    "lifecycle-viewmodel",
     "kotest-assertions-core",
 ]
 konsist-ian = [
