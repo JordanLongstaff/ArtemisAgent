@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate Google Services JSON
+      - name: Generate secret files
         env:
           GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON }}
           KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
