@@ -505,7 +505,7 @@ sealed interface MessageParser {
                 val mission = viewModel.allMissions[i++]
                 if (mission.isCompleted || mission.associatedShipName != shipName) continue
 
-                for (j in viewModel.allMissions.size - 1 downTo i) {
+                for (j in viewModel.allMissions.lastIndex downTo i) {
                     val otherMission = viewModel.allMissions[j]
                     if (
                         otherMission.isCompleted ||

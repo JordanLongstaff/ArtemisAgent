@@ -174,10 +174,9 @@ class SettingsFragmentTest {
         }
 
         fun testSortPermutations(@IdRes defaultSort: Int, @IdRes vararg orderToClick: Int) {
-            val lastIndex = orderToClick.size - 1
             orderToClick.forEachIndexed { index, id ->
                 clickOn(id)
-                ArtemisAgentTestHelpers.assertChecked(defaultSort, index == lastIndex)
+                ArtemisAgentTestHelpers.assertChecked(defaultSort, index == orderToClick.lastIndex)
             }
         }
 
