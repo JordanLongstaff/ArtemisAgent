@@ -45,16 +45,14 @@ platform :android do
 
     desc "Deploy a new version to the Google Play"
     lane :deploy do |options|
-        version(name: options[:version])
+        version_name = options[:version]
+        version(name: version_name)
         bundle
 
-        version_name = android_get_version_name(gradle_file: gradle_file)
-
         upload_to_play_store(
-            aab: "app/release/app-release.aab",
             version_name: "Artemis Agent #{version_name}",
             track: options.fetch(:track, "production"),
-            priority: options.fetch(:priority, 0)
+            in_app_update_priority: options.fetch(:priority, 0)
         )
     end
 end

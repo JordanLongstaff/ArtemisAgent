@@ -3,8 +3,6 @@
 /.kotlin/
 /build/
 /fastlane/metadata/
-/artemis-agent-433913-9ee89b54a5c6.json
-/artemis-agent-keystore.jks
 /keystore.properties
 /local.properties
 /fastlane/report.xml
