@@ -29,8 +29,8 @@ jobs:
           GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON }}
           KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
         run: |
-          echo $KEYSTORE_PROPERTIES > ${{ github.workspace }}/keystore.properties
-          echo $GOOGLE_SERVICES > ${{ github.workspace }}/app/google-services.json
+          echo $KEYSTORE_PROPERTIES | base64 -d > ${{ github.workspace }}/keystore.properties
+          echo $GOOGLE_SERVICES | base64 -d > ${{ github.workspace }}/app/google-services.json
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
