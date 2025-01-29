@@ -1,0 +1,9 @@
+/.gradle/
+/.idea/
+/.kotlin/
+/build/
+/fastlane/metadata/
+/artemis-agent-433913-9ee89b54a5c6.json
+/local.properties
+/fastlane/report.xml
+/fastlane/README.md
