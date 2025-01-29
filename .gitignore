@@ -2,8 +2,5 @@
 /.idea/
 /.kotlin/
 /build/
-/fastlane/metadata/
 /keystore.properties
 /local.properties
-/fastlane/report.xml
-/fastlane/README.md
