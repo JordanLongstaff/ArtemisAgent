@@ -1,4 +1,6 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -17,6 +19,9 @@ val appName: String = "Artemis Agent"
 val sdkVersion: Int by rootProject.extra
 val minimumSdkVersion: Int by rootProject.extra
 val javaVersion: JavaVersion by rootProject.extra
+
+val keystoreProperties =
+    Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
 android {
     namespace = "artemis.agent"
@@ -45,12 +50,22 @@ android {
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
     testOptions.unitTests.all { it.useJUnitPlatform() }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storePassword = keystoreProperties["storePassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+        }
+    }
+
     buildTypes {
         configureEach {
             resValue("string", "app_name", appName)
             resValue("string", "app_version", "$appName ${defaultConfig.versionName}")
         }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

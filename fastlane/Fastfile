@@ -16,40 +16,45 @@ update_fastlane
 default_platform(:android)
 
 platform :android do
-  desc "Runs all the tests"
-  lane :test do
-    gradle(task: "test")
-  end
-
-  desc "Updates app version"
-  lane :version do |options|
     gradle_file = "app/build.gradle.kts"
 
-    version_name = options.fetch(:name, "")
-    if version_name != ""
-      android_set_version_name(
-        version_name: version_name,
-        gradle_file: gradle_file
-      )
+    desc "Runs all the tests"
+    lane :test do
+        gradle(task: "test")
     end
 
-    if options.fetch(:increment, true)
-      android_set_version_code(gradle_file: gradle_file)
+    desc "Updates app version"
+    lane :version do |options|
+        version_name = options.fetch(:name, "")
+        if version_name != ""
+            android_set_version_name(
+                version_name: version_name,
+                gradle_file: gradle_file
+            )
+        end
+
+        if options.fetch(:increment, true)
+            android_set_version_code(gradle_file: gradle_file)
+        end
     end
-  end
 
-  desc "Submit a new Beta Build to Firebase App Distribution"
-  lane :beta do
-    gradle(task: "clean assembleRelease")
-    firebase_app_distribution
-  
-    # sh "your_script.sh"
-    # You can also use other beta testing services here
-  end
+    desc "Build release app bundle"
+    lane :bundle do
+        gradle(task: "clean bundleRelease")
+    end
 
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    gradle(task: "clean assembleRelease")
-    upload_to_play_store
-  end
+    desc "Deploy a new version to the Google Play"
+    lane :deploy do |options|
+        version(name: options[:version])
+        bundle
+
+        version_name = android_get_version_name(gradle_file: gradle_file)
+
+        upload_to_play_store(
+            aab: "app/release/app-release.aab",
+            version_name: "Artemis Agent #{version_name}",
+            track: options.fetch(:track, "production"),
+            priority: options.fetch(:priority, 0)
+        )
+    end
 end
