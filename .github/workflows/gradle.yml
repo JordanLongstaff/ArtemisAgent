@@ -28,8 +28,10 @@ jobs:
         env:
           GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON }}
           KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
+          KEYSTORE_FILE: ${{ secrets.APP_KEYSTORE }}
         run: |
           echo $KEYSTORE_PROPERTIES | base64 -d > ${{ github.workspace }}/keystore.properties
+          echo $KEYSTORE_FILE | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
           echo $GOOGLE_SERVICES | base64 -d > ${{ github.workspace }}/app/google-services.json
 
       - name: Set up JDK 21
