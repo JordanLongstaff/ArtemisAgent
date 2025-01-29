@@ -16,6 +16,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: Private files
     permissions:
       contents: read
       checks: write
@@ -25,14 +27,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Generate secret files
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES_JSON }}
-          KEYSTORE_PROPERTIES: ${{ secrets.KEYSTORE_PROPERTIES }}
-          KEYSTORE_FILE: ${{ secrets.APP_KEYSTORE }}
         run: |
-          echo $KEYSTORE_PROPERTIES | base64 -d > ${{ github.workspace }}/keystore.properties
-          echo $KEYSTORE_FILE | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
-          echo $GOOGLE_SERVICES | base64 -d > ${{ github.workspace }}/app/google-services.json
+          echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
+          echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4

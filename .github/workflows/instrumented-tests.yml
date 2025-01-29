@@ -11,11 +11,18 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: Private files
     strategy:
       matrix:
         api-level: [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 ]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate secret files
+        run: |
+          echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
+          echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
 
       - name: Enable KVM group perms
         run: |
