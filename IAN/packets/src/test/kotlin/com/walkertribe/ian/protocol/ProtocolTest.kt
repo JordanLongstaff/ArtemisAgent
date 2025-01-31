@@ -51,13 +51,6 @@ class ProtocolTest : DescribeSpec(), KoinTest {
     init {
         describe("Protocol") {
             describe("Has factories registered for server packets") {
-                data class ServerPacketRegistration(
-                    val packetClass: KClass<out Packet>,
-                    val packetName: String = packetClass.java.simpleName,
-                    val type: Int,
-                    val subtype: Byte? = null,
-                )
-
                 withData(
                     nameFn = { it.packetName },
                     ServerPacketRegistration(
@@ -153,12 +146,6 @@ class ProtocolTest : DescribeSpec(), KoinTest {
             }
 
             describe("Does not have factories registered for client packets") {
-                data class ClientPacketTestCase(
-                    val packetName: String,
-                    val subtype: Byte? = null,
-                    val type: Int = TestPacketTypes.VALUE_INT,
-                )
-
                 withData(
                     nameFn = { it.packetName },
                     ClientPacketTestCase("ActivateUpgradePacket.Current", 0x1c),
@@ -232,4 +219,17 @@ class ProtocolTest : DescribeSpec(), KoinTest {
             }
         }
     }
+
+    data class ServerPacketRegistration(
+        val packetClass: KClass<out Packet>,
+        val packetName: String = packetClass.java.simpleName,
+        val type: Int,
+        val subtype: Byte? = null,
+    )
+
+    data class ClientPacketTestCase(
+        val packetName: String,
+        val subtype: Byte? = null,
+        val type: Int = TestPacketTypes.VALUE_INT,
+    )
 }
