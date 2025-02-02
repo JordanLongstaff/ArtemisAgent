@@ -26,6 +26,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -40,7 +41,8 @@ import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
 import com.walkertribe.ian.iface.DisconnectCause
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
@@ -417,228 +419,42 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-
-        val crashlytics = FirebaseCrashlytics.getInstance()
-        crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
-
+        setupWindowInsets()
+        setupFirebase()
         setupTiramisu()
+        setupBackPressedCallbacks()
+        setupTheme()
+        setupConnectionObservers()
+        setupUserSettingsObserver()
 
-        with(viewModel) {
-            val finishCallback =
-                onBackPressedDispatcher.addCallback(this@MainActivity) {
-                    supportFinishAfterTransition()
-                }
+        collectLatestWhileStarted(viewModel.gameOverReason) {
+            if (shouldAskForReview) askForReview()
+            shouldAskForReview = !shouldAskForReview
+        }
 
-            onBackPressedDispatcher.addCallback(this@MainActivity) {
-                val dialog = ifConnected {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setMessage(R.string.exit_message)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            playSound(SoundEffect.BEEP_1)
-                            isEnabled = true
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            playSound(SoundEffect.CONFIRMATION)
-                            networkInterface.stop()
-                            finishCallback.handleOnBackPressed()
-                        }
-                }
-                if (dialog != null) {
-                    playSound(SoundEffect.BEEP_2)
-                    dialog.show()
-                    isEnabled = false
-                } else {
-                    finishCallback.handleOnBackPressed()
-                }
-            }
+        collectLatestWhileStarted(viewModel.jumping) {
+            binding.jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
+        }
 
-            try {
-                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
-            } catch (_: FileNotFoundException) {}
+        binding.mainPageSelector.children.forEach { view ->
+            view.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        }
 
-            theme.applyStyle(themeRes, true)
-            isThemeChanged.value = false
+        binding.mainPageSelector.setOnCheckedChangeListener { _, checkedId ->
+            currentSection = Section.entries.find { it.buttonId == checkedId }
+        }
 
-            collectLatestWhileStarted(connectionStatus) {
-                if (isIdle) {
-                    selectableShips.value = listOf()
-                }
-            }
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
 
-            collectLatestWhileStarted(connectedUrl) { newUrl ->
-                if (newUrl.isNotBlank()) {
-                    userSettings.updateData {
-                        val serversList = it.recentServersList.toMutableList()
-                        serversList.remove(newUrl)
-                        serversList.add(0, newUrl)
+        if (savedInstanceState == null) {
+            binding.setupPageButton.isChecked = true
+        }
 
-                        it.copy {
-                            recentServers.clear()
-
-                            recentServers +=
-                                if (recentAddressLimitEnabled) {
-                                    serversList.take(recentAddressLimit)
-                                } else {
-                                    serversList
-                                }
-                        }
-                    }
-                }
-            }
-
-            collectLatestWhileStarted(userSettings.data) { settings ->
-                var newContextIndex = reconcileVesselDataIndex(settings.vesselDataLocationValue)
-                checkContext(newContextIndex) { message ->
-                    newContextIndex = if (vesselDataIndex == newContextIndex) 0 else vesselDataIndex
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.xml_error)
-                        .setMessage(getString(R.string.xml_error_message, message))
-                        .setCancelable(true)
-                        .show()
-                }
-
-                val limit = settings.recentAddressLimit
-                val hasLimit = settings.recentAddressLimitEnabled
-
-                val adjustedSettings =
-                    settings.copy {
-                        vesselDataLocationValue = newContextIndex
-                        val recentServersCount = recentServers.size
-                        if (hasLimit && recentServersCount > limit) {
-                            val min = recentServersCount.coerceAtMost(limit)
-                            val serversList = recentServers.take(min)
-                            recentServers.clear()
-                            recentServers += serversList
-                        }
-                    }
-
-                if (!isIdle && newContextIndex != vesselDataIndex) {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.vessel_data)
-                        .setMessage(R.string.xml_location_warning)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            launch { userSettings.updateData { revertSettings(it) } }
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            playSound(SoundEffect.BEEP_2)
-                            disconnectFromServer()
-                            updateFromSettings(adjustedSettings)
-                            launch { userSettings.updateData { adjustedSettings } }
-                        }
-                        .show()
-                    return@collectLatestWhileStarted
-                } else {
-                    updateFromSettings(adjustedSettings)
-                    userSettings.updateData { adjustedSettings }
-                }
-            }
-
-            collectLatestWhileStarted(disconnectCause) {
-                var suggestUpdate = false
-                val message =
-                    when (it) {
-                        is DisconnectCause.IOError -> {
-                            crashlytics.recordException(it.exception)
-                            getString(R.string.disconnect_io_error, it.exception.message)
-                        }
-                        is DisconnectCause.PacketParseError -> {
-                            val ex = it.exception
-                            crashlytics.setCustomKeys {
-                                key("Version", viewModel.version.toString())
-                                key("Packet type", ex.packetType.toHexString())
-                                key("Payload", ex.payload?.toHexString() ?: "[]")
-                            }
-                            crashlytics.recordException(ex)
-                            getString(R.string.disconnect_parse, it.exception.message)
-                        }
-                        is DisconnectCause.RemoteDisconnect -> {
-                            getString(R.string.disconnect_remote)
-                        }
-                        is DisconnectCause.UnsupportedVersion -> {
-                            if (it.version < Version.MINIMUM) {
-                                getString(
-                                    R.string.disconnect_unsupported_version_old,
-                                    Version.MINIMUM,
-                                    it.version,
-                                )
-                            } else {
-                                suggestUpdate = true
-                                getString(R.string.disconnect_unsupported_version_new, it.version)
-                            }
-                        }
-                        is DisconnectCause.UnknownError -> {
-                            crashlytics.recordException(it.throwable)
-                            getString(R.string.disconnect_unknown_error, it.throwable.message)
-                        }
-                        is DisconnectCause.LocalDisconnect -> return@collectLatestWhileStarted
-                    }
-                AlertDialog.Builder(this@MainActivity)
-                    .setMessage(message)
-                    .setCancelable(true)
-                    .apply {
-                        if (suggestUpdate) {
-                            setPositiveButton(R.string.check_for_updates) { _, _ ->
-                                openPlayStore()
-                            }
-                        }
-                    }
-                    .show()
-            }
-
-            collectLatestWhileStarted(gameOverReason) {
-                if (shouldAskForReview) askForReview()
-                shouldAskForReview = !shouldAskForReview
-            }
-
-            with(binding) {
-                collectLatestWhileStarted(isThemeChanged) {
-                    if (it) {
-                        isThemeChanged.value = false
-                        recreate()
-                    }
-                }
-
-                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
-                    val insets =
-                        windowInsets.getInsets(
-                            WindowInsetsCompat.Type.systemBars() or
-                                WindowInsetsCompat.Type.displayCutout()
-                        )
-                    view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
-                    WindowInsetsCompat.CONSUMED
-                }
-
-                collectLatestWhileStarted(jumping) {
-                    jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
-                }
-
-                setupPageButton.setOnClickListener { playSound(SoundEffect.BEEP_2) }
-
-                gamePageButton.setOnClickListener { playSound(SoundEffect.BEEP_2) }
-
-                helpPageButton.setOnClickListener { playSound(SoundEffect.BEEP_2) }
-
-                mainPageSelector.setOnCheckedChangeListener { _, checkedId ->
-                    currentSection = Section.entries.find { it.buttonId == checkedId }
-                }
-
-                super.onCreate(savedInstanceState)
-                setContentView(root)
-
-                if (savedInstanceState == null) {
-                    setupPageButton.isChecked = true
-                }
-
-                collectLatestWhileStarted(shipIndex) {
-                    if (it >= 0) {
-                        gamePageButton.isChecked = true
-                    }
-                }
+        collectLatestWhileStarted(viewModel.shipIndex) {
+            if (it >= 0) {
+                binding.gamePageButton.isChecked = true
             }
         }
     }
@@ -715,20 +531,218 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupWindowInsets() {
+        enableEdgeToEdge()
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets =
+                windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                )
+            view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+    }
+
     private fun setupTiramisu() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-
-        //        onBackInvokedDispatcher.registerOnBackInvokedCallback(
-        //            OnBackInvokedDispatcher.PRIORITY_DEFAULT
-        //        ) {
-        //            onBackPressed()
-        //        }
 
         if (
             ActivityCompat.checkSelfPermission(this, POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun setupFirebase() {
+        Firebase.crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+    }
+
+    private fun setupBackPressedCallbacks() {
+        val finishCallback =
+            onBackPressedDispatcher.addCallback(this) { supportFinishAfterTransition() }
+
+        onBackPressedDispatcher.addCallback(this) {
+            val dialog =
+                viewModel.ifConnected {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setMessage(R.string.exit_message)
+                        .setCancelable(false)
+                        .setNegativeButton(R.string.no) { _, _ ->
+                            viewModel.playSound(SoundEffect.BEEP_1)
+                            isEnabled = true
+                        }
+                        .setPositiveButton(R.string.yes) { _, _ ->
+                            viewModel.playSound(SoundEffect.CONFIRMATION)
+                            viewModel.networkInterface.stop()
+                            finishCallback.handleOnBackPressed()
+                        }
+                }
+            if (dialog != null) {
+                viewModel.playSound(SoundEffect.BEEP_2)
+                dialog.show()
+                isEnabled = false
+            } else {
+                finishCallback.handleOnBackPressed()
+            }
+        }
+    }
+
+    private fun setupTheme() {
+        with(viewModel) {
+            try {
+                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
+            } catch (_: FileNotFoundException) {}
+
+            theme.applyStyle(themeRes, true)
+            isThemeChanged.value = false
+
+            collectLatestWhileStarted(isThemeChanged) {
+                if (it) {
+                    isThemeChanged.value = false
+                    recreate()
+                }
+            }
+        }
+    }
+
+    private fun setupConnectionObservers() {
+        with(viewModel) {
+            collectLatestWhileStarted(connectionStatus) {
+                if (isIdle) {
+                    selectableShips.value = listOf()
+                }
+            }
+
+            collectLatestWhileStarted(connectedUrl) { newUrl ->
+                if (newUrl.isNotBlank()) {
+                    userSettings.updateData {
+                        val serversList = it.recentServersList.toMutableList()
+                        serversList.remove(newUrl)
+                        serversList.add(0, newUrl)
+
+                        it.copy {
+                            recentServers.clear()
+
+                            recentServers +=
+                                if (recentAddressLimitEnabled) {
+                                    serversList.take(recentAddressLimit)
+                                } else {
+                                    serversList
+                                }
+                        }
+                    }
+                }
+            }
+
+            collectLatestWhileStarted(disconnectCause) {
+                val (message, suggestUpdate) =
+                    getDisconnectDialogContents(it) ?: return@collectLatestWhileStarted
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setCancelable(true)
+                    .apply {
+                        if (suggestUpdate) {
+                            setPositiveButton(R.string.check_for_updates) { _, _ ->
+                                openPlayStore()
+                            }
+                        }
+                    }
+                    .show()
+            }
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun getDisconnectDialogContents(cause: DisconnectCause): Pair<String, Boolean>? {
+        val crashlytics = Firebase.crashlytics
+        return when (cause) {
+            is DisconnectCause.IOError -> {
+                crashlytics.recordException(cause.exception)
+                getString(R.string.disconnect_io_error, cause.exception.message) to false
+            }
+            is DisconnectCause.PacketParseError -> {
+                val ex = cause.exception
+                crashlytics.setCustomKeys {
+                    key("Version", viewModel.version.toString())
+                    key("Packet type", ex.packetType.toHexString())
+                    key("Payload", ex.payload?.toHexString() ?: "[]")
+                }
+                crashlytics.recordException(ex)
+                getString(R.string.disconnect_parse, cause.exception.message) to false
+            }
+            is DisconnectCause.RemoteDisconnect -> {
+                getString(R.string.disconnect_remote) to false
+            }
+            is DisconnectCause.UnsupportedVersion -> {
+                if (cause.version < Version.MINIMUM) {
+                    getString(
+                        R.string.disconnect_unsupported_version_old,
+                        Version.MINIMUM,
+                        cause.version,
+                    ) to false
+                } else {
+                    getString(R.string.disconnect_unsupported_version_new, cause.version) to true
+                }
+            }
+            is DisconnectCause.UnknownError -> {
+                crashlytics.recordException(cause.throwable)
+                getString(R.string.disconnect_unknown_error, cause.throwable.message) to false
+            }
+            is DisconnectCause.LocalDisconnect -> null
+        }
+    }
+
+    private fun setupUserSettingsObserver() {
+        with(viewModel) {
+            collectLatestWhileStarted(userSettings.data) { settings ->
+                var newContextIndex = reconcileVesselDataIndex(settings.vesselDataLocationValue)
+                checkContext(newContextIndex) { message ->
+                    newContextIndex = if (vesselDataIndex == newContextIndex) 0 else vesselDataIndex
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.xml_error)
+                        .setMessage(getString(R.string.xml_error_message, message))
+                        .setCancelable(true)
+                        .show()
+                }
+
+                val limit = settings.recentAddressLimit
+                val hasLimit = settings.recentAddressLimitEnabled
+
+                val adjustedSettings =
+                    settings.copy {
+                        vesselDataLocationValue = newContextIndex
+                        val recentServersCount = recentServers.size
+                        if (hasLimit && recentServersCount > limit) {
+                            val min = recentServersCount.coerceAtMost(limit)
+                            val serversList = recentServers.take(min)
+                            recentServers.clear()
+                            recentServers += serversList
+                        }
+                    }
+
+                if (!isIdle && newContextIndex != vesselDataIndex) {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.vessel_data)
+                        .setMessage(R.string.xml_location_warning)
+                        .setCancelable(false)
+                        .setNegativeButton(R.string.no) { _, _ ->
+                            launch { userSettings.updateData { revertSettings(it) } }
+                        }
+                        .setPositiveButton(R.string.yes) { _, _ ->
+                            playSound(SoundEffect.BEEP_2)
+                            disconnectFromServer()
+                            updateFromSettings(adjustedSettings)
+                            launch { userSettings.updateData { adjustedSettings } }
+                        }
+                        .show()
+                    return@collectLatestWhileStarted
+                } else {
+                    updateFromSettings(adjustedSettings)
+                    userSettings.updateData { adjustedSettings }
+                }
+            }
         }
     }
 
