@@ -1,7 +1,6 @@
 package artemis.agent.cpu
 
 import android.util.Log
-import android.util.Pair
 import artemis.agent.AgentViewModel
 import artemis.agent.game.ObjectEntry
 import artemis.agent.game.route.RouteEntry
@@ -192,122 +191,20 @@ internal class RoutingGraph(
 
     /** Releases a bunch of "ants" to search in parallel to attempt to find the optimal route. */
     suspend fun searchForRoute(): List<RouteEntry>? {
-        val possibleRoutes =
-            Array(TOTAL_ANTS) {
+        // Find optimal route among a random selection
+        val (bestPathList, bestPathCost) =
+            List(TOTAL_ANTS) {
                     // Let each ant search in parallel coroutines
-                    viewModel.cpu.async {
-                        val currentNodes = paths.keys.toMutableSet()
-                        var totalCost = 0f
-                        val currentPath = mutableListOf<ObjectEntry<*>>()
-
-                        while (currentNodes.isNotEmpty()) {
-                            // Get current location in the path we're building, starting at the
-                            // player ship
-                            val currentNode = currentPath.lastOrNull()?.obj ?: source
-
-                            // Line up each possible next waypoint to visit by heuristically
-                            // dividing the
-                            // current pheromone value of the path to it by the cost of said path
-                            val nodePheromones =
-                                currentNodes.map { node ->
-                                    val key = generateRouteKey(currentNode, node.obj)
-                                    Triple(
-                                        node,
-                                        key,
-                                        (pheromones[key] ?: DEFAULT_PHEROMONE) *
-                                            (costs[key]?.takeUnless(Float::isNaN)?.let {
-                                                GRID_SECTOR_SIZE / it
-                                            } ?: 1.0),
-                                    )
-                                }
-
-                            // Choose one at random - waypoints with a higher heuristic value are
-                            // more
-                            // likely to be chosen
-                            var pheromoneSelect =
-                                Random.nextDouble() * nodePheromones.sumOf { it.third }
-
-                            var nextNode: ObjectEntry<*>? = null
-                            var nextKey = -1
-                            for (pheromone in nodePheromones) {
-                                pheromoneSelect -= pheromone.third
-                                // Seek out the next waypoint to visit based on randomly chosen
-                                // pheromone value
-                                if (pheromoneSelect < 0.0) {
-                                    nextNode = pheromone.first
-                                    nextKey = pheromone.second
-
-                                    // If we previously chose an optimal route, then sub-optimal
-                                    // routes
-                                    // shall have their pheromone values decayed so they are less
-                                    // likely to
-                                    // be considered again later
-                                    firstPheromone?.also {
-                                        val nextPheromone =
-                                            PHI * it +
-                                                MINUS_PHI *
-                                                    (pheromones[nextKey] ?: DEFAULT_PHEROMONE)
-                                        pheromones[nextKey] = nextPheromone
-                                        pheromones[swapKey(nextKey)] = nextPheromone
-                                    }
-                                    break
-                                }
-                            }
-
-                            if (nextNode == null) {
-                                // If previous selection didn't work, choose with equal weight
-                                val pheromone = nodePheromones.random()
-                                nextNode = pheromone.first
-                                nextKey = pheromone.second
-
-                                // If we previously chose an optimal route, then sub-optimal routes
-                                // shall have their pheromone values decayed so they are less likely
-                                // to
-                                // be considered again later
-                                firstPheromone?.also {
-                                    val nextPheromone =
-                                        PHI * it +
-                                            MINUS_PHI * (pheromones[nextKey] ?: DEFAULT_PHEROMONE)
-                                    pheromones[nextKey] = nextPheromone
-                                    pheromones[swapKey(nextKey)] = nextPheromone
-                                }
-                            }
-
-                            // Add waypoint to current path, remove from list of waypoints to
-                            // consider
-                            val pathCost = costs[nextKey] ?: 0f
-                            totalCost += pathCost
-                            currentPath.add(nextNode)
-                            currentNodes.remove(nextNode)
-
-                            // Now open consideration for waypoints that follow this waypoint but
-                            // aren't
-                            // also currently preceded by some other waypoint - this may result in a
-                            // waypoint being visited twice if cycles exist anywhere
-                            paths[nextNode]
-                                ?.filter { target ->
-                                    paths[target]?.isNotEmpty() == true ||
-                                        currentNodes.none { otherNode ->
-                                            paths[otherNode]?.contains(target) == true
-                                        }
-                                }
-                                ?.also(currentNodes::addAll)
-                        }
-
-                        // Return the generated route and its total cost
-                        Pair(currentPath, totalCost)
-                    }
+                    viewModel.cpu.async { generateRouteCandidate() }
                 }
-                .toList()
+                .awaitAll()
+                .minByOrNull { it.second }
+                ?.takeUnless {
+                    // If we already found a better one previously, ignore this one
+                    it.second > minimumCost
+                } ?: return null
 
-        // Take the best route out of the ones that were considered
-        val bestPair = possibleRoutes.awaitAll().minByOrNull { it.second } ?: return null
-
-        // If we already found a better one previously, ignore this one
-        val bestPathCost = bestPair.second
-        if (bestPathCost > minimumCost) return null
-
-        val bestPath = bestPair.first.map(::RouteEntry)
+        val bestPath = bestPathList.map(::RouteEntry)
         if (bestPath.isNotEmpty()) {
             var currentNode = source
 
@@ -336,6 +233,60 @@ internal class RoutingGraph(
         minimumCost = bestPathCost
 
         return bestPath
+    }
+
+    private fun generateRouteCandidate(): Pair<List<ObjectEntry<*>>, Float> {
+        val currentNodes = paths.keys.toMutableSet()
+        var totalCost = 0f
+        val currentPath = mutableListOf<ObjectEntry<*>>()
+
+        while (currentNodes.isNotEmpty()) {
+            // Get current location in the path we're building, starting at the player ship
+            val currentNode = currentPath.lastOrNull()?.obj ?: source
+
+            // Map each possible next waypoint to visit to the route key of the path to it
+            val nodesAndKeys =
+                currentNodes.map { node -> node to generateRouteKey(currentNode, node.obj) }
+
+            // Choose one at random - waypoints with a higher heuristic value are more likely to be
+            // chosen
+            val (nextNode, nextKey) =
+                nodesAndKeys.randomByWeight { (_, key) ->
+                    // Heuristic: divide the current pheromone value of the path by its cost
+                    (pheromones[key] ?: DEFAULT_PHEROMONE) *
+                        (costs[key]?.takeUnless(Float::isNaN)?.let { GRID_SECTOR_SIZE / it } ?: 1.0)
+                }
+
+            // If we previously chose an optimal route, then sub-optimal routes shall have their
+            // pheromone values decayed so they are less likely to be considered again later
+            firstPheromone?.also {
+                val nextPheromone =
+                    PHI * it + MINUS_PHI * (pheromones[nextKey] ?: DEFAULT_PHEROMONE)
+                pheromones[nextKey] = nextPheromone
+                pheromones[swapKey(nextKey)] = nextPheromone
+            }
+
+            // Add waypoint to current path, remove from list of waypoints to consider
+            val pathCost = costs[nextKey] ?: 0f
+            totalCost += pathCost
+            currentPath.add(nextNode)
+            currentNodes.remove(nextNode)
+
+            // Now open consideration for waypoints that follow this waypoint but aren't also
+            // currently preceded by some other waypoint - this may result in a waypoint being
+            // visited twice if cycles exist anywhere
+            paths[nextNode]
+                ?.filter { target ->
+                    paths[target]?.isNotEmpty() == true ||
+                        currentNodes.none { otherNode ->
+                            paths[otherNode]?.contains(target) == true
+                        }
+                }
+                ?.also(currentNodes::addAll)
+        }
+
+        // Return the generated route and its total cost
+        return currentPath to totalCost
     }
 
     /**
@@ -942,6 +893,26 @@ internal class RoutingGraph(
                 is ArtemisCreature -> typhonClearance
                 else -> 0f
             }
+
+        /** Helper function to heuristically select a random entry from a collection. */
+        private fun <T> Collection<T>.randomByWeight(weightFn: (T) -> Double): T {
+            // Map entries to weights
+            val weighted = map { it to weightFn(it) }
+
+            // Select a random entry from the sum total of all weights
+            var selector = Random.nextDouble() * weighted.sumOf { it.second }
+
+            // Find and return the selected entry
+            for ((entry, weight) in weighted) {
+                selector -= weight
+                if (selector < 0.0) {
+                    return entry
+                }
+            }
+
+            // If selection didn't work, choose randomly with equal weight
+            return random()
+        }
 
         // Constants
         private const val TWO_PI = PI.toFloat() * 2
