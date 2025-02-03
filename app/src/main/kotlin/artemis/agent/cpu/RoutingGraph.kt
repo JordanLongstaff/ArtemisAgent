@@ -171,21 +171,14 @@ internal class RoutingGraph(
                 val dstObj = dst.obj
                 if (!dstObj.hasPosition) return@forEach
 
-                val routeCost =
-                    calculateRouteCost(
-                        srcObj.x.value,
-                        srcObj.z.value,
-                        dstObj.x.value,
-                        dstObj.z.value,
-                    )
+                val routeCost = calculateRouteCost(srcObj, dstObj)
 
                 costs[generateRouteKey(srcObj, dstObj)] = routeCost
                 costs[generateRouteKey(dstObj, srcObj)] = routeCost
             }
 
             // Now we calculate the path cost from the player ship to each waypoint
-            costs[generateRouteKey(source, srcObj)] =
-                calculateRouteCost(source.x.value, source.z.value, srcObj.x.value, srcObj.z.value)
+            costs[generateRouteKey(source, srcObj)] = calculateRouteCost(source, srcObj)
         }
     }
 
@@ -298,72 +291,71 @@ internal class RoutingGraph(
         sourceZ: Float,
         destX: Float,
         destZ: Float,
-        simpleDistance: Float,
         maxCost: Float = Float.POSITIVE_INFINITY,
-    ): Float =
-        viewModel.run {
-            // Calculate simple vector from source to destination
-            val dx = destX - sourceX
-            val dz = destZ - sourceZ
+    ): Float {
+        // Calculate simple vector from source to destination
+        val dx = destX - sourceX
+        val dz = destZ - sourceZ
+        val simpleDistance = sqrt(dx * dx + dz * dz)
 
-            // Determine if there is an obstacle close to this vector
-            val firstObstacle =
-                objectsToAvoid.keys
-                    .mapNotNull { obj ->
-                        // Object is only an obstacle if it needs to be avoided
-                        val clearance = getClearanceFor(obj)
-                        if (clearance == 0f) return@mapNotNull null
+        // Determine if there is an obstacle close to this vector
+        val allObjectsToConsider =
+            objectsToAvoid.keys
+                .mapNotNull { obj ->
+                    // Object is only an obstacle if it needs to be avoided
+                    val clearance = viewModel.getClearanceFor(obj)
+                    if (clearance == 0f) return@mapNotNull null
 
-                        // If obstacle is too close to destination, bail
-                        val distX = destX - obj.x.value
-                        val distZ = destZ - obj.z.value
-                        val distToDestSqr = distX * distX + distZ * distZ
-                        if (distToDestSqr <= clearance * clearance) {
-                            return@run Float.POSITIVE_INFINITY
-                        }
-
-                        // Calculate vector from source to obstacle
-                        val objX = obj.x.value - sourceX
-                        val objZ = obj.z.value - sourceZ
-
-                        val dot = dx * objX + dz * objZ
-
-                        // Ignore obstacle if it is located in the wrong direction
-                        if (dot <= 0f) return@mapNotNull null
-
-                        // Ignore obstacle if it is located beyond destination
-                        if (dot >= simpleDistance * simpleDistance) return@mapNotNull null
-
-                        // Ignore obstacle if we are already too close to it
-                        val objDistSqr = objX * objX + objZ * objZ
-                        if (objDistSqr <= clearance * clearance) return@mapNotNull null
-
-                        // Consider obstacle if and only if it is within range of travel vector
-                        val cross = abs(dx * objZ - dz * objX)
-                        if (cross >= simpleDistance * clearance) {
-                            null
-                        } else {
-                            Pair(obj, objDistSqr)
-                        }
-                        // Return closest obstacle among those found; terminate if none was found
+                    // If obstacle is too close to destination, bail
+                    val distX = destX - obj.x.value
+                    val distZ = destZ - obj.z.value
+                    val distToDestSqr = distX * distX + distZ * distZ
+                    if (distToDestSqr <= clearance * clearance) {
+                        return Float.POSITIVE_INFINITY
                     }
-                    .minByOrNull { it.second }
-                    ?.first ?: return@run simpleDistance
 
-            // Obstacle should belong to a cluster (even if it's only a cluster of one), but
-            // it might not if, for example, it was destroyed
-            val allObjectsToConsider = objectsToAvoid[firstObstacle] ?: return@run simpleDistance
+                    // Calculate vector from source to obstacle
+                    val objX = obj.x.value - sourceX
+                    val objZ = obj.z.value - sourceZ
 
-            // We will be looking at both clockwise and counterclockwise routes around obstacles and
-            // choosing the one with the lower cost
-            var clockwiseDistance = 0f
-            var counterClockwiseDistance = 0f
+                    val dot = dx * objX + dz * objZ
 
+                    // Ignore obstacle if it is located in the wrong direction
+                    if (dot <= 0f) return@mapNotNull null
+
+                    // Ignore obstacle if it is located beyond destination
+                    if (dot >= simpleDistance * simpleDistance) return@mapNotNull null
+
+                    // Ignore obstacle if we are already too close to it
+                    val objDistSqr = objX * objX + objZ * objZ
+                    if (objDistSqr <= clearance * clearance) return@mapNotNull null
+
+                    // Consider obstacle if and only if it is within range of travel vector
+                    val cross = abs(dx * objZ - dz * objX)
+                    if (cross >= simpleDistance * clearance) {
+                        null
+                    } else {
+                        obj to objDistSqr
+                    }
+                }
+                .minByOrNull { it.second }
+                ?.first
+                ?.let {
+                    // Obstacle should belong to a cluster (even if it's only a cluster of one), but
+                    // it might not if, for example, it was destroyed
+                    objectsToAvoid[it]
+                } ?: return simpleDistance
+
+        // We will be looking at both clockwise and counterclockwise routes around obstacles and
+        // choosing the one with the lower cost
+        var minDistance = maxCost
+        floatArrayOf(CLOCKWISE, COUNTER_CLOCKWISE).forEach { direction ->
             // As we find these routes around obstacles, these positions will be updated
             var currentSourceX = sourceX
             var currentSourceZ = sourceZ
 
-            var costAllowance = maxCost
+            var costAllowance = minDistance
+            var distance = 0f
             var diffX = dx
             var diffZ = dz
 
@@ -376,25 +368,24 @@ internal class RoutingGraph(
 
                 // Filter out objects from current cluster that are no longer relevant
                 val remainingObjects =
-                    objectsToConsider.mapNotNull {
+                    objectsToConsider.mapNotNull { obstacle ->
                         // Ignore the last obstacle we've already adjusted to (if any)
-                        if (it == lastObstacle) return@mapNotNull null
+                        if (obstacle == lastObstacle) return@mapNotNull null
 
                         // Calculate vector to obstacle
-                        val objX = it.x.value - currentSourceX
-                        val objZ = it.z.value - currentSourceZ
+                        val objX = obstacle.x.value - currentSourceX
+                        val objZ = obstacle.z.value - currentSourceZ
 
                         // Calculate heading to obstacle and normalize against vector to destination
                         var heading = atan2(objX, objZ) - currentHeading
                         while (heading > PI) heading -= TWO_PI
                         while (heading < -PI) heading += TWO_PI
+                        heading *= direction
 
                         // Ignore obstacle located in the wrong direction
-                        if (heading < 0f) {
-                            null
-                        } else {
-                            Pair(it, heading)
-                        }
+                        if (heading < 0f) return@mapNotNull null
+
+                        obstacle to heading
                     }
 
                 // If there are no more obstacles to get around, exit loop
@@ -404,11 +395,10 @@ internal class RoutingGraph(
                 val nextX = nextObstacle.x.value - currentSourceX
                 val nextZ = nextObstacle.z.value - currentSourceZ
                 val nextDist = sqrt(nextX * nextX + nextZ * nextZ)
-                val neededClearance = getClearanceFor(nextObstacle)
+                val neededClearance = viewModel.getClearanceFor(nextObstacle)
 
                 // Check to see if there's another obstacle closer to our current position in
-                // another
-                // cluster that we need to avoid
+                // another cluster that we need to avoid
                 val closerObstacle =
                     objectsToAvoid.keys
                         .mapNotNull { obj ->
@@ -419,7 +409,7 @@ internal class RoutingGraph(
                                 return@mapNotNull null
 
                             // Also ignore if it doesn't need avoiding
-                            val clearance = getClearanceFor(obj)
+                            val clearance = viewModel.getClearanceFor(obj)
                             if (clearance == 0f) return@mapNotNull null
 
                             // If obstacle is too close to destination, bail
@@ -427,30 +417,28 @@ internal class RoutingGraph(
                             val distZ = destZ - obj.z.value
                             val distToDestSqr = distX * distX + distZ * distZ
                             if (distToDestSqr <= clearance * clearance) {
-                                return@run Float.POSITIVE_INFINITY
+                                return Float.POSITIVE_INFINITY
                             }
 
                             // Calculate vector from position to obstacle
                             val objX = obj.x.value - currentSourceX
                             val objZ = obj.z.value - currentSourceZ
 
-                            val dot = nextX * objX + nextZ * objZ
-
                             // Ignore obstacle if it is located in the wrong direction
+                            val dot = nextX * objX + nextZ * objZ
                             if (dot <= 0f) return@mapNotNull null
 
                             // Ignore obstacle if it is located beyond destination
                             if (dot >= nextDist * nextDist) return@mapNotNull null
+
+                            // Ignore object if it is not within range of travel vector
+                            val cross = abs(nextX * objZ - nextZ * objX)
+                            if (cross >= nextDist * clearance) return@mapNotNull null
+
+                            // Consider obstacle if and only if we are outside its clearance
                             val objDistSqr = objX * objX + objZ * objZ
                             if (objDistSqr <= clearance * clearance) return@mapNotNull null
-
-                            // Consider obstacle if and only if it is within range of travel vector
-                            val cross = abs(nextX * objZ - nextZ * objX)
-                            if (cross >= nextDist * clearance) {
-                                null
-                            } else {
-                                Pair(obj, objDistSqr)
-                            }
+                            obj to objDistSqr
                         }
                         .minByOrNull { it.second }
                         ?.first
@@ -468,15 +456,15 @@ internal class RoutingGraph(
                 // If there was a previous obstacle, take a wide berth around it
                 lastObstacle?.also {
                     // If it's not an obstacle, forget it
-                    val clearance = getClearanceFor(it)
+                    val clearance = viewModel.getClearanceFor(it)
                     if (clearance == 0f) return@also
                     val scale = clearance / nextDist
 
                     // Calculate vectors to arc point to reach to move around obstacle
                     val armX = currentSourceX - it.x.value
                     val armZ = currentSourceZ - it.z.value
-                    val legX = nextZ * scale
-                    val legZ = -nextX * scale
+                    val legX = nextZ * scale * direction
+                    val legZ = -nextX * scale * direction
 
                     // Calculate arc length to move around obstacle
                     val armAngle = atan2(armX, armZ)
@@ -489,12 +477,12 @@ internal class RoutingGraph(
                     currentSourceZ += legZ - armZ
                     val addedCost = clearance * angleDiff
                     costAllowance -= addedCost
-                    clockwiseDistance += addedCost
+                    distance += addedCost
                 }
 
-                // If we've moved too far, clockwise route is impractical
+                // If we've moved too far, route is impractical
                 if (costAllowance < 0f) {
-                    clockwiseDistance = Float.POSITIVE_INFINITY
+                    distance = Float.POSITIVE_INFINITY
                     break
                 }
 
@@ -502,8 +490,8 @@ internal class RoutingGraph(
                 val scale = neededClearance / nextDist
 
                 // Calculate vector to tangent point at necessary clearance
-                val armX = nextZ * scale
-                val armZ = -nextX * scale
+                val armX = nextZ * scale * direction
+                val armZ = -nextX * scale * direction
                 val deltaX = nextX + armX
                 val deltaZ = nextZ + armZ
 
@@ -511,14 +499,14 @@ internal class RoutingGraph(
                 val addedCost = sqrt(deltaX * deltaX + deltaZ * deltaZ)
                 costAllowance -= addedCost
 
-                // If we've moved too far, clockwise route is impractical
+                // If we've moved too far, route is impractical
                 if (costAllowance < 0f) {
-                    clockwiseDistance = Float.POSITIVE_INFINITY
+                    distance = Float.POSITIVE_INFINITY
                     break
                 }
 
                 // Update distance traveled
-                clockwiseDistance += addedCost
+                distance += addedCost
 
                 // Update vector to destination
                 currentSourceX += deltaX
@@ -527,13 +515,13 @@ internal class RoutingGraph(
                 diffZ = destZ - currentSourceZ
             }
 
-            if (clockwiseDistance == 0f) {
-                return@run simpleDistance
-            } else if (clockwiseDistance.isFinite()) {
+            if (distance == 0f) {
+                return simpleDistance
+            } else if (distance.isFinite()) {
                 // If we had to get around an obstacle, we'll need to make an arc around it
                 lastObstacle?.also {
                     // If it's not an obstacle, forget it
-                    val clearance = getClearanceFor(it)
+                    val clearance = viewModel.getClearanceFor(it)
                     if (clearance == 0f) return@also
 
                     // Calculate vectors to arc point to reach to move around obstacle
@@ -541,8 +529,8 @@ internal class RoutingGraph(
                     val scale = clearance / nextDist
                     val armX = currentSourceX - it.x.value
                     val armZ = currentSourceZ - it.z.value
-                    val legX = diffZ * scale
-                    val legZ = -diffX * scale
+                    val legX = diffZ * scale * direction
+                    val legZ = -diffX * scale * direction
 
                     // Calculate arc length to move around obstacle
                     val armAngle = atan2(armX, armZ)
@@ -554,256 +542,44 @@ internal class RoutingGraph(
                     val addedCost = clearance * angleDiff
                     costAllowance -= addedCost
 
-                    // If we've moved too far, clockwise route is impractical
+                    // If we've moved too far, route is impractical
                     if (costAllowance < 0f) {
-                        clockwiseDistance = Float.POSITIVE_INFINITY
+                        distance = Float.POSITIVE_INFINITY
                     } else {
                         currentSourceX += legX - armX
                         currentSourceZ += legZ - armZ
-                        clockwiseDistance += addedCost
+                        distance += addedCost
                     }
                 }
 
                 // Continue search from current position
-                if (clockwiseDistance.isFinite()) {
-                    clockwiseDistance +=
+                if (distance.isFinite()) {
+                    distance +=
                         calculateAvoidanceRouteCost(
                             currentSourceX,
                             currentSourceZ,
                             destX,
                             destZ,
-                            sqrt(diffX * diffX + diffZ * diffZ),
                             costAllowance,
                         )
                 }
-            }
 
-            // Set up to search in counter-clockwise direction
-            currentSourceX = sourceX
-            currentSourceZ = sourceZ
-            diffX = dx
-            diffZ = dz
-            lastObstacle = null
-            costAllowance = min(maxCost, clockwiseDistance)
-            objectsToConsider = allObjectsToConsider.toList()
-
-            while (true) {
-                // Calculate heading to destination from current position
-                val currentHeading = atan2(diffX, diffZ)
-
-                // Filter out objects from current cluster that are no longer relevant
-                val remainingObjects =
-                    objectsToConsider.mapNotNull {
-                        // Ignore the last obstacle we've already adjusted to (if any)
-                        if (it == lastObstacle) return@mapNotNull null
-
-                        // Calculate vector to obstacle
-                        val objX = it.x.value - currentSourceX
-                        val objZ = it.z.value - currentSourceZ
-
-                        // Calculate heading to obstacle and normalize against vector to destination
-                        var heading = atan2(objX, objZ) - currentHeading
-                        while (heading > PI) heading -= TWO_PI
-                        while (heading < -PI) heading += TWO_PI
-
-                        // Ignore obstacle located in the wrong direction
-                        if (heading > 0f) {
-                            null
-                        } else {
-                            Pair(it, heading)
-                        }
-                    }
-
-                // If there are no more obstacles to get around, exit loop
-                val nextObstacle = remainingObjects.minByOrNull { it.second }?.first ?: break
-
-                // Calculate vector to next obstacle to avoid as well as clearance
-                val nextX = nextObstacle.x.value - currentSourceX
-                val nextZ = nextObstacle.z.value - currentSourceZ
-                val nextDist = sqrt(nextX * nextX + nextZ * nextZ)
-                val neededClearance = getClearanceFor(nextObstacle)
-
-                // Check to see if there's another obstacle closer to our current position in
-                // another
-                // cluster that we need to avoid
-                val closerObstacle =
-                    objectsToAvoid.keys
-                        .mapNotNull { obj ->
-                            // Ignore this obstacle if it's in the same cluster as the current
-                            // obstacle
-                            if (obj == nextObstacle) return@mapNotNull null
-                            if (objectsToAvoid[nextObstacle]?.contains(obj) != false)
-                                return@mapNotNull null
-
-                            // Also ignore if it doesn't need avoiding
-                            val clearance = getClearanceFor(obj)
-                            if (clearance == 0f) return@mapNotNull null
-
-                            // If obstacle is too close to destination, bail
-                            val distX = destX - obj.x.value
-                            val distZ = destZ - obj.z.value
-                            val distToDestSqr = distX * distX + distZ * distZ
-                            if (distToDestSqr <= clearance * clearance) {
-                                return@run Float.POSITIVE_INFINITY
-                            }
-
-                            // Calculate vector from position to obstacle
-                            val objX = obj.x.value - currentSourceX
-                            val objZ = obj.z.value - currentSourceZ
-
-                            val dot = nextX * objX + nextZ * objZ
-
-                            // Ignore obstacle if it is located in the wrong direction
-                            if (dot <= 0f) return@mapNotNull null
-
-                            // Ignore obstacle if it is located beyond destination
-                            if (dot >= nextDist * nextDist) return@mapNotNull null
-                            val objDistSqr = objX * objX + objZ * objZ
-                            if (objDistSqr <= clearance * clearance) return@mapNotNull null
-
-                            // Consider obstacle if and only if it is within range of travel vector
-                            val cross = abs(nextX * objZ - nextZ * objX)
-                            if (cross >= nextDist * clearance) {
-                                null
-                            } else {
-                                Pair(obj, objDistSqr)
-                            }
-                        }
-                        .minByOrNull { it.second }
-                        ?.first
-
-                // If there is a closer obstacle cluster, restart calculation with it
-                if (closerObstacle != null) {
-                    objectsToAvoid[closerObstacle]?.also { closerCluster ->
-                        objectsToConsider = closerCluster.toList()
-                    }
-                    continue
-                }
-
-                objectsToConsider = remainingObjects.map { it.first }
-
-                // If there was a previous obstacle, take a wide berth around it
-                lastObstacle?.also {
-                    // If it's not an obstacle, forget it
-                    val clearance = getClearanceFor(it)
-                    if (clearance == 0f) return@also
-                    val scale = clearance / nextDist
-
-                    // Calculate vectors to arc point to reach to move around obstacle
-                    val armX = currentSourceX - it.x.value
-                    val armZ = currentSourceZ - it.z.value
-                    val legX = -nextZ * scale
-                    val legZ = nextX * scale
-
-                    // Calculate arc length to move around obstacle
-                    val armAngle = atan2(armX, armZ)
-                    val legAngle = atan2(legX, legZ)
-                    var angleDiff = abs(legAngle - armAngle)
-                    if (angleDiff > PI) angleDiff = TWO_PI - angleDiff
-
-                    // Move along arc
-                    currentSourceX += legX - armX
-                    currentSourceZ += legZ - armZ
-                    val addedCost = clearance * angleDiff
-                    costAllowance -= addedCost
-                    counterClockwiseDistance += addedCost
-                }
-
-                // If we've moved too far, counterclockwise route is impractical
-                if (costAllowance < 0f) {
-                    counterClockwiseDistance = Float.POSITIVE_INFINITY
-                    break
-                }
-
-                lastObstacle = nextObstacle
-                val scale = neededClearance / nextDist
-
-                // Calculate vector to tangent point at necessary clearance
-                val armX = -nextZ * scale
-                val armZ = nextX * scale
-                val deltaX = nextX + armX
-                val deltaZ = nextZ + armZ
-
-                // Move to tangent point
-                val addedCost = sqrt(deltaX * deltaX + deltaZ * deltaZ)
-                costAllowance -= addedCost
-
-                // If we've moved too far, clockwise route is impractical
-                if (costAllowance < 0f) {
-                    counterClockwiseDistance = Float.POSITIVE_INFINITY
-                    break
-                }
-
-                // Update distance traveled
-                counterClockwiseDistance += addedCost
-
-                // Update vector to destination
-                currentSourceX += deltaX
-                currentSourceZ += deltaZ
-                diffX = destX - currentSourceX
-                diffZ = destZ - currentSourceZ
-            }
-
-            if (counterClockwiseDistance == 0f) {
-                return@run simpleDistance
-            } else if (counterClockwiseDistance.isFinite()) {
-                // If we had to get around an obstacle, we'll need to make an arc around it
-                lastObstacle?.also {
-                    // If it's not an obstacle, forget it
-                    val clearance = getClearanceFor(it)
-                    if (clearance == 0f) return@also
-
-                    // Calculate vectors to arc point to reach to move around obstacle
-                    val nextDist = sqrt(diffX * diffX + diffZ * diffZ)
-                    val scale = clearance / nextDist
-                    val armX = currentSourceX - it.x.value
-                    val armZ = currentSourceZ - it.z.value
-                    val legX = -diffZ * scale
-                    val legZ = diffX * scale
-
-                    // Calculate arc length to move around obstacle
-                    val armAngle = atan2(armX, armZ)
-                    val legAngle = atan2(legX, legZ)
-                    var angleDiff = abs(legAngle - armAngle)
-                    if (angleDiff > PI) angleDiff = TWO_PI - angleDiff
-
-                    // Move along arc
-                    val addedCost = clearance * angleDiff
-                    costAllowance -= addedCost
-
-                    // If we've moved too far, clockwise route is impractical
-                    if (costAllowance < 0f) {
-                        counterClockwiseDistance = Float.POSITIVE_INFINITY
-                    } else {
-                        currentSourceX += legX - armX
-                        currentSourceZ += legZ - armZ
-                        counterClockwiseDistance += addedCost
-                    }
-                }
-
-                // Continue search from current position
-                if (counterClockwiseDistance.isFinite()) {
-                    counterClockwiseDistance +=
-                        calculateAvoidanceRouteCost(
-                            currentSourceX,
-                            currentSourceZ,
-                            destX,
-                            destZ,
-                            sqrt(diffX * diffX + diffZ * diffZ),
-                            min(costAllowance, clockwiseDistance),
-                        )
-                }
-            }
-
-            // Return the lesser cost of the two paths
-            min(clockwiseDistance, counterClockwiseDistance).apply {
-                if (isInfinite()) {
-                    Log.w("RoutingGraph", "Infinite path cost!")
-                }
+                minDistance = min(minDistance, distance)
             }
         }
 
+        // Return the lesser cost of the two paths
+        return minDistance.apply {
+            if (isInfinite()) {
+                Log.w("RoutingGraph", "Infinite path cost!")
+            }
+        }
+    }
+
     companion object {
+        private const val CLOCKWISE = 1.0f
+        private const val COUNTER_CLOCKWISE = -1.0f
+
         /**
          * Calculates the cost of a path from one point to another, with object avoidances taken
          * into consideration. This function is also compatible with the possibility that the graph
@@ -811,23 +587,26 @@ internal class RoutingGraph(
          * Also note that avoidances are skipped if the player ship uses a jump drive.
          */
         fun RoutingGraph?.calculateRouteCost(
-            sourceX: Float,
-            sourceZ: Float,
-            destX: Float,
-            destZ: Float,
-        ): Float =
-            if (allDefined(sourceX, sourceX, destX, destZ)) {
+            source: ArtemisObject<*>,
+            dest: ArtemisObject<*>,
+        ): Float {
+            val sourceX = source.x.value
+            val sourceZ = source.z.value
+            val destX = dest.x.value
+            val destZ = dest.z.value
+
+            return if (allDefined(sourceX, sourceX, destX, destZ)) {
                 val dx = destX - sourceX
                 val dz = destZ - sourceZ
-                val simpleDistance = sqrt(dx * dx + dz * dz)
                 if (this == null || viewModel.playerShip?.driveType?.value != DriveType.WARP) {
-                    simpleDistance
+                    sqrt(dx * dx + dz * dz)
                 } else {
-                    calculateAvoidanceRouteCost(sourceX, sourceZ, destX, destZ, simpleDistance)
+                    calculateAvoidanceRouteCost(sourceX, sourceZ, destX, destZ)
                 }
             } else {
                 Float.NaN
             }
+        }
 
         private fun allDefined(vararg coordinates: Float): Boolean = coordinates.none(Float::isNaN)
 

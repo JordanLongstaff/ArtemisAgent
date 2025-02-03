@@ -555,12 +555,7 @@ class AgentViewModel(application: Application) :
                                     stations.map {
                                         playerShip?.let { player ->
                                             withContext(cpu.coroutineContext) {
-                                                graph.calculateRouteCost(
-                                                    player.x.value,
-                                                    player.z.value,
-                                                    it.obj.x.value,
-                                                    it.obj.z.value,
-                                                )
+                                                graph.calculateRouteCost(player, it.obj)
                                             }
                                         } ?: Float.POSITIVE_INFINITY
                                     }
@@ -579,12 +574,7 @@ class AgentViewModel(application: Application) :
                                         } else {
                                             playerShip?.let { player ->
                                                 withContext(cpu.coroutineContext) {
-                                                    graph.calculateRouteCost(
-                                                        player.x.value,
-                                                        player.z.value,
-                                                        it.obj.x.value,
-                                                        it.obj.z.value,
-                                                    )
+                                                    graph.calculateRouteCost(player, it.obj)
                                                 }
                                             } ?: Float.POSITIVE_INFINITY
                                         }
