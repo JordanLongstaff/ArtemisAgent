@@ -7,7 +7,7 @@ import artemis.agent.R
 enum class AllyStatus(
     val sortIndex: AllySortIndex,
     @StringRes val description: Int,
-    @ColorRes val backgroundColor: Int
+    @ColorRes val backgroundColor: Int,
 ) {
     HOSTAGE(
         AllySortIndex.HOSTAGE,
@@ -74,16 +74,8 @@ enum class AllyStatus(
         R.string.ally_status_data_for_pirate,
         R.color.allyStatusBackgroundRed,
     ),
-    NORMAL(
-        AllySortIndex.NORMAL,
-        R.string.ally_status_normal,
-        R.color.allyStatusBackgroundBlue,
-    ),
-    REWARD(
-        AllySortIndex.NORMAL,
-        R.string.ally_status_reward,
-        R.color.allyStatusBackgroundBlue,
-    ),
+    NORMAL(AllySortIndex.NORMAL, R.string.ally_status_normal, R.color.allyStatusBackgroundBlue),
+    REWARD(AllySortIndex.NORMAL, R.string.ally_status_reward, R.color.allyStatusBackgroundBlue),
     REPAIRING(
         AllySortIndex.NORMAL,
         R.string.ally_status_repairing,
@@ -94,11 +86,7 @@ enum class AllyStatus(
         R.string.ally_status_fighter_trap,
         R.color.allyStatusBackgroundRed,
     ),
-    MINE_TRAP(
-        AllySortIndex.TRAP,
-        R.string.ally_status_mine_trap,
-        R.color.allyStatusBackgroundRed,
-    );
+    MINE_TRAP(AllySortIndex.TRAP, R.string.ally_status_mine_trap, R.color.allyStatusBackgroundRed);
 
     fun getPirateSensitiveEquivalent(isPirate: Boolean): AllyStatus {
         if (this < AMBASSADOR || this > PIRATE_DATA) return this
@@ -108,10 +96,7 @@ enum class AllyStatus(
     }
 
     private companion object {
-        val PIRATE_SENSITIVE = entries.subList(
-            AMBASSADOR.ordinal,
-            NORMAL.ordinal
-        )
+        val PIRATE_SENSITIVE = entries.subList(AMBASSADOR.ordinal, NORMAL.ordinal)
 
         const val PIRATE_FLAG = 1
         const val NOT_PIRATE_FLAG = 1.inv()

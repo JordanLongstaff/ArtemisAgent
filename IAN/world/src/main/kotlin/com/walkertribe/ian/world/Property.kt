@@ -3,38 +3,38 @@ package com.walkertribe.ian.world
 import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.util.isKnown
 
-sealed class Property<V, P : Property<V, P>> private constructor(
-    initialValue: V,
-    initialTimestamp: Long,
-    private var onSet: (V) -> Unit = { }
-) {
-    class FloatProperty(
-        timestamp: Long,
-        onSet: (Float) -> Unit = { }
-    ) : Property<Float, FloatProperty>(Float.NaN, timestamp, onSet), Comparable<FloatProperty> {
-        override val hasValue: Boolean get() = !value.isNaN()
+sealed class Property<V, P : Property<V, P>>
+private constructor(initialValue: V, initialTimestamp: Long, private var onSet: (V) -> Unit = {}) {
+    class FloatProperty(timestamp: Long, onSet: (Float) -> Unit = {}) :
+        Property<Float, FloatProperty>(Float.NaN, timestamp, onSet), Comparable<FloatProperty> {
+        override val hasValue: Boolean
+            get() = !value.isNaN()
 
-        val valueOrZero: Float get() = if (value.isNaN()) 0f else value
+        val valueOrZero: Float
+            get() = if (value.isNaN()) 0f else value
 
-        override fun compareTo(other: FloatProperty): Int = when {
-            !other.hasValue -> if (hasValue) 1 else 0
-            hasValue -> value.compareTo(other.value)
-            else -> -1
-        }
+        override fun compareTo(other: FloatProperty): Int =
+            when {
+                !other.hasValue -> if (hasValue) 1 else 0
+                hasValue -> value.compareTo(other.value)
+                else -> -1
+            }
     }
 
     class ByteProperty(
         timestamp: Long,
         private val initialValue: Byte = -1,
-        onSet: (Byte) -> Unit = { }
+        onSet: (Byte) -> Unit = {},
     ) : Property<Byte, ByteProperty>(initialValue, timestamp, onSet), Comparable<ByteProperty> {
-        override val hasValue: Boolean get() = value != initialValue
+        override val hasValue: Boolean
+            get() = value != initialValue
 
-        override fun compareTo(other: ByteProperty): Int = when {
-            !other.hasValue -> if (hasValue) 1 else 0
-            hasValue -> value.compareTo(other.value)
-            else -> -1
-        }
+        override fun compareTo(other: ByteProperty): Int =
+            when {
+                !other.hasValue -> if (hasValue) 1 else 0
+                hasValue -> value.compareTo(other.value)
+                else -> -1
+            }
 
         override fun checkCanUpdate(property: ByteProperty) {
             require(initialValue == property.initialValue) {
@@ -47,15 +47,17 @@ sealed class Property<V, P : Property<V, P>> private constructor(
     class IntProperty(
         timestamp: Long,
         private val initialValue: Int = -1,
-        onSet: (Int) -> Unit = { }
+        onSet: (Int) -> Unit = {},
     ) : Property<Int, IntProperty>(initialValue, timestamp, onSet), Comparable<IntProperty> {
-        override val hasValue: Boolean get() = value != initialValue
+        override val hasValue: Boolean
+            get() = value != initialValue
 
-        override fun compareTo(other: IntProperty): Int = when {
-            !other.hasValue -> if (hasValue) 1 else 0
-            hasValue -> value.compareTo(other.value)
-            else -> -1
-        }
+        override fun compareTo(other: IntProperty): Int =
+            when {
+                !other.hasValue -> if (hasValue) 1 else 0
+                hasValue -> value.compareTo(other.value)
+                else -> -1
+            }
 
         override fun checkCanUpdate(property: IntProperty) {
             require(initialValue == property.initialValue) {
@@ -65,14 +67,16 @@ sealed class Property<V, P : Property<V, P>> private constructor(
         }
     }
 
-    class BoolProperty(timestamp: Long, onSet: (BoolState) -> Unit = { }) :
+    class BoolProperty(timestamp: Long, onSet: (BoolState) -> Unit = {}) :
         Property<BoolState, BoolProperty>(BoolState.Unknown, timestamp, onSet) {
-        override val hasValue: Boolean get() = value.isKnown
+        override val hasValue: Boolean
+            get() = value.isKnown
     }
 
-    class ObjectProperty<V : Any>(timestamp: Long, onSet: (V?) -> Unit = { }) :
+    class ObjectProperty<V : Any>(timestamp: Long, onSet: (V?) -> Unit = {}) :
         Property<V?, ObjectProperty<V>>(null, timestamp, onSet) {
-        override val hasValue: Boolean get() = value != null
+        override val hasValue: Boolean
+            get() = value != null
     }
 
     var value: V = initialValue
@@ -89,11 +93,12 @@ sealed class Property<V, P : Property<V, P>> private constructor(
         this.onSet = onSet
     }
 
-    protected open fun checkCanUpdate(property: P) { }
+    protected open fun checkCanUpdate(property: P) {}
 
     infix fun updates(property: P) {
-        updates(property) { }
+        updates(property) {}
     }
+
     internal fun updates(property: P, ifNotUpdated: () -> Unit) {
         synchronized(property) {
             checkCanUpdate(property)

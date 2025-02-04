@@ -28,15 +28,15 @@ import io.mockk.unmockkAll
 import kotlinx.io.Source
 
 @Ignored
-sealed class PacketTestSpec<T : Packet>(
+sealed class PacketTestSpec<T : Packet>
+private constructor(
     val specName: String,
     open val fixtures: List<PacketTestFixture<T>>,
     autoIncludeTests: Boolean = true,
 ) : DescribeSpec() {
     init {
         if (autoIncludeTests) {
-            @Suppress("LeakingThis")
-            include(tests())
+            @Suppress("LeakingThis") include(tests())
         }
 
         finalizeSpec {
@@ -45,20 +45,18 @@ sealed class PacketTestSpec<T : Packet>(
         }
     }
 
-    abstract class Client<T : Packet.Client>(
+    open class Client<T : Packet.Client>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Client<T>>,
         autoIncludeTests: Boolean = true,
     ) : PacketTestSpec<T>(specName, fixtures, autoIncludeTests) {
-        open suspend fun DescribeSpecContainerScope.describeMore() { }
+        open suspend fun DescribeSpecContainerScope.describeMore() {}
 
         override fun tests(): TestFactory = describeSpec {
             val sendChannel = ByteChannel()
             val writer = PacketWriter(sendChannel)
 
-            finalizeSpec {
-                writer.close()
-            }
+            finalizeSpec { writer.close() }
 
             describe(specName) {
                 organizeTests(fixtures) { fixture ->
@@ -108,18 +106,16 @@ sealed class PacketTestSpec<T : Packet>(
             ListenerRegistry().apply { register(ArtemisObjectTestModule) }
         }
 
-        open suspend fun DescribeSpecContainerScope.describeMore() { }
+        open suspend fun DescribeSpecContainerScope.describeMore() {}
 
         override fun tests(): TestFactory = describeSpec {
             describe(specName) {
                 val expectedBehaviour = if (isRequired) "parse even" else "skip"
                 val emptyListenerRegistry = ListenerRegistry()
-                val testListenerRegistry = ListenerRegistry().apply {
-                    register(PacketTestListenerModule)
-                }
-                val objectListenerRegistry = ListenerRegistry().apply {
-                    register(ArtemisObjectTestModule)
-                }
+                val testListenerRegistry =
+                    ListenerRegistry().apply { register(PacketTestListenerModule) }
+                val objectListenerRegistry =
+                    ListenerRegistry().apply { register(ArtemisObjectTestModule) }
 
                 organizeTests(fixtures) { fixture ->
                     PacketTestListenerModule.packets.clear()
@@ -127,23 +123,22 @@ sealed class PacketTestSpec<T : Packet>(
                     val objectListenerBehaviour =
                         if (fixture.recognizeObjectListeners) "parse with" else "ignore"
 
-                    val testCases = listOfNotNull(
-                        Triple(
-                            "Can read from PacketReader",
-                            testListenerRegistry,
-                            true,
-                        ),
-                        Triple(
-                            "Will $expectedBehaviour without listeners",
-                            emptyListenerRegistry,
-                            isRequired,
-                        ),
-                        if (isRequired) null else Triple(
-                            "Will $objectListenerBehaviour object listeners",
-                            objectListenerRegistry,
-                            fixture.recognizeObjectListeners,
-                        ),
-                    )
+                    val testCases =
+                        listOfNotNull(
+                            Triple("Can read from PacketReader", testListenerRegistry, true),
+                            Triple(
+                                "Will $expectedBehaviour without listeners",
+                                emptyListenerRegistry,
+                                isRequired,
+                            ),
+                            if (isRequired) null
+                            else
+                                Triple(
+                                    "Will $objectListenerBehaviour object listeners",
+                                    objectListenerRegistry,
+                                    fixture.recognizeObjectListeners,
+                                ),
+                        )
 
                     withData(nameFn = { it.first }, testCases) {
                         runTest(fixture, it.second, it.third)
@@ -197,10 +192,11 @@ sealed class PacketTestSpec<T : Packet>(
         private suspend fun DescribeSpecContainerScope.describeFailures() {
             if (failures.isNotEmpty()) {
                 val readChannel = ByteChannel()
-                val reader = PacketReader(
-                    readChannel,
-                    ListenerRegistry().apply { register(TestListener.module) }
-                )
+                val reader =
+                    PacketReader(
+                        readChannel,
+                        ListenerRegistry().apply { register(TestListener.module) },
+                    )
 
                 withData(nameFn = { it.testName }, failures) {
                     it.payloadGen.checkAll { payload ->

@@ -16,10 +16,9 @@ import io.kotest.property.arbitrary.string
 import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 
-class CommsButtonPacketFixture private constructor(
-    override val specName: String,
-    override val generator: Gen<Data>,
-) : PacketTestFixture.Server<CommsButtonPacket>(TestPacketTypes.COMMS_BUTTON) {
+class CommsButtonPacketFixture
+private constructor(override val specName: String, override val generator: Gen<Data>) :
+    PacketTestFixture.Server<CommsButtonPacket>(TestPacketTypes.COMMS_BUTTON) {
     sealed class Data(
         override val version: Version,
         private val actionValue: Byte,
@@ -27,14 +26,16 @@ class CommsButtonPacketFixture private constructor(
     ) : PacketTestData.Server<CommsButtonPacket> {
         class Remove(version: Version, override val label: String) : Data(version, REMOVE, label) {
             override fun validate(packet: CommsButtonPacket) {
-                packet.action.shouldBeInstanceOf<CommsButtonPacket.Action.Remove>()
+                packet.action
+                    .shouldBeInstanceOf<CommsButtonPacket.Action.Remove>()
                     .label shouldBeEqual label
             }
         }
 
         class Create(version: Version, override val label: String) : Data(version, CREATE, label) {
             override fun validate(packet: CommsButtonPacket) {
-                packet.action.shouldBeInstanceOf<CommsButtonPacket.Action.Create>()
+                packet.action
+                    .shouldBeInstanceOf<CommsButtonPacket.Action.Create>()
                     .label shouldBeEqual label
             }
         }
@@ -71,10 +72,7 @@ class CommsButtonPacketFixture private constructor(
                     "Create",
                     Arb.bind(arbVersion, Arb.string(), Data::Create),
                 ),
-                CommsButtonPacketFixture(
-                    "Remove All",
-                    arbVersion.map(Data::RemoveAll),
-                ),
+                CommsButtonPacketFixture("Remove All", arbVersion.map(Data::RemoveAll)),
             )
     }
 }

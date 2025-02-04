@@ -25,9 +25,7 @@ infix fun <V : Any> Property.ObjectProperty<V>.shouldContainValue(expectedValue:
     value shouldBeEqual expectedValue
 }
 
-infix fun <V : Any> Property.ObjectProperty<V>.shouldMatch(
-    property: Property.ObjectProperty<V>
-) {
+infix fun <V : Any> Property.ObjectProperty<V>.shouldMatch(property: Property.ObjectProperty<V>) {
     hasValue shouldBeEqual property.hasValue
     value shouldBe property.value
 }

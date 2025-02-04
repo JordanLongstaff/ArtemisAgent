@@ -31,7 +31,8 @@ import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
 
-class AllShipSettingsPacketFixture private constructor(
+class AllShipSettingsPacketFixture
+private constructor(
     override val specName: String,
     private val shouldWriteAccentColor: Boolean,
     versionArb: Arb<Version>,
@@ -74,44 +75,41 @@ class AllShipSettingsPacketFixture private constructor(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(
-        versionArb,
-        Arb.list(
-            Arb.bind(
-                Arb.int(),
-                Arb.string(),
-                Arb.int(),
-                if (shouldWriteAccentColor) {
-                    Arb.numericFloat(min = 0f, max = 1f)
-                } else {
-                    Arb.of(Float.NaN)
+    override val generator: Gen<Data> =
+        Arb.bind(
+            versionArb,
+            Arb.list(
+                Arb.bind(
+                    Arb.int(),
+                    Arb.string(),
+                    Arb.int(),
+                    if (shouldWriteAccentColor) {
+                        Arb.numericFloat(min = 0f, max = 1f)
+                    } else {
+                        Arb.of(Float.NaN)
+                    },
+                    Arb.enum<DriveType>(),
+                ) { hasName, name, shipType, accentColor, drive ->
+                    Pair(hasName, Ship(name.takeIf { hasName != 0 }, shipType, drive, accentColor))
                 },
-                Arb.enum<DriveType>(),
-            ) { hasName, name, shipType, accentColor, drive ->
-                Pair(
-                    hasName,
-                    Ship(name.takeIf { hasName != 0 }, shipType, drive, accentColor)
-                )
-            },
-            Artemis.SHIP_COUNT..Artemis.SHIP_COUNT,
-        ),
-    ) { version, ships -> Data(version, shouldWriteAccentColor, ships) }
+                Artemis.SHIP_COUNT..Artemis.SHIP_COUNT,
+            ),
+        ) { version, ships ->
+            Data(version, shouldWriteAccentColor, ships)
+        }
 
     override suspend fun testType(packet: Packet.Server): AllShipSettingsPacket =
         packet.shouldBeInstanceOf()
 
     companion object {
-        val ALL = listOf(
-            AllShipSettingsPacketFixture(
-                "Before version 2.4.0",
-                false,
-                Arb.version(2, 3),
-            ),
-            AllShipSettingsPacketFixture(
-                "Since version 2.4.0",
-                true,
-                Arb.version(2, Arb.int(min = 4)),
-            ),
-        )
+        val ALL =
+            listOf(
+                AllShipSettingsPacketFixture("Before version 2.4.0", false, Arb.version(2, 3)),
+                AllShipSettingsPacketFixture(
+                    "Since version 2.4.0",
+                    true,
+                    Arb.version(2, Arb.int(min = 4)),
+                ),
+            )
     }
 }

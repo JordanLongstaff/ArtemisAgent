@@ -1,6 +1,9 @@
 <resources>
     <string name="actions">Actions</string>
     <string name="active">Active</string>
+    <string name="add_one_minute">Add one minute</string>
+    <string name="add_one_second">Add one second</string>
+    <string name="add_ten_seconds">Add ten seconds</string>
     <string name="address">Address</string>
     <string name="adjust_10_degrees">10</string>
     <string name="adjust_25_degrees">25</string>
@@ -46,7 +49,7 @@
         Mine trap. Do not approach under any circumstances.
     </string>
     <string name="ally_status_needs_damcon">
-        Damages detected. Requesting DamCon team member to conduct repairs.
+        Damages reported. Requesting DamCon team member to conduct repairs.
     </string>
     <string name="ally_status_needs_energy">
         Out of energy. Requesting 100 units to start moving.
@@ -69,18 +72,19 @@
     <string name="back">Back</string>
     <string name="biomech_rage">Status: %1$s</string>
     <string name="biomech_cannot_freeze">Freeze limit reached; cannot freeze again</string>
-    <string name="biomech_frozen">Frozen - reanimation estimated in %1$d:%2$02d</string>
+    <string name="biomech_frozen">Frozen - reanimation estimated in %1$s</string>
     <string name="biomech_moving">Mobile; touch to freeze</string>
     <string name="biomech_notification">Reanimation imminent.</string>
     <string name="biomech_will_move">Frozen - reanimation imminent</string>
     <string name="border_war_status">Border War: %1$s</string>
     <string name="build">Build</string>
-    <string name="build_timer">ready in %1$d:%2$02d</string>
+    <string name="build_timer">ready in %1$s</string>
     <string name="building">Building:</string>
     <string name="cancel">Cancel</string>
     <string name="cannot_taunt">Cannot taunt</string>
     <string name="channel_allies_deep_string">Deep Strike production</string>
     <string name="channel_biomech_moving">Reanimation alert</string>
+    <string name="channel_border_war">Border war</string>
     <string name="channel_connection">Connection</string>
     <string name="channel_enemies_perfidy">Perfidy alert</string>
     <string name="channel_game_info">Game info</string>
@@ -152,6 +156,7 @@
     <string name="exit_message">You will be disconnected from the server. Confirm exit?</string>
     <string name="failed_to_connect">Failed to connect</string>
     <string name="fighters">Fighters</string>
+    <string name="finding_network">Finding network…</string>
     <string name="freeze_duration">Freeze duration</string>
     <string name="friendly">Friendly</string>
     <string name="front_shield">F %1$.0f/%2$.0f</string>
@@ -385,6 +390,10 @@
             device. Here are the types of notifications you might receive:\n
         </item>
         <item>
+            \u2022 Border war: Sent when a warning or declaration of war is issued in Border War
+            mode.\n
+        </item>
+        <item>
             \u2022 Connection: Reports the status of your connection, whether the server\'s
             heartbeat was lost, or the cause of a disconnect.\n
         </item>
@@ -541,7 +550,7 @@
     <string name="kilometres">km</string>
     <string name="left">Left</string>
     <string name="manually_return_from_commands">Manually return from commands</string>
-    <string name="manufacturing_torpedoes">Torpedoes will be ready in %1$d:%2$02d.</string>
+    <string name="manufacturing_torpedoes">Torpedoes will be ready in %1$s.</string>
     <string name="manufacturing_torpedoes_ready">Torpedoes ready.</string>
     <string name="milliseconds">ms</string>
     <string name="mission_battery">Battery</string>
@@ -579,7 +588,7 @@
     <string name="reason_commandeered">liberate commandeered ship</string>
     <string name="reason_has_energy">receive energy</string>
     <string name="reason_hostage">rescue hostages</string>
-    <string name="reason_malfunction">reset broken computer</string>
+    <string name="reason_malfunction">reset computer</string>
     <string name="reason_needs_damcon">transfer DamCon personnel</string>
     <string name="reason_needs_energy">deliver energy</string>
     <string name="reason_pirate_boss">pick up boss</string>
@@ -654,6 +663,9 @@
     <string name="station_speed">Speed factor %1$.1f</string>
     <string name="status">Status</string>
     <string name="stock_of_ordnance">%1$d of %2$s</string>
+    <string name="subtract_one_minute">Subtract one minute</string>
+    <string name="subtract_one_second">Subtract one second</string>
+    <string name="subtract_ten_seconds">Subtract ten seconds</string>
     <string name="supplies">Supplies</string>
     <string name="surrender">Surrender</string>
     <string name="surrender_range">Surrender range</string>

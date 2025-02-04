@@ -14,13 +14,10 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class GameOverReasonPacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<GameOverReasonPacket>(TestPacketTypes.SIMPLE_EVENT) {
-    class Data internal constructor(
-        override val version: Version,
-        private val text: List<String>,
-    ) : PacketTestData.Server<GameOverReasonPacket> {
+class GameOverReasonPacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<GameOverReasonPacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version, private val text: List<String>) :
+        PacketTestData.Server<GameOverReasonPacket> {
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(SimpleEventPacket.Subtype.GAME_OVER_REASON.toInt())
             text.forEach { str -> writeString(str) }

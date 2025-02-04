@@ -6,6 +6,7 @@ import com.walkertribe.ian.protocol.PacketType
 
 /**
  * Heartbeat packet classes that are either sent or received.
+ *
  * @author rjwut
  */
 sealed interface HeartbeatPacket {

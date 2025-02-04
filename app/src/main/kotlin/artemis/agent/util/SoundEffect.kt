@@ -1,6 +1,7 @@
-package artemis.agent
+package artemis.agent.util
 
 import androidx.annotation.RawRes
+import artemis.agent.R
 
 enum class SoundEffect(@RawRes val soundId: Int) {
     BEEP_1(R.raw.beep1),
@@ -8,5 +9,5 @@ enum class SoundEffect(@RawRes val soundId: Int) {
     CONFIRMATION(R.raw.confirmation),
     CONNECTED(R.raw.connected),
     DISCONNECTED(R.raw.disconnected),
-    HEARTBEAT_LOST(R.raw.heartbeat_lost)
+    HEARTBEAT_LOST(R.raw.heartbeat_lost),
 }

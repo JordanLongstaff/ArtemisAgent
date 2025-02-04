@@ -3,36 +3,16 @@
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
     <ID>CyclomaticComplexMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
-    <ID>CyclomaticComplexMethod:CPU.kt$CPU$private fun parseMissionProgress(packet: CommsIncomingPacket): Boolean</ID>
-    <ID>CyclomaticComplexMethod:CPU.kt$CPU$private fun parseNewMission(packet: CommsIncomingPacket): Boolean</ID>
-    <ID>CyclomaticComplexMethod:CPU.kt$CPU$private fun processMissionProgress( source: String, destination: String, shipName: String )</ID>
-    <ID>CyclomaticComplexMethod:GameFragment.kt$GameFragment$override fun onViewCreated(view: View, savedInstanceState: Bundle?)</ID>
-    <ID>CyclomaticComplexMethod:MainActivity.kt$MainActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
-    <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$fun preprocessObjectsToAvoid()</ID>
-    <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY ): Float</ID>
-    <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
+    <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>LargeClass:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
-    <ID>LargeClass:CPU.kt$CPU : CoroutineScope</ID>
     <ID>LongMethod:AgentViewModel.kt$AgentViewModel$fun revertSettings(settings: UserSettings): UserSettings</ID>
     <ID>LongMethod:AgentViewModel.kt$AgentViewModel$fun updateFromSettings(settings: UserSettings)</ID>
     <ID>LongMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
-    <ID>LongMethod:GameFragment.kt$GameFragment$override fun onViewCreated(view: View, savedInstanceState: Bundle?)</ID>
-    <ID>LongMethod:MainActivity.kt$MainActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
-    <ID>LongMethod:MainActivity.kt$MainActivity.&lt;no name provided&gt;$override fun onServiceConnected(name: ComponentName?, binder: IBinder?)</ID>
-    <ID>LongMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY ): Float</ID>
-    <ID>LongMethod:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
-    <ID>LongParameterList:MainActivity.kt$MainActivity$( channelId: String, title: String, message: String, ongoing: Boolean = false, onIntent: Intent.() -&gt; Unit = { }, setBuilder: (NotificationCompat.Builder) -&gt; Unit = { } )</ID>
-    <ID>LongParameterList:RoutingGraph.kt$RoutingGraph$( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY )</ID>
+    <ID>LongMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
+    <ID>LongParameterList:MainActivity.kt$MainActivity$( channelId: String, title: String, message: String, ongoing: Boolean = false, onIntent: Intent.() -&gt; Unit = {}, setBuilder: (NotificationCompat.Builder) -&gt; Unit = {}, )</ID>
     <ID>LoopWithTooManyJumpStatements:RoutingGraph.kt$RoutingGraph$while</ID>
     <ID>NestedBlockDepth:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
-    <ID>NestedBlockDepth:CPU.kt$CPU$private fun onNpcCreate(npc: ArtemisNpc): Boolean</ID>
-    <ID>NestedBlockDepth:CPU.kt$CPU$private fun parseMissionProgress(packet: CommsIncomingPacket): Boolean</ID>
-    <ID>NestedBlockDepth:CPU.kt$CPU$private fun processMissionProgress( source: String, destination: String, shipName: String )</ID>
-    <ID>NestedBlockDepth:MainActivity.kt$MainActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
-    <ID>ReturnCount:CPU.kt$CPU$private fun parseMissionProgress(packet: CommsIncomingPacket): Boolean</ID>
-    <ID>ReturnCount:CPU.kt$CPU$private fun parseNewMission(packet: CommsIncomingPacket): Boolean</ID>
-    <ID>ReturnCount:CPU.kt$CPU$private fun parseOrdnance(packet: CommsIncomingPacket): Boolean</ID>
-    <ID>ReturnCount:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
+    <ID>ReturnCount:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>TooManyFunctions:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
     <ID>TooManyFunctions:CPU.kt$CPU : CoroutineScope</ID>
     <ID>TooManyFunctions:MainActivity.kt$MainActivity : AppCompatActivity</ID>

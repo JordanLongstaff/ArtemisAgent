@@ -11,7 +11,7 @@
       "groupName": "kotlin and ksp",
       "matchPackageNames": [
         "kotlin",
-        "ksp"
+        "/^com\\.google\\.devtools\\.ksp/"
       ]
     }
   ]

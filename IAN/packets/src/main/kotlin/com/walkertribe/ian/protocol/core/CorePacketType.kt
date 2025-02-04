@@ -2,6 +2,7 @@ package com.walkertribe.ian.protocol.core
 
 /**
  * Defines the known packet types for the core Artemis protocol.
+ *
  * @author rjwut
  */
 object CorePacketType {

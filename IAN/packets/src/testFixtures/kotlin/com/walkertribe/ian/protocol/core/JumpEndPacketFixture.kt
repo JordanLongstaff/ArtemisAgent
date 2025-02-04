@@ -11,14 +11,10 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class JumpEndPacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<JumpEndPacket>(
-    TestPacketTypes.SIMPLE_EVENT,
-) {
-    class Data internal constructor(
-        override val version: Version,
-    ): PacketTestData.Server<JumpEndPacket> {
+class JumpEndPacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<JumpEndPacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version) :
+        PacketTestData.Server<JumpEndPacket> {
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(SimpleEventPacket.Subtype.JUMP_END.toInt())
         }
