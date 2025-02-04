@@ -5,35 +5,35 @@ import korlibs.io.serialization.xml.Xml
 
 /**
  * Contains all the information extracted from the vesselData.xml file.
+ *
  * @author rjwut
  */
 sealed interface VesselData {
     @ConsistentCopyVisibility
-    data class Loaded internal constructor(
-        /**
-         * Returns a List containing all the Factions.
-         */
+    data class Loaded
+    internal constructor(
+        /** Returns a List containing all the Factions. */
         val factions: Map<Int, Faction>,
-
         internal val vessels: Map<Int, Vessel>,
     ) : VesselData {
-        internal constructor(factions: List<Faction>, vessels: List<Vessel>) : this(
-            factions = factions.associateBy { it.id },
-            vessels = vessels.associateBy { it.id },
-        )
+        internal constructor(
+            factions: List<Faction>,
+            vessels: List<Vessel>,
+        ) : this(factions = factions.associateBy { it.id }, vessels = vessels.associateBy { it.id })
 
-        internal constructor(xml: Xml) : this(
-            factions = xml["hullRace"].map(::Faction),
-            vessels = xml["vessel"].map(::Vessel),
-        )
+        internal constructor(
+            xml: Xml
+        ) : this(factions = xml["hullRace"].map(::Faction), vessels = xml["vessel"].map(::Vessel))
 
         override fun getFaction(id: Int): Faction? = factions[id]
+
         override fun get(id: Int): Vessel? = vessels[id]
     }
 
     @JvmInline
     value class Error internal constructor(val message: String?) : VesselData {
         override fun getFaction(id: Int): Faction? = null
+
         override fun get(id: Int): Vessel? = null
     }
 

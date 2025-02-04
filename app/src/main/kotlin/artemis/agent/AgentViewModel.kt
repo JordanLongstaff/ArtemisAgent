@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
 import androidx.annotation.StyleRes
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
@@ -35,6 +34,10 @@ import artemis.agent.help.HelpFragment
 import artemis.agent.setup.ConnectFragment.ConnectionStatus
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.AssetsResolver
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.TimerText
+import artemis.agent.util.TimerText.timerString
 import com.walkertribe.ian.enums.AlertStatus
 import com.walkertribe.ian.enums.AudioMode
 import com.walkertribe.ian.enums.Console
@@ -84,6 +87,17 @@ import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
 import com.walkertribe.ian.world.ArtemisShielded
 import com.walkertribe.ian.world.Property
+import java.io.File
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentSkipListMap
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
@@ -96,23 +110,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okio.Path.Companion.toOkioPath
-import java.io.File
-import java.util.Locale
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentSkipListMap
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CopyOnWriteArraySet
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
-import kotlin.math.roundToInt
 
-/**
- * The view model containing all running client data and utility functions used by the UI.
- */
+/** The view model containing all running client data and utility functions used by the UI. */
 class AgentViewModel(application: Application) :
-    AndroidViewModel(application),
-    ServerDiscoveryRequester.Listener {
+    AndroidViewModel(application), ServerDiscoveryRequester.Listener {
     // Connection status
     val networkInterface: ArtemisNetworkInterface by lazy {
         KtorArtemisNetworkInterface(debugMode = BuildConfig.DEBUG).also {
@@ -127,15 +128,21 @@ class AgentViewModel(application: Application) :
     var attemptingConnection: Boolean = false
     var lastAttemptedHost: String = ""
 
-    val isIdle: Boolean get() =
-        connectionStatus.value == ConnectionStatus.NotConnected ||
-            connectionStatus.value == ConnectionStatus.Failed
+    val isIdle: Boolean
+        get() =
+            connectionStatus.value == ConnectionStatus.NotConnected ||
+                connectionStatus.value == ConnectionStatus.Failed
 
     // UDP discovered servers
     val discoveredServers: MutableStateFlow<List<Server>> by lazy { MutableStateFlow(listOf()) }
     val isScanningUDP: MutableSharedFlow<Boolean> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
+    var showingNetworkInfo: Boolean = true
+        private set
+
+    var alwaysScanPublicBroadcasts: Boolean = true
+        private set
 
     // Saved copy of address bar text in connect fragment
     var addressBarText: String = ""
@@ -143,11 +150,14 @@ class AgentViewModel(application: Application) :
     // UI variables - app theme, opacity, back press callback
     val isThemeChanged: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
-    @StyleRes
-    var themeRes: Int = R.style.Theme_ArtemisAgent
+    @StyleRes var themeRes: Int = R.style.Theme_ArtemisAgent
     var themeIndex: Int
-        get() { return ALL_THEMES.indexOf(themeRes) }
-        set(index) { themeRes = ALL_THEMES[index] }
+        get() {
+            return ALL_THEMES.indexOf(themeRes)
+        }
+        set(index) {
+            themeRes = ALL_THEMES[index]
+        }
 
     val rootOpacity: MutableStateFlow<Float> by lazy { MutableStateFlow(1f) }
     val jumping: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
@@ -160,15 +170,16 @@ class AgentViewModel(application: Application) :
     var isDeepStrikePossible: Boolean = false
     var isBorderWarPossible: Boolean = false
     val isBorderWar: StateFlow<Boolean> by lazy {
-        stationsExist.combine(enemyStationsExist) { friendly, enemy ->
-            friendly && enemy && isBorderWarPossible
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = false
-        )
+        stationsExist
+            .combine(enemyStationsExist) { friendly, enemy ->
+                friendly && enemy && isBorderWarPossible
+            }
+            .stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = false)
     }
     val borderWarStatus: MutableStateFlow<WarStatus> by lazy { MutableStateFlow(WarStatus.TENSION) }
+    val borderWarMessage: MutableSharedFlow<CommsIncomingPacket> by lazy {
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
     val gameOverReason: MutableSharedFlow<String> by lazy {
         MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
@@ -199,9 +210,12 @@ class AgentViewModel(application: Application) :
 
     // Current player ship data
     val shipIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(-1) }
-    val playerShip: ArtemisPlayer? get() =
-        shipIndex.value.coerceAtLeast(0).let(playerIndex::get).let(players::get)
-    val playerName: String? get() = playerShip?.run { name.value }
+    val playerShip: ArtemisPlayer?
+        get() = shipIndex.value.coerceAtLeast(0).let(playerIndex::get).let(players::get)
+
+    val playerName: String?
+        get() = playerShip?.run { name.value }
+
     internal val playerIndex = IntArray(Artemis.SHIP_COUNT) { -1 }
     internal val players = ConcurrentHashMap<Int, ArtemisPlayer>()
     private var playerChange = false
@@ -256,11 +270,14 @@ class AgentViewModel(application: Application) :
 
     // Allies page UI data
     var allySorter: AllySorter = AllySorter()
+        private set
+
     var showAllySelector = false
         set(value) {
             field = value
             if (!value) showingDestroyedAllies.value = false
         }
+
     val showingDestroyedAllies: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     var scrollToAlly: ObjectEntry.Ally? = null
     val focusedAlly: MutableStateFlow<ObjectEntry.Ally?> by lazy { MutableStateFlow(null) }
@@ -272,17 +289,17 @@ class AgentViewModel(application: Application) :
     // Single-ally UI data
     val isDeepStrike: Boolean
         get() = isDeepStrikePossible && !stationsExist.value && allyShips.size <= 1
-    val isSingleAlly: Boolean get() = allyShips.size == 1 && allyShips.values.any {
-        it.isInstructable
-    }
+
+    val isSingleAlly: Boolean
+        get() = allyShips.size == 1 && allyShips.values.any { it.isInstructable }
+
     var torpedoesReady: Boolean = false
     var torpedoFinishTime: Long = 0L
 
     // Friendly station data
     val stationsRemain: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-    val livingStationNameIndex = ConcurrentSkipListMap<String, Int>(
-        Comparator(this::compareFriendlyStationNames)
-    )
+    val livingStationNameIndex =
+        ConcurrentSkipListMap<String, Int>(Comparator(this::compareFriendlyStationNames))
     val livingStationFullNameIndex = ConcurrentHashMap<String, Int>()
     val livingStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
 
@@ -297,9 +314,8 @@ class AgentViewModel(application: Application) :
     val closestStationName: MutableStateFlow<String> by lazy { MutableStateFlow("") }
 
     // Enemy station data
-    val enemyStationNameIndex = ConcurrentSkipListMap<String, Int>(
-        Comparator(this::compareEnemyStationNames)
-    )
+    val enemyStationNameIndex =
+        ConcurrentSkipListMap<String, Int>(Comparator(this::compareEnemyStationNames))
     val livingEnemyStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
     val enemyStations: MutableSharedFlow<List<ObjectEntry.Station>> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -363,6 +379,12 @@ class AgentViewModel(application: Application) :
         MutableStateFlow(listOf())
     }
     val enemyIntel: MutableStateFlow<String?> by lazy { MutableStateFlow(null) }
+    val perfidiousEnemy: MutableSharedFlow<EnemyEntry> by lazy {
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
+    val destroyedEnemyName: MutableSharedFlow<String> by lazy {
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
     var enemySorter = EnemySorter()
     val enemyNameIndex = ConcurrentHashMap<String, Int>()
     val enemies = ConcurrentHashMap<Int, EnemyEntry>()
@@ -393,9 +415,9 @@ class AgentViewModel(application: Application) :
     internal var avoidTyphons: Boolean = true
 
     // Object clearance variables - modified in Settings
-    internal var mineClearance: Float = DEFAULT_MINE_CLEARANCE.toFloat()
-    internal var blackHoleClearance: Float = DEFAULT_BLACK_HOLE_CLEARANCE.toFloat()
-    internal var typhonClearance: Float = DEFAULT_TYPHON_CLEARANCE.toFloat()
+    internal var mineClearance: Float = DEFAULT_MINE_CLEARANCE
+    internal var blackHoleClearance: Float = DEFAULT_BLACK_HOLE_CLEARANCE
+    internal var typhonClearance: Float = DEFAULT_TYPHON_CLEARANCE
 
     // Lists of obstacles
     internal val mines = ConcurrentHashMap<Int, ArtemisMine>()
@@ -431,39 +453,38 @@ class AgentViewModel(application: Application) :
     val helpTopicIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(HelpFragment.MENU) }
 
     // Various numerical settings
-    var port: Int = DEFAULT_PORT.toInt()
+    var port: Int = DEFAULT_PORT
     var updateObjectsInterval: Int = DEFAULT_UPDATE_INTERVAL
-    var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT.toInt()
-    var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT.toInt()
-    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT.toLong()
+    var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT
+    var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT
+    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT
         set(value) {
             field = value
-            ifConnected {
-                networkInterface.setTimeout(field * SECONDS_TO_MILLIS)
-            }
+            ifConnected { networkInterface.setTimeout(field.seconds.inWholeMilliseconds) }
         }
-    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.toLong() * SECONDS_TO_MILLIS
+
+    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.seconds.inWholeMilliseconds
         set(value) {
-            field = value * SECONDS_TO_MILLIS
+            field = value.seconds.inWholeMilliseconds
         }
+
     var autoDismissCompletedMissions: Boolean = true
-    internal var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.toLong() * SECONDS_TO_MILLIS
+    var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.seconds.inWholeMilliseconds
         set(value) {
-            field = value * SECONDS_TO_MILLIS
+            field = value.seconds.inWholeMilliseconds
         }
 
     // UDP server discovery requester
-    private val serverDiscoveryRequester: ServerDiscoveryRequester get() = ServerDiscoveryRequester(
-        listener = this@AgentViewModel,
-        timeoutMs = scanTimeout.toLong() * SECONDS_TO_MILLIS
-    )
+    private val serverDiscoveryRequester: ServerDiscoveryRequester
+        get() =
+            ServerDiscoveryRequester(
+                listener = this@AgentViewModel,
+                timeoutMs = scanTimeout.seconds.inWholeMilliseconds,
+            )
 
     // I/O resolver data
     private val assetsResolver: AssetsResolver = AssetsResolver(application.assets)
-    val storageDirectories: Array<File> = ContextCompat.getExternalFilesDirs(
-        application.applicationContext,
-        null
-    )
+    val storageDirectories: Array<File> = application.applicationContext.getExternalFilesDirs(null)
 
     // Artemis version
     var version: Version = Version.LATEST
@@ -490,104 +511,93 @@ class AgentViewModel(application: Application) :
         set(index) {
             if (field != index) {
                 field = index
-                vesselData = when (index) {
-                    1 -> internalStorageVesselData
-                    2 -> externalStorageVesselData
-                    else -> null
-                } ?: defaultVesselData
+                vesselData =
+                    when (index) {
+                        1 -> internalStorageVesselData
+                        2 -> externalStorageVesselData
+                        else -> null
+                    } ?: defaultVesselData
             }
         }
+
     var vesselData: VesselData = defaultVesselData
         private set
-    private val allVesselData get() = arrayOf(
-        defaultVesselData,
-        internalStorageVesselData,
-        externalStorageVesselData,
-    )
+
+    private val allVesselData
+        get() = arrayOf(defaultVesselData, internalStorageVesselData, externalStorageVesselData)
 
     // Sound effects players
-    private val playSounds: Boolean get() = volume > 0f
-    private val sounds: MutableList<MediaPlayer?> = SoundEffect.entries.map {
-        MediaPlayer.create(application.applicationContext, it.soundId)
-    }.toMutableList()
+    private val playSounds: Boolean
+        get() = volume > 0f
+
+    private val sounds: MutableList<MediaPlayer?> =
+        SoundEffect.entries
+            .map { MediaPlayer.create(application.applicationContext, it.soundId) }
+            .toMutableList()
     var volume: Float = 1f
         set(value) {
             field = value / VOLUME_SCALE
         }
 
-    /**
-     * Populates the RecyclerView in the route fragment.
-     */
+    /** Populates the RecyclerView in the route fragment. */
     private suspend fun calculateRoute() {
         routeObjective.value.also { objective ->
-            routeMap[objective] = when (objective) {
-                is RouteObjective.Tasks -> {
-                    routeMap[objective].orEmpty()
-                }
-                is RouteObjective.ReplacementFighters -> {
-                    livingStations.values.filter {
-                        it.fighters > 0
-                    }.let { stations ->
-                        stations.zip(
-                            stations.map {
-                                playerShip?.let { player ->
-                                    withContext(cpu.coroutineContext) {
-                                        graph.calculateRouteCost(
-                                            player.x.value,
-                                            player.z.value,
-                                            it.obj.x.value,
-                                            it.obj.z.value
-                                        )
+            routeMap[objective] =
+                when (objective) {
+                    is RouteObjective.Tasks -> {
+                        routeMap[objective].orEmpty()
+                    }
+                    is RouteObjective.ReplacementFighters -> {
+                        livingStations.values
+                            .filter { it.fighters > 0 }
+                            .let { stations ->
+                                stations.zip(
+                                    stations.map {
+                                        playerShip?.let { player ->
+                                            withContext(cpu.coroutineContext) {
+                                                graph.calculateRouteCost(player, it.obj)
+                                            }
+                                        } ?: Float.POSITIVE_INFINITY
                                     }
-                                } ?: Float.POSITIVE_INFINITY
+                                )
                             }
-                        )
-                    }.sortedBy { it.second }.map { RouteEntry(it.first) }
-                }
-                is RouteObjective.Ordnance -> {
-                    livingStations.values.let { stations ->
-                        stations.zip(
-                            stations.map {
-                                if (it.ordnanceStock[objective.ordnanceType] == 0) {
-                                    Float.POSITIVE_INFINITY
-                                } else {
-                                    playerShip?.let { player ->
-                                        withContext(cpu.coroutineContext) {
-                                            graph.calculateRouteCost(
-                                                player.x.value,
-                                                player.z.value,
-                                                it.obj.x.value,
-                                                it.obj.z.value
-                                            )
+                            .sortedBy { it.second }
+                            .map { RouteEntry(it.first) }
+                    }
+                    is RouteObjective.Ordnance -> {
+                        livingStations.values
+                            .let { stations ->
+                                stations.zip(
+                                    stations.map {
+                                        if (it.ordnanceStock[objective.ordnanceType] == 0) {
+                                            Float.POSITIVE_INFINITY
+                                        } else {
+                                            playerShip?.let { player ->
+                                                withContext(cpu.coroutineContext) {
+                                                    graph.calculateRouteCost(player, it.obj)
+                                                }
+                                            } ?: Float.POSITIVE_INFINITY
                                         }
-                                    } ?: Float.POSITIVE_INFINITY
-                                }
+                                    }
+                                )
                             }
-                        )
-                    }.sortedBy { it.second }.map { RouteEntry(it.first) }
+                            .sortedBy { it.second }
+                            .map { RouteEntry(it.first) }
+                    }
                 }
-            }
         }
     }
 
-    /**
-     * Returns the string that displays time left for an ally to finish building torpedoes.
-     */
-    fun getManufacturingTimer(context: Context): String {
-        val (minutes, seconds) = getTimeToEnd(torpedoFinishTime)
-        return context.getString(
+    /** Returns the string that displays time left for an ally to finish building torpedoes. */
+    fun getManufacturingTimer(context: Context): String =
+        context.getString(
             R.string.manufacturing_torpedoes,
-            minutes,
-            seconds
+            TimerText.getTimeUntil(torpedoFinishTime),
         )
-    }
 
-    /**
-     * Checks to see whether the given object still exists.
-     */
-    private fun checkRoutePointExists(entry: ObjectEntry<*>): Boolean = entry.obj.id.let { id ->
-        allyShips.containsKey(id) || livingStations.containsKey(id)
-    }
+    /** Checks to see whether the given object still exists. */
+    private fun checkRoutePointExists(entry: ObjectEntry<*>): Boolean =
+        entry.obj.id.let { id -> allyShips.containsKey(id) || livingStations.containsKey(id) }
 
     fun formattedHeading(heading: Int): String =
         heading.toString().padStart(if (threeDigitDirections) PADDED_ZEROES else 0, '0')
@@ -596,46 +606,36 @@ class AgentViewModel(application: Application) :
      * Calculates the heading from the player ship to the given object and formats it as a string.
      */
     private fun calculatePlayerHeadingTo(obj: ArtemisObject<*>): String {
-        val heading = playerShip?.run {
-            headingTo(obj).toDouble().roundToInt() % FULL_HEADING_RANGE
-        } ?: 0
+        val heading = playerShip?.run { headingTo(obj).toDouble().toInt() } ?: 0
         return formattedHeading(heading)
     }
 
-    /**
-     * Calculates the distance from the player ship to the given object.
-     */
+    /** Calculates the distance from the player ship to the given object. */
     private fun calculatePlayerRangeTo(obj: ArtemisObject<*>): Float =
         playerShip?.distanceTo(obj) ?: 0f
 
-    /**
-     * Returns the full name for the given object, including callsign, faction and vessel name.
-     */
-    fun getFullNameForShip(obj: ArtemisShielded<*>?): String = obj?.run {
-        listOf(name.value, getFullNameForVessel(this)).joinSpaceDelimited()
-    } ?: ""
+    /** Returns the full name for the given object, including callsign, faction and vessel name. */
+    fun getFullNameForShip(obj: ArtemisShielded<*>?): String =
+        obj?.run { listOf(name.value, getFullNameForVessel(this)).joinSpaceDelimited() } ?: ""
 
-    /**
-     * Returns the faction and model name of the given object's vessel.
-     */
-    fun getFullNameForVessel(obj: VesselDataObject?): String = obj?.getVessel(vesselData)?.run {
-        listOfNotNull(getFaction(vesselData)?.name, name).joinSpaceDelimited()
-    } ?: ""
+    /** Returns the faction and model name of the given object's vessel. */
+    fun getFullNameForVessel(obj: VesselDataObject?): String =
+        obj?.getVessel(vesselData)?.run {
+            listOfNotNull(getFaction(vesselData)?.name, name).joinSpaceDelimited()
+        } ?: ""
 
-    /**
-     * Determines how many currently applicable missions involve the given object.
-     */
-    private fun calculateMissionsFor(
-        entry: ObjectEntry<*>,
-        reward: RewardType,
-    ): Int = allMissions.filter {
-        val isDest = it.destination == entry
-        if (it.isStarted) {
-            isDest && it.associatedShipName == playerName
-        } else {
-            isDest || it.source == entry
-        }
-    }.sumOf { it.rewards[reward.ordinal] }
+    /** Determines how many currently applicable missions involve the given object. */
+    private fun calculateMissionsFor(entry: ObjectEntry<*>, reward: RewardType): Int =
+        allMissions
+            .filter {
+                val isDest = it.destination == entry
+                if (it.isStarted) {
+                    isDest && it.associatedShipName == playerName
+                } else {
+                    isDest || it.source == entry
+                }
+            }
+            .sumOf { it.rewards[reward.ordinal] }
 
     private fun reconcileDisplayedMissions(
         battery: Boolean,
@@ -645,13 +645,15 @@ class AgentViewModel(application: Application) :
         shieldBoost: Boolean,
     ) {
         val oldRewards = displayedRewards.copyOf()
-        val newRewards = listOfNotNull(
-            RewardType.BATTERY.takeIf { battery },
-            RewardType.COOLANT.takeIf { coolant },
-            RewardType.NUKE.takeIf { nukes },
-            RewardType.PRODUCTION.takeIf { production },
-            RewardType.SHIELD.takeIf { shieldBoost },
-        ).toTypedArray()
+        val newRewards =
+            listOfNotNull(
+                    RewardType.BATTERY.takeIf { battery },
+                    RewardType.COOLANT.takeIf { coolant },
+                    RewardType.NUKE.takeIf { nukes },
+                    RewardType.PRODUCTION.takeIf { production },
+                    RewardType.SHIELD.takeIf { shieldBoost },
+                )
+                .toTypedArray()
         displayedRewards = newRewards
 
         var oldIndex = 0
@@ -687,7 +689,6 @@ class AgentViewModel(application: Application) :
      */
     private fun setupFilePathResolver(storageDir: File): FilePathResolver? {
         val datDir = File(storageDir, "dat")
-        if (!datDir.exists()) datDir.mkdirs()
 
         return if (assetsResolver.copyVesselDataTo(datDir)) {
             FilePathResolver(storageDir.toOkioPath())
@@ -696,8 +697,7 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    fun reconcileVesselDataIndex(index: Int): Int =
-        if (allVesselData[index] == null) 0 else index
+    fun reconcileVesselDataIndex(index: Int): Int = if (allVesselData[index] == null) 0 else index
 
     fun checkContext(index: Int, ifError: (String) -> Unit) {
         val vesselDataAtIndex = allVesselData[index]
@@ -706,9 +706,7 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    /**
-     * Selects a player ship by its index.
-     */
+    /** Selects a player ship by its index. */
     fun selectShip(index: Int) {
         playSound(SoundEffect.CONFIRMATION)
         cpu.launch {
@@ -721,7 +719,7 @@ class AgentViewModel(application: Application) :
                 SetConsolePacket(Console.COMMUNICATIONS),
                 SetConsolePacket(Console.MAIN_SCREEN),
                 SetConsolePacket(Console.SINGLE_SEAT_CRAFT),
-                ReadyPacket()
+                ReadyPacket(),
             )
             graph = null
         }
@@ -746,11 +744,12 @@ class AgentViewModel(application: Application) :
             // Allow only one connection attempt at a time
             attemptingConnection = true
 
-            val connected = networkInterface.connect(
-                host = url,
-                port = port,
-                timeoutMs = connectTimeout.toLong() * SECONDS_TO_MILLIS,
-            )
+            val connected =
+                networkInterface.connect(
+                    host = url,
+                    port = port,
+                    timeoutMs = connectTimeout.seconds.inWholeMilliseconds,
+                )
             lastAttemptedHost = url
             attemptingConnection = false
 
@@ -763,9 +762,7 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    /**
-     * Terminates the current server connection.
-     */
+    /** Terminates the current server connection. */
     fun disconnectFromServer(resetUrl: Boolean = true) {
         playerChange = false
         endGame()
@@ -774,25 +771,15 @@ class AgentViewModel(application: Application) :
             connectedUrl.value = ""
             shipIndex.value = -1
         }
-        ifConnected {
-            networkInterface.stop()
-        }
+        ifConnected { networkInterface.stop() }
     }
 
-    /**
-     * Sends one or more packets to the server.
-     */
+    /** Sends one or more packets to the server. */
     fun sendToServer(vararg packets: Packet.Client) {
-        ifConnected {
-            cpu.launch {
-                packets.forEach(networkInterface::sendPacket)
-            }
-        }
+        ifConnected { cpu.launch { packets.forEach(networkInterface::sendPacket) } }
     }
 
-    /**
-     * Plays a sound effect if sound effects are enabled.
-     */
+    /** Plays a sound effect if sound effects are enabled. */
     fun playSound(sound: SoundEffect) {
         if (playSounds) {
             sounds[sound.ordinal]?.also { player ->
@@ -802,49 +789,42 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    /**
-     * Begins scanning for servers via UDP.
-     */
-    fun scanForServers() {
+    /** Begins scanning for servers via UDP. */
+    fun scanForServers(broadcastAddress: String?) {
         isScanningUDP.tryEmit(true)
         discoveredServers.value = listOf()
         cpu.launch {
             try {
-                serverDiscoveryRequester.run()
+                serverDiscoveryRequester.run(
+                    broadcastAddress?.takeUnless { alwaysScanPublicBroadcasts }
+                        ?: ServerDiscoveryRequester.DEFAULT_BROADCAST_ADDRESS
+                )
             } catch (_: Exception) {
                 isScanningUDP.emit(false)
             }
         }
     }
 
-    /**
-     * Dismisses an audio message.
-     */
+    /** Dismisses an audio message. */
     fun dismissAudio(entry: AudioEntry) {
         if (commsAudioSet.remove(entry)) {
             miscAudio.value = commsAudioSet.toList()
         }
     }
 
-    /**
-     * When a server is discovered via UDP, adds it to the current list of discovered servers.
-     */
+    /** When a server is discovered via UDP, adds it to the current list of discovered servers. */
     override suspend fun onDiscovered(server: Server) {
         val servers = discoveredServers.value.toMutableList()
         servers.add(server)
         discoveredServers.value = servers
     }
 
-    /**
-     * Called when the UDP server discovery requester is finished listening.
-     */
+    /** Called when the UDP server discovery requester is finished listening. */
     override suspend fun onQuit() {
         isScanningUDP.emit(false)
     }
 
-    /**
-     * Called at game end or server disconnect. Clears all data related to the last game.
-     */
+    /** Called at game end or server disconnect. Clears all data related to the last game. */
     private fun endGame() {
         routeJob?.also {
             it.cancel()
@@ -915,73 +895,84 @@ class AgentViewModel(application: Application) :
             }
         }
 
-        val missionList = if (missionsEnabled) {
-            if (autoDismissCompletedMissions) {
-                allMissions.removeAll(
-                    allMissions.filter { it.completionTimestamp < startTime }.toSet()
-                )
+        val missionList =
+            if (missionsEnabled) {
+                if (autoDismissCompletedMissions) {
+                    allMissions.removeAll(
+                        allMissions.filter { it.completionTimestamp < startTime }.toSet()
+                    )
+                }
+                allMissions.filter {
+                    displayedRewards.any { reward -> it.rewards[reward.ordinal] > 0 } &&
+                        (!it.isStarted || it.associatedShipName == playerName)
+                }
+            } else {
+                listOf()
             }
-            allMissions.filter {
-                displayedRewards.any { reward -> it.rewards[reward.ordinal] > 0 } &&
-                    (!it.isStarted || it.associatedShipName == playerName)
+
+        val allyShipList =
+            if (includingAllies) {
+                allyShips.values.sortedWith(allySorter).onEach {
+                    it.heading = calculatePlayerHeadingTo(it.obj)
+                    it.range = calculatePlayerRangeTo(it.obj)
+                }
+            } else {
+                listOf()
             }
-        } else {
-            listOf()
-        }
 
-        val allyShipList = if (includingAllies) {
-            allyShips.values.sortedWith(allySorter).onEach {
-                it.heading = calculatePlayerHeadingTo(it.obj)
-                it.range = calculatePlayerRangeTo(it.obj)
+        val focusedStation =
+            if (livingStations.isEmpty()) {
+                null
+            } else {
+                val closestName =
+                    livingStationNameIndex
+                        .minByOrNull { (_, id) ->
+                            livingStations[id]?.let { entry ->
+                                calculatePlayerRangeTo(entry.obj).also {
+                                    entry.heading = calculatePlayerHeadingTo(entry.obj)
+                                    entry.range = it
+                                }
+                            } ?: Float.POSITIVE_INFINITY
+                        }
+                        ?.key ?: ""
+                closestStationName.value = closestName
+
+                livingStationNameIndex[stationName.value]
+                    ?.let(livingStations::get)
+                    ?.also(currentStation::tryEmit)
             }
-        } else {
-            listOf()
-        }
-
-        val focusedStation = if (livingStations.isEmpty()) {
-            null
-        } else {
-            val closestName = livingStationNameIndex.minByOrNull { (_, id) ->
-                livingStations[id]?.let { entry ->
-                    calculatePlayerRangeTo(entry.obj).also {
-                        entry.heading = calculatePlayerHeadingTo(entry.obj)
-                        entry.range = it
-                    }
-                } ?: Float.POSITIVE_INFINITY
-            }?.key ?: ""
-            closestStationName.value = closestName
-
-            livingStationNameIndex[stationName.value]?.let(livingStations::get)?.also(
-                currentStation::tryEmit
-            )
-        }
-        val enemyStationList = enemyStationNameIndex.values.mapNotNull {
-            livingEnemyStations[it]
-        }.onEach {
-            it.heading = calculatePlayerHeadingTo(it.obj)
-            it.range = calculatePlayerRangeTo(it.obj)
-        }
+        val enemyStationList =
+            enemyStationNameIndex.values
+                .mapNotNull { livingEnemyStations[it] }
+                .onEach {
+                    it.heading = calculatePlayerHeadingTo(it.obj)
+                    it.range = calculatePlayerRangeTo(it.obj)
+                }
 
         val selectedEnemyEntry = selectedEnemy.value
-        val enemyShipList = enemies.values.filter {
-            !it.vessel.isSingleseat && playerShip?.let(it.enemy::hasBeenScannedBy)?.booleanValue == true
-        }.sortedWith(enemySorter).onEach { entry ->
-            val enemy = entry.enemy
-            entry.heading = calculatePlayerHeadingTo(enemy)
-            entry.range = calculatePlayerRangeTo(enemy)
-        }
-        val enemyNavOptions = enemySorter.buildCategoryMap(enemyShipList)
-
-        val biomechList = if (biomechsEnabled) {
-            scannedBiomechs.sortedWith(biomechSorter).onEach {
-                if (it.onFreezeTimeExpired(startTime - biomechFreezeTime)) {
-                    nextActiveBiomech.tryEmit(it)
-                    biomechUpdate = true
+        val enemyShipList = enemies.values.filter { !it.vessel.isSingleseat }
+        val scannedEnemies =
+            enemyShipList
+                .filter { playerShip?.let(it.enemy::hasBeenScannedBy)?.booleanValue == true }
+                .sortedWith(enemySorter)
+                .onEach { entry ->
+                    val enemy = entry.enemy
+                    entry.heading = calculatePlayerHeadingTo(enemy)
+                    entry.range = calculatePlayerRangeTo(enemy)
                 }
+        val enemyNavOptions = enemySorter.buildCategoryMap(scannedEnemies)
+
+        val biomechList =
+            if (biomechsEnabled) {
+                scannedBiomechs.sortedWith(biomechSorter).onEach {
+                    if (it.onFreezeTimeExpired(startTime - biomechFreezeTime)) {
+                        nextActiveBiomech.tryEmit(it)
+                        biomechUpdate = true
+                    }
+                }
+            } else {
+                listOf()
             }
-        } else {
-            listOf()
-        }
 
         if (isDeepStrike && !torpedoesReady && torpedoFinishTime < startTime) {
             torpedoesReady = true
@@ -992,16 +983,22 @@ class AgentViewModel(application: Application) :
             GameFragment.Page.ENEMIES -> enemiesUpdate = false
             GameFragment.Page.BIOMECHS -> biomechUpdate = false
             GameFragment.Page.MISC -> miscUpdate = false
-            else -> { }
+            else -> {}
         }
 
-        val postedInventory = arrayOf(
-            livingStations.size.takeIf { stationsExist.value },
-            enemyStationList.size.takeIf { enemyStationsExist.value },
-            allyShipList.size.takeIf { alliesExist },
-            missionList.size.takeIf { missionsExist },
-            biomechList.size.takeIf { biomechsExist },
-        )
+        val (surrendered, hostile) =
+            enemyShipList.partition { it.enemy.isSurrendered.value.booleanValue }
+
+        val postedInventory =
+            arrayOf(
+                livingStations.size.takeIf { stationsExist.value },
+                enemyStationList.size.takeIf { enemyStationsExist.value },
+                allyShipList.size.takeIf { alliesExist },
+                missionList.size.takeIf { missionsExist },
+                biomechList.size.takeIf { biomechsExist },
+                hostile.size,
+                surrendered.size.takeIf { it > 0 },
+            )
 
         if (!postedInventory.contentEquals(inventory.value)) {
             inventory.value = postedInventory
@@ -1013,25 +1010,29 @@ class AgentViewModel(application: Application) :
         val flashTime = startTime % SECONDS_TO_MILLIS
         val flashOn = flashTime < FLASH_INTERVAL
 
-        val stationShieldPercents = livingStationNameIndex.mapNotNull {
-            livingStations[it.value]?.let { station ->
-                Pair(station, station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value)
+        val stationShieldPercents =
+            livingStationNameIndex.mapNotNull {
+                livingStations[it.value]?.let { station ->
+                    Pair(
+                        station,
+                        station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value,
+                    )
+                }
             }
-        }
-        val stationMinimumShieldPercent = stationShieldPercents.takeIf {
-            flashOn
-        }?.minOfOrNull { (station, percent) ->
-            if (station == focusedStation) 1f else percent
-        } ?: 1f
+        val stationMinimumShieldPercent =
+            stationShieldPercents
+                .takeIf { flashOn }
+                ?.minOfOrNull { (station, percent) ->
+                    if (station == focusedStation) 1f else percent
+                } ?: 1f
         val stationFlashOn = flashOn && stationMinimumShieldPercent < 1f
 
-        val currentFlashOn = if (flashOn) {
-            focusedStation?.let {
-                it.obj.shieldsFront < it.obj.shieldsFrontMax
-            } == true
-        } else {
-            false
-        }
+        val currentFlashOn =
+            if (flashOn) {
+                focusedStation?.let { it.obj.shieldsFront < it.obj.shieldsFrontMax } == true
+            } else {
+                false
+            }
 
         val pagesWithFlash = sortedMapOf<GameFragment.Page, Boolean>()
 
@@ -1044,24 +1045,23 @@ class AgentViewModel(application: Application) :
                     flashOn -> {
                         when (page) {
                             GameFragment.Page.STATIONS -> currentFlashOn || stationFlashOn
-                            GameFragment.Page.ALLIES -> allyShips.takeIf {
-                                includingAllies && alliesExist
-                            }?.values?.any { it.isDamaged }
-                            GameFragment.Page.MISSIONS -> missionUpdate.takeIf {
-                                missionsEnabled && missionsExist
-                            }
-                            GameFragment.Page.ENEMIES -> enemiesUpdate.takeIf {
-                                enemiesEnabled && enemies.isNotEmpty()
-                            }
-                            GameFragment.Page.BIOMECHS -> biomechUpdate.takeIf {
-                                biomechsEnabled && biomechsExist
-                            }
-                            GameFragment.Page.ROUTE -> false.takeIf {
-                                stationsExist.value && routingEnabled
-                            }
-                            GameFragment.Page.MISC -> miscUpdate.takeIf {
-                                miscActionsExist.value || miscAudioExists.value
-                            }
+                            GameFragment.Page.ALLIES ->
+                                allyShips
+                                    .takeIf { includingAllies && alliesExist }
+                                    ?.values
+                                    ?.any { it.isDamaged }
+                            GameFragment.Page.MISSIONS ->
+                                missionUpdate.takeIf { missionsEnabled && missionsExist }
+                            GameFragment.Page.ENEMIES ->
+                                enemiesUpdate.takeIf { enemiesEnabled && enemies.isNotEmpty() }
+                            GameFragment.Page.BIOMECHS ->
+                                biomechUpdate.takeIf { biomechsEnabled && biomechsExist }
+                            GameFragment.Page.ROUTE ->
+                                false.takeIf { stationsExist.value && routingEnabled }
+                            GameFragment.Page.MISC ->
+                                miscUpdate.takeIf {
+                                    miscActionsExist.value || miscAudioExists.value
+                                }
                         }?.also { pagesWithFlash[page] = it }
                     }
                 }
@@ -1083,7 +1083,7 @@ class AgentViewModel(application: Application) :
         missions.tryEmit(missionList)
         livingAllies.tryEmit(allyShipList)
         enemyStations.tryEmit(enemyStationList)
-        displayedEnemies.tryEmit(enemyShipList)
+        displayedEnemies.tryEmit(scannedEnemies)
         enemyCategories.tryEmit(enemyNavOptions)
         biomechs.tryEmit(biomechList)
 
@@ -1091,77 +1091,82 @@ class AgentViewModel(application: Application) :
         enemyIntel.value = selectedEnemyEntry?.intel
         selectedEnemyIndex.tryEmit(
             selectedEnemyEntry?.let { entry ->
-                enemyShipList.indexOfFirst { it.enemy == entry.enemy }
+                scannedEnemies.indexOfFirst { it.enemy == entry.enemy }
             } ?: -1
         )
 
         gamePages.value = pagesWithFlash
-        flashingStations.value = stationShieldPercents.map { (station, percent) ->
-            Pair(station, flashOn && percent < 1f)
-        }
+        flashingStations.value =
+            stationShieldPercents.map { (station, percent) ->
+                Pair(station, flashOn && percent < 1f)
+            }
         stationSelectorFlashPercent.value = stationMinimumShieldPercent
 
-        doubleAgentText.value = doubleAgentSecondsLeft.let {
-            if (it < 0) {
-                "${playerShip?.doubleAgentCount?.value?.coerceAtLeast(0) ?: 0}"
-            } else {
-                val (minutes, seconds) = getTimer(it)
-                "$minutes:${seconds.toString().padStart(2, '0')}"
+        doubleAgentText.value =
+            doubleAgentSecondsLeft.let {
+                if (it < 0) {
+                    "${playerShip?.doubleAgentCount?.value?.coerceAtLeast(0) ?: 0}"
+                } else {
+                    it.seconds.timerString(false)
+                }
             }
-        }
 
         if (routingEnabled && gameIsRunning.value) {
             val objective = routeObjective.value
 
             if (!routeRunning) {
                 routeRunning = true
-                routeJob = cpu.launch {
-                    while (routeRunning) {
-                        val routeGraph = graph ?: playerShip?.let {
-                            RoutingGraph(this@AgentViewModel, it)
-                        } ?: continue
+                routeJob =
+                    cpu.launch {
+                        while (routeRunning) {
+                            val routeGraph =
+                                graph
+                                    ?: playerShip?.let { RoutingGraph(this@AgentViewModel, it) }
+                                    ?: continue
 
-                        if (graph == null) {
-                            graph = routeGraph
-                        }
-                        if (objective == RouteObjective.Tasks) {
-                            routeGraph.preprocessObjectsToAvoid()
-                            routeGraph.resetGraph()
+                            if (graph == null) {
+                                graph = routeGraph
+                            }
+                            if (objective == RouteObjective.Tasks) {
+                                routeGraph.preprocessObjectsToAvoid()
+                                routeGraph.resetGraph()
 
-                            if (routeIncludesMissions) {
-                                allMissions.forEach { mission ->
-                                    if (
-                                        displayedRewards.none { mission.rewards[it.ordinal] > 0 } ||
-                                        mission.isCompleted ||
-                                        !checkRoutePointExists(mission.destination)
-                                    ) {
-                                        return@forEach
-                                    }
-                                    if (mission.isStarted) {
-                                        if (mission.associatedShipName != playerName) {
+                                if (routeIncludesMissions) {
+                                    allMissions.forEach { mission ->
+                                        if (
+                                            displayedRewards.none {
+                                                mission.rewards[it.ordinal] > 0
+                                            } ||
+                                                mission.isCompleted ||
+                                                !checkRoutePointExists(mission.destination)
+                                        ) {
                                             return@forEach
                                         }
-                                        routeGraph.addPath(mission.destination)
-                                    } else if (checkRoutePointExists(mission.source)) {
-                                        routeGraph.addPath(mission.source, mission.destination)
+                                        if (mission.isStarted) {
+                                            if (mission.associatedShipName != playerName) {
+                                                return@forEach
+                                            }
+                                            routeGraph.addPath(mission.destination)
+                                        } else if (checkRoutePointExists(mission.source)) {
+                                            routeGraph.addPath(mission.source, mission.destination)
+                                        }
                                     }
                                 }
-                            }
 
-                            allyShips.values.filter { ally ->
-                                !ally.isTrap && routeIncentives.any { it.matches(ally) }
-                            }.forEach { routeGraph.addPath(it) }
+                                allyShips.values
+                                    .filter { ally ->
+                                        !ally.isTrap && routeIncentives.any { it.matches(ally) }
+                                    }
+                                    .forEach { routeGraph.addPath(it) }
 
-                            routeGraph.purgePaths()
-                            routeGraph.testRoute(routeMap[objective])
+                                routeGraph.purgePaths()
+                                routeGraph.testRoute(routeMap[objective])
 
-                            routeGraph.preprocessCosts()
-                            routeGraph.searchForRoute()?.also {
-                                routeMap[objective] = it
+                                routeGraph.preprocessCosts()
+                                routeGraph.searchForRoute()?.also { routeMap[objective] = it }
                             }
                         }
                     }
-                }
             }
 
             calculateRoute()
@@ -1179,11 +1184,12 @@ class AgentViewModel(application: Application) :
         if (gameIsRunning.value) return
         gameIsRunning.value = true
         if (updateJob == null) {
-            updateJob = cpu.launch {
-                while (gameIsRunning.value) {
-                    updateObjects()
+            updateJob =
+                cpu.launch {
+                    while (gameIsRunning.value) {
+                        updateObjects()
+                    }
                 }
-            }
         }
     }
 
@@ -1210,12 +1216,8 @@ class AgentViewModel(application: Application) :
         val firstName = firstNameOpt ?: ""
         val secondName = secondNameOpt ?: ""
         return if (ENEMY_STATION.matches(firstName) && ENEMY_STATION.matches(secondName)) {
-            val firstIndex = firstName.run {
-                substring(lastIndexOf(" ") + 1).toInt()
-            }
-            val secondIndex = secondName.run {
-                substring(lastIndexOf(" ") + 1).toInt()
-            }
+            val firstIndex = firstName.run { substring(lastIndexOf(" ") + 1).toInt() }
+            val secondIndex = secondName.run { substring(lastIndexOf(" ") + 1).toInt() }
             firstIndex - secondIndex
         } else {
             firstName.compareTo(secondName)
@@ -1225,9 +1227,7 @@ class AgentViewModel(application: Application) :
     fun refreshEnemyTaunts() {
         val enemy = selectedEnemy.value
 
-        enemyTaunts.value = enemy?.run {
-            faction.taunts.zip(tauntStatuses)
-        }.orEmpty()
+        enemyTaunts.value = enemy?.run { faction.taunts.zip(tauntStatuses) }.orEmpty()
     }
 
     fun activateDoubleAgent() {
@@ -1273,7 +1273,9 @@ class AgentViewModel(application: Application) :
     }
 
     @Listener
-    fun onHeartbeatRegained(@Suppress("UNUSED_PARAMETER") event: ConnectionEvent.HeartbeatRegained) {
+    fun onHeartbeatRegained(
+        @Suppress("UNUSED_PARAMETER") event: ConnectionEvent.HeartbeatRegained
+    ) {
         connectionStatus.value = ConnectionStatus.Connected
         playSound(SoundEffect.BEEP_2)
     }
@@ -1290,11 +1292,12 @@ class AgentViewModel(application: Application) :
         if (packet.shipIndex == shipIndex.value) {
             val durationInMillis = (SECONDS_TO_MILLIS * packet.duration).toLong()
             damageVisJob?.cancel()
-            damageVisJob = viewModelScope.launch {
-                rootOpacity.value = DAMAGED_ALPHA
-                delay(durationInMillis)
-                rootOpacity.value = 1f
-            }
+            damageVisJob =
+                viewModelScope.launch {
+                    rootOpacity.value = DAMAGED_ALPHA
+                    delay(durationInMillis)
+                    rootOpacity.value = 1f
+                }
         }
     }
 
@@ -1334,11 +1337,15 @@ class AgentViewModel(application: Application) :
         val newRage = Property.IntProperty(packet.timestamp)
         newRage.value = packet.rage
         newRage updates biomechRageProperty
-        biomechRage.value = BiomechRageStatus[biomechRageProperty.value].also {
-            if (biomechRage.value == BiomechRageStatus.NEUTRAL && it == BiomechRageStatus.HOSTILE) {
-                biomechUpdate = true
+        biomechRage.value =
+            BiomechRageStatus[biomechRageProperty.value].also {
+                if (
+                    biomechRage.value == BiomechRageStatus.NEUTRAL &&
+                        it == BiomechRageStatus.HOSTILE
+                ) {
+                    biomechUpdate = true
+                }
             }
-        }
     }
 
     @Listener
@@ -1356,7 +1363,7 @@ class AgentViewModel(application: Application) :
                 isBorderWarPossible = true
             }
             GameType.DEEP_STRIKE -> isDeepStrikePossible = true
-            else -> { } // make `when` exhaustive
+            else -> {} // make `when` exhaustive
         }
     }
 
@@ -1394,22 +1401,12 @@ class AgentViewModel(application: Application) :
             ObjectType.NPC_SHIP -> cpu.onNpcDelete(id)
             ObjectType.BASE -> cpu.onStationDelete(id)
             ObjectType.PLAYER_SHIP -> cpu.onPlayerDelete(id)
-            ObjectType.MINE -> cpu.launch {
-                mines.remove(id)?.also {
-                    graph?.removeObstacle(it)
-                }
-            }
-            ObjectType.BLACK_HOLE -> cpu.launch {
-                blackHoles.remove(id)?.also {
-                    graph?.removeObstacle(it)
-                }
-            }
-            ObjectType.CREATURE -> cpu.launch {
-                typhons.remove(id)?.also {
-                    graph?.removeObstacle(it)
-                }
-            }
-            else -> { }
+            ObjectType.MINE -> cpu.launch { mines.remove(id)?.also { graph?.removeObstacle(it) } }
+            ObjectType.BLACK_HOLE ->
+                cpu.launch { blackHoles.remove(id)?.also { graph?.removeObstacle(it) } }
+            ObjectType.CREATURE ->
+                cpu.launch { typhons.remove(id)?.also { graph?.removeObstacle(it) } }
+            else -> {}
         }
     }
 
@@ -1424,6 +1421,7 @@ class AgentViewModel(application: Application) :
         disconnectFromServer(resetUrl = false)
         networkInterface.dispose()
 
+        volume = 0f
         sounds.forEach { it?.release() }
         sounds.clear()
 
@@ -1438,6 +1436,8 @@ class AgentViewModel(application: Application) :
         connectTimeout = settings.connectionTimeoutSeconds
         scanTimeout = settings.scanTimeoutSeconds
         heartbeatTimeout = settings.serverTimeoutSeconds.toLong()
+        showingNetworkInfo = settings.showNetworkInfo
+        alwaysScanPublicBroadcasts = settings.alwaysScanPublic
 
         missionsEnabled = settings.missionsEnabled
         reconcileDisplayedMissions(
@@ -1452,48 +1452,51 @@ class AgentViewModel(application: Application) :
         completedDismissalTime = settings.completedMissionDismissalSeconds.toLong()
 
         alliesEnabled = settings.alliesEnabled
-        allySorter = AllySorter(
-            sortByClassFirst = settings.allySortClassFirst,
-            sortByEnergy = settings.allySortEnergyFirst,
-            sortByStatus = settings.allySortStatus,
-            sortByClassSecond = settings.allySortClassSecond,
-            sortByName = settings.allySortName,
-        )
+        allySorter =
+            AllySorter(
+                sortByClassFirst = settings.allySortClassFirst,
+                sortByEnergy = settings.allySortEnergyFirst,
+                sortByStatus = settings.allySortStatus,
+                sortByClassSecond = settings.allySortClassSecond,
+                sortByName = settings.allySortName,
+            )
         showAllySelector = settings.showDestroyedAllies
         manuallyReturnFromCommands = settings.allyCommandManualReturn
 
         biomechsEnabled = settings.biomechsEnabled
-        biomechSorter = BiomechSorter(
-            sortByClassFirst = settings.biomechSortClassFirst,
-            sortByStatus = settings.biomechSortStatus,
-            sortByClassSecond = settings.biomechSortClassSecond,
-            sortByName = settings.biomechSortName,
-        )
+        biomechSorter =
+            BiomechSorter(
+                sortByClassFirst = settings.biomechSortClassFirst,
+                sortByStatus = settings.biomechSortStatus,
+                sortByClassSecond = settings.biomechSortClassSecond,
+                sortByName = settings.biomechSortName,
+            )
         biomechFreezeTime = settings.freezeDurationSeconds.toLong()
 
         routingEnabled = settings.routingEnabled
         routeIncludesMissions = settings.routeMissions
-        routeIncentives = listOfNotNull(
-            RouteTaskIncentive.NEEDS_ENERGY.takeIf { settings.routeNeedsEnergy },
-            RouteTaskIncentive.NEEDS_DAMCON.takeIf { settings.routeNeedsDamcon },
-            RouteTaskIncentive.RESET_COMPUTER.takeIf { settings.routeMalfunction },
-            RouteTaskIncentive.AMBASSADOR_PICKUP.takeIf { settings.routeAmbassador },
-            RouteTaskIncentive.HOSTAGE.takeIf { settings.routeHostage },
-            RouteTaskIncentive.COMMANDEERED.takeIf { settings.routeCommandeered },
-            RouteTaskIncentive.HAS_ENERGY.takeIf { settings.routeHasEnergy },
-        )
+        routeIncentives =
+            listOfNotNull(
+                RouteTaskIncentive.NEEDS_ENERGY.takeIf { settings.routeNeedsEnergy },
+                RouteTaskIncentive.NEEDS_DAMCON.takeIf { settings.routeNeedsDamcon },
+                RouteTaskIncentive.RESET_COMPUTER.takeIf { settings.routeMalfunction },
+                RouteTaskIncentive.AMBASSADOR_PICKUP.takeIf { settings.routeAmbassador },
+                RouteTaskIncentive.HOSTAGE.takeIf { settings.routeHostage },
+                RouteTaskIncentive.COMMANDEERED.takeIf { settings.routeCommandeered },
+                RouteTaskIncentive.HAS_ENERGY.takeIf { settings.routeHasEnergy },
+            )
 
         enemiesEnabled = settings.enemiesEnabled
-        enemySorter = EnemySorter(
-            sortBySurrendered = settings.enemySortSurrendered,
-            sortByFaction = settings.enemySortFaction,
-            sortByFactionReversed = settings.enemySortFactionReversed,
-            sortByName = settings.enemySortName,
-            sortByDistance = settings.enemySortDistance,
-        )
-        maxSurrenderDistance = settings.surrenderRange.toFloat().takeIf {
-            settings.surrenderRangeEnabled
-        }
+        enemySorter =
+            EnemySorter(
+                sortBySurrendered = settings.enemySortSurrendered,
+                sortByFaction = settings.enemySortFaction,
+                sortByFactionReversed = settings.enemySortFactionReversed,
+                sortByName = settings.enemySortName,
+                sortByDistance = settings.enemySortDistance,
+            )
+        maxSurrenderDistance =
+            settings.surrenderRange.toFloat().takeIf { settings.surrenderRangeEnabled }
         showEnemyIntel = settings.showEnemyIntel
         showTauntStatuses = settings.showTauntStatuses
         disableIneffectiveTaunts = settings.disableIneffectiveTaunts
@@ -1516,110 +1519,106 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    fun revertSettings(settings: UserSettings): UserSettings = settings.copy {
-        vesselDataLocationValue = vesselDataIndex
-        serverPort = port
-        updateInterval = updateObjectsInterval
+    fun revertSettings(settings: UserSettings): UserSettings =
+        settings.copy {
+            vesselDataLocationValue = vesselDataIndex
+            serverPort = port
+            updateInterval = updateObjectsInterval
 
-        connectionTimeoutSeconds = connectTimeout
-        scanTimeoutSeconds = scanTimeout
-        serverTimeoutSeconds = heartbeatTimeout.toInt()
+            connectionTimeoutSeconds = connectTimeout
+            scanTimeoutSeconds = scanTimeout
+            serverTimeoutSeconds = heartbeatTimeout.toInt()
 
-        missionsEnabled = this@AgentViewModel.missionsEnabled
+            missionsEnabled = this@AgentViewModel.missionsEnabled
 
-        val rewardSettings = mapOf(
-            RewardType.BATTERY to this::displayRewardBattery,
-            RewardType.COOLANT to this::displayRewardCoolant,
-            RewardType.NUKE to this::displayRewardNukes,
-            RewardType.PRODUCTION to this::displayRewardProduction,
-            RewardType.SHIELD to this::displayRewardShield
-        )
-        rewardSettings.values.forEach { it.set(false) }
-        displayedRewards.forEach {
-            rewardSettings[it]?.set(true)
+            val rewardSettings =
+                mapOf(
+                    RewardType.BATTERY to this::displayRewardBattery,
+                    RewardType.COOLANT to this::displayRewardCoolant,
+                    RewardType.NUKE to this::displayRewardNukes,
+                    RewardType.PRODUCTION to this::displayRewardProduction,
+                    RewardType.SHIELD to this::displayRewardShield,
+                )
+            rewardSettings.values.forEach { it.set(false) }
+            displayedRewards.forEach { rewardSettings[it]?.set(true) }
+
+            completedMissionDismissalEnabled = autoDismissCompletedMissions
+            completedMissionDismissalSeconds = completedDismissalTime.toInt()
+
+            alliesEnabled = this@AgentViewModel.alliesEnabled
+            allySortClassFirst = allySorter.sortByClassFirst
+            allySortEnergyFirst = allySorter.sortByEnergy
+            allySortStatus = allySorter.sortByStatus
+            allySortClassSecond = allySorter.sortByClassSecond
+            allySortName = allySorter.sortByName
+            showDestroyedAllies = showAllySelector
+            allyCommandManualReturn = manuallyReturnFromCommands
+
+            biomechsEnabled = this@AgentViewModel.biomechsEnabled
+            biomechSortClassFirst = biomechSorter.sortByClassFirst
+            biomechSortStatus = biomechSorter.sortByStatus
+            biomechSortClassSecond = biomechSorter.sortByClassSecond
+            biomechSortName = biomechSorter.sortByName
+            freezeDurationSeconds = biomechFreezeTime.milliseconds.inWholeSeconds.toInt()
+
+            routingEnabled = this@AgentViewModel.routingEnabled
+            routeMissions = routeIncludesMissions
+
+            enemiesEnabled = this@AgentViewModel.enemiesEnabled
+            enemySortSurrendered = enemySorter.sortBySurrendered
+            enemySortFaction = enemySorter.sortByFaction
+            enemySortFactionReversed = enemySorter.sortByFactionReversed
+            enemySortName = enemySorter.sortByName
+            enemySortDistance = enemySorter.sortByDistance
+            surrenderRangeEnabled =
+                maxSurrenderDistance?.also { surrenderRange = it.toInt() } != null
+            showEnemyIntel = this@AgentViewModel.showEnemyIntel
+            showTauntStatuses = this@AgentViewModel.showTauntStatuses
+            disableIneffectiveTaunts = this@AgentViewModel.disableIneffectiveTaunts
+
+            val incentiveSettings =
+                mapOf(
+                    RouteTaskIncentive.NEEDS_ENERGY to this::routeNeedsEnergy,
+                    RouteTaskIncentive.NEEDS_DAMCON to this::routeNeedsDamcon,
+                    RouteTaskIncentive.RESET_COMPUTER to this::routeMalfunction,
+                    RouteTaskIncentive.AMBASSADOR_PICKUP to this::routeAmbassador,
+                    RouteTaskIncentive.HOSTAGE to this::routeHostage,
+                    RouteTaskIncentive.COMMANDEERED to this::routeCommandeered,
+                    RouteTaskIncentive.HAS_ENERGY to this::routeHasEnergy,
+                )
+            incentiveSettings.values.forEach { it.set(false) }
+            routeIncentives.forEach { incentiveSettings[it]?.set(true) }
+
+            avoidBlackHoles = this@AgentViewModel.avoidBlackHoles
+            avoidMines = this@AgentViewModel.avoidMines
+            avoidTyphon = this@AgentViewModel.avoidTyphons
+
+            blackHoleClearance = this@AgentViewModel.blackHoleClearance.toInt()
+            mineClearance = this@AgentViewModel.mineClearance.toInt()
+            typhonClearance = this@AgentViewModel.typhonClearance.toInt()
+
+            threeDigitDirections = this@AgentViewModel.threeDigitDirections
+            soundVolume = (volume * VOLUME_SCALE).toInt()
+            themeValue = ALL_THEMES.indexOf(themeRes)
+            showNetworkInfo = showingNetworkInfo
+            alwaysScanPublic = alwaysScanPublicBroadcasts
         }
-
-        completedMissionDismissalEnabled = autoDismissCompletedMissions
-        completedMissionDismissalSeconds = completedDismissalTime.toInt()
-
-        alliesEnabled = this@AgentViewModel.alliesEnabled
-        allySortClassFirst = allySorter.sortByClassFirst
-        allySortEnergyFirst = allySorter.sortByEnergy
-        allySortStatus = allySorter.sortByStatus
-        allySortClassSecond = allySorter.sortByClassSecond
-        allySortName = allySorter.sortByName
-        showDestroyedAllies = showAllySelector
-        allyCommandManualReturn = manuallyReturnFromCommands
-
-        biomechsEnabled = this@AgentViewModel.biomechsEnabled
-        biomechSortClassFirst = biomechSorter.sortByClassFirst
-        biomechSortStatus = biomechSorter.sortByStatus
-        biomechSortClassSecond = biomechSorter.sortByClassSecond
-        biomechSortName = biomechSorter.sortByName
-        freezeDurationSeconds = biomechFreezeTime.toInt() / SECONDS_TO_MILLIS
-
-        routingEnabled = this@AgentViewModel.routingEnabled
-        routeMissions = routeIncludesMissions
-
-        enemiesEnabled = this@AgentViewModel.enemiesEnabled
-        enemySortSurrendered = enemySorter.sortBySurrendered
-        enemySortFaction = enemySorter.sortByFaction
-        enemySortFactionReversed = enemySorter.sortByFactionReversed
-        enemySortName = enemySorter.sortByName
-        enemySortDistance = enemySorter.sortByDistance
-        surrenderRangeEnabled = maxSurrenderDistance?.also {
-            surrenderRange = it.toInt()
-        } != null
-        showEnemyIntel = this@AgentViewModel.showEnemyIntel
-        showTauntStatuses = this@AgentViewModel.showTauntStatuses
-        disableIneffectiveTaunts = this@AgentViewModel.disableIneffectiveTaunts
-
-        val incentiveSettings = mapOf(
-            RouteTaskIncentive.NEEDS_ENERGY to this::routeNeedsEnergy,
-            RouteTaskIncentive.NEEDS_DAMCON to this::routeNeedsDamcon,
-            RouteTaskIncentive.RESET_COMPUTER to this::routeMalfunction,
-            RouteTaskIncentive.AMBASSADOR_PICKUP to this::routeAmbassador,
-            RouteTaskIncentive.HOSTAGE to this::routeHostage,
-            RouteTaskIncentive.COMMANDEERED to this::routeCommandeered,
-            RouteTaskIncentive.HAS_ENERGY to this::routeHasEnergy,
-        )
-        incentiveSettings.values.forEach { it.set(false) }
-        routeIncentives.forEach {
-            incentiveSettings[it]?.set(true)
-        }
-
-        avoidBlackHoles = this@AgentViewModel.avoidBlackHoles
-        avoidMines = this@AgentViewModel.avoidMines
-        avoidTyphon = this@AgentViewModel.avoidTyphons
-
-        blackHoleClearance =
-            this@AgentViewModel.blackHoleClearance.toInt()
-        mineClearance =
-            this@AgentViewModel.mineClearance.toInt()
-        typhonClearance =
-            this@AgentViewModel.typhonClearance.toInt()
-
-        threeDigitDirections = this@AgentViewModel.threeDigitDirections
-        soundVolume = (volume * VOLUME_SCALE).toInt()
-        themeValue = ALL_THEMES.indexOf(themeRes)
-    }
 
     companion object {
-        private const val DEFAULT_PORT = "2010"
-        private const val DEFAULT_SCAN_TIMEOUT = "5"
-        private const val DEFAULT_CONNECT_TIMEOUT = "9"
-        private const val DEFAULT_HEARTBEAT_TIMEOUT = "15"
-        private const val DEFAULT_FREEZE_TIME = "220"
-        private const val DEFAULT_COMPLETED_DISMISSAL = "3"
+        private const val DEFAULT_PORT = 2010
+        private const val DEFAULT_SCAN_TIMEOUT = 5
+        private const val DEFAULT_CONNECT_TIMEOUT = 9
+        private const val DEFAULT_HEARTBEAT_TIMEOUT = 15L
+        private const val DEFAULT_FREEZE_TIME = 220
+        private const val DEFAULT_COMPLETED_DISMISSAL = 3
 
-        private const val DEFAULT_BLACK_HOLE_CLEARANCE = "500"
-        private const val DEFAULT_MINE_CLEARANCE = "1000"
-        private const val DEFAULT_TYPHON_CLEARANCE = "3000"
+        private const val DEFAULT_BLACK_HOLE_CLEARANCE = 500f
+        private const val DEFAULT_MINE_CLEARANCE = 1000f
+        private const val DEFAULT_TYPHON_CLEARANCE = 3000f
 
         const val DEFAULT_UPDATE_INTERVAL = 50
         const val FLASH_INTERVAL = 500L
         const val SECONDS_TO_MILLIS = 1000
-        const val SECONDS_PER_MINUTE = 60
         private const val PIRATE_SIDE = 8
         private const val DAMAGED_ALPHA = 0.5f
         private const val JUMP_DURATION = 3000L
@@ -1631,34 +1630,26 @@ class AgentViewModel(application: Application) :
         private val ENEMY_STATION = Regex("^[A-Z][a-z]+ Base \\d+")
         private const val GAME_OVER_REASON_INDEX = 13
 
-        val PLURALS_FOR_INVENTORY = arrayOf(
-            R.plurals.friendly_stations,
-            R.plurals.enemy_stations,
-            R.plurals.allies,
-            R.plurals.side_missions,
-            R.plurals.biomechs
-        )
+        val PLURALS_FOR_INVENTORY =
+            arrayOf(
+                R.plurals.friendly_stations,
+                R.plurals.enemy_stations,
+                R.plurals.allies,
+                R.plurals.side_missions,
+                R.plurals.biomechs,
+                R.plurals.enemies,
+                R.plurals.surrenders,
+            )
 
-        private val ALL_THEMES = arrayOf(
-            R.style.Theme_ArtemisAgent,
-            R.style.Theme_ArtemisAgent_Red,
-            R.style.Theme_ArtemisAgent_Green,
-            R.style.Theme_ArtemisAgent_Yellow,
-            R.style.Theme_ArtemisAgent_Blue,
-            R.style.Theme_ArtemisAgent_Purple,
-        )
-
-        fun getTimeToEnd(endTime: Long): Pair<Int, Int> {
-            val timeRemaining = endTime - System.currentTimeMillis() + SECONDS_TO_MILLIS - 1
-            val totalSeconds = (timeRemaining / SECONDS_TO_MILLIS).coerceAtLeast(0L)
-            return getTimer(totalSeconds.toInt())
-        }
-
-        fun getTimer(totalSeconds: Int): Pair<Int, Int> {
-            val seconds = totalSeconds % SECONDS_PER_MINUTE
-            val minutes = totalSeconds / SECONDS_PER_MINUTE
-            return Pair(minutes, seconds)
-        }
+        private val ALL_THEMES =
+            arrayOf(
+                R.style.Theme_ArtemisAgent,
+                R.style.Theme_ArtemisAgent_Red,
+                R.style.Theme_ArtemisAgent_Green,
+                R.style.Theme_ArtemisAgent_Yellow,
+                R.style.Theme_ArtemisAgent_Blue,
+                R.style.Theme_ArtemisAgent_Purple,
+            )
 
         fun Int.formatString(): String = toString().format(Locale.getDefault())
     }

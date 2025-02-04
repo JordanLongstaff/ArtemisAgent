@@ -10,24 +10,19 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
-class GameStartPacketFixture private constructor(
-    arbVersion: Arb<Version>,
-    gameType: GameType,
-) : PacketTestFixture.Server<GameStartPacket>(TestPacketTypes.START_GAME) {
+class GameStartPacketFixture private constructor(arbVersion: Arb<Version>, gameType: GameType) :
+    PacketTestFixture.Server<GameStartPacket>(TestPacketTypes.START_GAME) {
     override val specName: String = "Game type: $gameType"
 
-    data class Data(
-        override val version: Version,
-        val gameType: GameType,
-        val difficulty: Int,
-    ) : PacketTestData.Server<GameStartPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(difficulty)
-            writeIntLittleEndian(gameType.ordinal)
+    data class Data(override val version: Version, val gameType: GameType, val difficulty: Int) :
+        PacketTestData.Server<GameStartPacket> {
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(difficulty)
+            writeIntLe(gameType.ordinal)
         }
 
         override fun validate(packet: GameStartPacket) {
@@ -35,9 +30,10 @@ class GameStartPacketFixture private constructor(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int()) { version, difficulty ->
-        Data(version, gameType, difficulty)
-    }
+    override val generator: Gen<Data> =
+        Arb.bind(arbVersion, Arb.int()) { version, difficulty ->
+            Data(version, gameType, difficulty)
+        }
 
     override suspend fun testType(packet: Packet.Server): GameStartPacket =
         packet.shouldBeInstanceOf()

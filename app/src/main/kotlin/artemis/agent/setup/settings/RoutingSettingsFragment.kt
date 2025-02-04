@@ -14,15 +14,15 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsRoutingBinding
 import artemis.agent.databinding.fragmentViewBinding
-import kotlinx.coroutines.launch
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlin.reflect.KMutableProperty1
+import kotlinx.coroutines.launch
 
 class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -41,46 +41,56 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val incentiveButtons = mapOf(
-            binding.incentivesMissionsButton to UserSettingsKt.Dsl::routeMissions,
-            binding.incentivesNeedsDamConButton to UserSettingsKt.Dsl::routeNeedsDamcon,
-            binding.incentivesNeedsEnergyButton to UserSettingsKt.Dsl::routeNeedsEnergy,
-            binding.incentivesHasEnergyButton to UserSettingsKt.Dsl::routeHasEnergy,
-            binding.incentivesMalfunctionButton to UserSettingsKt.Dsl::routeMalfunction,
-            binding.incentivesAmbassadorButton to UserSettingsKt.Dsl::routeAmbassador,
-            binding.incentivesHostageButton to UserSettingsKt.Dsl::routeHostage,
-            binding.incentivesCommandeeredButton to UserSettingsKt.Dsl::routeCommandeered,
-        )
+        val incentiveButtons =
+            mapOf(
+                binding.incentivesMissionsButton to UserSettingsKt.Dsl::routeMissions,
+                binding.incentivesNeedsDamConButton to UserSettingsKt.Dsl::routeNeedsDamcon,
+                binding.incentivesNeedsEnergyButton to UserSettingsKt.Dsl::routeNeedsEnergy,
+                binding.incentivesHasEnergyButton to UserSettingsKt.Dsl::routeHasEnergy,
+                binding.incentivesMalfunctionButton to UserSettingsKt.Dsl::routeMalfunction,
+                binding.incentivesAmbassadorButton to UserSettingsKt.Dsl::routeAmbassador,
+                binding.incentivesHostageButton to UserSettingsKt.Dsl::routeHostage,
+                binding.incentivesCommandeeredButton to UserSettingsKt.Dsl::routeCommandeered,
+            )
 
-        val avoidances = arrayOf(
-            Avoidance(
-                toggleButton = binding.blackHolesButton,
-                clearanceField = binding.blackHolesClearanceField,
-                kmLabel = binding.blackHolesClearanceKm,
-                enabledSetting = UserSettingsKt.Dsl::avoidBlackHoles,
-                clearanceSetting = UserSettingsKt.Dsl::blackHoleClearance,
-            ),
-            Avoidance(
-                toggleButton = binding.minesButton,
-                clearanceField = binding.minesClearanceField,
-                kmLabel = binding.minesClearanceKm,
-                enabledSetting = UserSettingsKt.Dsl::avoidMines,
-                clearanceSetting = UserSettingsKt.Dsl::mineClearance,
-            ),
-            Avoidance(
-                toggleButton = binding.typhonsButton,
-                clearanceField = binding.typhonsClearanceField,
-                kmLabel = binding.typhonsClearanceKm,
-                enabledSetting = UserSettingsKt.Dsl::avoidTyphon,
-                clearanceSetting = UserSettingsKt.Dsl::typhonClearance,
-            ),
-        )
+        val avoidances =
+            arrayOf(
+                Avoidance(
+                    toggleButton = binding.blackHolesButton,
+                    clearanceField = binding.blackHolesClearanceField,
+                    kmLabel = binding.blackHolesClearanceKm,
+                    enabledSetting = UserSettingsKt.Dsl::avoidBlackHoles,
+                    clearanceSetting = UserSettingsKt.Dsl::blackHoleClearance,
+                ),
+                Avoidance(
+                    toggleButton = binding.minesButton,
+                    clearanceField = binding.minesClearanceField,
+                    kmLabel = binding.minesClearanceKm,
+                    enabledSetting = UserSettingsKt.Dsl::avoidMines,
+                    clearanceSetting = UserSettingsKt.Dsl::mineClearance,
+                ),
+                Avoidance(
+                    toggleButton = binding.typhonsButton,
+                    clearanceField = binding.typhonsClearanceField,
+                    kmLabel = binding.typhonsClearanceKm,
+                    enabledSetting = UserSettingsKt.Dsl::avoidTyphon,
+                    clearanceSetting = UserSettingsKt.Dsl::typhonClearance,
+                ),
+            )
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsReset) {
-            clearFocus()
-        }
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsReset) { clearFocus() }
 
-        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
+        initializeFromSettings(incentiveButtons, avoidances)
+
+        prepareAvoidanceSettingButtons(avoidances)
+        prepareIncentiveSettingButtons(incentiveButtons)
+    }
+
+    private fun initializeFromSettings(
+        incentiveButtons: ToggleButtonMap,
+        avoidances: Array<Avoidance>,
+    ) {
+        viewLifecycleOwner.collectLatestWhileStarted(binding.root.context.userSettings.data) {
             it.copy {
                 incentiveButtons.entries.forEach { (button, setting) ->
                     button.isChecked = setting.get(this)
@@ -101,7 +111,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
                         avoidance.kmLabel.visibility = View.VISIBLE
                         avoidance.clearanceField.visibility = View.VISIBLE
                         avoidance.clearanceField.setText(
-                            avoidance.clearanceSetting.get(this).formatString(),
+                            avoidance.clearanceSetting.get(this).formatString()
                         )
                     } else {
                         avoidance.toggleButton.isChecked = false
@@ -119,15 +129,17 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             binding.avoidancesAllButton.isEnabled = !avoidances.all { (button) -> button.isChecked }
             binding.avoidancesNoneButton.isEnabled = avoidances.any { (button) -> button.isChecked }
         }
+    }
+
+    private fun prepareAvoidanceSettingButtons(avoidances: Array<Avoidance>) {
+        val context = binding.root.context
 
         binding.avoidancesAllButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
-                        avoidances.forEach { (_, enabledSetting) ->
-                            enabledSetting.set(this, true)
-                        }
+                        avoidances.forEach { (_, enabledSetting) -> enabledSetting.set(this, true) }
                     }
                 }
             }
@@ -137,7 +149,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             clearFocus()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
                         avoidances.forEach { (_, enabledSetting) ->
                             enabledSetting.set(this, false)
@@ -147,60 +159,64 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             }
         }
 
-        avoidances.forEach { avoidance ->
-            avoidance.toggleButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        avoidances.forEach { prepareAvoidanceSettingView(it) }
+    }
 
-            avoidance.toggleButton.setOnCheckedChangeListener { _, isChecked ->
-                if (!isChecked && avoidance.clearanceField.hasFocus()) {
-                    hideKeyboard()
-                    avoidance.clearanceField.clearFocus()
-                }
+    private fun prepareAvoidanceSettingView(avoidance: Avoidance) {
+        val context = binding.root.context
 
-                viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy { avoidance.enabledSetting.set(this, isChecked) }
-                    }
-                }
+        avoidance.toggleButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+
+        avoidance.toggleButton.setOnCheckedChangeListener { _, isChecked ->
+            if (!isChecked && avoidance.clearanceField.hasFocus()) {
+                hideKeyboard()
+                avoidance.clearanceField.clearFocus()
             }
 
-            avoidance.clearanceField.setOnClickListener {
+            viewModel.viewModelScope.launch {
+                context.userSettings.updateData {
+                    it.copy { avoidance.enabledSetting.set(this, isChecked) }
+                }
+            }
+        }
+
+        avoidance.clearanceField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+
+        avoidance.clearanceField.addTextChangedListener {
+            if (playSoundsOnTextChange) {
                 viewModel.playSound(SoundEffect.BEEP_2)
             }
+        }
 
-            avoidance.clearanceField.addTextChangedListener {
-                if (playSoundsOnTextChange) {
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                }
+        avoidance.clearanceField.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                viewModel.playSound(SoundEffect.BEEP_2)
+                return@setOnFocusChangeListener
             }
 
-            avoidance.clearanceField.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) {
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                    return@setOnFocusChangeListener
-                }
-
-                val text = avoidance.clearanceField.text?.toString()
-                viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy {
-                            if (!text.isNullOrBlank()) {
-                                avoidance.clearanceSetting.set(this, text.toInt())
-                            }
+            val text = avoidance.clearanceField.text?.toString()
+            viewModel.viewModelScope.launch {
+                context.userSettings.updateData {
+                    it.copy {
+                        if (!text.isNullOrBlank()) {
+                            avoidance.clearanceSetting.set(this, text.toInt())
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun prepareIncentiveSettingButtons(incentiveButtons: ToggleButtonMap) {
+        val context = binding.root.context
 
         binding.incentivesAllButton.setOnClickListener {
             clearFocus()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
-                        incentiveButtons.values.forEach { setting ->
-                            setting.set(this, true)
-                        }
+                        incentiveButtons.values.forEach { setting -> setting.set(this, true) }
                     }
                 }
             }
@@ -210,11 +226,9 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             clearFocus()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
-                        incentiveButtons.values.forEach { setting ->
-                            setting.set(this, false)
-                        }
+                        incentiveButtons.values.forEach { setting -> setting.set(this, false) }
                     }
                 }
             }
@@ -227,9 +241,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             }
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy { setting.set(this, isChecked) }
-                    }
+                    context.userSettings.updateData { it.copy { setting.set(this, isChecked) } }
                 }
             }
         }

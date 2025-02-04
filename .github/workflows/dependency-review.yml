@@ -45,16 +45,25 @@ jobs:
     needs: wait-for-build
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+
+      - name: Generate secret files
+        run: |
+          echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
+          echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
       # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v4
+        with:
+          dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
       - name: Download and submit Gradle dependency graph
         uses: gradle/actions/dependency-submission@v4

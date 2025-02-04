@@ -8,13 +8,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsMissionsBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
@@ -37,13 +37,14 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val displayRewardButtons = mapOf(
-            binding.rewardsBatteryButton to UserSettingsKt.Dsl::displayRewardBattery,
-            binding.rewardsCoolantButton to UserSettingsKt.Dsl::displayRewardCoolant,
-            binding.rewardsNukeButton to UserSettingsKt.Dsl::displayRewardNukes,
-            binding.rewardsProductionButton to UserSettingsKt.Dsl::displayRewardProduction,
-            binding.rewardsShieldButton to UserSettingsKt.Dsl::displayRewardShield,
-        )
+        val displayRewardButtons =
+            mapOf(
+                binding.rewardsBatteryButton to UserSettingsKt.Dsl::displayRewardBattery,
+                binding.rewardsCoolantButton to UserSettingsKt.Dsl::displayRewardCoolant,
+                binding.rewardsNukeButton to UserSettingsKt.Dsl::displayRewardNukes,
+                binding.rewardsProductionButton to UserSettingsKt.Dsl::displayRewardProduction,
+                binding.rewardsShieldButton to UserSettingsKt.Dsl::displayRewardShield,
+            )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             it.copy {
@@ -69,9 +70,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             }
         }
 
-        binding.autoDismissalButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.autoDismissalButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.autoDismissalButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
@@ -81,14 +80,18 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             }
         }
 
+        prepareRewardSettingButtons(displayRewardButtons)
+    }
+
+    private fun prepareRewardSettingButtons(displayRewardButtons: ToggleButtonMap) {
+        val context = binding.root.context
+
         binding.rewardsAllButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
-                        displayRewardButtons.values.forEach { setting ->
-                            setting.set(this, true)
-                        }
+                        displayRewardButtons.values.forEach { setting -> setting.set(this, true) }
                     }
                 }
             }
@@ -97,11 +100,9 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
         binding.rewardsNoneButton.setOnClickListener {
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
+                context.userSettings.updateData {
                     it.copy {
-                        displayRewardButtons.values.forEach { setting ->
-                            setting.set(this, false)
-                        }
+                        displayRewardButtons.values.forEach { setting -> setting.set(this, false) }
                     }
                 }
             }
@@ -112,9 +113,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
 
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {
-                    view.context.userSettings.updateData {
-                        it.copy { setting.set(this, isChecked) }
-                    }
+                    context.userSettings.updateData { it.copy { setting.set(this, isChecked) } }
                 }
             }
         }

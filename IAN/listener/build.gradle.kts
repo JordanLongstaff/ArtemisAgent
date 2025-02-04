@@ -7,6 +7,7 @@ plugins {
     id("kotlin")
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -32,6 +33,8 @@ tasks.test {
 
 tasks.assemble.dependsOn(":IAN:listener:konsist:test")
 
+ktfmt { kotlinLangStyle() }
+
 detekt {
     source.setFrom(file("src/main/kotlin"))
     config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
@@ -43,6 +46,7 @@ dependencies {
 
     implementation(libs.kotlin.reflect)
 
+    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.listener.test)
     testFixturesImplementation(libs.kotlin.reflect)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
@@ -50,13 +54,7 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover {
-    currentProject {
-        sources {
-            excludedSourceSets.add("testFixtures")
-        }
-    }
-}
+kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
 
 val pitestMutators: Set<String> by rootProject.extra
 val pitestTimeoutFactor: BigDecimal by rootProject.extra

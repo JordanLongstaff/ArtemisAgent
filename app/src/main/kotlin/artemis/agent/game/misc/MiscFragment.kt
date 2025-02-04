@@ -14,11 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.AudioEntryBinding
 import artemis.agent.databinding.MiscFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -27,9 +27,7 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
     private val binding: MiscFragmentBinding by fragmentViewBinding()
 
     private val listeningForAudio: Flow<Boolean?> by lazy {
-        viewModel.jumping.combine(viewModel.showingAudio) { jump, show ->
-            if (jump) null else show
-        }
+        viewModel.jumping.combine(viewModel.showingAudio) { jump, show -> if (jump) null else show }
     }
 
     private val miscOptions: Flow<Pair<Boolean, Boolean>> by lazy {
@@ -73,43 +71,42 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
             if (isChecked) {
                 val context = view.context
                 binding.miscListView.apply {
-                    layoutManager = GridLayoutManager(
-                        context,
-                        context.resources.configuration.orientation
-                    )
+                    layoutManager =
+                        GridLayoutManager(context, context.resources.configuration.orientation)
                     adapter = audioAdapter
                 }
                 viewModel.showingAudio.value = true
             }
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(updatedMiscAudio) {
-            audioAdapter.update(it)
-        }
+        viewLifecycleOwner.collectLatestWhileStarted(updatedMiscAudio) { audioAdapter.update(it) }
 
         viewLifecycleOwner.collectLatestWhileStarted(miscOptions) { (actions, audio) ->
-            binding.miscListSelector.visibility = if (actions && audio) {
-                View.VISIBLE
-            } else {
-                if (actions || audio) {
-                    viewModel.showingAudio.value = audio
+            binding.miscListSelector.visibility =
+                if (actions && audio) {
+                    View.VISIBLE
+                } else {
+                    if (actions || audio) {
+                        viewModel.showingAudio.value = audio
+                    }
+                    View.GONE
                 }
-                View.GONE
-            }
         }
 
         if (viewModel.showingAudio.value) {
-            binding.audioButton
-        } else {
-            binding.actionsButton
-        }.isChecked = true
+                binding.audioButton
+            } else {
+                binding.actionsButton
+            }
+            .isChecked = true
     }
 
     private class CommsAudioDiffUtilCallback(
         private val oldList: List<AudioEntry>,
-        private val newList: List<AudioEntry>
+        private val newList: List<AudioEntry>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
@@ -121,9 +118,8 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = true
     }
 
-    private class CommsAudioViewHolder(
-        val entryBinding: AudioEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private class CommsAudioViewHolder(val entryBinding: AudioEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: AudioEntry, viewModel: AgentViewModel) {
             entryBinding.messageLabel.text = entry.title
             entryBinding.playButton.setOnClickListener {
@@ -138,9 +134,8 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         }
     }
 
-    private class CommsAudioAdapter(
-        private val viewModel: AgentViewModel
-    ) : RecyclerView.Adapter<CommsAudioViewHolder>() {
+    private class CommsAudioAdapter(private val viewModel: AgentViewModel) :
+        RecyclerView.Adapter<CommsAudioViewHolder>() {
         var audios = listOf<AudioEntry>()
             private set
 
@@ -148,11 +143,7 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommsAudioViewHolder =
             CommsAudioViewHolder(
-                AudioEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                AudioEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: CommsAudioViewHolder, position: Int) {
@@ -161,18 +152,18 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
 
         fun update(value: List<AudioEntry>?) {
             if (value == null) return
-            DiffUtil.calculateDiff(
-                CommsAudioDiffUtilCallback(audios, value)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(CommsAudioDiffUtilCallback(audios, value))
+                .dispatchUpdatesTo(this)
             audios = value
         }
     }
 
     private class CommsActionDiffUtilCallback(
         private val oldList: List<CommsActionEntry>,
-        private val newList: List<CommsActionEntry>
+        private val newList: List<CommsActionEntry>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
@@ -184,9 +175,8 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = true
     }
 
-    private class CommsActionViewHolder(
-        private val button: Button
-    ) : RecyclerView.ViewHolder(button) {
+    private class CommsActionViewHolder(private val button: Button) :
+        RecyclerView.ViewHolder(button) {
         fun bind(entry: CommsActionEntry, viewModel: AgentViewModel) {
             button.text = entry.label
             button.setOnClickListener {
@@ -196,9 +186,8 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         }
     }
 
-    private class CommsActionAdapter(
-        private val viewModel: AgentViewModel
-    ) : RecyclerView.Adapter<CommsActionViewHolder>() {
+    private class CommsActionAdapter(private val viewModel: AgentViewModel) :
+        RecyclerView.Adapter<CommsActionViewHolder>() {
         var actions = listOf<CommsActionEntry>()
             private set
 
@@ -207,16 +196,18 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommsActionViewHolder =
             CommsActionViewHolder(
                 Button(
-                    ContextThemeWrapper(
-                        parent.context,
-                        R.style.Widget_ArtemisAgent_Button_Yellow
+                        ContextThemeWrapper(
+                            parent.context,
+                            R.style.Widget_ArtemisAgent_Button_Yellow,
+                        )
                     )
-                ).apply {
-                    layoutParams = RecyclerView.LayoutParams(
-                        RecyclerView.LayoutParams.MATCH_PARENT,
-                        RecyclerView.LayoutParams.WRAP_CONTENT
-                    )
-                }
+                    .apply {
+                        layoutParams =
+                            RecyclerView.LayoutParams(
+                                RecyclerView.LayoutParams.MATCH_PARENT,
+                                RecyclerView.LayoutParams.WRAP_CONTENT,
+                            )
+                    }
             )
 
         override fun onBindViewHolder(holder: CommsActionViewHolder, position: Int) {
@@ -225,9 +216,8 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
 
         fun update(value: List<CommsActionEntry>?) {
             if (value == null) return
-            DiffUtil.calculateDiff(
-                CommsActionDiffUtilCallback(actions, value)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(CommsActionDiffUtilCallback(actions, value))
+                .dispatchUpdatesTo(this)
             actions = value
         }
     }

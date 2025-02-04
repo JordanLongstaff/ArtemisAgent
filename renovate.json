@@ -1,0 +1,18 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "autoApprove": true,
+  "automerge": true,
+  "ignoreDeps": ["com.android.tools.build:gradle"],
+  "packageRules": [
+    {
+      "groupName": "kotlin and ksp",
+      "matchPackageNames": [
+        "kotlin",
+        "/^com\\.google\\.devtools\\.ksp/"
+      ]
+    }
+  ]
+}

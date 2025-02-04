@@ -1,6 +1,7 @@
 package artemis.agent.help
 
 import android.content.Context
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -9,154 +10,58 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.annotation.ArrayRes
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.HelpFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 
 class HelpFragment : Fragment(R.layout.help_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
     private val binding: HelpFragmentBinding by fragmentViewBinding()
 
-    private val currentHelpTopicIndex: Int get() = viewModel.helpTopicIndex.value
-
-    private val helpTopics: List<HelpTopic> by lazy {
-        binding.root.resources.run {
-            listOf(
-                HelpTopic(
-                    getString(R.string.help_topics_getting_started),
-                    getStringArray(R.array.help_contents_getting_started).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(
-                            INDEX_PREVIEW_CONNECT to R.drawable.connect_preview,
-                            INDEX_PREVIEW_SHIP to R.drawable.ship_entry_preview,
-                        )
-                    },
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_basics),
-                    getStringArray(R.array.help_contents_basics).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(1 to R.drawable.game_header_preview)
-                    },
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_stations),
-                    getStringArray(R.array.help_contents_stations).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(1 to R.drawable.station_entry_preview)
-                    },
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_allies),
-                    getStringArray(R.array.help_contents_allies).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(1 to R.drawable.ally_entry_preview)
-                    },
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_missions),
-                    getStringArray(R.array.help_contents_missions).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(
-                            INDEX_PREVIEW_COMMS_MESSAGE to R.drawable.comms_message,
-                            INDEX_PREVIEW_MISSION to R.drawable.mission_entry_preview,
-                        )
-                    },
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_routing),
-                    getStringArray(R.array.help_contents_routing).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(
-                            INDEX_PREVIEW_ROUTE_TASKS to R.drawable.route_tasks_preview,
-                            INDEX_PREVIEW_ROUTE_SUPPLIES to R.drawable.route_supplies_preview,
-                        )
-                    }
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_enemies),
-                    getStringArray(R.array.help_contents_enemies).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(
-                            INDEX_PREVIEW_ENEMY to R.drawable.enemy_entry_preview,
-                            INDEX_PREVIEW_INTEL to R.drawable.enemy_intel_preview,
-                        )
-                    },
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_biomechs),
-                    getStringArray(R.array.help_contents_biomechs).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        addImages(1 to R.drawable.biomech_entry_preview)
-                    },
-                ),
-                HelpTopic(
-                    getString(R.string.help_topics_about),
-                    getStringArray(R.array.help_contents_about).map {
-                        HelpTopicContent.Text(it)
-                    }.toMutableList<HelpTopicContent>().apply {
-                        add(0, HelpTopicContent.Text(getString(R.string.app_version)))
-                        add(HelpTopicContent.Image(R.drawable.ic_launcher_foreground))
-                    },
-                ),
-            )
-        }
-    }
+    private val currentHelpTopicIndex: Int
+        get() = viewModel.helpTopicIndex.value
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.settingsPage.value = null
 
-        val onBackPressedCallback = requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner
-        ) {
-            onBack()
-        }
+        val onBackPressedCallback =
+            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) { onBack() }
 
         val helpTopicContent = binding.helpTopicContent
 
         viewModel.focusedAlly.value = null
 
-        val layoutManager = GridLayoutManager(
-            binding.root.context,
-            2
-        )
+        val layoutManager = GridLayoutManager(binding.root.context, 2)
         val adapter = HelpTopicsAdapter()
+        val resources = view.resources
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.helpTopicIndex) { index ->
-            val headerVisibility = if (index == MENU) {
-                layoutManager.spanCount = 2
-                onBackPressedCallback.isEnabled = false
-                View.GONE
-            } else {
-                layoutManager.spanCount = 1
-                binding.helpTopicTitle.text = helpTopics[index].buttonLabel
-                onBackPressedCallback.isEnabled = true
-                View.VISIBLE
-            }
-            arrayOf(
-                binding.backButton,
-                binding.helpTopicTitle,
-                binding.helpTopicHeaderDivider
-            ).forEach { it.visibility = headerVisibility }
-            @Suppress("NotifyDataSetChanged")
-            adapter.notifyDataSetChanged()
+            val headerVisibility =
+                if (index == MENU) {
+                    layoutManager.spanCount = 2
+                    onBackPressedCallback.isEnabled = false
+                    View.GONE
+                } else {
+                    helpTopics[index].initContents(resources)
+                    layoutManager.spanCount = 1
+                    binding.helpTopicTitle.setText(helpTopics[index].buttonLabel)
+                    onBackPressedCallback.isEnabled = true
+                    View.VISIBLE
+                }
+            arrayOf(binding.backButton, binding.helpTopicTitle, binding.helpTopicHeaderDivider)
+                .forEach { it.visibility = headerVisibility }
+            @Suppress("NotifyDataSetChanged") adapter.notifyDataSetChanged()
         }
 
         binding.backButton.setOnClickListener { onBack() }
@@ -176,16 +81,31 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private class HelpTopic(
-        val buttonLabel: String,
-        val contents: List<HelpTopicContent>
+        @StringRes val buttonLabel: Int,
+        @ArrayRes private val paragraphs: Int,
+        private val insert: MutableList<HelpTopicContent>.(Resources) -> Unit,
     ) : ViewProvider {
         override val viewType: Int = MENU
+
+        var contents: List<HelpTopicContent> = listOf()
+            private set
+
+        fun initContents(res: Resources) {
+            if (contents.isEmpty()) {
+                contents =
+                    res.getStringArray(paragraphs)
+                        .map { HelpTopicContent.Text(it) }
+                        .toMutableList<HelpTopicContent>()
+                        .apply { insert(res) }
+            }
+        }
     }
 
     private sealed interface HelpTopicContent : ViewProvider {
         data class Image(@DrawableRes val imageSrcId: Int) : HelpTopicContent {
             override val viewType: Int = IMAGE
         }
+
         data class Text(val text: String) : HelpTopicContent {
             override val viewType: Int = TEXT
         }
@@ -193,18 +113,22 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
 
     private sealed class HelpTopicsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         class MenuButton(context: Context) : HelpTopicsViewHolder(Button(context))
+
         class Image(context: Context) : HelpTopicsViewHolder(ImageView(context))
+
         class Text(context: Context) : HelpTopicsViewHolder(TextView(context))
     }
 
     private inner class HelpTopicsAdapter : RecyclerView.Adapter<HelpTopicsViewHolder>() {
-        private val contents: List<ViewProvider> get() = currentHelpTopicIndex.let {
-            if (it == MENU) {
-                helpTopics
-            } else {
-                helpTopics[it].contents
-            }
-        }
+        private val contents: List<ViewProvider>
+            get() =
+                currentHelpTopicIndex.let {
+                    if (it == MENU) {
+                        helpTopics
+                    } else {
+                        helpTopics[it].contents
+                    }
+                }
 
         override fun getItemCount(): Int = contents.size
 
@@ -218,14 +142,16 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     TEXT -> HelpTopicsViewHolder.Text(parent.context)
                     else -> null
                 }
-            ) { "Unrecognized view type: $viewType" }
+            ) {
+                "Unrecognized view type: $viewType"
+            }
         }
 
         override fun onBindViewHolder(holder: HelpTopicsViewHolder, position: Int) {
             when (holder) {
                 is HelpTopicsViewHolder.MenuButton -> {
                     with(holder.itemView as Button) {
-                        text = helpTopics[position].buttonLabel
+                        setText(helpTopics[position].buttonLabel)
                         setOnClickListener {
                             viewModel.playSound(SoundEffect.BEEP_2)
                             viewModel.helpTopicIndex.value = position
@@ -234,18 +160,23 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                 }
                 is HelpTopicsViewHolder.Image -> {
                     with(holder.itemView as ImageView) {
-                        val imageSrc = helpTopics[currentHelpTopicIndex].contents[position] as
-                            HelpTopicContent.Image
+                        val imageSrc =
+                            helpTopics[currentHelpTopicIndex].contents[position]
+                                as HelpTopicContent.Image
                         setImageResource(imageSrc.imageSrcId)
                         adjustViewBounds = true
                     }
                 }
                 is HelpTopicsViewHolder.Text -> {
                     with(holder.itemView as TextView) {
-                        val textContent = helpTopics[currentHelpTopicIndex].contents[position] as
-                            HelpTopicContent.Text
+                        val textContent =
+                            helpTopics[currentHelpTopicIndex].contents[position]
+                                as HelpTopicContent.Text
                         text = textContent.text
-                        setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.baseTextSize))
+                        setTextSize(
+                            TypedValue.COMPLEX_UNIT_PX,
+                            resources.getDimension(R.dimen.baseTextSize),
+                        )
                     }
                 }
             }
@@ -253,12 +184,63 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     companion object {
+        private val helpTopics: List<HelpTopic> =
+            listOf(
+                HelpTopic(
+                    R.string.help_topics_getting_started,
+                    R.array.help_contents_getting_started,
+                ) {
+                    addImages(
+                        INDEX_PREVIEW_CONNECT to R.drawable.connect_preview,
+                        INDEX_PREVIEW_SHIP to R.drawable.ship_entry_preview,
+                    )
+                },
+                HelpTopic(R.string.help_topics_basics, R.array.help_contents_basics) {
+                    addImages(1 to R.drawable.game_header_preview)
+                },
+                HelpTopic(R.string.help_topics_stations, R.array.help_contents_stations) {
+                    addImages(1 to R.drawable.station_entry_preview)
+                },
+                HelpTopic(R.string.help_topics_allies, R.array.help_contents_allies) {
+                    addImages(1 to R.drawable.ally_entry_preview)
+                },
+                HelpTopic(R.string.help_topics_missions, R.array.help_contents_missions) {
+                    addImages(
+                        INDEX_PREVIEW_COMMS_MESSAGE to R.drawable.comms_message,
+                        INDEX_PREVIEW_MISSION to R.drawable.mission_entry_preview,
+                    )
+                },
+                HelpTopic(R.string.help_topics_routing, R.array.help_contents_routing) {
+                    addImages(
+                        INDEX_PREVIEW_ROUTE_TASKS to R.drawable.route_tasks_preview,
+                        INDEX_PREVIEW_ROUTE_SUPPLIES to R.drawable.route_supplies_preview,
+                    )
+                },
+                HelpTopic(R.string.help_topics_enemies, R.array.help_contents_enemies) {
+                    addImages(
+                        INDEX_PREVIEW_ENEMY to R.drawable.enemy_entry_preview,
+                        INDEX_PREVIEW_INTEL to R.drawable.enemy_intel_preview,
+                    )
+                },
+                HelpTopic(R.string.help_topics_biomechs, R.array.help_contents_biomechs) {
+                    addImages(1 to R.drawable.biomech_entry_preview)
+                },
+                HelpTopic(
+                    R.string.help_topics_notifications,
+                    R.array.help_contents_notifications,
+                ) {},
+                HelpTopic(R.string.help_topics_about, R.array.help_contents_about) { res ->
+                    add(0, HelpTopicContent.Text(res.getString(R.string.app_version)))
+                    add(HelpTopicContent.Image(R.drawable.ic_launcher_foreground))
+                },
+            )
+
         const val MENU = -1
         const val IMAGE = 0
         const val TEXT = 1
 
-        private const val INDEX_PREVIEW_CONNECT = 3
-        private const val INDEX_PREVIEW_SHIP = 5
+        private const val INDEX_PREVIEW_CONNECT = 4
+        private const val INDEX_PREVIEW_SHIP = 6
 
         private const val INDEX_PREVIEW_COMMS_MESSAGE = 1
         private const val INDEX_PREVIEW_MISSION = 7

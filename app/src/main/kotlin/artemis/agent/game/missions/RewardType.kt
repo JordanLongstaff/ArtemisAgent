@@ -5,5 +5,5 @@ enum class RewardType(val parseKey: String) {
     COOLANT("coolant."),
     NUKE("torpedoes."),
     PRODUCTION("speed."),
-    SHIELD("generators.")
+    SHIELD("generators."),
 }

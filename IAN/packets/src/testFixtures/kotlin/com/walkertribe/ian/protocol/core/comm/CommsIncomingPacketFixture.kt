@@ -16,12 +16,13 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.short
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
-import io.ktor.utils.io.core.writeShortLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
+import kotlinx.io.writeShortLe
 
-class CommsIncomingPacketFixture private constructor(
+class CommsIncomingPacketFixture
+private constructor(
     override val specName: String,
     isUsingCommFilters: Boolean,
     versionArb: Arb<Version>,
@@ -33,11 +34,11 @@ class CommsIncomingPacketFixture private constructor(
         val isUsingCommFilters: Boolean,
         val channel: Int,
     ) : PacketTestData.Server<CommsIncomingPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
+        override fun buildPayload(): Source = buildPacket {
             if (isUsingCommFilters) {
-                writeShortLittleEndian(channel.toShort())
+                writeShortLe(channel.toShort())
             } else {
-                writeIntLittleEndian(channel)
+                writeIntLe(channel)
             }
             writeString(sender)
             writeString(message)
@@ -49,34 +50,32 @@ class CommsIncomingPacketFixture private constructor(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(
-        versionArb,
-        Arb.string(),
-        Arb.string(),
-        if (isUsingCommFilters) {
-            Arb.short().map(Short::toInt)
-        } else {
-            Arb.int()
-        },
-    ) { version, from, contents, channelValue ->
-        Data(version, from, contents, isUsingCommFilters, channelValue)
-    }
+    override val generator: Gen<Data> =
+        Arb.bind(
+            versionArb,
+            Arb.string(),
+            Arb.string(),
+            if (isUsingCommFilters) {
+                Arb.short().map(Short::toInt)
+            } else {
+                Arb.int()
+            },
+        ) { version, from, contents, channelValue ->
+            Data(version, from, contents, isUsingCommFilters, channelValue)
+        }
 
     override suspend fun testType(packet: Packet.Server): CommsIncomingPacket =
         packet.shouldBeInstanceOf()
 
     companion object {
-        val ALL = listOf(
-            CommsIncomingPacketFixture(
-                "Before version 2.6.0",
-                false,
-                Arb.version(2, 3..5),
-            ),
-            CommsIncomingPacketFixture(
-                "Since version 2.6.0",
-                true,
-                Arb.version(2, Arb.int(min = 6)),
-            ),
-        )
+        val ALL =
+            listOf(
+                CommsIncomingPacketFixture("Before version 2.6.0", false, Arb.version(2, 3..5)),
+                CommsIncomingPacketFixture(
+                    "Since version 2.6.0",
+                    true,
+                    Arb.version(2, Arb.int(min = 6)),
+                ),
+            )
     }
 }

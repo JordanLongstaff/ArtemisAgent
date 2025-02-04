@@ -7,18 +7,16 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.map
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
-class EndGamePacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<EndGamePacket>(TestPacketTypes.SIMPLE_EVENT) {
-    class Data internal constructor(
-        override val version: Version,
-    ) : PacketTestData.Server<EndGamePacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.END_GAME.toInt())
+class EndGamePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<EndGamePacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version) :
+        PacketTestData.Server<EndGamePacket> {
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.END_GAME.toInt())
         }
 
         override fun validate(packet: EndGamePacket) {
