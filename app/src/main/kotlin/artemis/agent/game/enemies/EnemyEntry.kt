@@ -22,27 +22,27 @@ data class EnemyEntry(val enemy: ArtemisNpc, val vessel: Vessel, val faction: Fa
 
     val tauntStatuses = Array(Taunt.COUNT) { TauntStatus.UNUSED }
 
-    fun getTauntCountText(context: Context): String = when {
-        tauntStatuses.all { it == TauntStatus.INEFFECTIVE } ->
-            context.getString(R.string.cannot_taunt)
-        tauntCount < TAUNT_COUNT_STRINGS.size -> context.getString(TAUNT_COUNT_STRINGS[tauntCount])
-        else -> context.getString(R.string.taunts_many, tauntCount)
-    }
-
-    fun getBackgroundColor(context: Context): Int = ContextCompat.getColor(
-        context,
+    fun getTauntCountText(context: Context): String =
         when {
-            captainStatus == EnemyCaptainStatus.DUPLICITOUS -> R.color.duplicitousOrange
-            enemy.isSurrendered.value.booleanValue -> R.color.surrenderedYellow
-            else -> R.color.enemyRed
+            tauntStatuses.all { it == TauntStatus.INEFFECTIVE } ->
+                context.getString(R.string.cannot_taunt)
+            tauntCount < TAUNT_COUNT_STRINGS.size ->
+                context.getString(TAUNT_COUNT_STRINGS[tauntCount])
+            else -> context.getString(R.string.taunts_many, tauntCount)
         }
-    )
+
+    fun getBackgroundColor(context: Context): Int =
+        ContextCompat.getColor(
+            context,
+            when {
+                captainStatus == EnemyCaptainStatus.DUPLICITOUS -> R.color.duplicitousOrange
+                enemy.isSurrendered.value.booleanValue -> R.color.surrenderedYellow
+                else -> R.color.enemyRed
+            },
+        )
 
     private companion object {
-        val TAUNT_COUNT_STRINGS = arrayOf(
-            R.string.taunts_zero,
-            R.string.taunts_one,
-            R.string.taunts_two,
-        )
+        val TAUNT_COUNT_STRINGS =
+            intArrayOf(R.string.taunts_zero, R.string.taunts_one, R.string.taunts_two)
     }
 }

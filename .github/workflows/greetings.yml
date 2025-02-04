@@ -8,6 +8,7 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
+    if: ${{ !endsWith(github.actor, '[bot]') }}
     steps:
     - uses: actions/first-interaction@v1
       with:

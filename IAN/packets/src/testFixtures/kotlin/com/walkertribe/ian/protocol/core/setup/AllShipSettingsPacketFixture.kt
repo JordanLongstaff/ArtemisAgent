@@ -26,12 +26,13 @@ import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.numericFloat
 import io.kotest.property.arbitrary.of
 import io.kotest.property.arbitrary.string
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeFloatLittleEndian
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeFloatLe
+import kotlinx.io.writeIntLe
 
-class AllShipSettingsPacketFixture private constructor(
+class AllShipSettingsPacketFixture
+private constructor(
     override val specName: String,
     private val shouldWriteAccentColor: Boolean,
     versionArb: Arb<Version>,
@@ -41,15 +42,15 @@ class AllShipSettingsPacketFixture private constructor(
         val shouldWriteAccentColor: Boolean,
         val ships: List<Pair<Int, Ship>>,
     ) : PacketTestData.Server<AllShipSettingsPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.SHIP_SETTINGS.toInt())
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.SHIP_SETTINGS.toInt())
             ships.forEach { (hasName, ship) ->
-                writeIntLittleEndian(ship.drive.ordinal)
-                writeIntLittleEndian(ship.shipType)
+                writeIntLe(ship.drive.ordinal)
+                writeIntLe(ship.shipType)
                 if (shouldWriteAccentColor) {
-                    writeFloatLittleEndian(ship.accentColor)
+                    writeFloatLe(ship.accentColor)
                 }
-                writeIntLittleEndian(hasName)
+                writeIntLe(hasName)
                 if (hasName != 0) {
                     writeString(ship.name.shouldNotBeNull())
                 }
@@ -74,44 +75,41 @@ class AllShipSettingsPacketFixture private constructor(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(
-        versionArb,
-        Arb.list(
-            Arb.bind(
-                Arb.int(),
-                Arb.string(),
-                Arb.int(),
-                if (shouldWriteAccentColor) {
-                    Arb.numericFloat(min = 0f, max = 1f)
-                } else {
-                    Arb.of(Float.NaN)
+    override val generator: Gen<Data> =
+        Arb.bind(
+            versionArb,
+            Arb.list(
+                Arb.bind(
+                    Arb.int(),
+                    Arb.string(),
+                    Arb.int(),
+                    if (shouldWriteAccentColor) {
+                        Arb.numericFloat(min = 0f, max = 1f)
+                    } else {
+                        Arb.of(Float.NaN)
+                    },
+                    Arb.enum<DriveType>(),
+                ) { hasName, name, shipType, accentColor, drive ->
+                    Pair(hasName, Ship(name.takeIf { hasName != 0 }, shipType, drive, accentColor))
                 },
-                Arb.enum<DriveType>(),
-            ) { hasName, name, shipType, accentColor, drive ->
-                Pair(
-                    hasName,
-                    Ship(name.takeIf { hasName != 0 }, shipType, drive, accentColor)
-                )
-            },
-            Artemis.SHIP_COUNT..Artemis.SHIP_COUNT,
-        ),
-    ) { version, ships -> Data(version, shouldWriteAccentColor, ships) }
+                Artemis.SHIP_COUNT..Artemis.SHIP_COUNT,
+            ),
+        ) { version, ships ->
+            Data(version, shouldWriteAccentColor, ships)
+        }
 
     override suspend fun testType(packet: Packet.Server): AllShipSettingsPacket =
         packet.shouldBeInstanceOf()
 
     companion object {
-        val ALL = listOf(
-            AllShipSettingsPacketFixture(
-                "Before version 2.4.0",
-                false,
-                Arb.version(2, 3),
-            ),
-            AllShipSettingsPacketFixture(
-                "Since version 2.4.0",
-                true,
-                Arb.version(2, Arb.int(min = 4)),
-            ),
-        )
+        val ALL =
+            listOf(
+                AllShipSettingsPacketFixture("Before version 2.4.0", false, Arb.version(2, 3)),
+                AllShipSettingsPacketFixture(
+                    "Since version 2.4.0",
+                    true,
+                    Arb.version(2, Arb.int(min = 4)),
+                ),
+            )
     }
 }

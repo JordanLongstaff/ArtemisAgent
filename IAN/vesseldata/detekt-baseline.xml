@@ -1,7 +1,0 @@
-<?xml version="1.0" ?>
-<SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
-  <CurrentIssues>
-    <ID>LongParameterList:Vessel.kt$Vessel$( /** * Returns the Vessel's ID. */ val id: Int, /** * Returns the Vessel's Faction ID. */ val side: Int, /** * Returns this Vessel's name. */ val name: String, broadType: String, /** * Returns the maximum capacity of storage of each ordnance type on this Vessel. */ val ordnanceStorage: Map&lt;OrdnanceType, Int&gt;, /** * Returns the base production coefficient. This value affects how quickly * the base produces new ordnance. */ val productionCoefficient: Float, /** * Returns the number of fighter bays on this Vessel. */ val bayCount: Int, /** * Returns a short description of this Vessel. */ val description: String?, )</ID>
-  </CurrentIssues>
-</SmellBaseline>

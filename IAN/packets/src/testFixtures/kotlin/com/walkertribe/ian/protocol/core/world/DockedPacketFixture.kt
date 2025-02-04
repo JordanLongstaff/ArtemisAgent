@@ -13,20 +13,17 @@ import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.int
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
-class DockedPacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<DockedPacket>(TestPacketTypes.SIMPLE_EVENT) {
-    class Data internal constructor(
-        override val version: Version,
-        private val dockID: Int,
-    ) : PacketTestData.Server<DockedPacket> {
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(SimpleEventPacket.Subtype.DOCKED.toInt())
-            writeIntLittleEndian(dockID)
+class DockedPacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<DockedPacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data internal constructor(override val version: Version, private val dockID: Int) :
+        PacketTestData.Server<DockedPacket> {
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(SimpleEventPacket.Subtype.DOCKED.toInt())
+            writeIntLe(dockID)
         }
 
         override fun validate(packet: DockedPacket) {
@@ -36,6 +33,5 @@ class DockedPacketFixture(
 
     override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int(), ::Data)
 
-    override suspend fun testType(packet: Packet.Server): DockedPacket =
-        packet.shouldBeInstanceOf()
+    override suspend fun testType(packet: Packet.Server): DockedPacket = packet.shouldBeInstanceOf()
 }

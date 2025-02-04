@@ -7,6 +7,7 @@ import kotlinx.datetime.Clock
 
 /**
  * Class responsible for tracking and sending HeartbeatPackets.
+ *
  * @author rjwut
  */
 class HeartbeatManager(private val iface: ArtemisNetworkInterface) {
@@ -17,40 +18,30 @@ class HeartbeatManager(private val iface: ArtemisNetworkInterface) {
     private var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT
     private var isActive = false
 
-    /**
-     * Sets whether the [HeartbeatManager] should automatically send [HeartbeatPacket]s or not.
-     */
+    /** Sets whether the [HeartbeatManager] should automatically send [HeartbeatPacket]s or not. */
     fun setAutoSendHeartbeat(autoSendHeartbeat: Boolean) {
         isAutoSendHeartbeat = autoSendHeartbeat
     }
 
-    /**
-     * Sets the timeout value for listening for HeartbeatPackets.
-     */
+    /** Sets the timeout value for listening for HeartbeatPackets. */
     fun setTimeout(timeout: Long) {
         heartbeatTimeout = timeout
     }
 
-    /**
-     * Invoked when a [GameStartPacket] is received from the remote machine.
-     */
+    /** Invoked when a [GameStartPacket] is received from the remote machine. */
     @Listener
     fun onGameStart(packet: GameStartPacket) {
         isActive = true
         resetHeartbeatTimestamp(packet.timestamp)
     }
 
-    /**
-     * Invoked when a [GameOverReasonPacket] is received from the remote machine.
-     */
+    /** Invoked when a [GameOverReasonPacket] is received from the remote machine. */
     @Listener
     fun onGameOver(@Suppress("UNUSED_PARAMETER") packet: GameOverReasonPacket) {
         isActive = false
     }
 
-    /**
-     * Invoked when a [HeartbeatPacket.Server] is received from the remote machine.
-     */
+    /** Invoked when a [HeartbeatPacket.Server] is received from the remote machine. */
     @Listener
     fun onHeartbeat(packet: HeartbeatPacket.Server) {
         resetHeartbeatTimestamp(packet.timestamp)

@@ -1,0 +1,43 @@
+[
+  {
+    "status": "NEED_ENERGY",
+    "incentive": "NEEDS_ENERGY",
+    "text": "deliver energy"
+  },
+  {
+    "status": "NEED_DAMCON",
+    "incentive": "NEEDS_DAMCON",
+    "text": "transfer DamCon personnel"
+  },
+  {
+    "status": "MALFUNCTION",
+    "incentive": "RESET_COMPUTER",
+    "text": "reset computer"
+  },
+  {
+    "status": "AMBASSADOR",
+    "incentive": "AMBASSADOR_PICKUP",
+    "text": "pick up ambassador"
+  },
+  {
+    "status": "PIRATE_BOSS",
+    "incentive": "AMBASSADOR_PICKUP",
+    "text": "pick up boss"
+  },
+  {
+    "status": "HOSTAGE",
+    "incentive": "HOSTAGE",
+    "text": "rescue hostages"
+  },
+  {
+    "status": "COMMANDEERED",
+    "incentive": "COMMANDEERED",
+    "text": "liberate commandeered ship"
+  },
+  {
+    "status": "NORMAL",
+    "incentive": "HAS_ENERGY",
+    "energy": true,
+    "text": "receive energy"
+  }
+]

@@ -10,13 +10,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsMenuBinding
 import artemis.agent.databinding.SettingsMenuEntryBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class SettingsMenuFragment : Fragment(R.layout.settings_menu) {
@@ -50,29 +50,29 @@ class SettingsMenuFragment : Fragment(R.layout.settings_menu) {
         }
     }
 
-    private class SettingsPageViewHolder(
-        private val entryBinding: SettingsMenuEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private class SettingsPageViewHolder(private val entryBinding: SettingsMenuEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(page: SettingsFragment.Page, viewModel: AgentViewModel, isOn: Boolean) {
             entryBinding.settingsEntryTitle.setText(page.titleRes)
-            entryBinding.settingsEntryToggle.visibility = page.onToggle?.let { onToggle ->
-                entryBinding.settingsEntryToggle.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                }
-                entryBinding.settingsEntryToggle.setOnCheckedChangeListener { _, isChecked ->
-                    viewModel.viewModelScope.launch {
-                        itemView.context.userSettings.updateData {
-                            it.copy { onToggle(isChecked) }
+            entryBinding.settingsEntryToggle.visibility =
+                page.onToggle?.let { onToggle ->
+                    entryBinding.settingsEntryToggle.setOnClickListener {
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                    }
+                    entryBinding.settingsEntryToggle.setOnCheckedChangeListener { _, isChecked ->
+                        viewModel.viewModelScope.launch {
+                            itemView.context.userSettings.updateData {
+                                it.copy { onToggle(isChecked) }
+                            }
+                        }
+                        if (!isOn && isChecked) {
+                            viewModel.settingsPage.value = page
                         }
                     }
-                    if (!isOn && isChecked) {
-                        viewModel.settingsPage.value = page
-                    }
-                }
-                entryBinding.settingsEntryToggle.isChecked = isOn
+                    entryBinding.settingsEntryToggle.isChecked = isOn
 
-                View.VISIBLE
-            } ?: View.INVISIBLE
+                    View.VISIBLE
+                } ?: View.INVISIBLE
 
             entryBinding.root.setOnClickListener {
                 if (entryBinding.settingsEntryToggle.isChecked) {
@@ -88,11 +88,7 @@ class SettingsMenuFragment : Fragment(R.layout.settings_menu) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SettingsPageViewHolder =
             SettingsPageViewHolder(
-                SettingsMenuEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                SettingsMenuEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: SettingsPageViewHolder, position: Int) {

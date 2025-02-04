@@ -36,14 +36,8 @@ fun Arb.Companion.version(
     patchArb: Arb<Int> = defaultPart,
 ): Arb<Version> = Arb.bind(minorArb, patchArb) { minor, patch -> Version(major, minor, patch) }
 
-fun Arb.Companion.version(
-    major: Int,
-    minor: Int,
-    patchRange: IntRange,
-): Arb<Version> = version(major, minor, Arb.int(patchRange))
+fun Arb.Companion.version(major: Int, minor: Int, patchRange: IntRange): Arb<Version> =
+    version(major, minor, Arb.int(patchRange))
 
-fun Arb.Companion.version(
-    major: Int,
-    minor: Int,
-    patchArb: Arb<Int> = defaultPart,
-): Arb<Version> = patchArb.map { patch -> Version(major, minor, patch) }
+fun Arb.Companion.version(major: Int, minor: Int, patchArb: Arb<Int> = defaultPart): Arb<Version> =
+    patchArb.map { patch -> Version(major, minor, patch) }

@@ -9,35 +9,36 @@ import com.walkertribe.ian.vesseldata.VesselDataObject
 
 /**
  * Represents a ship in [AllShipSettingsPacket].
+ *
  * @author rjwut
  */
-class Ship internal constructor(
-    /**
-     * The name of the ship
-     */
+class Ship
+internal constructor(
+    /** The name of the ship */
     val name: String?,
 
-    /**
-     * The hullId for this ship
-     */
+    /** The hullId for this ship */
     val shipType: Int,
 
-    /**
-     * What drive type the ship is using.
-     */
+    /** What drive type the ship is using. */
     val drive: DriveType,
 
-    /**
-     * Returns the accent color for the ship.
-     * Unspecified: NaN
-     */
+    /** Returns the accent color for the ship. Unspecified: NaN */
     val accentColor: Float = Float.NaN,
 ) : VesselDataObject {
     /**
-     * Returns the accent color for the ship as a Hue value (between 0 and 360).
-     * Unspecified: NaN
+     * Returns the accent color for the ship as a Hue value (between 0 and 360). Unspecified: NaN
      */
-    val hue: Float get() = accentColor * HUE_RANGE
+    val hue: Float
+        get() = accentColor * HUE_RANGE
+
+    private val hash: Int by lazy {
+        var result = INITIAL_HASH
+        val numerical = shipType * DriveType.entries.size + drive.ordinal + accentColor
+        result = HASH_FACTOR * result + name.hashCode()
+        result = HASH_FACTOR * result + numerical.toRawBits()
+        result
+    }
 
     init {
         if (!accentColor.isNaN()) {
@@ -50,7 +51,7 @@ class Ship internal constructor(
      */
     override fun getVessel(vesselData: VesselData): Vessel? = vesselData[shipType]
 
-    override fun hashCode(): Int = arrayOf(name, shipType, drive, accentColor).contentHashCode()
+    override fun hashCode(): Int = hash
 
     override fun equals(other: Any?): Boolean =
         other is Ship &&
@@ -59,7 +60,8 @@ class Ship internal constructor(
             other.drive == drive &&
             other.shipType == shipType
 
-    override fun toString(): String = "$name: (type #$shipType)${
+    override fun toString(): String =
+        "$name: (type #$shipType)${
         if (accentColor.isNaN()) "" else " color=$hue"
     }"
 
@@ -73,11 +75,10 @@ class Ship internal constructor(
     companion object {
         internal const val HUE_RANGE = 360f
         private const val ACCENT_EPSILON = 0.00000001f
+        private const val HASH_FACTOR = 31
+        private const val INITIAL_HASH = 3
 
-        /**
-         * Reads a Ship from this PacketReader. Don't use the public Ship constructor
-         * in this scenario.
-         */
+        /** Reads a Ship from this PacketReader. */
         fun PacketReader.readShip(): Ship {
             val drive = readIntAsEnum<DriveType>()
             val hullId = readInt()
