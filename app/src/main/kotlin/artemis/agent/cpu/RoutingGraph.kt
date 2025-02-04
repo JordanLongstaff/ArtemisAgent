@@ -16,7 +16,9 @@ import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 import kotlin.math.sqrt
 import kotlin.random.Random
 import kotlinx.coroutines.async
@@ -299,7 +301,7 @@ internal class RoutingGraph(
         val simpleDistance = sqrt(dx * dx + dz * dz)
 
         // Determine if there is an obstacle close to this vector
-        val allObjectsToConsider =
+        val firstObstacle =
             objectsToAvoid.keys
                 .mapNotNull { obj ->
                     // Object is only an obstacle if it needs to be avoided
@@ -314,37 +316,17 @@ internal class RoutingGraph(
                         return Float.POSITIVE_INFINITY
                     }
 
-                    // Calculate vector from source to obstacle
-                    val objX = obj.x.value - sourceX
-                    val objZ = obj.z.value - sourceZ
-
-                    val dot = dx * objX + dz * objZ
-
-                    // Ignore obstacle if it is located in the wrong direction
-                    if (dot <= 0f) return@mapNotNull null
-
-                    // Ignore obstacle if it is located beyond destination
-                    if (dot >= simpleDistance * simpleDistance) return@mapNotNull null
-
-                    // Ignore obstacle if we are already too close to it
-                    val objDistSqr = objX * objX + objZ * objZ
-                    if (objDistSqr <= clearance * clearance) return@mapNotNull null
-
-                    // Consider obstacle if and only if it is within range of travel vector
-                    val cross = abs(dx * objZ - dz * objX)
-                    if (cross >= simpleDistance * clearance) {
-                        null
-                    } else {
-                        obj to objDistSqr
+                    obj.distanceToIntersectSquared(sourceX, sourceZ, destX, destZ, clearance)?.let {
+                        obj to it
                     }
                 }
                 .minByOrNull { it.second }
                 ?.first
-                ?.let {
-                    // Obstacle should belong to a cluster (even if it's only a cluster of one), but
-                    // it might not if, for example, it was destroyed
-                    objectsToAvoid[it]
-                } ?: return simpleDistance
+
+        // Obstacle should belong to a cluster (even if it's only a cluster of one), but
+        // it might not if, for example, it was destroyed
+        val allObjectsToConsider =
+            firstObstacle?.let { objectsToAvoid[it] } ?: return simpleDistance
 
         // We will be looking at both clockwise and counterclockwise routes around obstacles and
         // choosing the one with the lower cost
@@ -395,7 +377,6 @@ internal class RoutingGraph(
                 val nextX = nextObstacle.x.value - currentSourceX
                 val nextZ = nextObstacle.z.value - currentSourceZ
                 val nextDist = sqrt(nextX * nextX + nextZ * nextZ)
-                val neededClearance = viewModel.getClearanceFor(nextObstacle)
 
                 // Check to see if there's another obstacle closer to our current position in
                 // another cluster that we need to avoid
@@ -420,25 +401,14 @@ internal class RoutingGraph(
                                 return Float.POSITIVE_INFINITY
                             }
 
-                            // Calculate vector from position to obstacle
-                            val objX = obj.x.value - currentSourceX
-                            val objZ = obj.z.value - currentSourceZ
-
-                            // Ignore obstacle if it is located in the wrong direction
-                            val dot = nextX * objX + nextZ * objZ
-                            if (dot <= 0f) return@mapNotNull null
-
-                            // Ignore obstacle if it is located beyond destination
-                            if (dot >= nextDist * nextDist) return@mapNotNull null
-
-                            // Ignore object if it is not within range of travel vector
-                            val cross = abs(nextX * objZ - nextZ * objX)
-                            if (cross >= nextDist * clearance) return@mapNotNull null
-
-                            // Consider obstacle if and only if we are outside its clearance
-                            val objDistSqr = objX * objX + objZ * objZ
-                            if (objDistSqr <= clearance * clearance) return@mapNotNull null
-                            obj to objDistSqr
+                            obj.distanceToIntersectSquared(
+                                    currentSourceX,
+                                    currentSourceZ,
+                                    destX,
+                                    destZ,
+                                    clearance,
+                                )
+                                ?.let { obj to it }
                         }
                         .minByOrNull { it.second }
                         ?.first
@@ -487,7 +457,7 @@ internal class RoutingGraph(
                 }
 
                 lastObstacle = nextObstacle
-                val scale = neededClearance / nextDist
+                val scale = viewModel.getClearanceFor(nextObstacle) / nextDist
 
                 // Calculate vector to tangent point at necessary clearance
                 val armX = nextZ * scale * direction
@@ -691,6 +661,59 @@ internal class RoutingGraph(
 
             // If selection didn't work, choose randomly with equal weight
             return random()
+        }
+
+        /**
+         * Calculates the square of the distance between the source point of the given vector and
+         * the intersection point with the avoidance bubble of this obstacle. If there is no
+         * intersection point, returns null. The algorithm comes from WolframAlpha.
+         */
+        private fun ArtemisObject<*>.distanceToIntersectSquared(
+            sourceX: Float,
+            sourceZ: Float,
+            destX: Float,
+            destZ: Float,
+            clearance: Float,
+        ): Float? {
+            // Square of the length of the vector
+            val diffX = destX - sourceX
+            val diffZ = destZ - sourceZ
+            val distSqr = diffX * diffX + diffZ * diffZ
+            val clearanceSquared = clearance * clearance
+
+            // Adjust to pretend this object is positioned at the origin
+            val adjSourceX = sourceX - x.value
+            val adjSourceZ = sourceZ - z.value
+            val adjDestX = destX - x.value
+            val adjDestZ = destZ - z.value
+
+            // Determinant and discriminant for quadratic formula
+            val det = adjSourceX * adjDestZ - adjSourceZ * adjDestX
+            val discriminant = clearanceSquared * distSqr - det * det
+
+            // Discriminant determines if intersection point exists - if not, return null
+            if (discriminant <= 0f) return null
+            val root = sqrt(discriminant)
+
+            // Intersection point coordinates
+            val intersectZ = (-det * diffX - diffZ * root) / distSqr
+            val intersectX =
+                sqrt(max(0f, clearanceSquared - intersectZ * intersectZ)) * adjSourceX.sign
+
+            val fromSourceX = intersectX - adjSourceX
+            val fromSourceZ = intersectZ - adjSourceZ
+            val fromDestX = intersectX - adjDestX
+            val fromDestZ = intersectZ - adjDestZ
+
+            // Intersection point must lie between the two points
+            return if (fromSourceX * fromDestX + fromSourceZ * fromDestZ > 0f) {
+                null
+            } else {
+                // Return the all-important distance from the source point
+                // But it must be outside the radius of the obstacle
+                val distanceSquared = fromSourceX * fromSourceX + fromSourceZ * fromSourceZ
+                distanceSquared.takeIf { it > clearanceSquared }
+            }
         }
 
         // Constants
