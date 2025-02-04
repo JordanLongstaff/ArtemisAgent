@@ -43,7 +43,7 @@ platform :android do
         gradle(task: "clean bundleRelease")
     end
 
-    desc "Deploy a new version to the Google Play"
+    desc "Deploy a new version to Google Play Store"
     lane :deploy do |options|
         version_name = options[:version]
         version(name: version_name)
