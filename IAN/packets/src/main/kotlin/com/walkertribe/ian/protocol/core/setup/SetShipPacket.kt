@@ -5,12 +5,11 @@ import com.walkertribe.ian.world.Artemis
 
 /**
  * Set the ship you want to be on. You must send this packet before [SetConsolePacket].
+ *
  * @author dhleong
  */
 class SetShipPacket(
-    /**
-     * The ship index being selected (0-based).
-     */
+    /** The ship index being selected (0-based). */
     val shipIndex: Int
 ) : ValueIntPacket(Subtype.SET_SHIP, shipIndex) {
     init {

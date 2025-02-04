@@ -2,15 +2,10 @@ package com.walkertribe.ian.world
 
 import com.walkertribe.ian.vesseldata.Vessel
 import com.walkertribe.ian.vesseldata.VesselData
-import kotlin.reflect.KClass
 
-/**
- * Base implementation of a shielded world object.
- */
-abstract class BaseArtemisShielded<T : BaseArtemisShielded<T>>(
-    id: Int,
-    timestamp: Long
-) : BaseArtemisObject<T>(id, timestamp), ArtemisShielded<T> {
+/** Base implementation of a shielded world object. */
+abstract class BaseArtemisShielded<T : BaseArtemisShielded<T>>(id: Int, timestamp: Long) :
+    BaseArtemisObject<T>(id, timestamp), ArtemisShielded<T> {
     override val hullId = Property.IntProperty(timestamp)
     override val shieldsFront = Property.FloatProperty(timestamp)
     override val shieldsFrontMax = Property.FloatProperty(timestamp)
@@ -28,19 +23,16 @@ abstract class BaseArtemisShielded<T : BaseArtemisShielded<T>>(
         shieldsFrontMax updates other.shieldsFrontMax
     }
 
-    /**
-     * Returns true if this object contains any data.
-     */
-    override val hasData: Boolean get() =
-        super.hasData ||
-            name.hasValue ||
-            hullId.hasValue ||
-            shieldsFront.hasValue ||
-            shieldsFrontMax.hasValue
+    /** Returns true if this object contains any data. */
+    override val hasData: Boolean
+        get() =
+            super.hasData ||
+                name.hasValue ||
+                hullId.hasValue ||
+                shieldsFront.hasValue ||
+                shieldsFrontMax.hasValue
 
-    open class Dsl<T : BaseArtemisShielded<T>>(
-        objectClass: KClass<T>,
-    ) : BaseArtemisObject.Dsl<T>(objectClass) {
+    abstract class Dsl<T : BaseArtemisShielded<T>> : BaseArtemisObject.Dsl<T>() {
         var name: String? = null
         var hullId: Int = -1
         var shieldsFront: Float = Float.NaN

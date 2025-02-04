@@ -10,20 +10,20 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.bind
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.writeFully
-import io.ktor.utils.io.core.writeIntLittleEndian
+import io.ktor.utils.io.core.writeText
+import kotlinx.io.Source
+import kotlinx.io.writeIntLe
 
-data object WelcomePacketFixture : PacketTestFixture.Server<WelcomePacket>(
-    TestPacketTypes.PLAIN_TEXT_GREETING,
-) {
+data object WelcomePacketFixture :
+    PacketTestFixture.Server<WelcomePacket>(TestPacketTypes.PLAIN_TEXT_GREETING) {
     data class Data(val message: String) : PacketTestData.Server<WelcomePacket> {
-        override val version: Version get() = Version.LATEST
+        override val version: Version
+            get() = Version.LATEST
 
-        override fun buildPayload(): ByteReadPacket = buildPacket {
-            writeIntLittleEndian(message.length)
-            writeFully(Charsets.US_ASCII.encode(message))
+        override fun buildPayload(): Source = buildPacket {
+            writeIntLe(message.length)
+            writeText(message, charset = Charsets.US_ASCII)
         }
 
         override fun validate(packet: WelcomePacket) {

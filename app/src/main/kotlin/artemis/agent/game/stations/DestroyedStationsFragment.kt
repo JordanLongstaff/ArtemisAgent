@@ -6,11 +6,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.SimpleListViewBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 

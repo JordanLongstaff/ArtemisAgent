@@ -13,12 +13,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.EnemiesEntryBinding
 import artemis.agent.databinding.EnemiesFragmentBinding
 import artemis.agent.databinding.TauntEntryBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 import com.walkertribe.ian.vesseldata.Taunt
@@ -52,16 +52,17 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemy) {
             var backgroundColor: Int = Color.TRANSPARENT
-            val visibility = if (it != null) {
-                binding.selectedEnemyLabel.text = viewModel.getFullNameForShip(it.enemy)
-                backgroundColor = it.getBackgroundColor(context)
+            val visibility =
+                if (it != null) {
+                    binding.selectedEnemyLabel.text = viewModel.getFullNameForShip(it.enemy)
+                    backgroundColor = it.getBackgroundColor(context)
 
-                View.VISIBLE
-            } else if (isLandscape) {
-                View.INVISIBLE
-            } else {
-                View.GONE
-            }
+                    View.VISIBLE
+                } else if (isLandscape) {
+                    View.INVISIBLE
+                } else {
+                    View.GONE
+                }
 
             binding.selectedEnemyLabel.visibility = visibility
             binding.selectedEnemyDivider.visibility = visibility
@@ -103,9 +104,10 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
     private class EnemiesDiffUtilCallback(
         private val oldList: List<EnemyEntry>,
-        private val newList: List<EnemyEntry>
+        private val newList: List<EnemyEntry>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
@@ -127,11 +129,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EnemyViewHolder =
             EnemyViewHolder(
-                EnemiesEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                EnemiesEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: EnemyViewHolder, position: Int) {
@@ -144,56 +142,56 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
                 enemyNameLabel.text = viewModel.getFullNameForShip(enemy)
 
-                enemyDirectionLabel.text =
-                    context.getString(R.string.direction, entry.heading)
-                enemyRangeLabel.text =
-                    context.getString(R.string.range, entry.range)
+                enemyDirectionLabel.text = context.getString(R.string.direction, entry.heading)
+                enemyRangeLabel.text = context.getString(R.string.range, entry.range)
 
-                enemyStatusLabel.text = context.getString(
-                    if (!enemy.isSurrendered.value.booleanValue) {
-                        entry.captainStatus.description
-                    } else if (entry.captainStatus == EnemyCaptainStatus.DUPLICITOUS) {
-                        R.string.surrendered_duplicitous
-                    } else {
-                        R.string.surrendered
-                    }
-                )
+                enemyStatusLabel.text =
+                    context.getString(
+                        if (!enemy.isSurrendered.value.booleanValue) {
+                            entry.captainStatus.description
+                        } else if (entry.captainStatus == EnemyCaptainStatus.DUPLICITOUS) {
+                            R.string.surrendered_duplicitous
+                        } else {
+                            R.string.surrendered
+                        }
+                    )
 
                 enemyTauntsLabel.text = entry.getTauntCountText(context)
 
-                val buttonVisibility: Int = if (enemy.isSurrendered.value.booleanValue) {
-                    View.GONE
-                } else {
-                    enemySurrenderButton.isEnabled = viewModel.maxSurrenderDistance?.let {
-                        entry.range < it
-                    } != false
-                    enemySurrenderButton.setOnClickListener {
-                        viewModel.playSound(SoundEffect.BEEP_2)
-                        viewModel.sendToServer(
-                            CommsOutgoingPacket(
-                                enemy,
-                                EnemyMessage.WILL_YOU_SURRENDER,
-                                viewModel.vesselData
-                            )
-                        )
-                    }
-
-                    val enemyToTaunt = if (viewModel.selectedEnemy.value?.enemy == enemy) {
-                        enemyTauntButton.setText(R.string.cancel)
-                        null
+                val buttonVisibility: Int =
+                    if (enemy.isSurrendered.value.booleanValue) {
+                        View.GONE
                     } else {
-                        enemyTauntButton.setText(R.string.taunt)
-                        entry
-                    }
+                        enemySurrenderButton.isEnabled =
+                            viewModel.maxSurrenderDistance?.let { entry.range < it } != false
+                        enemySurrenderButton.setOnClickListener {
+                            viewModel.playSound(SoundEffect.BEEP_2)
+                            viewModel.sendToServer(
+                                CommsOutgoingPacket(
+                                    enemy,
+                                    EnemyMessage.WILL_YOU_SURRENDER,
+                                    viewModel.vesselData,
+                                )
+                            )
+                        }
 
-                    enemyTauntButton.setOnClickListener {
-                        viewModel.playSound(SoundEffect.BEEP_1)
-                        viewModel.selectedEnemy.value = enemyToTaunt
-                        viewModel.refreshEnemyTaunts()
-                    }
+                        val enemyToTaunt =
+                            if (viewModel.selectedEnemy.value?.enemy == enemy) {
+                                enemyTauntButton.setText(R.string.cancel)
+                                null
+                            } else {
+                                enemyTauntButton.setText(R.string.taunt)
+                                entry
+                            }
 
-                    View.VISIBLE
-                }
+                        enemyTauntButton.setOnClickListener {
+                            viewModel.playSound(SoundEffect.BEEP_1)
+                            viewModel.selectedEnemy.value = enemyToTaunt
+                            viewModel.refreshEnemyTaunts()
+                        }
+
+                        View.VISIBLE
+                    }
 
                 enemySurrenderButton.visibility = buttonVisibility
                 enemyTauntButton.visibility = buttonVisibility
@@ -201,9 +199,8 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         }
 
         fun onEnemiesUpdate(newList: List<EnemyEntry>) {
-            DiffUtil.calculateDiff(
-                EnemiesDiffUtilCallback(enemies, newList)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(EnemiesDiffUtilCallback(enemies, newList))
+                .dispatchUpdatesTo(this)
             enemies = newList
         }
     }
@@ -213,6 +210,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         private val newList: List<EnemySortCategory>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
@@ -242,9 +240,8 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         }
 
         fun onCategoriesUpdate(newList: List<EnemySortCategory>) {
-            DiffUtil.calculateDiff(
-                CategoryDiffUtilCallback(categories, newList)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(CategoryDiffUtilCallback(categories, newList))
+                .dispatchUpdatesTo(this)
             categories = newList
         }
     }
@@ -254,6 +251,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         private val newList: List<Pair<Taunt, TauntStatus>>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
@@ -273,11 +271,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TauntViewHolder =
             TauntViewHolder(
-                TauntEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                TauntEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: TauntViewHolder, position: Int) {
@@ -288,12 +282,13 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
             with(holder.tauntBinding) {
                 tauntLabel.text = taunt.text
 
-                statusLabel.visibility = if (viewModel.showTauntStatuses) {
-                    statusLabel.text = status.name
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                statusLabel.visibility =
+                    if (viewModel.showTauntStatuses) {
+                        statusLabel.text = status.name
+                        View.VISIBLE
+                    } else {
+                        View.GONE
+                    }
 
                 sendButton.isEnabled =
                     !viewModel.disableIneffectiveTaunts || status != TauntStatus.INEFFECTIVE
@@ -302,11 +297,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
                     viewModel.selectedEnemy.value?.also { enemy ->
                         val tauntMessage = EnemyMessage.entries[position + 1]
                         viewModel.sendToServer(
-                            CommsOutgoingPacket(
-                                enemy.enemy,
-                                tauntMessage,
-                                viewModel.vesselData
-                            )
+                            CommsOutgoingPacket(enemy.enemy, tauntMessage, viewModel.vesselData)
                         )
                         enemy.lastTaunt = tauntMessage
                     }
@@ -316,9 +307,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         }
 
         fun onTauntsUpdate(newList: List<Pair<Taunt, TauntStatus>>) {
-            DiffUtil.calculateDiff(
-                TauntDiffUtilCallback(taunts, newList)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(TauntDiffUtilCallback(taunts, newList)).dispatchUpdatesTo(this)
             taunts = newList
         }
     }

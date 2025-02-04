@@ -1,2 +1,5 @@
 /build
 /release
+/artemis-agent-fastlane.json
+/artemis-agent-keystore.jks
+/google-services.json

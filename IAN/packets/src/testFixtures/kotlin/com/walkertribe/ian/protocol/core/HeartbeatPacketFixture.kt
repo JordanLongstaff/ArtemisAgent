@@ -10,32 +10,30 @@ import io.kotest.property.Exhaustive
 import io.kotest.property.Gen
 import io.kotest.property.arbitrary.map
 import io.kotest.property.exhaustive.of
-import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.buildPacket
-import io.ktor.utils.io.core.readIntLittleEndian
+import kotlinx.io.Source
+import kotlinx.io.readIntLe
 
 interface HeartbeatPacketFixture {
-    data object Client : PacketTestFixture.Client<HeartbeatPacket.Client>(
-        packetType = TestPacketTypes.VALUE_INT,
-        expectedPayloadSize = Int.SIZE_BYTES,
-    ) {
+    data object Client :
+        PacketTestFixture.Client<HeartbeatPacket.Client>(
+            packetType = TestPacketTypes.VALUE_INT,
+            expectedPayloadSize = Int.SIZE_BYTES,
+        ) {
         data object Data : PacketTestData.Client<HeartbeatPacket.Client>(HeartbeatPacket.Client) {
-            override fun validatePayload(payload: ByteReadPacket) {
-                payload.readIntLittleEndian() shouldBeEqual
-                    ValueIntPacket.Subtype.CLIENT_HEARTBEAT.toInt()
+            override fun validatePayload(payload: Source) {
+                payload.readIntLe() shouldBeEqual ValueIntPacket.Subtype.CLIENT_HEARTBEAT.toInt()
             }
         }
 
         override val generator: Gen<Data> = Exhaustive.of(Data)
     }
 
-    class Server(
-        arbVersion: Arb<Version> = Arb.version(),
-    ) : PacketTestFixture.Server<HeartbeatPacket.Server>(TestPacketTypes.HEARTBEAT) {
-        data class Data(
-            override val version: Version,
-        ) : PacketTestData.Server<HeartbeatPacket.Server> {
-            override fun buildPayload(): ByteReadPacket = buildPacket { }
+    class Server(arbVersion: Arb<Version> = Arb.version()) :
+        PacketTestFixture.Server<HeartbeatPacket.Server>(TestPacketTypes.HEARTBEAT) {
+        data class Data(override val version: Version) :
+            PacketTestData.Server<HeartbeatPacket.Server> {
+            override fun buildPayload(): Source = buildPacket {}
 
             override fun validate(packet: HeartbeatPacket.Server) {
                 // Nothing to validate
