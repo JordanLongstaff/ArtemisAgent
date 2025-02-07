@@ -11,8 +11,12 @@
       "groupName": "kotlin and ksp",
       "matchPackageNames": [
         "kotlin",
-        "/^com\\.google\\.devtools\\.ksp/"
+        "ksp"
       ]
+    },
+    {
+      "groupName": "firebase",
+      "matchPackageNames": ["/^com\\.google\\.firebase/"]
     }
   ]
 }
