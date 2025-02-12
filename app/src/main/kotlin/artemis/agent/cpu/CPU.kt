@@ -486,10 +486,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         obj: Obj,
         map: ConcurrentHashMap<Int, Obj>,
     ) {
-        val existingObj = map[obj.id]?.also(obj::updates)
-        if (existingObj == null) {
-            map[obj.id] = obj
-        }
+        obj updates map.getOrPut(obj.id) { obj }
     }
 
     private val messageParsers =
