@@ -40,7 +40,7 @@ jobs:
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.sha }}
-          check-name: 'test'
+          check-name: 'publish'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           allowed-conclusions: success
           wait-interval: 10
