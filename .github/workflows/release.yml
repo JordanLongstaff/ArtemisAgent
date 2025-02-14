@@ -31,11 +31,13 @@ jobs:
         uses: johannesvedder/await-workflow@v1
         with:
           workflowId: gradle.yml
+          timeoutSeconds: 3600
 
       - name: Wait for instrumented tests
         uses: johannesvedder/await-workflow@v1
         with:
           workflowId: instrumented-tests.yml
+          timeoutSeconds: 3600
 
   release:
     runs-on: ubuntu-latest

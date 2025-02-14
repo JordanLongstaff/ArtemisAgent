@@ -34,6 +34,7 @@ jobs:
       - uses: johannesvedder/await-workflow@v1
         with:
           workflowId: gradle.yml
+          timeoutSeconds: 3600
 
   dependency-submission:
     name: 'Dependency submission'
