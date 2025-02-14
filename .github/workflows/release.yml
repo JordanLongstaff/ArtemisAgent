@@ -127,8 +127,8 @@ jobs:
         with:
           commit_message: Release version ${{ inputs.versionName }}
           commit_options: "--no-verify --signoff"
-          commit_user_name: ${{ sender.login }}
-          commit_user_email: ${{ sender.email }}
+          commit_user_name: ${{ github.triggering_actor }}
+          commit_user_email: ${{ github.triggering_actor }}@users.noreply.github.com
           branch: main
 
       - name: Tag
