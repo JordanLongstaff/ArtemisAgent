@@ -57,6 +57,10 @@ jobs:
         with:
           gradlePath: app/build.gradle.kts
 
+      - name: Increment app version code
+        id: nextVersion
+        run: echo "versionCode=$((${{ steps.version.outputs.versionCode }}+1))" >> "$GITHUB_OUTPUT"
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -101,7 +105,7 @@ jobs:
         with:
           file: app/remote-config.json
           field: parameterGroups.required_versions.parameters.required_version_artemis.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.version.outputs.versionCode + 1 }}
+          value: ${{ steps.nextVersion.outputs.versionCode }}
 
       - name: Update Version Code for Security Parameter
         if: ${{ inputs.securityRequiredUpdate }}
@@ -109,7 +113,7 @@ jobs:
         with:
           file: app/remote-config.json
           field: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.version.outputs.versionCode + 1 }}
+          value: ${{ steps.nextVersion.outputs.versionCode }}
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
