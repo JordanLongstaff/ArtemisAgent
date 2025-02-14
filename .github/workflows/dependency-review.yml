@@ -31,13 +31,13 @@ jobs:
     name: 'Wait for build to complete'
     runs-on: ubuntu-latest
     steps:
-      - uses: lewagon/wait-on-check-action@v1.3.4
+      - uses: kamilchodola/wait-for-workflow-action@1.1.0
         with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          org_name: JordanLongstaff
+          repo_name: ArtemisAgent
+          workflow_id: gradle.yml
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          check-name: 'build'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          allowed-conclusions: success
-          wait-interval: 10
 
   dependency-submission:
     name: 'Dependency submission'

@@ -28,22 +28,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for build
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: kamilchodola/wait-for-workflow-action@1.1.0
         with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          org_name: JordanLongstaff
+          repo_name: ArtemisAgent
+          workflow_id: gradle.yml
           ref: ${{ github.sha }}
-          check-name: 'build'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          allowed-conclusions: success
-          wait-interval: 10
 
       - name: Wait for instrumented tests
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: kamilchodola/wait-for-workflow-action@1.1.0
         with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          org_name: JordanLongstaff
+          repo_name: ArtemisAgent
+          workflow_id: instrumented-tests.yml
           ref: ${{ github.sha }}
-          check-name: 'test'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          allowed-conclusions: success
-          wait-interval: 10
 
   release:
     runs-on: ubuntu-latest
