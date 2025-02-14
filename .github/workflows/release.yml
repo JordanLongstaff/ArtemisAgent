@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for build
-        uses: kamilchodola/wait-for-workflow-action@1.1.0
+        uses: kamilchodola/wait-for-workflow-action@1.1.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           org_name: JordanLongstaff
@@ -37,7 +37,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Wait for instrumented tests
-        uses: kamilchodola/wait-for-workflow-action@1.1.0
+        uses: kamilchodola/wait-for-workflow-action@1.1.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           org_name: JordanLongstaff
