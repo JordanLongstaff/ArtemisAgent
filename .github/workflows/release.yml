@@ -28,22 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for build
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: johannesvedder/await-workflow@v1
         with:
-          ref: ${{ github.sha }}
-          check-name: 'build'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          allowed-conclusions: success
-          wait-interval: 10
+          workflowId: gradle.yml
 
       - name: Wait for instrumented tests
-        uses: lewagon/wait-on-check-action@v1.3.4
+        uses: johannesvedder/await-workflow@v1
         with:
-          ref: ${{ github.sha }}
-          check-name: 'publish'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          allowed-conclusions: success
-          wait-interval: 10
+          workflowId: instrumented-tests.yml
 
   release:
     runs-on: ubuntu-latest
