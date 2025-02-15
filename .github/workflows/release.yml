@@ -57,7 +57,6 @@ jobs:
           echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
           echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
-#          echo ${{ secrets.FIREBASE_SA_KEY }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-firebase.json
           echo ${{ secrets.FASTLANE_JSON }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-fastlane.json
 
       - name: Set up JDK 21
