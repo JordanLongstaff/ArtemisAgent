@@ -57,7 +57,7 @@ jobs:
           echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
           echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
-          echo ${{ secrets.FIREBASE_SA_KEY }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-firebase.json
+#          echo ${{ secrets.FIREBASE_SA_KEY }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-firebase.json
           echo ${{ secrets.FASTLANE_JSON }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-fastlane.json
 
       - name: Set up JDK 21
@@ -98,26 +98,26 @@ jobs:
           rm fastlane/metadata/android/en-US/changelogs/*.txt
           echo "${{ vars.CHANGELOG }}" > fastlane/metadata/android/en-US/changelogs/default.txt
 
-#      - name: Authenticate for Firebase
+      - name: Authenticate for Firebase
 #        if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-#        uses: google-github-actions/auth@v2
-#        with:
-#          workload_identity_provider: projects/${{ secrets.WIF_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL }}/providers/${{ secrets.WIF_PROVIDER }}
-#          service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/${{ secrets.WIF_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL }}/providers/${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
 
       - name: Set Firebase Project
 #        if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
         uses: w9jds/firebase-action@v13.31.1
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/app/artemis-agent-firebase.json
+#        env:
+#          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/app/artemis-agent-firebase.json
         with:
           args: use ${{ secrets.FIREBASE_SA_PROJECT }}
 
       - name: Get Firebase Remote Config
 #        if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
         uses: w9jds/firebase-action@v13.31.1
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/app/artemis-agent-firebase.json
+#        env:
+#          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/app/artemis-agent-firebase.json
         with:
           args: remoteconfig:get -o app/remote-config.json
 
@@ -148,8 +148,8 @@ jobs:
       - name: Publish Firebase Remote Config
 #        if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
         uses: w9jds/firebase-action@v13.31.1
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/app/artemis-agent-firebase.json
+#        env:
+#          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/app/artemis-agent-firebase.json
         with:
           args: deploy --only remoteconfig
 
