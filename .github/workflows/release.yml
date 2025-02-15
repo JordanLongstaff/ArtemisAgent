@@ -102,7 +102,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/${{ secrets.WIF_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL }}/providers/${{ secrets.WIF_PROVIDER }}
-          project_id: ${{ secrets.WIF_PROJECT_ID }}
+          project_id: ${{ secrets.FIREBASE_SA_PROJECT }}
 #          service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
 
       - name: Set Firebase Project
