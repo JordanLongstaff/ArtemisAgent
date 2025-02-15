@@ -35,6 +35,8 @@ jobs:
         with:
           workflowId: gradle.yml
           timeoutSeconds: 3600
+          retryIntervalSeconds: 5
+          initialWaitSeconds: 1
 
   dependency-submission:
     name: 'Dependency submission'
