@@ -45,6 +45,7 @@ jobs:
     environment: Production
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -103,6 +104,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
 
       - name: Get Firebase Remote Config
         uses: w9jds/firebase-action@v13.31.1
