@@ -168,4 +168,4 @@ jobs:
           name: ${{ steps.tag.outputs.new_tag }}
           body: |
             ${{ vars.CHANGELOG }}
-            https://play.google.com/store/apps/details?id=artemis.agent&hl=en-US
+            ### [Google Play](https://play.google.com/store/apps/details?id=artemis.agent)
