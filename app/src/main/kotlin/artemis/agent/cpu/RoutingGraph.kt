@@ -298,7 +298,7 @@ internal class RoutingGraph(
         // Calculate simple vector from source to destination
         val dx = destX - sourceX
         val dz = destZ - sourceZ
-        val simpleDistance = sqrt(dx * dx + dz * dz)
+        val simpleDistanceSquared = dx * dx + dz * dz
 
         // Determine if there is an obstacle close to this vector
         val firstObstacle =
@@ -326,7 +326,7 @@ internal class RoutingGraph(
         // Obstacle should belong to a cluster (even if it's only a cluster of one), but
         // it might not if, for example, it was destroyed
         val allObjectsToConsider =
-            firstObstacle?.let { objectsToAvoid[it] } ?: return simpleDistance
+            firstObstacle?.let { objectsToAvoid[it] } ?: return sqrt(simpleDistanceSquared)
 
         // We will be looking at both clockwise and counterclockwise routes around obstacles and
         // choosing the one with the lower cost
@@ -373,11 +373,6 @@ internal class RoutingGraph(
                 // If there are no more obstacles to get around, exit loop
                 val nextObstacle = remainingObjects.maxByOrNull { it.second }?.first ?: break
 
-                // Calculate vector to next obstacle to avoid as well as clearance
-                val nextX = nextObstacle.x.value - currentSourceX
-                val nextZ = nextObstacle.z.value - currentSourceZ
-                val nextDist = sqrt(nextX * nextX + nextZ * nextZ)
-
                 // Check to see if there's another obstacle closer to our current position in
                 // another cluster that we need to avoid
                 val closerObstacle =
@@ -404,8 +399,8 @@ internal class RoutingGraph(
                             obj.distanceToIntersectSquared(
                                     currentSourceX,
                                     currentSourceZ,
-                                    destX,
-                                    destZ,
+                                    nextObstacle.x.value,
+                                    nextObstacle.z.value,
                                     clearance,
                                 )
                                 ?.let { obj to it }
@@ -422,6 +417,11 @@ internal class RoutingGraph(
                 }
 
                 objectsToConsider = remainingObjects.map { it.first }
+
+                // Calculate vector to next obstacle to avoid
+                val nextX = nextObstacle.x.value - currentSourceX
+                val nextZ = nextObstacle.z.value - currentSourceZ
+                val nextDist = sqrt(nextX * nextX + nextZ * nextZ)
 
                 // If there was a previous obstacle, take a wide berth around it
                 lastObstacle?.also {
@@ -486,7 +486,7 @@ internal class RoutingGraph(
             }
 
             if (distance == 0f) {
-                return simpleDistance
+                return sqrt(simpleDistanceSquared)
             } else if (distance.isFinite()) {
                 // If we had to get around an obstacle, we'll need to make an arc around it
                 lastObstacle?.also {
