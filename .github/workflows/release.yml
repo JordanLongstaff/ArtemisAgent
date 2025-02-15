@@ -82,7 +82,7 @@ jobs:
           bundler-cache: true
 
       - name: Initialize Fastlane
-        run: fastlane supply init
+        run: bundle exec fastlane supply init
 
       - name: Update changelog
         run: |
@@ -135,7 +135,7 @@ jobs:
         run: firebase deploy --only remoteconfig
 
       - name: Bundle and Upload
-        run: fastlane android deploy version:${{ inputs.versionName }}
+        run: bundle exec fastlane android deploy version:${{ inputs.versionName }}
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
