@@ -100,13 +100,12 @@ jobs:
           rm fastlane/metadata/android/en-US/changelogs/*.txt
           echo "${{ vars.CHANGELOG }}" > fastlane/metadata/android/en-US/changelogs/default.txt
 
-      - name: Setup Firebase Tools
-        uses: w9jds/setup-firebase@v1.0.0
-        with:
-          gcp_sa_key: app/artemis-agent-firebase.json
-
       - name: Get Firebase Remote Config
-        run: firebase remoteconfig:get -o app/remote-config.json
+        uses: w9jds/firebase-action@v13
+        with:
+          args: remoteconfig:get -o app/remote-config.json
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: app/artemis-agent-firebase.json
 
       - name: Update Artemis Version Parameter
         if: ${{ inputs.artemisSoftUpdate }}
@@ -134,7 +133,11 @@ jobs:
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        run: firebase deploy --only remoteconfig
+        uses: w9jds/firebase-action@v13
+        with:
+          args: deploy --only remoteconfig
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: app/artemis-agent-firebase.json
 
       - name: Bundle and Upload
         run: fastlane android deploy version:${{ inputs.versionName }}
