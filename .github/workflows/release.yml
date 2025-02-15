@@ -145,6 +145,7 @@ jobs:
           commit_user_name: ${{ github.triggering_actor }}
           commit_user_email: ${{ github.triggering_actor }}@users.noreply.github.com
           branch: main
+          add_options: "-u"
 
       - name: Tag
         uses: laputansoft/github-tag-action@v4.6
