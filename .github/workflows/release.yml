@@ -78,11 +78,6 @@ jobs:
         id: nextVersion
         run: echo "versionCode=$((${{ steps.version.outputs.versionCode }}+1))" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
