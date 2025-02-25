@@ -61,11 +61,4 @@ detekt {
     parallel = true
 }
 
-gitHooks {
-    setHooks(
-        mapOf(
-            "pre-commit" to
-                "detektBaseline detektBaselineTest detektBaselineTestFixtures ktfmtFormat"
-        )
-    )
-}
+gitHooks { setHooks(mapOf("pre-commit" to "detekt detektTest detektTestFixtures ktfmtCheck")) }
