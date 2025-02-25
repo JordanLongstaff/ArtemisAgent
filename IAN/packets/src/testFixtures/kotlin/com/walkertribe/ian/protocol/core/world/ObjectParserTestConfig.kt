@@ -26,7 +26,6 @@ import com.walkertribe.ian.world.ArtemisMine
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
-import com.walkertribe.ian.world.shouldBeSpecified
 import com.walkertribe.ian.world.shouldBeUnspecified
 import com.walkertribe.ian.world.shouldContainValue
 import io.kotest.core.spec.style.scopes.DescribeSpecContainerScope
@@ -162,33 +161,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override fun validateObject(obj: ArtemisBase) {
                 testHasPosition(obj, xFlag, zFlag)
 
-                if (nameFlag.enabled) {
-                    obj.name.shouldBeSpecified()
-                    obj.name.value.shouldNotBeNull() shouldBeEqual nameFlag.value
-                } else {
-                    obj.name.shouldBeUnspecified()
-                }
-
-                if (hullIdFlag.enabled) {
-                    obj.hullId shouldContainValue hullIdFlag.value
-                } else {
-                    obj.hullId.shouldBeUnspecified()
-                }
-
-                arrayOf(
-                        xFlag to obj.x,
-                        yFlag to obj.y,
-                        zFlag to obj.z,
-                        shieldsFlag to obj.shieldsFront,
-                        maxShieldsFlag to obj.shieldsFrontMax,
-                    )
-                    .forEach { (flag, property) ->
-                        if (flag.enabled) {
-                            property shouldContainValue flag.value
-                        } else {
-                            property.shouldBeUnspecified()
-                        }
-                    }
+                obj.name shouldMatch nameFlag
+                obj.hullId shouldMatch hullIdFlag
+                testFloatPropertyFlags(
+                    xFlag to obj.x,
+                    yFlag to obj.y,
+                    zFlag to obj.z,
+                    shieldsFlag to obj.shieldsFront,
+                    maxShieldsFlag to obj.shieldsFrontMax,
+                )
             }
         }
 
@@ -237,14 +218,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override fun validateObject(obj: ArtemisBlackHole) {
                 testHasPosition(obj, xFlag, zFlag)
 
-                arrayOf(xFlag to obj.x, yFlag to obj.y, zFlag to obj.z).forEach { (flag, property)
-                    ->
-                    if (flag.enabled) {
-                        property shouldContainValue flag.value
-                    } else {
-                        property.shouldBeUnspecified()
-                    }
-                }
+                testFloatPropertyFlags(xFlag to obj.x, yFlag to obj.y, zFlag to obj.z)
             }
         }
 
@@ -355,14 +329,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override fun validateObject(obj: ArtemisCreature) {
                 testHasPosition(obj, xFlag, zFlag)
 
-                arrayOf(xFlag to obj.x, yFlag to obj.y, zFlag to obj.z).forEach { (flag, property)
-                    ->
-                    if (flag.enabled) {
-                        property shouldContainValue flag.value
-                    } else {
-                        property.shouldBeUnspecified()
-                    }
-                }
+                testFloatPropertyFlags(xFlag to obj.x, yFlag to obj.y, zFlag to obj.z)
 
                 when {
                     forceCreatureType -> obj.isNotTyphon shouldContainValue true
@@ -433,14 +400,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override fun validateObject(obj: ArtemisMine) {
                 testHasPosition(obj, xFlag, zFlag)
 
-                arrayOf(xFlag to obj.x, yFlag to obj.y, zFlag to obj.z).forEach { (flag, property)
-                    ->
-                    if (flag.enabled) {
-                        property shouldContainValue flag.value
-                    } else {
-                        property.shouldBeUnspecified()
-                    }
-                }
+                testFloatPropertyFlags(xFlag to obj.x, yFlag to obj.y, zFlag to obj.z)
             }
         }
 
@@ -558,61 +518,27 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override fun validateObject(obj: ArtemisNpc) {
                 testHasPosition(obj, xFlag, zFlag)
 
-                arrayOf(
-                        xFlag to obj.x,
-                        yFlag to obj.y,
-                        zFlag to obj.z,
-                        impulseFlag to obj.impulse,
-                        shieldsFrontFlag to obj.shieldsFront,
-                        maxShieldsFrontFlag to obj.shieldsFrontMax,
-                        shieldsRearFlag to obj.shieldsRear,
-                        maxShieldsRearFlag to obj.shieldsRearMax,
-                    )
-                    .forEach { (flag, property) ->
-                        if (flag.enabled) {
-                            property shouldContainValue flag.value
-                        } else {
-                            property.shouldBeUnspecified()
-                        }
-                    }
+                testFloatPropertyFlags(
+                    xFlag to obj.x,
+                    yFlag to obj.y,
+                    zFlag to obj.z,
+                    impulseFlag to obj.impulse,
+                    shieldsFrontFlag to obj.shieldsFront,
+                    maxShieldsFrontFlag to obj.shieldsFrontMax,
+                    shieldsRearFlag to obj.shieldsRear,
+                    maxShieldsRearFlag to obj.shieldsRearMax,
+                )
 
-                if (hullIdFlag.enabled) {
-                    obj.hullId shouldContainValue hullIdFlag.value
-                } else {
-                    obj.hullId.shouldBeUnspecified()
-                }
+                obj.name shouldMatch nameFlag
+                obj.hullId shouldMatch hullIdFlag
+                obj.side shouldMatch sideFlag
+                obj.scanBits shouldMatch scanBitsFlag
 
-                if (sideFlag.enabled) {
-                    obj.side shouldContainValue sideFlag.value
-                } else {
-                    obj.side.shouldBeUnspecified()
-                }
-
-                if (scanBitsFlag.enabled) {
-                    obj.scanBits shouldContainValue scanBitsFlag.value
-                } else {
-                    obj.scanBits.shouldBeUnspecified()
-                }
-
-                arrayOf(
-                        isEnemyFlag to obj.isEnemy,
-                        surrenderedFlag to obj.isSurrendered,
-                        inNebulaFlag to obj.isInNebula,
-                    )
-                    .forEach { (flag, property) ->
-                        if (flag.enabled) {
-                            property.shouldContainValue(flag.value.toInt() != 0)
-                        } else {
-                            property.shouldBeUnspecified()
-                        }
-                    }
-
-                if (nameFlag.enabled) {
-                    obj.name.shouldBeSpecified()
-                    obj.name.value.shouldNotBeNull() shouldBeEqual nameFlag.value
-                } else {
-                    obj.name.shouldBeUnspecified()
-                }
+                testBoolPropertyFlags(
+                    isEnemyFlag to obj.isEnemy,
+                    surrenderedFlag to obj.isSurrendered,
+                    inNebulaFlag to obj.isInNebula,
+                )
             }
         }
 
@@ -1038,68 +964,32 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                         )
                         .any { flag -> flag.enabled }
 
-                arrayOf(
-                        impulseFlag to obj.impulse,
-                        xFlag to obj.x,
-                        yFlag to obj.y,
-                        zFlag to obj.z,
-                        shieldsFrontFlag to obj.shieldsFront,
-                        maxShieldsFrontFlag to obj.shieldsFrontMax,
-                        shieldsRearFlag to obj.shieldsRear,
-                        maxShieldsRearFlag to obj.shieldsRearMax,
-                    )
-                    .forEach { (flag, property) ->
-                        if (flag.enabled) {
-                            property shouldContainValue flag.value
-                        } else {
-                            property.shouldBeUnspecified()
-                        }
-                    }
+                testFloatPropertyFlags(
+                    xFlag to obj.x,
+                    yFlag to obj.y,
+                    zFlag to obj.z,
+                    impulseFlag to obj.impulse,
+                    shieldsFrontFlag to obj.shieldsFront,
+                    maxShieldsFrontFlag to obj.shieldsFrontMax,
+                    shieldsRearFlag to obj.shieldsRear,
+                    maxShieldsRearFlag to obj.shieldsRearMax,
+                )
 
-                arrayOf(
-                        Triple(warpFlag, obj.warp, (-1).toByte()),
-                        Triple(sideFlag, obj.side, (-1).toByte()),
-                        Triple(shipIndexFlag, obj.shipIndex, Byte.MIN_VALUE),
-                    )
-                    .forEach { (flag, property, unknownValue) ->
-                        if (flag.enabled) {
-                            property shouldContainValue flag.value
-                        } else {
-                            property.shouldBeUnspecified(unknownValue)
-                        }
-                    }
+                testBytePropertyFlags(
+                    Triple(warpFlag, obj.warp, null),
+                    Triple(sideFlag, obj.side, null),
+                    Triple(shipIndexFlag, obj.shipIndex, Byte.MIN_VALUE),
+                )
 
-                arrayOf(
-                        hullIdFlag to obj.hullId,
-                        dockingBaseFlag to obj.dockingBase,
-                        capitalShipFlag to obj.capitalShipID,
-                    )
-                    .forEach { (flag, property) ->
-                        if (flag.enabled) {
-                            property shouldContainValue flag.value
-                        } else {
-                            property.shouldBeUnspecified()
-                        }
-                    }
+                testIntPropertyFlags(
+                    hullIdFlag to obj.hullId,
+                    dockingBaseFlag to obj.dockingBase,
+                    capitalShipFlag to obj.capitalShipID,
+                )
 
-                if (alertStatusFlag.enabled) {
-                    obj.alertStatus shouldContainValue alertStatusFlag.value
-                } else {
-                    obj.alertStatus.shouldBeUnspecified()
-                }
-
-                if (driveTypeFlag.enabled) {
-                    obj.driveType shouldContainValue driveTypeFlag.value
-                } else {
-                    obj.driveType.shouldBeUnspecified()
-                }
-
-                if (nameFlag.enabled) {
-                    obj.name.shouldBeSpecified()
-                    obj.name.value.shouldNotBeNull() shouldBeEqual nameFlag.value
-                } else {
-                    obj.name.shouldBeUnspecified()
-                }
+                obj.alertStatus shouldMatch alertStatusFlag
+                obj.driveType shouldMatch driveTypeFlag
+                obj.name shouldMatch nameFlag
             }
         }
 
@@ -1227,23 +1117,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 obj.hasUpgradeData shouldBeEqual
                     arrayOf(activeFlag, countFlag, timeFlag).any { flag -> flag.enabled }
 
-                if (activeFlag.enabled) {
-                    obj.doubleAgentActive shouldContainValue (activeFlag.value != 0.toByte())
-                } else {
-                    obj.doubleAgentActive.shouldBeUnspecified()
-                }
-
-                if (countFlag.enabled) {
-                    obj.doubleAgentCount shouldContainValue countFlag.value
-                } else {
-                    obj.doubleAgentCount.shouldBeUnspecified()
-                }
-
-                if (timeFlag.enabled) {
-                    obj.doubleAgentSecondsLeft shouldContainValue timeFlag.value.toInt()
-                } else {
-                    obj.doubleAgentSecondsLeft.shouldBeUnspecified()
-                }
+                obj.doubleAgentActive shouldMatch activeFlag
+                obj.doubleAgentCount shouldMatch countFlag
+                obj.doubleAgentSecondsLeft shouldMatch timeFlag
             }
         }
 
@@ -1299,11 +1175,11 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override fun Sink.buildObject() {
                 allFlagBytes.forEach { writeByte(it.byteValue) }
 
-                writeByteFlags(*countFlags)
+                writeByteFlags(countFlags)
                 writeByteFlags(unknownFlag)
-                writeFloatFlags(*timeFlags)
-                writeEnumFlags(*statusFlags)
-                writeEnumFlags(*typeFlags)
+                writeFloatFlags(timeFlags)
+                writeEnumFlags(statusFlags)
+                writeEnumFlags(typeFlags)
             }
 
             override fun validateObject(obj: ArtemisPlayer) {
@@ -1314,13 +1190,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                         flags.any { flag -> flag.enabled }
                     }
 
-                countFlags.zip(obj.ordnanceCounts).forEach { (flag, property) ->
-                    if (flag.enabled) {
-                        property shouldContainValue flag.value
-                    } else {
-                        property.shouldBeUnspecified()
-                    }
-                }
+                testBytePropertyFlags(countFlags.zip(obj.ordnanceCounts))
 
                 obj.tubes.forEachIndexed { index, tube ->
                     val statusFlag = statusFlags[index]

@@ -19,10 +19,7 @@ fun Property.ObjectProperty<*>.shouldBeSpecified() {
 
 infix fun <V : Any> Property.ObjectProperty<V>.shouldContainValue(expectedValue: V) {
     hasValue.shouldBeTrue()
-
-    val value = this.value
-    value.shouldNotBeNull()
-    value shouldBeEqual expectedValue
+    value.shouldNotBeNull() shouldBeEqual expectedValue
 }
 
 infix fun <V : Any> Property.ObjectProperty<V>.shouldMatch(property: Property.ObjectProperty<V>) {
