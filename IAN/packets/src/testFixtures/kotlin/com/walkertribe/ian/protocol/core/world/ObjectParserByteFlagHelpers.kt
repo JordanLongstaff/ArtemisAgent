@@ -35,14 +35,14 @@ internal fun testBytePropertyFlags(
 
 internal fun Sink.writeByteFlags(firstFlag: Flag<Byte>, vararg flags: Flag<Byte>) {
     writeByteFlag(firstFlag)
-    writeByteFlags(flags.asIterable())
+    writeByteFlags(flags.iterator())
 }
 
 internal fun Sink.writeByteFlags(flags: Array<Flag<Byte>>) {
-    writeByteFlags(flags.asIterable())
+    writeByteFlags(flags.iterator())
 }
 
-private fun Sink.writeByteFlags(flags: Iterable<Flag<Byte>>) {
+private fun Sink.writeByteFlags(flags: Iterator<Flag<Byte>>) {
     flags.forEach { writeByteFlag(it) }
 }
 

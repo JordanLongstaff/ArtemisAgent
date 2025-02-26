@@ -141,7 +141,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val zFlag = flags1.flag8
 
             override fun Sink.buildObject() {
-                arrayOf(flags1, flags2).forEach { writeByte(it.byteValue) }
+                writeFlagBytes(flags1, flags2)
 
                 writeStringFlags(nameFlag)
                 writeFloatFlags(shieldsFlag, maxShieldsFlag)
@@ -211,7 +211,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val zFlag = flags.flag3
 
             override fun Sink.buildObject() {
-                writeByte(flags.byteValue)
+                writeFlagBytes(flags)
                 writeFloatFlags(xFlag, yFlag, zFlag)
             }
 
@@ -297,7 +297,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 if (forceCreatureType) flagByte1 = flagByte1 or CREATURE_TYPE_BIT
                 writeByte(flagByte1.toByte())
 
-                arrayOf(flags2, flags3).forEach { writeByte(it.byteValue) }
+                writeFlagBytes(flags2, flags3)
 
                 writeFloatFlags(xFlag, yFlag, zFlag)
                 writeStringFlags(flags1.flag4)
@@ -393,7 +393,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val zFlag = flags.flag3
 
             override fun Sink.buildObject() {
-                writeByte(flags.byteValue)
+                writeFlagBytes(flags)
                 writeFloatFlags(xFlag, yFlag, zFlag)
             }
 
@@ -485,7 +485,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             abstract fun Sink.writeRemainingFlags()
 
             override fun Sink.buildObject() {
-                allFlagBytes.forEach { writeByte(it.byteValue) }
+                writeFlagBytes(allFlagBytes)
 
                 writeStringFlags(nameFlag)
                 writeFloatFlags(impulseFlag, flags1.flag3, flags1.flag4, flags1.flag5)
@@ -888,9 +888,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             abstract fun Sink.writeNebulaTypeFlag()
 
             override fun Sink.buildObject() {
-                arrayOf(flags1, flags2, flags3, flags4, flags5, flags6).forEach {
-                    writeByte(it.byteValue)
-                }
+                writeFlagBytes(flags1, flags2, flags3, flags4, flags5, flags6)
 
                 writeIntFlags(flags1.flag1)
                 writeFloatFlags(impulseFlag, flags1.flag3, flags1.flag4, flags1.flag5)
@@ -1078,9 +1076,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val timeFlag: Flag<Short> = t2.flag1
 
             override fun Sink.buildObject() {
-                arrayOf(a1, a2, a3, ac, c2, c3, c4, t1, t2, t3, t4).forEach {
-                    writeByte(it.byteValue)
-                }
+                writeFlagBytes(a1, a2, a3, ac, c2, c3, c4, t1, t2, t3, t4)
 
                 arrayOf(a1, a2, a3, ac, c2, c3, c4).forEach {
                     writeByteFlags(
@@ -1173,7 +1169,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             internal abstract val allFlagBytes: Array<AnyFlagByte>
 
             override fun Sink.buildObject() {
-                allFlagBytes.forEach { writeByte(it.byteValue) }
+                writeFlagBytes(allFlagBytes)
 
                 writeByteFlags(countFlags)
                 writeByteFlags(unknownFlag)
@@ -1411,9 +1407,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
-                    arrayOf(heatFlags, enFlags, coolFlags).forEach { flags ->
-                        writeByte(flags.byteValue)
-                    }
+                    writeFlagBytes(heatFlags, enFlags, coolFlags)
 
                     arrayOf(heatFlags, enFlags).forEach { flags ->
                         writeFloatFlags(
@@ -1466,7 +1460,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 override fun Sink.buildObject() {
                     val beaconVersion = version >= Version.BEACON
 
-                    writeByte(flags.byteValue)
+                    writeFlagBytes(flags)
                     if (beaconVersion) writeByte(0)
 
                     writeFloatFlags(flags.flag1, flags.flag2, flags.flag3)
@@ -1525,7 +1519,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 private val flags: NebulaFlags,
             ) : ObjectParserData.Unobserved(objectID, ObjectType.NEBULA) {
                 override fun Sink.buildObject() {
-                    writeByte(flags.byteValue)
+                    writeFlagBytes(flags)
 
                     writeFloatFlags(
                         flags.flag1,
@@ -1572,7 +1566,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
-                    writeByte(flags.byteValue)
+                    writeFlagBytes(flags)
                     writeByte(0)
 
                     writeFloatFlags(
@@ -1612,7 +1606,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
-                    writeByte(flags.byteValue)
+                    writeFlagBytes(flags)
 
                     writeFloatFlags(flags.flag1, flags.flag2, flags.flag3)
                 }
@@ -1639,7 +1633,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 private val flags4: GenericMeshFlags4,
             ) : ObjectParserData.Unobserved(objectID, ObjectType.GENERIC_MESH) {
                 override fun Sink.buildObject() {
-                    arrayOf(flags1, flags2, flags3, flags4).forEach { writeByte(it.byteValue) }
+                    writeFlagBytes(flags1, flags2, flags3, flags4)
 
                     writeFloatFlags(flags1.flag1, flags1.flag2, flags1.flag3)
                     writeIntFlags(flags1.flag4, flags1.flag5, flags1.flag6)
@@ -1727,7 +1721,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     get() = Version.DEFAULT
 
                 override fun Sink.buildObject() {
-                    arrayOf(flags1, flags2).forEach { writeByte(it.byteValue) }
+                    writeFlagBytes(flags1, flags2)
 
                     writeIntFlags(flags1.flag1)
                     writeFloatFlags(
@@ -1792,6 +1786,19 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         fun testHasPosition(obj: ArtemisObject<*>, xFlag: Flag<Float>, zFlag: Flag<Float>) {
             obj.hasPosition.shouldBeEqual(xFlag.enabled && zFlag.enabled)
+        }
+
+        fun Sink.writeFlagBytes(firstFlags: AnyFlagByte, vararg flagBytes: AnyFlagByte) {
+            writeByte(firstFlags.byteValue)
+            writeFlagBytes(flagBytes.iterator())
+        }
+
+        fun Sink.writeFlagBytes(flagBytes: Array<AnyFlagByte>) {
+            writeFlagBytes(flagBytes.iterator())
+        }
+
+        private fun Sink.writeFlagBytes(flagBytes: Iterator<AnyFlagByte>) {
+            flagBytes.forEach { writeByte(it.byteValue) }
         }
     }
 }

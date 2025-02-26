@@ -17,14 +17,14 @@ internal infix fun <V : Any> Property.ObjectProperty<V>.shouldMatch(flag: Flag<V
 
 internal fun <E : Enum<E>> Sink.writeEnumFlags(firstFlag: Flag<E>, vararg flags: Flag<E>) {
     writeEnumFlag(firstFlag)
-    writeEnumFlags(flags.asIterable())
+    writeEnumFlags(flags.iterator())
 }
 
 internal fun <E : Enum<E>> Sink.writeEnumFlags(flags: Array<Flag<E>>) {
-    writeEnumFlags(flags.asIterable())
+    writeEnumFlags(flags.iterator())
 }
 
-private fun <E : Enum<E>> Sink.writeEnumFlags(flags: Iterable<Flag<E>>) {
+private fun <E : Enum<E>> Sink.writeEnumFlags(flags: Iterator<Flag<E>>) {
     flags.forEach { writeEnumFlag(it) }
 }
 

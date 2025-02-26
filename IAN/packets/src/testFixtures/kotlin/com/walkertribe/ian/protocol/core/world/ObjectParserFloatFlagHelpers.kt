@@ -20,14 +20,14 @@ internal fun testFloatPropertyFlags(vararg pairs: Pair<Flag<Float>, Property.Flo
 
 internal fun Sink.writeFloatFlags(firstFlag: Flag<Float>, vararg flags: Flag<Float>) {
     writeFloatFlag(firstFlag)
-    writeFloatFlags(flags.asIterable())
+    writeFloatFlags(flags.iterator())
 }
 
 internal fun Sink.writeFloatFlags(flags: Array<Flag<Float>>) {
-    writeFloatFlags(flags.asIterable())
+    writeFloatFlags(flags.iterator())
 }
 
-private fun Sink.writeFloatFlags(flags: Iterable<Flag<Float>>) {
+private fun Sink.writeFloatFlags(flags: Iterator<Flag<Float>>) {
     flags.forEach { writeFloatFlag(it) }
 }
 

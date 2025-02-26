@@ -18,16 +18,9 @@ internal data class FlagByte<T1, T2, T3, T4, T5, T6, T7, T8>(
     val flag8: Flag<T8>,
 ) {
     val byteValue: Byte by lazy {
-        var value = 0
-
-        arrayOf(flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8).forEachIndexed { index, flag
-            ->
-            if (flag.enabled) {
-                value += 1 shl index
-            }
-        }
-
-        value.toByte()
+        arrayOf(flag1, flag2, flag3, flag4, flag5, flag6, flag7, flag8)
+            .foldIndexed(0) { index, value, flag -> value or if (flag.enabled) 1 shl index else 0 }
+            .toByte()
     }
 }
 
