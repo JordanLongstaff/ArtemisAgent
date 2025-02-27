@@ -31,12 +31,10 @@ jobs:
     name: 'Wait for build to complete'
     runs-on: ubuntu-latest
     steps:
-      - uses: johannesvedder/await-workflow@v1
+      - uses: ArcticLampyrid/action-wait-for-workflow@v1.2.0
         with:
-          workflowId: gradle.yml
-          timeoutSeconds: 3600
-          retryIntervalSeconds: 5
-          initialWaitSeconds: 1
+          workflow: gradle.yml
+          wait-interval: 5
 
   dependency-submission:
     name: 'Dependency submission'
