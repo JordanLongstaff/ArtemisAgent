@@ -222,7 +222,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
 
     private class RecentServersAdapter(context: Context) :
         ArrayAdapter<String>(context, R.layout.generic_data_entry, R.id.entryNameLabel) {
-        var servers: List<String> = listOf()
+        var servers: List<String> = emptyList()
         private val suggestions: MutableList<String> = mutableListOf()
         private val filter =
             object : Filter() {

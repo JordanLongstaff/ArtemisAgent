@@ -87,7 +87,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     ) : ViewProvider {
         override val viewType: Int = MENU
 
-        var contents: List<HelpTopicContent> = listOf()
+        var contents: List<HelpTopicContent> = emptyList()
             private set
 
         fun initContents(res: Resources) {

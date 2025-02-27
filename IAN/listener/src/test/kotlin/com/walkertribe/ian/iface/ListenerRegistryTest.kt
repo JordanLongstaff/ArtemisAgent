@@ -10,7 +10,9 @@ import io.mockk.mockk
 class ListenerRegistryTest :
     DescribeSpec({
         val mockModule =
-            mockk<ListenerModule>(relaxUnitFun = true) { every { acceptedTypes } returns setOf() }
+            mockk<ListenerModule>(relaxUnitFun = true) {
+                every { acceptedTypes } returns emptySet()
+            }
 
         afterSpec {
             TestListener.clear()

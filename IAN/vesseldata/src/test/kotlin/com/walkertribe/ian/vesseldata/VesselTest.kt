@@ -86,7 +86,7 @@ class VesselTest :
                             side = 0,
                             name = "",
                             broadType = broadType,
-                            ordnanceStorage = mapOf(),
+                            ordnanceStorage = emptyMap(),
                             productionCoefficient = 0f,
                             bayCount = 0,
                             description = null,

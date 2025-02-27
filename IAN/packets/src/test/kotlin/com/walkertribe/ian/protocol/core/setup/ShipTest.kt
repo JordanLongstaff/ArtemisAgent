@@ -94,7 +94,7 @@ class ShipTest :
                         .flatMap {
                             Arb.pair(
                                 Arb.vesselData(
-                                    factions = listOf(),
+                                    factions = emptyList(),
                                     vessels = Arb.of(it),
                                     numVessels = 1..1,
                                 ),

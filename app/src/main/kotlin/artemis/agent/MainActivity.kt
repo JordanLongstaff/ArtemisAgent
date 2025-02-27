@@ -702,7 +702,7 @@ class MainActivity : AppCompatActivity() {
         with(viewModel) {
             collectLatestWhileStarted(connectionStatus) {
                 if (isIdle) {
-                    selectableShips.value = listOf()
+                    selectableShips.value = emptyList()
                 }
             }
 

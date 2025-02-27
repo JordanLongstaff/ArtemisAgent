@@ -65,7 +65,7 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
 
     private class ShipAdapter(private val viewModel: AgentViewModel) :
         RecyclerView.Adapter<ShipViewHolder>() {
-        private var shipsList: List<Ship> = listOf()
+        private var shipsList: List<Ship> = emptyList()
         private var selectedShipIndex: Int = -1
 
         override fun getItemCount(): Int = shipsList.size

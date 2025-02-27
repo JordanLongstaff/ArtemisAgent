@@ -134,7 +134,7 @@ class AgentViewModel(application: Application) :
                 connectionStatus.value == ConnectionStatus.Failed
 
     // UDP discovered servers
-    val discoveredServers: MutableStateFlow<List<Server>> by lazy { MutableStateFlow(listOf()) }
+    val discoveredServers: MutableStateFlow<List<Server>> by lazy { MutableStateFlow(emptyList()) }
     val isScanningUDP: MutableSharedFlow<Boolean> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
@@ -163,7 +163,7 @@ class AgentViewModel(application: Application) :
     val jumping: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     // Ship settings from packet
-    val selectableShips: MutableStateFlow<List<Ship>> by lazy { MutableStateFlow(listOf()) }
+    val selectableShips: MutableStateFlow<List<Ship>> by lazy { MutableStateFlow(emptyList()) }
 
     // Game status
     val gameIsRunning: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
@@ -189,7 +189,7 @@ class AgentViewModel(application: Application) :
 
     // List of selectable game fragment pages, mapped to flashing status
     val gamePages: MutableStateFlow<Map<GameFragment.Page, Boolean>> by lazy {
-        MutableStateFlow(mapOf())
+        MutableStateFlow(emptyMap())
     }
     val currentGamePage: MutableStateFlow<GameFragment.Page?> by lazy { MutableStateFlow(null) }
 
@@ -204,8 +204,10 @@ class AgentViewModel(application: Application) :
     val miscAudioExists: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val commsActionSet = CopyOnWriteArraySet<CommsActionEntry>()
     val commsAudioSet = CopyOnWriteArraySet<AudioEntry>()
-    val miscActions: MutableStateFlow<List<CommsActionEntry>> by lazy { MutableStateFlow(listOf()) }
-    val miscAudio: MutableStateFlow<List<AudioEntry>> by lazy { MutableStateFlow(listOf()) }
+    val miscActions: MutableStateFlow<List<CommsActionEntry>> by lazy {
+        MutableStateFlow(emptyList())
+    }
+    val miscAudio: MutableStateFlow<List<AudioEntry>> by lazy { MutableStateFlow(emptyList()) }
     val showingAudio: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     // Current player ship data
@@ -243,9 +245,9 @@ class AgentViewModel(application: Application) :
 
     // Completed mission payout data
     val payouts = IntArray(RewardType.entries.size)
-    var displayedRewards: Array<RewardType> = arrayOf()
+    var displayedRewards: Array<RewardType> = emptyArray()
     val displayedPayouts: MutableStateFlow<List<Pair<RewardType, Int>>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val showingPayouts: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
@@ -305,7 +307,7 @@ class AgentViewModel(application: Application) :
 
     // Friendly station navigation data
     val flashingStations: MutableStateFlow<List<Pair<ObjectEntry.Station, Boolean>>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val stationName: MutableStateFlow<String> by lazy { MutableStateFlow("") }
     val currentStation: MutableSharedFlow<ObjectEntry.Station> by lazy {
@@ -339,8 +341,8 @@ class AgentViewModel(application: Application) :
     }
 
     // Destroyed objects data
-    val destroyedAllies: MutableStateFlow<List<String>> by lazy { MutableStateFlow(listOf()) }
-    val destroyedStations: MutableStateFlow<List<String>> by lazy { MutableStateFlow(listOf()) }
+    val destroyedAllies: MutableStateFlow<List<String>> by lazy { MutableStateFlow(emptyList()) }
+    val destroyedStations: MutableStateFlow<List<String>> by lazy { MutableStateFlow(emptyList()) }
 
     // Biomech data
     var biomechsEnabled: Boolean = true
@@ -373,10 +375,10 @@ class AgentViewModel(application: Application) :
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
     val enemyCategories: MutableStateFlow<List<EnemySortCategory>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val enemyTaunts: MutableStateFlow<List<Pair<Taunt, TauntStatus>>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val enemyIntel: MutableStateFlow<String?> by lazy { MutableStateFlow(null) }
     val perfidiousEnemy: MutableSharedFlow<EnemyEntry> by lazy {
@@ -794,7 +796,7 @@ class AgentViewModel(application: Application) :
     /** Begins scanning for servers via UDP. */
     fun scanForServers(broadcastAddress: String?) {
         isScanningUDP.tryEmit(true)
-        discoveredServers.value = listOf()
+        discoveredServers.value = emptyList()
         cpu.launch {
             try {
                 serverDiscoveryRequester.run(
@@ -850,8 +852,8 @@ class AgentViewModel(application: Application) :
         focusedAlly.value = null
         allyShipIndex.clear()
         allyShips.clear()
-        destroyedAllies.value = listOf()
-        destroyedStations.value = listOf()
+        destroyedAllies.value = emptyList()
+        destroyedStations.value = emptyList()
         livingStationNameIndex.clear()
         livingStationFullNameIndex.clear()
         enemyStationNameIndex.clear()
@@ -865,8 +867,8 @@ class AgentViewModel(application: Application) :
         selectedEnemy.value = null
         commsActionSet.clear()
         commsAudioSet.clear()
-        miscActions.value = listOf()
-        miscAudio.value = listOf()
+        miscActions.value = emptyList()
+        miscAudio.value = emptyList()
         biomechRageProperty.value = 0
         biomechRage.value = BiomechRageStatus.NEUTRAL
         onPlayerShipDisposed()
@@ -909,7 +911,7 @@ class AgentViewModel(application: Application) :
                         (!it.isStarted || it.associatedShipName == playerName)
                 }
             } else {
-                listOf()
+                emptyList()
             }
 
         val allyShipList =
@@ -919,7 +921,7 @@ class AgentViewModel(application: Application) :
                     it.range = calculatePlayerRangeTo(it.obj)
                 }
             } else {
-                listOf()
+                emptyList()
             }
 
         val focusedStation =
@@ -973,7 +975,7 @@ class AgentViewModel(application: Application) :
                     }
                 }
             } else {
-                listOf()
+                emptyList()
             }
 
         if (isDeepStrike && !torpedoesReady && torpedoFinishTime < startTime) {

@@ -88,7 +88,7 @@ private constructor(
     abstract class Server<T : Packet.Server>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Server<T>>,
-        private val failures: List<Failure> = listOf(),
+        private val failures: List<Failure> = emptyList(),
         private val isRequired: Boolean = false,
         autoIncludeTests: Boolean = true,
     ) : PacketTestSpec<T>(specName, fixtures, autoIncludeTests) {

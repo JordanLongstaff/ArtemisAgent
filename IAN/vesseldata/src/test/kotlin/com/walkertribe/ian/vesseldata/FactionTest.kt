@@ -56,7 +56,7 @@ class FactionTest :
                 it("Not player, friendly or enemy") {
                     checkAll(Arb.int(), Arb.string()) { id, name ->
                         shouldThrow<IllegalArgumentException> {
-                            Faction(id, name, "biomech", listOf())
+                            Faction(id, name, "biomech", emptyList())
                         }
                     }
                 }
@@ -64,7 +64,7 @@ class FactionTest :
                 it("Enemy with no attributes") {
                     checkAll(Arb.int(), Arb.string()) { id, name ->
                         shouldThrow<IllegalArgumentException> {
-                            Faction(id, name, "enemy", listOf())
+                            Faction(id, name, "enemy", emptyList())
                         }
                     }
                 }
@@ -72,7 +72,7 @@ class FactionTest :
                 it("WHALELOVER and WHALEHATER") {
                     checkAll(Arb.int(), Arb.string()) { id, name ->
                         shouldThrow<IllegalArgumentException> {
-                            Faction(id, name, "enemy loner whalelover whalehater", listOf())
+                            Faction(id, name, "enemy loner whalelover whalehater", emptyList())
                         }
                     }
                 }
@@ -80,7 +80,7 @@ class FactionTest :
                 it("Non-player JUMPMASTER") {
                     checkAll(Arb.int(), Arb.string()) { id, name ->
                         shouldThrow<IllegalArgumentException> {
-                            Faction(id, name, "enemy loner jumpmaster", listOf())
+                            Faction(id, name, "enemy loner jumpmaster", emptyList())
                         }
                     }
                 }
@@ -96,7 +96,7 @@ class FactionTest :
                             Arb.string(),
                             Arb.string(),
                         ) { id, name1, name2, immunity, text ->
-                            val faction1 = Faction(id, name1, "player", listOf())
+                            val faction1 = Faction(id, name1, "player", emptyList())
                             val faction2 =
                                 Faction(id, name2, "player", listOf(Taunt(immunity, text)))
                             faction1 shouldBeEqual faction2
@@ -114,7 +114,7 @@ class FactionTest :
                             Arb.string(),
                             Arb.string(),
                         ) { id, name1, name2, immunity, text ->
-                            Faction(id, name1, "player", listOf()) shouldHaveSameHashCodeAs
+                            Faction(id, name1, "player", emptyList()) shouldHaveSameHashCodeAs
                                 Faction(id, name2, "player", listOf(Taunt(immunity, text)))
                         }
                     }
@@ -127,7 +127,7 @@ class FactionTest :
                             Arb.string(),
                             Arb.string(),
                         ) { id, name1, name2, immunity, text ->
-                            Faction(id, name1, "player", listOf()) shouldBeLessThanOrEqualTo
+                            Faction(id, name1, "player", emptyList()) shouldBeLessThanOrEqualTo
                                 Faction(id, name2, "player", listOf(Taunt(immunity, text)))
                         }
                     }
@@ -140,7 +140,7 @@ class FactionTest :
                             Arb.string(),
                             Arb.string(),
                         ) { id, name1, name2, immunity, text ->
-                            Faction(id, name1, "player", listOf()) shouldBeGreaterThanOrEqualTo
+                            Faction(id, name1, "player", emptyList()) shouldBeGreaterThanOrEqualTo
                                 Faction(id, name2, "player", listOf(Taunt(immunity, text)))
                         }
                     }
@@ -156,8 +156,8 @@ class FactionTest :
 
                     it("Not equals") {
                         checkAll(arbIDPair, Arb.string()) { (id1, id2), name ->
-                            val faction1 = Faction(id1, name, "player", listOf())
-                            val faction2 = Faction(id2, name, "player", listOf())
+                            val faction1 = Faction(id1, name, "player", emptyList())
+                            val faction2 = Faction(id2, name, "player", emptyList())
                             faction1 shouldNotBeEqual faction2
                             faction2 shouldNotBeEqual faction1
                             faction1 shouldNotBeEqualComparingTo faction2
@@ -167,36 +167,36 @@ class FactionTest :
 
                     it("Different hash codes") {
                         checkAll(arbIDPair, Arb.string()) { (id1, id2), name ->
-                            Faction(id1, name, "player", listOf()) shouldNotHaveSameHashCodeAs
-                                Faction(id2, name, "player", listOf())
+                            Faction(id1, name, "player", emptyList()) shouldNotHaveSameHashCodeAs
+                                Faction(id2, name, "player", emptyList())
                         }
                     }
 
                     it("Less than") {
                         checkAll(arbIDPair, Arb.string()) { (id1, id2), name ->
-                            Faction(id1, name, "player", listOf()) shouldBeLessThan
-                                Faction(id2, name, "player", listOf())
+                            Faction(id1, name, "player", emptyList()) shouldBeLessThan
+                                Faction(id2, name, "player", emptyList())
                         }
                     }
 
                     it("Less than or equal to") {
                         checkAll(arbIDPair, Arb.string()) { (id1, id2), name ->
-                            Faction(id1, name, "player", listOf()) shouldBeLessThanOrEqualTo
-                                Faction(id2, name, "player", listOf())
+                            Faction(id1, name, "player", emptyList()) shouldBeLessThanOrEqualTo
+                                Faction(id2, name, "player", emptyList())
                         }
                     }
 
                     it("Greater than") {
                         checkAll(arbIDPair, Arb.string()) { (id1, id2), name ->
-                            Faction(id2, name, "player", listOf()) shouldBeGreaterThan
-                                Faction(id1, name, "player", listOf())
+                            Faction(id2, name, "player", emptyList()) shouldBeGreaterThan
+                                Faction(id1, name, "player", emptyList())
                         }
                     }
 
                     it("Greater than or equal to") {
                         checkAll(arbIDPair, Arb.string()) { (id1, id2), name ->
-                            Faction(id2, name, "player", listOf()) shouldBeGreaterThanOrEqualTo
-                                Faction(id1, name, "player", listOf())
+                            Faction(id2, name, "player", emptyList()) shouldBeGreaterThanOrEqualTo
+                                Faction(id1, name, "player", emptyList())
                         }
                     }
                 }

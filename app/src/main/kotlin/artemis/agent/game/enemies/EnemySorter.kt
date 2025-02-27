@@ -24,7 +24,7 @@ data class EnemySorter(
                     it.enemy.name.value?.substring(0, 1)
                 }
             sortBySurrendered -> buildCategoryMap(enemies, true) { null }
-            else -> listOf()
+            else -> emptyList()
         }
 
     private companion object {
