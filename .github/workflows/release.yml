@@ -140,6 +140,11 @@ jobs:
       - name: Bundle and Upload
         run: bundle exec fastlane android deploy version:${{ inputs.versionName }}
 
+      - name: Update README
+        run: |
+          var="${{ inputs.versionName }}"
+          sed -i "1s/.*/# Artemis Agent $var/" ${{ github.workspace }}/README.md
+
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
