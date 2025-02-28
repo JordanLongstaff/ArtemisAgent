@@ -43,7 +43,7 @@ console-reports:
 
 output-reports:
   active: true
-  #exclude:
+  # exclude:
   # - 'TxtOutputReport'
   # - 'XmlOutputReport'
   # - 'HtmlOutputReport'
@@ -81,6 +81,7 @@ comments:
     searchInInnerObject: true
     searchInInnerInterface: true
     searchInProtectedClass: false
+    ignoreDefaultCompanionObject: false
   UndocumentedPublicFunction:
     active: false
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**']
@@ -348,6 +349,17 @@ naming:
   MatchingDeclarationName:
     active: true
     mustBeFirst: true
+    multiplatformTargets:
+      - 'ios'
+      - 'android'
+      - 'js'
+      - 'jvm'
+      - 'native'
+      - 'iosArm64'
+      - 'iosX64'
+      - 'macosX64'
+      - 'mingwX64'
+      - 'linuxX64'
   MemberNameEqualsClassName:
     active: true
     ignoreOverridden: true
