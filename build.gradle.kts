@@ -39,6 +39,9 @@ val pitestMutators: Set<String> by
         )
     )
 
+val detektConfigFile: File by extra(file("$rootDir/config/detekt/detekt.yml"))
+val kotlinSourcePath: String by extra("src/main/kotlin")
+
 plugins {
     base
     alias(libs.plugins.detekt)

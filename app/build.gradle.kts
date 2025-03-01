@@ -15,20 +15,26 @@ plugins {
     alias(libs.plugins.dependency.analysis)
 }
 
-val appName: String = "Artemis Agent"
+val appName = "Artemis Agent"
+val appId = "artemis.agent"
 val sdkVersion: Int by rootProject.extra
 val minimumSdkVersion: Int by rootProject.extra
 val javaVersion: JavaVersion by rootProject.extra
+val stringRes = "string"
 
+val release = "release"
 val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
+val kotlinSourcePath: String by rootProject.extra
+val detektConfigFile: File by rootProject.extra
+
 android {
-    namespace = "artemis.agent"
+    namespace = appId
     compileSdk = sdkVersion
 
     defaultConfig {
-        applicationId = "artemis.agent"
+        applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
         versionCode = 30
@@ -51,7 +57,7 @@ android {
     testOptions.unitTests.all { it.useJUnitPlatform() }
 
     signingConfigs {
-        create("release") {
+        create(release) {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
             storePassword = keystoreProperties["storePassword"] as String
@@ -61,11 +67,11 @@ android {
 
     buildTypes {
         configureEach {
-            resValue("string", "app_name", appName)
-            resValue("string", "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "app_name", appName)
+            resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
         }
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName(release)
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -133,10 +139,10 @@ dependencies {
 ktfmt { kotlinLangStyle() }
 
 detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-    ignoredBuildTypes = listOf("release")
-    ignoredVariants = listOf("release")
+    source.setFrom(file(kotlinSourcePath))
+    config.setFrom(detektConfigFile)
+    ignoredBuildTypes = listOf(release)
+    ignoredVariants = listOf(release)
 }
 
 protobuf {

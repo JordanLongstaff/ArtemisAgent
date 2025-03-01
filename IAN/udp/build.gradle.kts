@@ -11,6 +11,8 @@ plugins {
 }
 
 val javaVersion: JavaVersion by rootProject.extra
+val kotlinSourcePath: String by rootProject.extra
+val detektConfigFile: File by rootProject.extra
 
 java {
     sourceCompatibility = javaVersion
@@ -32,8 +34,8 @@ tasks.test {
 ktfmt { kotlinLangStyle() }
 
 detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
+    source.setFrom(file(kotlinSourcePath))
+    config.setFrom(detektConfigFile)
 }
 
 dependencies {
