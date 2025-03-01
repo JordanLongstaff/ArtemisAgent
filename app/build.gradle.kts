@@ -26,8 +26,9 @@ val release = "release"
 val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
-val kotlinSourcePath: String by rootProject.extra
-val detektConfigFile: File by rootProject.extra
+val kotlinMainPath: String by rootProject.extra
+val kotlinTestPath: String by rootProject.extra
+val kotlinAndroidTestPath = "src/androidTest/kotlin"
 
 android {
     namespace = appId
@@ -139,8 +140,7 @@ dependencies {
 ktfmt { kotlinLangStyle() }
 
 detekt {
-    source.setFrom(file(kotlinSourcePath))
-    config.setFrom(detektConfigFile)
+    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
     ignoredBuildTypes = listOf(release)
     ignoredVariants = listOf(release)
 }

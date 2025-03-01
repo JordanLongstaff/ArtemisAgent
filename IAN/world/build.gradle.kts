@@ -14,8 +14,9 @@ plugins {
 }
 
 val javaVersion: JavaVersion by rootProject.extra
-val kotlinSourcePath: String by rootProject.extra
-val detektConfigFile: File by rootProject.extra
+val kotlinMainPath: String by rootProject.extra
+val kotlinTestPath: String by rootProject.extra
+val kotlinTestFixturesPath: String by rootProject.extra
 
 java {
     sourceCompatibility = javaVersion
@@ -38,10 +39,7 @@ tasks.assemble.dependsOn(":IAN:world:konsist:test")
 
 ktfmt { kotlinLangStyle() }
 
-detekt {
-    source.setFrom(file(kotlinSourcePath))
-    config.setFrom(detektConfigFile)
-}
+detekt { source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinTestFixturesPath)) }
 
 dependencies {
     api(projects.ian.enums)

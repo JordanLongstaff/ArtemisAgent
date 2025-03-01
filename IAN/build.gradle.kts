@@ -13,8 +13,6 @@ plugins {
 }
 
 val javaVersion: JavaVersion by rootProject.extra
-val kotlinSourcePath: String by rootProject.extra
-val detektConfigFile: File by rootProject.extra
 
 java {
     sourceCompatibility = javaVersion
@@ -52,11 +50,6 @@ allprojects
 tasks.assemble.dependsOn(konsistCollect)
 
 ktfmt { kotlinLangStyle() }
-
-detekt {
-    source.setFrom(file(kotlinSourcePath))
-    config.setFrom(detektConfigFile)
-}
 
 dependencies {
     compileOnly(projects.ian.annotations)

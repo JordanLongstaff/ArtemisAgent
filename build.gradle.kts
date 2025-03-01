@@ -39,8 +39,9 @@ val pitestMutators: Set<String> by
         )
     )
 
-val detektConfigFile: File by extra(file("$rootDir/config/detekt/detekt.yml"))
-val kotlinSourcePath: String by extra("src/main/kotlin")
+val kotlinMainPath: String by extra("src/main/kotlin")
+val kotlinTestPath: String by extra("src/test/kotlin")
+val kotlinTestFixturesPath: String by extra("src/testFixtures/kotlin")
 
 plugins {
     base
@@ -64,4 +65,4 @@ detekt {
     parallel = true
 }
 
-gitHooks { setHooks(mapOf("pre-push" to "detekt detektTest detektTestFixtures ktfmtCheck")) }
+gitHooks { setHooks(mapOf("pre-push" to "detekt ktfmtCheck")) }
