@@ -345,7 +345,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             label.text = entry.getOrdnanceText(viewModel, root.context, ordnanceType)
         }
 
-        for (i in (halfway + visibleOnRight) until ordnanceLabels.size) {
+        for (i in halfway + visibleOnRight until ordnanceLabels.size) {
             ordnanceLabels[i].visibility = View.GONE
         }
     }

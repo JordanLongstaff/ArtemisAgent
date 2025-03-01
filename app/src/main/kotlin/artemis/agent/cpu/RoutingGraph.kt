@@ -547,6 +547,14 @@ internal class RoutingGraph(
     }
 
     companion object {
+        // Constants
+        private const val TWO_PI = PI.toFloat() * 2
+        private const val TOTAL_ANTS = 12
+        private const val PHI = 0.1
+        private const val MINUS_PHI = 0.9
+        private const val DEFAULT_PHEROMONE = 1.0
+        private const val GRID_SECTOR_SIZE = Artemis.MAP_SIZE / 5.0
+
         private const val CLOCKWISE = 1.0f
         private const val COUNTER_CLOCKWISE = -1.0f
 
@@ -715,13 +723,5 @@ internal class RoutingGraph(
                 distanceSquared.takeIf { it > clearanceSquared }
             }
         }
-
-        // Constants
-        private const val TWO_PI = PI.toFloat() * 2
-        private const val TOTAL_ANTS = 12
-        private const val PHI = 0.1
-        private const val MINUS_PHI = 0.9
-        private const val DEFAULT_PHEROMONE = 1.0
-        private const val GRID_SECTOR_SIZE = Artemis.MAP_SIZE / 5.0
     }
 }

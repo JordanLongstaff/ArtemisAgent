@@ -55,22 +55,155 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty1
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
     protected val objectType: ObjectType
 ) {
+    abstract val arbObject: Arb<T>
+    abstract val arbObjectPair: Arb<Pair<T, T>>
+    protected abstract val partialUpdateTestSuites:
+        List<PartialUpdateTestSuite<T, out BaseArtemisObject.Dsl<T>, *, *>>
+
+    abstract suspend fun testCreateUnknown()
+
+    abstract suspend fun testCreateFromDsl()
+
+    abstract suspend fun testCreateAndUpdateManually()
+
+    abstract suspend fun testCreateAndUpdateFromDsl()
+
+    abstract suspend fun testUnknownObjectDoesNotProvideUpdates()
+
+    abstract suspend fun testKnownObjectProvidesUpdates()
+
+    abstract suspend fun testDslCannotUpdateKnownObject()
+
+    fun tests(): TestFactory = describeSpec {
+        describe("Artemis${this@ObjectTestSuite.javaClass.simpleName}") {
+            it("Can create with no data") { testCreateUnknown() }
+
+            it("Can create using Dsl instance") { testCreateFromDsl() }
+
+            it("Can populate properties manually") { testCreateAndUpdateManually() }
+
+            describe("Can apply partial updates") { describeTestCreateAndUpdatePartially(this) }
+
+            it("Can populate properties using Dsl instance") { testCreateAndUpdateFromDsl() }
+
+            it("Unpopulated properties do not provide updates to another object") {
+                testUnknownObjectDoesNotProvideUpdates()
+            }
+
+            it("Populated properties provide updates to another object") {
+                testKnownObjectProvidesUpdates()
+            }
+
+            it("Dsl object cannot populate a non-empty object") { testDslCannotUpdateKnownObject() }
+
+            it("Can offer to listener modules") {
+                val iterations = PropertyTesting.defaultIterationCount
+                val objects = Arb.list(arbObject, iterations..iterations).next()
+                objects.forEach { it.offerTo(ArtemisObjectTestModule) }
+                ArtemisObjectTestModule.collected shouldContainExactly objects
+            }
+
+            describeTestEquality()
+            describeTestHashCode()
+            describeMore()
+
+            ArtemisObjectTestModule.collected.clear()
+        }
+    }
+
+    open suspend fun describeTestCreateAndUpdatePartially(scope: DescribeSpecContainerScope) {
+        partialUpdateTestSuites.forEachIndexed { i, testSuite ->
+            scope.it(testSuite.name) {
+                testSuite.testPartiallyUpdatedObject { base ->
+                    partialUpdateTestSuites.forEachIndexed { j, testSuite2 ->
+                        testSuite2.property.get(base).hasValue.shouldBeEqual(i == j)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun DescribeSpecContainerScope.describeTestEquality() = launch {
+        describe("Equality") {
+            it("Equals itself") { arbObject.checkAll { it shouldBeEqual it } }
+
+            it("Equal type and ID") {
+                arbObjectPair.checkAll { (obj1, obj2) -> obj1 shouldBeEqual obj2 }
+            }
+
+            it("Different ID") {
+                arbObject.checkAll { obj ->
+                    val mockObj =
+                        mockk<ArtemisObject<*>> {
+                            every { id } returns obj.id.inv()
+                            every { type } returns obj.type
+                        }
+                    obj shouldNotBeEqual mockObj
+                    clearMocks(mockObj)
+                }
+            }
+
+            describe("Different type") {
+                withData(
+                    nameFn = { "Artemis${it.javaClass.simpleName}" },
+                    listOf(Base, BlackHole, Creature, Mine, Npc, Player).filter {
+                        it.objectType != objectType
+                    },
+                ) { other ->
+                    arbObject.checkAll { obj ->
+                        val mockObj =
+                            mockk<ArtemisObject<*>> {
+                                every { id } returns obj.id
+                                every { type } returns other.objectType
+                            }
+                        obj shouldNotBeEqual mockObj
+                        clearMocks(mockObj)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun DescribeSpecContainerScope.describeTestHashCode() = launch {
+        describe("Hash code") {
+            it("Equals ID") { arbObject.checkAll { it.hashCode() shouldBeEqual it.id } }
+
+            it("Equal ID, equal hash code") {
+                arbObjectPair.checkAll { (obj1, obj2) ->
+                    obj1.hashCode() shouldBeEqual obj2.hashCode()
+                }
+            }
+
+            it("Different ID, different hash code") {
+                arbObject.checkAll { obj ->
+                    val mockObj = mockk<BaseArtemisObject<*>> { every { id } returns obj.id.inv() }
+                    obj.hashCode() shouldNotBeEqual mockObj.hashCode()
+                    clearMocks(mockObj)
+                }
+            }
+        }
+    }
+
+    open fun DescribeSpecContainerScope.describeMore(): Job? = null
+
     class Location(val x: Float, val y: Float, val z: Float)
 
     companion object {
         val X = Arb.numericFloat()
         val Y = Arb.numericFloat()
         val Z = Arb.numericFloat()
-        val LOCATION = Arb.bind(X, Y, Z, ::Location)
+        val LOCATION = Arb.bind(genA = X, genB = Y, genC = Z, bindFn = ::Location)
 
-        suspend fun DescribeSpecContainerScope.describeVesselDataTests(
+        fun DescribeSpecContainerScope.describeVesselDataTests(
             arbObject: Gen<BaseArtemisShielded<*>>,
             arbHullId: Gen<Int>,
-        ) {
+        ) = launch {
             describe("Vessel") {
                 val mockVesselData =
                     mockk<VesselData> { every { this@mockk[any()] } returns mockk<Vessel>() }
@@ -93,14 +226,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
                 it("Retrieved from vessel data if found") {
                     checkAll(
-                        TestVessel.arbitrary().flatMap {
+                        TestVessel.arbitrary().flatMap { vessel ->
                             Arb.pair(
                                 Arb.vesselData(
                                     factions = emptyList(),
-                                    vessels = Arb.of(it),
+                                    vessels = Arb.of(vessel),
                                     numVessels = 1..1,
                                 ),
-                                Arb.of(it.id),
+                                Arb.of(vessel.id),
                             )
                         },
                         arbObject,
@@ -172,44 +305,44 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisBase =
-                ArtemisBase.Dsl.let {
-                    it.name = name
-                    it.shieldsFront = shields
-                    it.shieldsFrontMax = shieldsMax
-                    it.hullId = hullId
-                    it.x = location.x
-                    it.y = location.y
-                    it.z = location.z
+                ArtemisBase.Dsl.let { dsl ->
+                    dsl.name = name
+                    dsl.shieldsFront = shields
+                    dsl.shieldsFrontMax = shieldsMax
+                    dsl.hullId = hullId
+                    dsl.x = location.x
+                    dsl.y = location.y
+                    dsl.z = location.z
 
-                    it.build(id, timestamp).apply { it.shouldBeReset() }
+                    dsl.build(id, timestamp).apply { dsl.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisBase) {
-                ArtemisBase.Dsl.also {
-                        it.name = name
-                        it.shieldsFront = shields
-                        it.shieldsFrontMax = shieldsMax
-                        it.hullId = hullId
-                        it.x = location.x
-                        it.y = location.y
-                        it.z = location.z
+                ArtemisBase.Dsl.also { dsl ->
+                        dsl.name = name
+                        dsl.shieldsFront = shields
+                        dsl.shieldsFrontMax = shieldsMax
+                        dsl.hullId = hullId
+                        dsl.x = location.x
+                        dsl.y = location.y
+                        dsl.z = location.z
 
-                        it updates obj
+                        dsl updates obj
                     }
                     .shouldBeReset()
             }
 
             override fun testKnownObject(obj: ArtemisBase) {
                 obj.shouldBeKnownObject(
-                    obj.id,
-                    objectType,
-                    name,
-                    location.x,
-                    location.y,
-                    location.z,
-                    hullId,
-                    shields,
-                    shieldsMax,
+                    id = obj.id,
+                    type = objectType,
+                    name = name,
+                    x = location.x,
+                    y = location.y,
+                    z = location.z,
+                    hullId = hullId,
+                    shieldsFront = shields,
+                    shieldsFrontMax = shieldsMax,
                 )
             }
         }
@@ -225,61 +358,47 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         override val partialUpdateTestSuites =
             listOf(
-                PartialUpdateTestSuite(
-                    "Name",
-                    arbObject,
-                    NAME,
-                    ArtemisBase::name,
-                    ArtemisBase.Dsl::name,
-                    ArtemisBase.Dsl,
+                partialUpdateTest(
+                    name = "Name",
+                    propGen = NAME,
+                    property = ArtemisBase::name,
+                    dslProperty = ArtemisBase.Dsl::name,
                 ),
-                PartialUpdateTestSuite(
-                    "Shields",
-                    arbObject,
-                    SHIELDS,
-                    ArtemisBase::shieldsFront,
-                    ArtemisBase.Dsl::shieldsFront,
-                    ArtemisBase.Dsl,
+                partialUpdateTest(
+                    name = "Shields",
+                    propGen = SHIELDS,
+                    property = ArtemisBase::shieldsFront,
+                    dslProperty = ArtemisBase.Dsl::shieldsFront,
                 ),
-                PartialUpdateTestSuite(
-                    "Shields max",
-                    arbObject,
-                    SHIELDS_MAX,
-                    ArtemisBase::shieldsFrontMax,
-                    ArtemisBase.Dsl::shieldsFrontMax,
-                    ArtemisBase.Dsl,
+                partialUpdateTest(
+                    name = "Shields max",
+                    propGen = SHIELDS_MAX,
+                    property = ArtemisBase::shieldsFrontMax,
+                    dslProperty = ArtemisBase.Dsl::shieldsFrontMax,
                 ),
-                PartialUpdateTestSuite(
-                    "Hull ID",
-                    arbObject,
-                    HULL_ID,
-                    ArtemisBase::hullId,
-                    ArtemisBase.Dsl::hullId,
-                    ArtemisBase.Dsl,
+                partialUpdateTest(
+                    name = "Hull ID",
+                    propGen = HULL_ID,
+                    property = ArtemisBase::hullId,
+                    dslProperty = ArtemisBase.Dsl::hullId,
                 ),
-                PartialUpdateTestSuite(
-                    "X",
-                    arbObject,
-                    X,
-                    ArtemisBase::x,
-                    ArtemisBase.Dsl::x,
-                    ArtemisBase.Dsl,
+                partialUpdateTest(
+                    name = "X",
+                    propGen = X,
+                    property = ArtemisBase::x,
+                    dslProperty = ArtemisBase.Dsl::x,
                 ),
-                PartialUpdateTestSuite(
-                    "Y",
-                    arbObject,
-                    Y,
-                    ArtemisBase::y,
-                    ArtemisBase.Dsl::y,
-                    ArtemisBase.Dsl,
+                partialUpdateTest(
+                    name = "Y",
+                    propGen = Y,
+                    property = ArtemisBase::y,
+                    dslProperty = ArtemisBase.Dsl::y,
                 ),
-                PartialUpdateTestSuite(
-                    "Z",
-                    arbObject,
-                    Z,
-                    ArtemisBase::z,
-                    ArtemisBase.Dsl::z,
-                    ArtemisBase.Dsl,
+                partialUpdateTest(
+                    name = "Z",
+                    propGen = Z,
+                    property = ArtemisBase::z,
+                    dslProperty = ArtemisBase.Dsl::z,
                 ),
             )
 
@@ -291,7 +410,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 Arb.int(),
                 Arb.long(),
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
+                Arb.bind(
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = SHIELDS_MAX,
+                    genD = HULL_ID,
+                    genE = LOCATION,
+                    bindFn = ::Properties,
+                ),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
                     test.testKnownObject(test.createThroughDsl(id, timestamp))
@@ -302,7 +428,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateManually() {
             checkAll(
                 arbObject,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
+                Arb.bind(
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = SHIELDS_MAX,
+                    genD = HULL_ID,
+                    genE = LOCATION,
+                    bindFn = ::Properties,
+                ),
             ) { base, test ->
                 test.updateDirectly(base)
                 test.testKnownObject(base)
@@ -312,7 +445,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testCreateAndUpdateFromDsl() {
             checkAll(
                 arbObject,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
+                Arb.bind(
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = SHIELDS_MAX,
+                    genD = HULL_ID,
+                    genE = LOCATION,
+                    bindFn = ::Properties,
+                ),
             ) { base, test ->
                 test.updateThroughDsl(base)
                 test.testKnownObject(base)
@@ -322,7 +462,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testUnknownObjectDoesNotProvideUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
+                Arb.bind(
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = SHIELDS_MAX,
+                    genD = HULL_ID,
+                    genE = LOCATION,
+                    bindFn = ::Properties,
+                ),
             ) { (oldBase, newBase), test ->
                 test.updateDirectly(oldBase)
                 newBase updates oldBase
@@ -333,7 +480,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testKnownObjectProvidesUpdates() {
             checkAll(
                 arbObjectPair,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
+                Arb.bind(
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = SHIELDS_MAX,
+                    genD = HULL_ID,
+                    genE = LOCATION,
+                    bindFn = ::Properties,
+                ),
             ) { (oldBase, newBase), test ->
                 test.updateDirectly(newBase)
                 newBase updates oldBase
@@ -344,42 +498,69 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         override suspend fun testDslCannotUpdateKnownObject() {
             checkAll(
                 arbObject,
-                Arb.bind(NAME, SHIELDS, SHIELDS_MAX, HULL_ID, LOCATION, ::Properties),
+                Arb.bind(
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = SHIELDS_MAX,
+                    genD = HULL_ID,
+                    genE = LOCATION,
+                    bindFn = ::Properties,
+                ),
             ) { base, test ->
                 test.updateDirectly(base)
                 shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(base) }
             }
         }
 
-        override suspend fun DescribeSpecContainerScope.describeMore() {
+        override fun DescribeSpecContainerScope.describeMore() =
             describeVesselDataTests(arbObject, HULL_ID)
-        }
+
+        private fun <V, P : Property<V, P>> partialUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisBase, P>,
+            dslProperty: KMutableProperty0<V>,
+        ): PartialUpdateTestSuite<ArtemisBase, ArtemisBase.Dsl, V, P> =
+            PartialUpdateTestSuite(
+                name = name,
+                objectGen = arbObject,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = ArtemisBase.Dsl,
+            )
     }
 
     data object BlackHole : ObjectTestSuite<ArtemisBlackHole>(ObjectType.BLACK_HOLE) {
         private class Properties(location: Location) : BaseProperties<ArtemisBlackHole>(location) {
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisBlackHole =
-                ArtemisBlackHole.Dsl.let {
-                    it.x = location.x
-                    it.y = location.y
-                    it.z = location.z
+                ArtemisBlackHole.Dsl.let { dsl ->
+                    dsl.x = location.x
+                    dsl.y = location.y
+                    dsl.z = location.z
 
-                    it.build(id, timestamp).apply { it.shouldBeReset() }
+                    dsl.build(id, timestamp).apply { dsl.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisBlackHole) {
-                ArtemisBlackHole.Dsl.also {
-                        it.x = location.x
-                        it.y = location.y
-                        it.z = location.z
+                ArtemisBlackHole.Dsl.also { dsl ->
+                        dsl.x = location.x
+                        dsl.y = location.y
+                        dsl.z = location.z
 
-                        it updates obj
+                        dsl updates obj
                     }
                     .shouldBeReset()
             }
 
             override fun testKnownObject(obj: ArtemisBlackHole) {
-                obj.shouldBeKnownObject(obj.id, objectType, location.x, location.y, location.z)
+                obj.shouldBeKnownObject(
+                    id = obj.id,
+                    type = objectType,
+                    x = location.x,
+                    y = location.y,
+                    z = location.z,
+                )
             }
         }
 
@@ -394,29 +575,23 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         override val partialUpdateTestSuites =
             listOf(
-                PartialUpdateTestSuite(
-                    "X",
-                    arbObject,
-                    X,
-                    ArtemisBlackHole::x,
-                    ArtemisBlackHole.Dsl::x,
-                    ArtemisBlackHole.Dsl,
+                partialUpdateTest(
+                    name = "X",
+                    propGen = X,
+                    property = ArtemisBlackHole::x,
+                    dslProperty = ArtemisBlackHole.Dsl::x,
                 ),
-                PartialUpdateTestSuite(
-                    "Y",
-                    arbObject,
-                    Y,
-                    ArtemisBlackHole::y,
-                    ArtemisBlackHole.Dsl::y,
-                    ArtemisBlackHole.Dsl,
+                partialUpdateTest(
+                    name = "Y",
+                    propGen = Y,
+                    property = ArtemisBlackHole::y,
+                    dslProperty = ArtemisBlackHole.Dsl::y,
                 ),
-                PartialUpdateTestSuite(
-                    "Z",
-                    arbObject,
-                    Z,
-                    ArtemisBlackHole::z,
-                    ArtemisBlackHole.Dsl::z,
-                    ArtemisBlackHole.Dsl,
+                partialUpdateTest(
+                    name = "Z",
+                    propGen = Z,
+                    property = ArtemisBlackHole::z,
+                    dslProperty = ArtemisBlackHole.Dsl::z,
                 ),
             )
 
@@ -470,6 +645,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(blackHole) }
             }
         }
+
+        private fun <V, P : Property<V, P>> partialUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisBlackHole, P>,
+            dslProperty: KMutableProperty0<V>,
+        ): PartialUpdateTestSuite<ArtemisBlackHole, ArtemisBlackHole.Dsl, V, P> =
+            PartialUpdateTestSuite(
+                name = name,
+                objectGen = arbObject,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = ArtemisBlackHole.Dsl,
+            )
     }
 
     data object Creature : ObjectTestSuite<ArtemisCreature>(ObjectType.CREATURE) {
@@ -483,29 +673,36 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisCreature =
-                ArtemisCreature.Dsl.let {
+                ArtemisCreature.Dsl.let { dsl ->
                     ArtemisCreature.Dsl.isNotTyphon = isNotTyphon
-                    it.x = location.x
-                    it.y = location.y
-                    it.z = location.z
+                    dsl.x = location.x
+                    dsl.y = location.y
+                    dsl.z = location.z
 
-                    it.build(id, timestamp).apply { it.shouldBeReset() }
+                    dsl.build(id, timestamp).apply { dsl.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisCreature) {
-                ArtemisCreature.Dsl.also {
+                ArtemisCreature.Dsl.also { dsl ->
                         ArtemisCreature.Dsl.isNotTyphon = isNotTyphon
-                        it.x = location.x
-                        it.y = location.y
-                        it.z = location.z
+                        dsl.x = location.x
+                        dsl.y = location.y
+                        dsl.z = location.z
 
-                        it updates obj
+                        dsl updates obj
                     }
                     .shouldBeReset()
             }
 
             override fun testKnownObject(obj: ArtemisCreature) {
-                obj.shouldBeKnownObject(obj.id, objectType, location.x, location.y, location.z)
+                obj.shouldBeKnownObject(
+                    id = obj.id,
+                    type = objectType,
+                    x = location.x,
+                    y = location.y,
+                    z = location.z,
+                )
+
                 obj.isNotTyphon shouldContainValue isNotTyphon
             }
         }
@@ -521,44 +718,36 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         override val partialUpdateTestSuites =
             listOf(
-                PartialUpdateTestSuite(
-                    "Is not typhon",
-                    arbObject,
-                    IS_NOT_TYPHON,
-                    ArtemisCreature::isNotTyphon,
-                    ArtemisCreature.Dsl::isNotTyphon,
-                    ArtemisCreature.Dsl,
+                partialUpdateTest(
+                    name = "Is not typhon",
+                    propGen = IS_NOT_TYPHON,
+                    property = ArtemisCreature::isNotTyphon,
+                    dslProperty = ArtemisCreature.Dsl::isNotTyphon,
                 ),
-                PartialUpdateTestSuite(
-                    "X",
-                    arbObject,
-                    X,
-                    ArtemisCreature::x,
-                    ArtemisCreature.Dsl::x,
-                    ArtemisCreature.Dsl,
+                partialUpdateTest(
+                    name = "X",
+                    propGen = X,
+                    property = ArtemisCreature::x,
+                    dslProperty = ArtemisCreature.Dsl::x,
                 ),
-                PartialUpdateTestSuite(
-                    "Y",
-                    arbObject,
-                    Y,
-                    ArtemisCreature::y,
-                    ArtemisCreature.Dsl::y,
-                    ArtemisCreature.Dsl,
+                partialUpdateTest(
+                    name = "Y",
+                    propGen = Y,
+                    property = ArtemisCreature::y,
+                    dslProperty = ArtemisCreature.Dsl::y,
                 ),
-                PartialUpdateTestSuite(
-                    "Z",
-                    arbObject,
-                    Z,
-                    ArtemisCreature::z,
-                    ArtemisCreature.Dsl::z,
-                    ArtemisCreature.Dsl,
+                partialUpdateTest(
+                    name = "Z",
+                    propGen = Z,
+                    property = ArtemisCreature::z,
+                    dslProperty = ArtemisCreature.Dsl::z,
                 ),
             )
 
         override suspend fun testCreateUnknown() {
-            arbObject.checkAll {
-                it.shouldBeUnknownObject(it.id, objectType)
-                it.isNotTyphon.shouldBeUnspecified()
+            arbObject.checkAll { creature ->
+                creature.shouldBeUnknownObject(creature.id, objectType)
+                creature.isNotTyphon.shouldBeUnspecified()
             }
         }
 
@@ -613,32 +802,53 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(creature) }
             }
         }
+
+        private fun <V, P : Property<V, P>> partialUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisCreature, P>,
+            dslProperty: KMutableProperty0<V>,
+        ): PartialUpdateTestSuite<ArtemisCreature, ArtemisCreature.Dsl, V, P> =
+            PartialUpdateTestSuite(
+                name = name,
+                objectGen = arbObject,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = ArtemisCreature.Dsl,
+            )
     }
 
     data object Mine : ObjectTestSuite<ArtemisMine>(ObjectType.MINE) {
         private class Properties(location: Location) : BaseProperties<ArtemisMine>(location) {
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisMine =
-                ArtemisMine.Dsl.let {
-                    it.x = location.x
-                    it.y = location.y
-                    it.z = location.z
+                ArtemisMine.Dsl.let { dsl ->
+                    dsl.x = location.x
+                    dsl.y = location.y
+                    dsl.z = location.z
 
-                    it.build(id, timestamp).apply { it.shouldBeReset() }
+                    dsl.build(id, timestamp).apply { dsl.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisMine) {
-                ArtemisMine.Dsl.also {
-                        it.x = location.x
-                        it.y = location.y
-                        it.z = location.z
+                ArtemisMine.Dsl.also { dsl ->
+                        dsl.x = location.x
+                        dsl.y = location.y
+                        dsl.z = location.z
 
-                        it updates obj
+                        dsl updates obj
                     }
                     .shouldBeReset()
             }
 
             override fun testKnownObject(obj: ArtemisMine) {
-                obj.shouldBeKnownObject(obj.id, objectType, location.x, location.y, location.z)
+                obj.shouldBeKnownObject(
+                    id = obj.id,
+                    type = objectType,
+                    x = location.x,
+                    y = location.y,
+                    z = location.z,
+                )
             }
         }
 
@@ -653,29 +863,23 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         override val partialUpdateTestSuites =
             listOf(
-                PartialUpdateTestSuite(
-                    "X",
-                    arbObject,
-                    X,
-                    ArtemisMine::x,
-                    ArtemisMine.Dsl::x,
-                    ArtemisMine.Dsl,
+                partialUpdateTest(
+                    name = "X",
+                    propGen = X,
+                    property = ArtemisMine::x,
+                    dslProperty = ArtemisMine.Dsl::x,
                 ),
-                PartialUpdateTestSuite(
-                    "Y",
-                    arbObject,
-                    Y,
-                    ArtemisMine::y,
-                    ArtemisMine.Dsl::y,
-                    ArtemisMine.Dsl,
+                partialUpdateTest(
+                    name = "Y",
+                    propGen = Y,
+                    property = ArtemisMine::y,
+                    dslProperty = ArtemisMine.Dsl::y,
                 ),
-                PartialUpdateTestSuite(
-                    "Z",
-                    arbObject,
-                    Z,
-                    ArtemisMine::z,
-                    ArtemisMine.Dsl::z,
-                    ArtemisMine.Dsl,
+                partialUpdateTest(
+                    name = "Z",
+                    propGen = Z,
+                    property = ArtemisMine::z,
+                    dslProperty = ArtemisMine.Dsl::z,
                 ),
             )
 
@@ -720,11 +924,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                         .filter { it != mine.timestamp }
                         .map { timestamp ->
                             val otherMine = ArtemisMine(mine.id, timestamp)
-                            if (timestamp < mine.timestamp) {
-                                Triple(otherMine, mine, test)
-                            } else {
-                                Triple(mine, otherMine, test)
-                            }
+                            if (timestamp < mine.timestamp) Triple(otherMine, mine, test)
+                            else Triple(mine, otherMine, test)
                         }
                 }
                 .checkAll { (oldMine, newMine, test) ->
@@ -740,6 +941,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 shouldThrowUnit<IllegalArgumentException> { test.updateThroughDsl(mine) }
             }
         }
+
+        private fun <V, P : Property<V, P>> partialUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisMine, P>,
+            dslProperty: KMutableProperty0<V>,
+        ): PartialUpdateTestSuite<ArtemisMine, ArtemisMine.Dsl, V, P> =
+            PartialUpdateTestSuite(
+                name = name,
+                objectGen = arbObject,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = ArtemisMine.Dsl,
+            )
     }
 
     data object Npc : ObjectTestSuite<ArtemisNpc>(ObjectType.NPC_SHIP) {
@@ -790,62 +1006,62 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisNpc =
-                ArtemisNpc.Dsl.let {
-                    it.name = name
-                    it.shieldsFront = shields.first.first
-                    it.shieldsFrontMax = shields.first.second
-                    it.shieldsRear = shields.second.first
-                    it.shieldsRearMax = shields.second.second
-                    it.hullId = hullId
-                    it.impulse = impulse
+                ArtemisNpc.Dsl.let { dsl ->
+                    dsl.name = name
+                    dsl.shieldsFront = shields.first.first
+                    dsl.shieldsFrontMax = shields.first.second
+                    dsl.shieldsRear = shields.second.first
+                    dsl.shieldsRearMax = shields.second.second
+                    dsl.hullId = hullId
+                    dsl.impulse = impulse
                     ArtemisNpc.Dsl.isEnemy = isEnemy
                     ArtemisNpc.Dsl.isSurrendered = isSurrendered
                     ArtemisNpc.Dsl.isInNebula = inNebula
                     ArtemisNpc.Dsl.scanBits = scanBits
-                    it.side = side
-                    it.x = location.x
-                    it.y = location.y
-                    it.z = location.z
+                    dsl.side = side
+                    dsl.x = location.x
+                    dsl.y = location.y
+                    dsl.z = location.z
 
-                    it.build(id, timestamp).apply { it.shouldBeReset() }
+                    dsl.build(id, timestamp).apply { dsl.shouldBeReset() }
                 }
 
             override fun updateThroughDsl(obj: ArtemisNpc) {
-                ArtemisNpc.Dsl.also {
-                        it.name = name
-                        it.shieldsFront = shields.first.first
-                        it.shieldsFrontMax = shields.first.second
-                        it.shieldsRear = shields.second.first
-                        it.shieldsRearMax = shields.second.second
-                        it.hullId = hullId
-                        it.impulse = impulse
+                ArtemisNpc.Dsl.also { dsl ->
+                        dsl.name = name
+                        dsl.shieldsFront = shields.first.first
+                        dsl.shieldsFrontMax = shields.first.second
+                        dsl.shieldsRear = shields.second.first
+                        dsl.shieldsRearMax = shields.second.second
+                        dsl.hullId = hullId
+                        dsl.impulse = impulse
                         ArtemisNpc.Dsl.isEnemy = isEnemy
                         ArtemisNpc.Dsl.isSurrendered = isSurrendered
                         ArtemisNpc.Dsl.isInNebula = inNebula
                         ArtemisNpc.Dsl.scanBits = scanBits
-                        it.side = side
-                        it.x = location.x
-                        it.y = location.y
-                        it.z = location.z
+                        dsl.side = side
+                        dsl.x = location.x
+                        dsl.y = location.y
+                        dsl.z = location.z
 
-                        it updates obj
+                        dsl updates obj
                     }
                     .shouldBeReset()
             }
 
             override fun testKnownObject(obj: ArtemisNpc) {
                 obj.shouldBeKnownObject(
-                    obj.id,
-                    objectType,
+                    id = obj.id,
+                    type = objectType,
                     name,
-                    location.x,
-                    location.y,
-                    location.z,
+                    x = location.x,
+                    y = location.y,
+                    z = location.z,
                     hullId,
-                    shields.first.first,
-                    shields.first.second,
-                    shields.second.first,
-                    shields.second.second,
+                    shieldsFront = shields.first.first,
+                    shieldsFrontMax = shields.first.second,
+                    shieldsRear = shields.second.first,
+                    shieldsRearMax = shields.second.second,
                     impulse,
                     side,
                 )
@@ -855,6 +1071,52 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.isInNebula shouldContainValue inNebula
                 obj.scanBits shouldContainValue scanBits
             }
+        }
+
+        enum class ScanBitsTestCase {
+            KNOWN {
+                override suspend fun testSides() {
+                    checkAll(arbObject, SCAN_BITS) { npc, scanBits ->
+                        npc.scanBits.value = scanBits
+                        BooleanArray(Int.SIZE_BITS) { scanBits and 1.shl(it) != 0 }
+                            .forEachIndexed { index, expected ->
+                                npc.hasBeenScannedBy(index.toByte()) shouldBeEqual
+                                    if (expected) BoolState.True else BoolState.False
+                            }
+                    }
+                }
+
+                override suspend fun testShips() {
+                    checkAll(arbObjectPair, SCAN_BITS, SIDE) { (npc1, npc2), scanBits, side ->
+                        npc1.scanBits.value = scanBits
+                        npc2.side.value = side
+
+                        npc1.hasBeenScannedBy(npc2) shouldBeEqual
+                            if (scanBits and 1.shl(side.toInt()) != 0) BoolState.True
+                            else BoolState.False
+                    }
+                }
+            },
+            UNKNOWN {
+                override suspend fun testSides() {
+                    arbObject.checkAll { npc ->
+                        repeat(Int.SIZE_BITS) { side ->
+                            npc.hasBeenScannedBy(side.toByte()) shouldBeEqual BoolState.Unknown
+                        }
+                    }
+                }
+
+                override suspend fun testShips() {
+                    checkAll(arbObjectPair, SCAN_BITS) { (npc1, npc2), scanBits ->
+                        npc1.scanBits.value = scanBits
+                        npc1.hasBeenScannedBy(npc2) shouldBeEqual BoolState.Unknown
+                    }
+                }
+            };
+
+            abstract suspend fun testSides()
+
+            abstract suspend fun testShips()
         }
 
         override val arbObject: Arb<ArtemisNpc> = Arb.bind()
@@ -868,135 +1130,105 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         override val partialUpdateTestSuites =
             listOf(
-                PartialUpdateTestSuite(
-                    "Name",
-                    arbObject,
-                    NAME,
-                    ArtemisNpc::name,
-                    ArtemisNpc.Dsl::name,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Name",
+                    propGen = NAME,
+                    property = ArtemisNpc::name,
+                    dslProperty = ArtemisNpc.Dsl::name,
                 ),
-                PartialUpdateTestSuite(
-                    "Front shields",
-                    arbObject,
-                    SHIELDS_FRONT,
-                    ArtemisNpc::shieldsFront,
-                    ArtemisNpc.Dsl::shieldsFront,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Front shields",
+                    propGen = SHIELDS_FRONT,
+                    property = ArtemisNpc::shieldsFront,
+                    dslProperty = ArtemisNpc.Dsl::shieldsFront,
                 ),
-                PartialUpdateTestSuite(
-                    "Front shields max",
-                    arbObject,
-                    SHIELDS_FRONT_MAX,
-                    ArtemisNpc::shieldsFrontMax,
-                    ArtemisNpc.Dsl::shieldsFrontMax,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Front shields max",
+                    propGen = SHIELDS_FRONT_MAX,
+                    property = ArtemisNpc::shieldsFrontMax,
+                    dslProperty = ArtemisNpc.Dsl::shieldsFrontMax,
                 ),
-                PartialUpdateTestSuite(
-                    "Rear shields",
-                    arbObject,
-                    SHIELDS_REAR,
-                    ArtemisNpc::shieldsRear,
-                    ArtemisNpc.Dsl::shieldsRear,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Rear shields",
+                    propGen = SHIELDS_REAR,
+                    property = ArtemisNpc::shieldsRear,
+                    dslProperty = ArtemisNpc.Dsl::shieldsRear,
                 ),
-                PartialUpdateTestSuite(
-                    "Rear shields max",
-                    arbObject,
-                    SHIELDS_REAR_MAX,
-                    ArtemisNpc::shieldsRearMax,
-                    ArtemisNpc.Dsl::shieldsRearMax,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Rear shields max",
+                    propGen = SHIELDS_REAR_MAX,
+                    property = ArtemisNpc::shieldsRearMax,
+                    dslProperty = ArtemisNpc.Dsl::shieldsRearMax,
                 ),
-                PartialUpdateTestSuite(
-                    "Hull ID",
-                    arbObject,
-                    HULL_ID,
-                    ArtemisNpc::hullId,
-                    ArtemisNpc.Dsl::hullId,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Hull ID",
+                    propGen = HULL_ID,
+                    property = ArtemisNpc::hullId,
+                    dslProperty = ArtemisNpc.Dsl::hullId,
                 ),
-                PartialUpdateTestSuite(
-                    "Impulse",
-                    arbObject,
-                    IMPULSE,
-                    ArtemisNpc::impulse,
-                    ArtemisNpc.Dsl::impulse,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Impulse",
+                    propGen = IMPULSE,
+                    property = ArtemisNpc::impulse,
+                    dslProperty = ArtemisNpc.Dsl::impulse,
                 ),
-                PartialUpdateTestSuite(
-                    "Is enemy",
-                    arbObject,
-                    IS_ENEMY,
-                    ArtemisNpc::isEnemy,
-                    ArtemisNpc.Dsl::isEnemy,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Is enemy",
+                    propGen = IS_ENEMY,
+                    property = ArtemisNpc::isEnemy,
+                    dslProperty = ArtemisNpc.Dsl::isEnemy,
                 ),
-                PartialUpdateTestSuite(
-                    "Is surrendered",
-                    arbObject,
-                    IS_SURRENDERED,
-                    ArtemisNpc::isSurrendered,
-                    ArtemisNpc.Dsl::isSurrendered,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Is surrendered",
+                    propGen = IS_SURRENDERED,
+                    property = ArtemisNpc::isSurrendered,
+                    dslProperty = ArtemisNpc.Dsl::isSurrendered,
                 ),
-                PartialUpdateTestSuite(
-                    "Is in nebula",
-                    arbObject,
-                    IN_NEBULA,
-                    ArtemisNpc::isInNebula,
-                    ArtemisNpc.Dsl::isInNebula,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Is in nebula",
+                    propGen = IN_NEBULA,
+                    property = ArtemisNpc::isInNebula,
+                    dslProperty = ArtemisNpc.Dsl::isInNebula,
                 ),
-                PartialUpdateTestSuite(
-                    "Scan bits",
-                    arbObject,
-                    SCAN_BITS,
-                    ArtemisNpc::scanBits,
-                    ArtemisNpc.Dsl::scanBits,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Scan bits",
+                    propGen = SCAN_BITS,
+                    property = ArtemisNpc::scanBits,
+                    dslProperty = ArtemisNpc.Dsl::scanBits,
                 ),
-                PartialUpdateTestSuite(
-                    "Side",
-                    arbObject,
-                    SIDE,
-                    ArtemisNpc::side,
-                    ArtemisNpc.Dsl::side,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Side",
+                    propGen = SIDE,
+                    property = ArtemisNpc::side,
+                    dslProperty = ArtemisNpc.Dsl::side,
                 ),
-                PartialUpdateTestSuite(
-                    "X",
-                    arbObject,
-                    X,
-                    ArtemisNpc::x,
-                    ArtemisNpc.Dsl::x,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "X",
+                    propGen = X,
+                    property = ArtemisNpc::x,
+                    dslProperty = ArtemisNpc.Dsl::x,
                 ),
-                PartialUpdateTestSuite(
-                    "Y",
-                    arbObject,
-                    Y,
-                    ArtemisNpc::y,
-                    ArtemisNpc.Dsl::y,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Y",
+                    propGen = Y,
+                    property = ArtemisNpc::y,
+                    dslProperty = ArtemisNpc.Dsl::y,
                 ),
-                PartialUpdateTestSuite(
-                    "Z",
-                    arbObject,
-                    Z,
-                    ArtemisNpc::z,
-                    ArtemisNpc.Dsl::z,
-                    ArtemisNpc.Dsl,
+                partialUpdateTest(
+                    name = "Z",
+                    propGen = Z,
+                    property = ArtemisNpc::z,
+                    dslProperty = ArtemisNpc.Dsl::z,
                 ),
             )
 
         override suspend fun testCreateUnknown() {
-            arbObject.checkAll {
-                it.shouldBeUnknownObject(it.id, objectType)
+            arbObject.checkAll { npc ->
+                npc.shouldBeUnknownObject(npc.id, objectType)
 
-                it.isEnemy.shouldBeUnspecified()
-                it.isInNebula.shouldBeUnspecified()
-                it.scanBits.shouldBeUnspecified()
+                npc.isEnemy.shouldBeUnspecified()
+                npc.isInNebula.shouldBeUnspecified()
+                npc.scanBits.shouldBeUnspecified()
             }
         }
 
@@ -1005,17 +1237,17 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 Arb.int(),
                 Arb.long(),
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    IS_ENEMY,
-                    IS_SURRENDERED,
-                    IN_NEBULA,
-                    SCAN_BITS,
-                    SIDE,
-                    LOCATION,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = IS_ENEMY,
+                    genF = IS_SURRENDERED,
+                    genG = IN_NEBULA,
+                    genH = SCAN_BITS,
+                    genI = SIDE,
+                    genJ = LOCATION,
+                    bindFn = ::Properties,
                 ),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
@@ -1028,17 +1260,17 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObject,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    IS_ENEMY,
-                    IS_SURRENDERED,
-                    IN_NEBULA,
-                    SCAN_BITS,
-                    SIDE,
-                    LOCATION,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = IS_ENEMY,
+                    genF = IS_SURRENDERED,
+                    genG = IN_NEBULA,
+                    genH = SCAN_BITS,
+                    genI = SIDE,
+                    genJ = LOCATION,
+                    bindFn = ::Properties,
                 ),
             ) { npc, test ->
                 test.updateDirectly(npc)
@@ -1050,17 +1282,17 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObject,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    IS_ENEMY,
-                    IS_SURRENDERED,
-                    IN_NEBULA,
-                    SCAN_BITS,
-                    SIDE,
-                    LOCATION,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = IS_ENEMY,
+                    genF = IS_SURRENDERED,
+                    genG = IN_NEBULA,
+                    genH = SCAN_BITS,
+                    genI = SIDE,
+                    genJ = LOCATION,
+                    bindFn = ::Properties,
                 ),
             ) { npc, test ->
                 test.updateThroughDsl(npc)
@@ -1072,17 +1304,17 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObjectPair,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    IS_ENEMY,
-                    IS_SURRENDERED,
-                    IN_NEBULA,
-                    SCAN_BITS,
-                    SIDE,
-                    LOCATION,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = IS_ENEMY,
+                    genF = IS_SURRENDERED,
+                    genG = IN_NEBULA,
+                    genH = SCAN_BITS,
+                    genI = SIDE,
+                    genJ = LOCATION,
+                    bindFn = ::Properties,
                 ),
             ) { (oldNpc, newNpc), test ->
                 test.updateDirectly(oldNpc)
@@ -1095,17 +1327,17 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObjectPair,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    IS_ENEMY,
-                    IS_SURRENDERED,
-                    IN_NEBULA,
-                    SCAN_BITS,
-                    SIDE,
-                    LOCATION,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = IS_ENEMY,
+                    genF = IS_SURRENDERED,
+                    genG = IN_NEBULA,
+                    genH = SCAN_BITS,
+                    genI = SIDE,
+                    genJ = LOCATION,
+                    bindFn = ::Properties,
                 ),
             ) { (oldNpc, newNpc), test ->
                 test.updateDirectly(newNpc)
@@ -1118,17 +1350,17 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObject,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    IS_ENEMY,
-                    IS_SURRENDERED,
-                    IN_NEBULA,
-                    SCAN_BITS,
-                    SIDE,
-                    LOCATION,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = IS_ENEMY,
+                    genF = IS_SURRENDERED,
+                    genG = IN_NEBULA,
+                    genH = SCAN_BITS,
+                    genI = SIDE,
+                    genJ = LOCATION,
+                    bindFn = ::Properties,
                 ),
             ) { npc, test ->
                 test.updateDirectly(npc)
@@ -1136,59 +1368,33 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
         }
 
-        override suspend fun DescribeSpecContainerScope.describeMore() {
+        override fun DescribeSpecContainerScope.describeMore() = launch {
             describe("Scanned by") {
-                describe("Known") {
-                    it("Sides") {
-                        checkAll(arbObject, SCAN_BITS) { npc, scanBits ->
-                            npc.scanBits.value = scanBits
-                            BooleanArray(Int.SIZE_BITS) { scanBits and 1.shl(it) != 0 }
-                                .forEachIndexed { index, expected ->
-                                    val scanned = npc.hasBeenScannedBy(index.toByte())
-                                    if (expected) {
-                                        scanned shouldBeEqual BoolState.True
-                                    } else {
-                                        scanned shouldBeEqual BoolState.False
-                                    }
-                                }
-                        }
-                    }
-
-                    it("Ships") {
-                        checkAll(arbObjectPair, SCAN_BITS, SIDE) { (npc1, npc2), scanBits, side ->
-                            npc1.scanBits.value = scanBits
-                            npc2.side.value = side
-
-                            val scanned = npc1.hasBeenScannedBy(npc2)
-                            if (scanBits and 1.shl(side.toInt()) != 0) {
-                                scanned shouldBeEqual BoolState.True
-                            } else {
-                                scanned shouldBeEqual BoolState.False
-                            }
-                        }
-                    }
-                }
-
-                describe("Unknown") {
-                    it("Sides") {
-                        arbObject.checkAll { npc ->
-                            repeat(Int.SIZE_BITS) { side ->
-                                npc.hasBeenScannedBy(side.toByte()) shouldBeEqual BoolState.Unknown
-                            }
-                        }
-                    }
-
-                    it("Ships") {
-                        checkAll(arbObjectPair, SCAN_BITS) { (npc1, npc2), scanBits ->
-                            npc1.scanBits.value = scanBits
-                            npc1.hasBeenScannedBy(npc2) shouldBeEqual BoolState.Unknown
-                        }
+                ScanBitsTestCase.entries.forEach { case ->
+                    describe(case.name.let { it[0] + it.substring(1).lowercase() }) {
+                        it("Sides") { case.testSides() }
+                        it("Ships") { case.testShips() }
                     }
                 }
             }
 
             describeVesselDataTests(arbObject, HULL_ID)
         }
+
+        private fun <V, P : Property<V, P>> partialUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisNpc, P>,
+            dslProperty: KMutableProperty0<V>,
+        ): PartialUpdateTestSuite<ArtemisNpc, ArtemisNpc.Dsl, V, P> =
+            PartialUpdateTestSuite(
+                name = name,
+                objectGen = arbObject,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = ArtemisNpc.Dsl,
+            )
     }
 
     data object Player : ObjectTestSuite<ArtemisPlayer>(ObjectType.PLAYER_SHIP) {
@@ -1264,9 +1470,9 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     obj.ordnanceCounts[index].value = count
                 }
                 tubes.forEachIndexed { index, (state, contents) ->
-                    obj.tubes[index].also {
-                        it.state.value = state
-                        it.contents = contents
+                    obj.tubes[index].also { tube ->
+                        tube.state.value = state
+                        tube.contents = contents
                     }
                 }
             }
@@ -1278,45 +1484,45 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisPlayer =
-                ArtemisPlayer.Dsl.Player.let {
-                    it.name = name
-                    it.shieldsFront = shields.first.first
-                    it.shieldsFrontMax = shields.first.second
-                    it.shieldsRear = shields.second.first
-                    it.shieldsRearMax = shields.second.second
-                    it.hullId = hullId
-                    it.impulse = impulse
-                    it.side = side
-                    it.x = location.x
-                    it.y = location.y
-                    it.z = location.z
-                    it.shipIndex = shipIndex
-                    it.capitalShipID = capitalShipID
-                    it.alertStatus = enumStates.first
-                    it.driveType = enumStates.second
-                    it.warp = warp
-                    it.dockingBase = dockingBase
+                ArtemisPlayer.Dsl.Player.let { dsl ->
+                    dsl.name = name
+                    dsl.shieldsFront = shields.first.first
+                    dsl.shieldsFrontMax = shields.first.second
+                    dsl.shieldsRear = shields.second.first
+                    dsl.shieldsRearMax = shields.second.second
+                    dsl.hullId = hullId
+                    dsl.impulse = impulse
+                    dsl.side = side
+                    dsl.x = location.x
+                    dsl.y = location.y
+                    dsl.z = location.z
+                    dsl.shipIndex = shipIndex
+                    dsl.capitalShipID = capitalShipID
+                    dsl.alertStatus = enumStates.first
+                    dsl.driveType = enumStates.second
+                    dsl.warp = warp
+                    dsl.dockingBase = dockingBase
 
-                    it.build(id, timestamp).also { player ->
+                    dsl.build(id, timestamp).also { player ->
                         updateThroughWeaponsDsl(player)
                         updateThroughUpgradesDsl(player)
-                        it.shouldBeReset()
+                        dsl.shouldBeReset()
                     }
                 }
 
             override fun testKnownObject(obj: ArtemisPlayer) {
                 obj.shouldBeKnownObject(
-                    obj.id,
-                    objectType,
+                    id = obj.id,
+                    type = objectType,
                     name,
-                    location.x,
-                    location.y,
-                    location.z,
+                    x = location.x,
+                    y = location.y,
+                    z = location.z,
                     hullId,
-                    shields.first.first,
-                    shields.first.second,
-                    shields.second.first,
-                    shields.second.second,
+                    shieldsFront = shields.first.first,
+                    shieldsFrontMax = shields.first.second,
+                    shieldsRear = shields.second.first,
+                    shieldsRearMax = shields.second.second,
                     impulse,
                     side,
                 )
@@ -1360,26 +1566,26 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             fun updateThroughPlayerDsl(player: ArtemisPlayer) {
-                ArtemisPlayer.Dsl.Player.also {
-                        it.name = name
-                        it.shieldsFront = shields.first.first
-                        it.shieldsFrontMax = shields.first.second
-                        it.shieldsRear = shields.second.first
-                        it.shieldsRearMax = shields.second.second
-                        it.hullId = hullId
-                        it.impulse = impulse
-                        it.side = side
-                        it.x = location.x
-                        it.y = location.y
-                        it.z = location.z
-                        it.shipIndex = shipIndex
-                        it.capitalShipID = capitalShipID
-                        it.alertStatus = enumStates.first
-                        it.driveType = enumStates.second
-                        it.warp = warp
-                        it.dockingBase = dockingBase
+                ArtemisPlayer.Dsl.Player.also { dsl ->
+                        dsl.name = name
+                        dsl.shieldsFront = shields.first.first
+                        dsl.shieldsFrontMax = shields.first.second
+                        dsl.shieldsRear = shields.second.first
+                        dsl.shieldsRearMax = shields.second.second
+                        dsl.hullId = hullId
+                        dsl.impulse = impulse
+                        dsl.side = side
+                        dsl.x = location.x
+                        dsl.y = location.y
+                        dsl.z = location.z
+                        dsl.shipIndex = shipIndex
+                        dsl.capitalShipID = capitalShipID
+                        dsl.alertStatus = enumStates.first
+                        dsl.driveType = enumStates.second
+                        dsl.warp = warp
+                        dsl.dockingBase = dockingBase
 
-                        it updates player
+                        dsl updates player
                     }
                     .shouldBeReset()
             }
@@ -1400,12 +1606,12 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             fun updateThroughUpgradesDsl(player: ArtemisPlayer) {
-                ArtemisPlayer.Dsl.Upgrades.also {
-                        it.doubleAgentActive = doubleAgentStatus.first
-                        it.doubleAgentCount = doubleAgentStatus.second
-                        it.doubleAgentSecondsLeft = doubleAgentStatus.third
+                ArtemisPlayer.Dsl.Upgrades.also { dsl ->
+                        dsl.doubleAgentActive = doubleAgentStatus.first
+                        dsl.doubleAgentCount = doubleAgentStatus.second
+                        dsl.doubleAgentSecondsLeft = doubleAgentStatus.third
 
-                        it updates player
+                        dsl updates player
                     }
                     .shouldBeReset()
             }
@@ -1422,183 +1628,143 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         override val partialUpdateTestSuites =
             listOf(
-                PartialUpdateTestSuite(
-                    "Name",
-                    arbObject,
-                    NAME,
-                    ArtemisPlayer::name,
-                    ArtemisPlayer.Dsl.Player::name,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Name",
+                    propGen = NAME,
+                    property = ArtemisPlayer::name,
+                    dslProperty = ArtemisPlayer.Dsl.Player::name,
                 ),
-                PartialUpdateTestSuite(
-                    "Front shields",
-                    arbObject,
-                    SHIELDS_FRONT,
-                    ArtemisPlayer::shieldsFront,
-                    ArtemisPlayer.Dsl.Player::shieldsFront,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Front shields",
+                    propGen = SHIELDS_FRONT,
+                    property = ArtemisPlayer::shieldsFront,
+                    dslProperty = ArtemisPlayer.Dsl.Player::shieldsFront,
                 ),
-                PartialUpdateTestSuite(
-                    "Front shields max",
-                    arbObject,
-                    SHIELDS_FRONT_MAX,
-                    ArtemisPlayer::shieldsFrontMax,
-                    ArtemisPlayer.Dsl.Player::shieldsFrontMax,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Front shields max",
+                    propGen = SHIELDS_FRONT_MAX,
+                    property = ArtemisPlayer::shieldsFrontMax,
+                    dslProperty = ArtemisPlayer.Dsl.Player::shieldsFrontMax,
                 ),
-                PartialUpdateTestSuite(
-                    "Rear shields",
-                    arbObject,
-                    SHIELDS_REAR,
-                    ArtemisPlayer::shieldsRear,
-                    ArtemisPlayer.Dsl.Player::shieldsRear,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Rear shields",
+                    propGen = SHIELDS_REAR,
+                    property = ArtemisPlayer::shieldsRear,
+                    dslProperty = ArtemisPlayer.Dsl.Player::shieldsRear,
                 ),
-                PartialUpdateTestSuite(
-                    "Rear shields max",
-                    arbObject,
-                    SHIELDS_REAR_MAX,
-                    ArtemisPlayer::shieldsRearMax,
-                    ArtemisPlayer.Dsl.Player::shieldsRearMax,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Rear shields max",
+                    propGen = SHIELDS_REAR_MAX,
+                    property = ArtemisPlayer::shieldsRearMax,
+                    dslProperty = ArtemisPlayer.Dsl.Player::shieldsRearMax,
                 ),
-                PartialUpdateTestSuite(
-                    "Hull ID",
-                    arbObject,
-                    HULL_ID,
-                    ArtemisPlayer::hullId,
-                    ArtemisPlayer.Dsl.Player::hullId,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Hull ID",
+                    propGen = HULL_ID,
+                    property = ArtemisPlayer::hullId,
+                    dslProperty = ArtemisPlayer.Dsl.Player::hullId,
                 ),
-                PartialUpdateTestSuite(
-                    "Impulse",
-                    arbObject,
-                    IMPULSE,
-                    ArtemisPlayer::impulse,
-                    ArtemisPlayer.Dsl.Player::impulse,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Impulse",
+                    propGen = IMPULSE,
+                    property = ArtemisPlayer::impulse,
+                    dslProperty = ArtemisPlayer.Dsl.Player::impulse,
                 ),
-                PartialUpdateTestSuite(
-                    "Warp",
-                    arbObject,
-                    WARP,
-                    ArtemisPlayer::warp,
-                    ArtemisPlayer.Dsl.Player::warp,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Warp",
+                    propGen = WARP,
+                    property = ArtemisPlayer::warp,
+                    dslProperty = ArtemisPlayer.Dsl.Player::warp,
                 ),
-                PartialUpdateTestSuite(
-                    "Side",
-                    arbObject,
-                    SIDE,
-                    ArtemisPlayer::side,
-                    ArtemisPlayer.Dsl.Player::side,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Side",
+                    propGen = SIDE,
+                    property = ArtemisPlayer::side,
+                    dslProperty = ArtemisPlayer.Dsl.Player::side,
                 ),
-                PartialUpdateTestSuite(
-                    "Ship index",
-                    arbObject,
-                    SHIP_INDEX,
-                    ArtemisPlayer::shipIndex,
-                    ArtemisPlayer.Dsl.Player::shipIndex,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Ship index",
+                    propGen = SHIP_INDEX,
+                    property = ArtemisPlayer::shipIndex,
+                    dslProperty = ArtemisPlayer.Dsl.Player::shipIndex,
                 ),
-                PartialUpdateTestSuite(
-                    "Capital ship ID",
-                    arbObject,
-                    CAPITAL_SHIP_ID,
-                    ArtemisPlayer::capitalShipID,
-                    ArtemisPlayer.Dsl.Player::capitalShipID,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Capital ship ID",
+                    propGen = CAPITAL_SHIP_ID,
+                    property = ArtemisPlayer::capitalShipID,
+                    dslProperty = ArtemisPlayer.Dsl.Player::capitalShipID,
                 ),
-                PartialUpdateTestSuite(
-                    "Docking base",
-                    arbObject,
-                    DOCKING_BASE,
-                    ArtemisPlayer::dockingBase,
-                    ArtemisPlayer.Dsl.Player::dockingBase,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Docking base",
+                    propGen = DOCKING_BASE,
+                    property = ArtemisPlayer::dockingBase,
+                    dslProperty = ArtemisPlayer.Dsl.Player::dockingBase,
                 ),
-                PartialUpdateTestSuite(
-                    "Alert status",
-                    arbObject,
-                    ALERT_STATUS,
-                    ArtemisPlayer::alertStatus,
-                    ArtemisPlayer.Dsl.Player::alertStatus,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Alert status",
+                    propGen = ALERT_STATUS,
+                    property = ArtemisPlayer::alertStatus,
+                    dslProperty = ArtemisPlayer.Dsl.Player::alertStatus,
                 ),
-                PartialUpdateTestSuite(
-                    "Drive type",
-                    arbObject,
-                    DRIVE_TYPE,
-                    ArtemisPlayer::driveType,
-                    ArtemisPlayer.Dsl.Player::driveType,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Drive type",
+                    propGen = DRIVE_TYPE,
+                    property = ArtemisPlayer::driveType,
+                    dslProperty = ArtemisPlayer.Dsl.Player::driveType,
                 ),
-                PartialUpdateTestSuite(
-                    "X",
-                    arbObject,
-                    X,
-                    ArtemisPlayer::x,
-                    ArtemisPlayer.Dsl.Player::x,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "X",
+                    propGen = X,
+                    property = ArtemisPlayer::x,
+                    dslProperty = ArtemisPlayer.Dsl.Player::x,
                 ),
-                PartialUpdateTestSuite(
-                    "Y",
-                    arbObject,
-                    Y,
-                    ArtemisPlayer::y,
-                    ArtemisPlayer.Dsl.Player::y,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Y",
+                    propGen = Y,
+                    property = ArtemisPlayer::y,
+                    dslProperty = ArtemisPlayer.Dsl.Player::y,
                 ),
-                PartialUpdateTestSuite(
-                    "Z",
-                    arbObject,
-                    Z,
-                    ArtemisPlayer::z,
-                    ArtemisPlayer.Dsl.Player::z,
-                    ArtemisPlayer.Dsl.Player,
+                partialPlayerUpdateTest(
+                    name = "Z",
+                    propGen = Z,
+                    property = ArtemisPlayer::z,
+                    dslProperty = ArtemisPlayer.Dsl.Player::z,
                 ),
-                PartialUpdateTestSuite(
-                    "Double agent active",
-                    arbObject,
-                    DOUBLE_AGENT_ACTIVE,
-                    ArtemisPlayer::doubleAgentActive,
-                    ArtemisPlayer.Dsl.Upgrades::doubleAgentActive,
-                    ArtemisPlayer.Dsl.Upgrades,
+                partialUpgradesUpdateTest(
+                    name = "Double agent active",
+                    propGen = DOUBLE_AGENT_ACTIVE,
+                    property = ArtemisPlayer::doubleAgentActive,
+                    dslProperty = ArtemisPlayer.Dsl.Upgrades::doubleAgentActive,
                 ),
-                PartialUpdateTestSuite(
-                    "Double agent count",
-                    arbObject,
-                    DOUBLE_AGENT_COUNT,
-                    ArtemisPlayer::doubleAgentCount,
-                    ArtemisPlayer.Dsl.Upgrades::doubleAgentCount,
-                    ArtemisPlayer.Dsl.Upgrades,
+                partialUpgradesUpdateTest(
+                    name = "Double agent count",
+                    propGen = DOUBLE_AGENT_COUNT,
+                    property = ArtemisPlayer::doubleAgentCount,
+                    dslProperty = ArtemisPlayer.Dsl.Upgrades::doubleAgentCount,
                 ),
-                PartialUpdateTestSuite(
-                    "Double agent seconds left",
-                    arbObject,
-                    DOUBLE_AGENT_SECONDS,
-                    ArtemisPlayer::doubleAgentSecondsLeft,
-                    ArtemisPlayer.Dsl.Upgrades::doubleAgentSecondsLeft,
-                    ArtemisPlayer.Dsl.Upgrades,
+                partialUpgradesUpdateTest(
+                    name = "Double agent seconds left",
+                    propGen = DOUBLE_AGENT_SECONDS,
+                    property = ArtemisPlayer::doubleAgentSecondsLeft,
+                    dslProperty = ArtemisPlayer.Dsl.Upgrades::doubleAgentSecondsLeft,
                 ),
             )
 
         override suspend fun testCreateUnknown() {
-            arbObject.checkAll {
-                it.shouldBeUnknownObject(it.id, objectType)
+            arbObject.checkAll { player ->
+                player.shouldBeUnknownObject(player.id, objectType)
 
-                it.shipIndex.shouldBeUnspecified(Byte.MIN_VALUE)
-                it.capitalShipID.shouldBeUnspecified()
-                it.doubleAgentActive.shouldBeUnspecified()
-                it.doubleAgentCount.shouldBeUnspecified()
-                it.doubleAgentSecondsLeft.shouldBeUnspecified()
-                it.alertStatus.shouldBeUnspecified()
-                it.driveType.shouldBeUnspecified()
-                it.warp.shouldBeUnspecified()
-                it.dockingBase.shouldBeUnspecified()
-                it.ordnanceCounts.forEach { prop -> prop.shouldBeUnspecified() }
-                it.tubes.forEach { tube ->
+                player.shipIndex.shouldBeUnspecified(Byte.MIN_VALUE)
+                player.capitalShipID.shouldBeUnspecified()
+                player.doubleAgentActive.shouldBeUnspecified()
+                player.doubleAgentCount.shouldBeUnspecified()
+                player.doubleAgentSecondsLeft.shouldBeUnspecified()
+                player.alertStatus.shouldBeUnspecified()
+                player.driveType.shouldBeUnspecified()
+                player.warp.shouldBeUnspecified()
+                player.dockingBase.shouldBeUnspecified()
+                player.ordnanceCounts.forEach { prop -> prop.shouldBeUnspecified() }
+                player.tubes.forEach { tube ->
                     tube.state.shouldBeUnspecified()
                     tube.lastContents.shouldBeUnspecified()
                     tube.contents.shouldBeNull()
@@ -1612,21 +1778,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 Arb.int(),
                 Arb.long(),
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    SIDE,
-                    SHIP_INDEX,
-                    CAPITAL_SHIP_ID,
-                    ENUMS,
-                    WARP,
-                    DOCKING_BASE,
-                    DOUBLE_AGENT,
-                    LOCATION,
-                    ORDNANCE_COUNTS,
-                    TUBES,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = SIDE,
+                    genF = SHIP_INDEX,
+                    genG = CAPITAL_SHIP_ID,
+                    genH = ENUMS,
+                    genI = WARP,
+                    genJ = DOCKING_BASE,
+                    genK = DOUBLE_AGENT,
+                    genL = LOCATION,
+                    genM = ORDNANCE_COUNTS,
+                    genN = TUBES,
+                    bindFn = ::Properties,
                 ),
             ) { id, timestamp, test ->
                 shouldNotThrow<IllegalStateException> {
@@ -1639,21 +1805,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObject,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    SIDE,
-                    SHIP_INDEX,
-                    CAPITAL_SHIP_ID,
-                    ENUMS,
-                    WARP,
-                    DOCKING_BASE,
-                    DOUBLE_AGENT,
-                    LOCATION,
-                    ORDNANCE_COUNTS,
-                    TUBES,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = SIDE,
+                    genF = SHIP_INDEX,
+                    genG = CAPITAL_SHIP_ID,
+                    genH = ENUMS,
+                    genI = WARP,
+                    genJ = DOCKING_BASE,
+                    genK = DOUBLE_AGENT,
+                    genL = LOCATION,
+                    genM = ORDNANCE_COUNTS,
+                    genN = TUBES,
+                    bindFn = ::Properties,
                 ),
             ) { player, test ->
                 test.updateDirectly(player)
@@ -1665,21 +1831,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObject,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    SIDE,
-                    SHIP_INDEX,
-                    CAPITAL_SHIP_ID,
-                    ENUMS,
-                    WARP,
-                    DOCKING_BASE,
-                    DOUBLE_AGENT,
-                    LOCATION,
-                    ORDNANCE_COUNTS,
-                    TUBES,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = SIDE,
+                    genF = SHIP_INDEX,
+                    genG = CAPITAL_SHIP_ID,
+                    genH = ENUMS,
+                    genI = WARP,
+                    genJ = DOCKING_BASE,
+                    genK = DOUBLE_AGENT,
+                    genL = LOCATION,
+                    genM = ORDNANCE_COUNTS,
+                    genN = TUBES,
+                    bindFn = ::Properties,
                 ),
             ) { player, test ->
                 test.updateThroughDsl(player)
@@ -1691,21 +1857,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObjectPair,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    SIDE,
-                    SHIP_INDEX,
-                    CAPITAL_SHIP_ID,
-                    ENUMS,
-                    WARP,
-                    DOCKING_BASE,
-                    DOUBLE_AGENT,
-                    LOCATION,
-                    ORDNANCE_COUNTS,
-                    TUBES,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = SIDE,
+                    genF = SHIP_INDEX,
+                    genG = CAPITAL_SHIP_ID,
+                    genH = ENUMS,
+                    genI = WARP,
+                    genJ = DOCKING_BASE,
+                    genK = DOUBLE_AGENT,
+                    genL = LOCATION,
+                    genM = ORDNANCE_COUNTS,
+                    genN = TUBES,
+                    bindFn = ::Properties,
                 ),
             ) { (oldPlayer, newPlayer), test ->
                 test.updateDirectly(oldPlayer)
@@ -1718,21 +1884,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObjectPair,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    SIDE,
-                    SHIP_INDEX,
-                    CAPITAL_SHIP_ID,
-                    ENUMS,
-                    WARP,
-                    DOCKING_BASE,
-                    DOUBLE_AGENT,
-                    LOCATION,
-                    ORDNANCE_COUNTS,
-                    TUBES,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = SIDE,
+                    genF = SHIP_INDEX,
+                    genG = CAPITAL_SHIP_ID,
+                    genH = ENUMS,
+                    genI = WARP,
+                    genJ = DOCKING_BASE,
+                    genK = DOUBLE_AGENT,
+                    genL = LOCATION,
+                    genM = ORDNANCE_COUNTS,
+                    genN = TUBES,
+                    bindFn = ::Properties,
                 ),
             ) { (oldPlayer, newPlayer), test ->
                 test.updateDirectly(newPlayer)
@@ -1745,21 +1911,21 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             checkAll(
                 arbObject,
                 Arb.bind(
-                    NAME,
-                    SHIELDS,
-                    HULL_ID,
-                    IMPULSE,
-                    SIDE,
-                    SHIP_INDEX,
-                    CAPITAL_SHIP_ID,
-                    ENUMS,
-                    WARP,
-                    DOCKING_BASE,
-                    DOUBLE_AGENT,
-                    LOCATION,
-                    ORDNANCE_COUNTS,
-                    TUBES,
-                    ::Properties,
+                    genA = NAME,
+                    genB = SHIELDS,
+                    genC = HULL_ID,
+                    genD = IMPULSE,
+                    genE = SIDE,
+                    genF = SHIP_INDEX,
+                    genG = CAPITAL_SHIP_ID,
+                    genH = ENUMS,
+                    genI = WARP,
+                    genJ = DOCKING_BASE,
+                    genK = DOUBLE_AGENT,
+                    genL = LOCATION,
+                    genM = ORDNANCE_COUNTS,
+                    genN = TUBES,
+                    bindFn = ::Properties,
                 ),
             ) { player, test ->
                 test.updateDirectly(player)
@@ -1851,7 +2017,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             override fun dataTestName(): String = "At ${name.lowercase().replace('_', ' ')}"
         }
 
-        override suspend fun DescribeSpecContainerScope.describeMore() {
+        override fun DescribeSpecContainerScope.describeMore() = launch {
             describeVesselDataTests(arbObject, HULL_ID)
 
             describe("Invalid warp value throws") {
@@ -1869,10 +2035,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             describe("Undock when moving") {
                 withData(DockInvalidatingTestCase.entries) { test ->
                     checkAll(
-                        arbObjectPair,
-                        Arb.int().filter { it != -1 },
-                        test.impulseArb,
-                        test.warpArb,
+                        genA = arbObjectPair,
+                        genB = Arb.int().filter { it != -1 },
+                        genC = test.impulseArb,
+                        genD = test.warpArb,
                     ) { (playerA, playerB), dockingBase, impulse, warp ->
                         playerA.dockingBase.value = dockingBase
                         playerA.docked = BoolState.True
@@ -1886,141 +2052,49 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 }
             }
         }
-    }
 
-    abstract val arbObject: Arb<T>
-    abstract val arbObjectPair: Arb<Pair<T, T>>
-    protected abstract val partialUpdateTestSuites:
-        List<PartialUpdateTestSuite<T, out BaseArtemisObject.Dsl<T>, *, *>>
+        private fun <V, P : Property<V, P>> partialPlayerUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisPlayer, P>,
+            dslProperty: KMutableProperty0<V>,
+        ): PartialUpdateTestSuite<ArtemisPlayer, ArtemisPlayer.Dsl, V, P> =
+            partialUpdateTest(
+                name = name,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = ArtemisPlayer.Dsl.Player,
+            )
 
-    abstract suspend fun testCreateUnknown()
+        private fun <V, P : Property<V, P>> partialUpgradesUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisPlayer, P>,
+            dslProperty: KMutableProperty0<V>,
+        ): PartialUpdateTestSuite<ArtemisPlayer, ArtemisPlayer.Dsl, V, P> =
+            partialUpdateTest(
+                name = name,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = ArtemisPlayer.Dsl.Upgrades,
+            )
 
-    abstract suspend fun testCreateFromDsl()
-
-    abstract suspend fun testCreateAndUpdateManually()
-
-    abstract suspend fun testCreateAndUpdateFromDsl()
-
-    abstract suspend fun testUnknownObjectDoesNotProvideUpdates()
-
-    abstract suspend fun testKnownObjectProvidesUpdates()
-
-    abstract suspend fun testDslCannotUpdateKnownObject()
-
-    open suspend fun describeTestCreateAndUpdatePartially(scope: DescribeSpecContainerScope) {
-        partialUpdateTestSuites.forEachIndexed { i, testSuite ->
-            scope.it(testSuite.name) {
-                testSuite.testPartiallyUpdatedObject { base ->
-                    partialUpdateTestSuites.forEachIndexed { j, testSuite2 ->
-                        testSuite2.property.get(base).hasValue.shouldBeEqual(i == j)
-                    }
-                }
-            }
-        }
-    }
-
-    private suspend fun DescribeSpecContainerScope.describeTestEquality() {
-        describe("Equality") {
-            it("Equals itself") { arbObject.checkAll { it shouldBeEqual it } }
-
-            it("Equal type and ID") {
-                arbObjectPair.checkAll { (obj1, obj2) -> obj1 shouldBeEqual obj2 }
-            }
-
-            it("Different ID") {
-                arbObject.checkAll { obj ->
-                    val mockObj =
-                        mockk<ArtemisObject<*>> {
-                            every { id } returns obj.id.inv()
-                            every { type } returns obj.type
-                        }
-                    obj shouldNotBeEqual mockObj
-                    clearMocks(mockObj)
-                }
-            }
-
-            describe("Different type") {
-                withData(
-                    nameFn = { "Artemis${it.javaClass.simpleName}" },
-                    listOf(Base, BlackHole, Creature, Mine, Npc, Player).filter {
-                        it.objectType != objectType
-                    },
-                ) { other ->
-                    arbObject.checkAll { obj ->
-                        val mockObj =
-                            mockk<ArtemisObject<*>> {
-                                every { id } returns obj.id
-                                every { type } returns other.objectType
-                            }
-                        obj shouldNotBeEqual mockObj
-                        clearMocks(mockObj)
-                    }
-                }
-            }
-        }
-    }
-
-    private suspend fun DescribeSpecContainerScope.describeTestHashCode() {
-        describe("Hash code") {
-            it("Equals ID") { arbObject.checkAll { it.hashCode() shouldBeEqual it.id } }
-
-            it("Equal ID, equal hash code") {
-                arbObjectPair.checkAll { (obj1, obj2) ->
-                    obj1.hashCode() shouldBeEqual obj2.hashCode()
-                }
-            }
-
-            it("Different ID, different hash code") {
-                arbObject.checkAll { obj ->
-                    val mockObj = mockk<BaseArtemisObject<*>> { every { id } returns obj.id.inv() }
-                    obj.hashCode() shouldNotBeEqual mockObj.hashCode()
-                    clearMocks(mockObj)
-                }
-            }
-        }
-    }
-
-    open suspend fun DescribeSpecContainerScope.describeMore() {}
-
-    fun tests(): TestFactory {
-        val specName = "Artemis${javaClass.simpleName}"
-        return describeSpec {
-            describe(specName) {
-                it("Can create with no data") { testCreateUnknown() }
-
-                it("Can create using Dsl instance") { testCreateFromDsl() }
-
-                it("Can populate properties manually") { testCreateAndUpdateManually() }
-
-                describe("Can apply partial updates") { describeTestCreateAndUpdatePartially(this) }
-
-                it("Can populate properties using Dsl instance") { testCreateAndUpdateFromDsl() }
-
-                it("Unpopulated properties do not provide updates to another object") {
-                    testUnknownObjectDoesNotProvideUpdates()
-                }
-
-                it("Populated properties provide updates to another object") {
-                    testKnownObjectProvidesUpdates()
-                }
-
-                it("Dsl object cannot populate a non-empty object") {
-                    testDslCannotUpdateKnownObject()
-                }
-
-                it("Can offer to listener modules") {
-                    val iterations = PropertyTesting.defaultIterationCount
-                    val objects = Arb.list(arbObject, iterations..iterations).next()
-                    objects.forEach { it.offerTo(ArtemisObjectTestModule) }
-                    ArtemisObjectTestModule.collected shouldContainExactly objects
-                }
-
-                describeTestEquality()
-                describeTestHashCode()
-                describeMore()
-
-                ArtemisObjectTestModule.collected.clear()
-            }
-        }
+        private fun <DSL : ArtemisPlayer.Dsl, V, P : Property<V, P>> partialUpdateTest(
+            name: String,
+            propGen: Gen<V>,
+            property: KProperty1<ArtemisPlayer, P>,
+            dslProperty: KMutableProperty0<V>,
+            dsl: DSL,
+        ): PartialUpdateTestSuite<ArtemisPlayer, DSL, V, P> =
+            PartialUpdateTestSuite(
+                name = name,
+                objectGen = arbObject,
+                propGen = propGen,
+                property = property,
+                dslProperty = dslProperty,
+                dsl = dsl,
+            )
     }
 }

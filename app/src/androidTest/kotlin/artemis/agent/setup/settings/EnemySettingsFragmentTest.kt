@@ -74,9 +74,9 @@ class EnemySettingsFragmentTest {
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testEnemySubMenuOpen(
                 sortMethods,
-                surrenderRange.takeIf { it >= 0 },
-                !usingToggle,
-                singleToggles,
+                surrenderRange = surrenderRange.takeIf { it >= 0 },
+                shouldTestSettings = !usingToggle,
+                singleToggles = singleToggles,
             )
 
             SettingsFragmentTest.closeSettingsSubMenu(usingToggle = !usingToggle)
@@ -90,9 +90,9 @@ class EnemySettingsFragmentTest {
                 )
                 testEnemySubMenuOpen(
                     sortMethods,
-                    surrenderRange.takeIf { it >= 0 },
-                    false,
-                    singleToggles,
+                    surrenderRange = surrenderRange.takeIf { it >= 0 },
+                    shouldTestSettings = false,
+                    singleToggles = singleToggles,
                 )
 
                 SettingsFragmentTest.backFromSubMenu()
@@ -115,22 +115,22 @@ class EnemySettingsFragmentTest {
         val enemySingleToggleSettings =
             arrayOf(
                 SingleToggleButtonSetting(
-                    R.id.showIntelDivider,
-                    R.id.showIntelTitle,
-                    R.string.show_intel,
-                    R.id.showIntelButton,
+                    divider = R.id.showIntelDivider,
+                    label = R.id.showIntelTitle,
+                    text = R.string.show_intel,
+                    button = R.id.showIntelButton,
                 ),
                 SingleToggleButtonSetting(
-                    R.id.showTauntStatusDivider,
-                    R.id.showTauntStatusTitle,
-                    R.string.show_taunt_status,
-                    R.id.showTauntStatusButton,
+                    divider = R.id.showTauntStatusDivider,
+                    label = R.id.showTauntStatusTitle,
+                    text = R.string.show_taunt_status,
+                    button = R.id.showTauntStatusButton,
                 ),
                 SingleToggleButtonSetting(
-                    R.id.disableIneffectiveDivider,
-                    R.id.disableIneffectiveTitle,
-                    R.string.disable_ineffective_taunts,
-                    R.id.disableIneffectiveButton,
+                    divider = R.id.disableIneffectiveDivider,
+                    label = R.id.disableIneffectiveTitle,
+                    text = R.string.disable_ineffective_taunts,
+                    button = R.id.disableIneffectiveButton,
                 ),
             )
 
@@ -247,13 +247,15 @@ class EnemySettingsFragmentTest {
             assertDisplayed(R.id.surrenderRangeTitle, R.string.surrender_range)
             assertDisplayed(R.id.surrenderRangeEnableButton)
 
-            testEnemySubMenuSurrenderRange(surrenderRange != null, surrenderRange)
+            val isSurrenderRangeEnabled = surrenderRange != null
+
+            testEnemySubMenuSurrenderRange(isSurrenderRangeEnabled, surrenderRange)
 
             if (!shouldTest) return
 
-            booleanArrayOf(true, false).forEach {
+            booleanArrayOf(false, true).forEach { isEnabled ->
                 clickOn(R.id.surrenderRangeEnableButton)
-                testEnemySubMenuSurrenderRange((surrenderRange == null) == it, surrenderRange)
+                testEnemySubMenuSurrenderRange(isSurrenderRangeEnabled == isEnabled, surrenderRange)
             }
         }
 

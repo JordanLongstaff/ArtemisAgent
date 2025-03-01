@@ -11,6 +11,15 @@ abstract class BaseArtemisShielded<T : BaseArtemisShielded<T>>(id: Int, timestam
     override val shieldsFrontMax = Property.FloatProperty(timestamp)
     override val name = Property.ObjectProperty<String>(timestamp)
 
+    /** Returns true if this object contains any data. */
+    override val hasData: Boolean
+        get() =
+            super.hasData ||
+                name.hasValue ||
+                hullId.hasValue ||
+                shieldsFront.hasValue ||
+                shieldsFrontMax.hasValue
+
     override fun getVessel(vesselData: VesselData): Vessel? =
         if (hullId.hasValue) vesselData[hullId.value] else null
 
@@ -22,15 +31,6 @@ abstract class BaseArtemisShielded<T : BaseArtemisShielded<T>>(id: Int, timestam
         shieldsFront updates other.shieldsFront
         shieldsFrontMax updates other.shieldsFrontMax
     }
-
-    /** Returns true if this object contains any data. */
-    override val hasData: Boolean
-        get() =
-            super.hasData ||
-                name.hasValue ||
-                hullId.hasValue ||
-                shieldsFront.hasValue ||
-                shieldsFrontMax.hasValue
 
     abstract class Dsl<T : BaseArtemisShielded<T>> : BaseArtemisObject.Dsl<T>() {
         var name: String? = null

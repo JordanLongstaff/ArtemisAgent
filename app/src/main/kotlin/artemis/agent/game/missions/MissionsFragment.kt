@@ -150,32 +150,29 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
     private inner class MissionViewHolder(private val entryBinding: MissionsEntryBinding) :
         RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: SideMissionEntry) {
-            with(entryBinding) {
-                if (entry.isCompleted) {
-                    bindCompleted(entry)
-                } else {
-                    bindInProgress(entry)
-                }
+            entryBinding.bindStatus(entry)
 
-                val rewardList =
-                    viewModel.displayedRewards
-                        .filter { entry.rewards[it.ordinal] > 0 }
-                        .joinToString { reward ->
-                            val value =
-                                entry.rewards[reward.ordinal] *
-                                    if (reward == RewardType.NUKE) 2 else 1
-                            val name =
-                                if (reward == RewardType.PRODUCTION) {
-                                    entry.destination.obj.name.value
-                                } else {
-                                    null
-                                }
-                            val prefix = name?.let { n -> "$n " } ?: ""
-                            val suffix = if (value > 1) " x$value" else ""
-                            "$prefix${labels[reward.ordinal]}$suffix"
-                        }
-                rewardsLabel.text = getString(R.string.rewards, rewardList)
-            }
+            val rewardList =
+                viewModel.displayedRewards
+                    .filter { entry.rewards[it.ordinal] > 0 }
+                    .joinToString { reward ->
+                        val value =
+                            entry.rewards[reward.ordinal] * if (reward == RewardType.NUKE) 2 else 1
+                        val name =
+                            if (reward == RewardType.PRODUCTION) {
+                                entry.destination.obj.name.value
+                            } else {
+                                null
+                            }
+                        val prefix = name?.let { n -> "$n " } ?: ""
+                        val suffix = if (value > 1) " x$value" else ""
+                        "$prefix${labels[reward.ordinal]}$suffix"
+                    }
+            entryBinding.rewardsLabel.text = getString(R.string.rewards, rewardList)
+        }
+
+        private fun MissionsEntryBinding.bindStatus(entry: SideMissionEntry) {
+            if (entry.isCompleted) bindCompleted(entry) else bindInProgress(entry)
         }
 
         private fun MissionsEntryBinding.bindInProgress(entry: SideMissionEntry) {

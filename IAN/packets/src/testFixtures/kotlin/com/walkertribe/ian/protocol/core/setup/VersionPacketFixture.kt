@@ -38,7 +38,8 @@ data class VersionPacketFixture(private val arbVersion: Arb<Version> = Arb.versi
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(Arb.int(), Arb.float(), arbVersion, ::Data)
+    override val generator: Gen<Data> =
+        Arb.bind(genA = Arb.int(), genB = Arb.float(), genC = arbVersion, bindFn = ::Data)
 
     override suspend fun testType(packet: Packet.Server): VersionPacket =
         packet.shouldBeInstanceOf()

@@ -136,11 +136,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         allyDefendList.layoutManager = DestinationGridLayoutManager(allyDefendList.context)
 
         viewLifecycleOwner.collectLatestWhileStarted(allyAndDefendableTargets) { (ally, targets) ->
-            if (ally == null) {
-                showAlliesListView()
-            } else {
-                showSelectedAllyCommands(ally, targets)
-            }
+            if (ally == null) showAlliesListView() else showSelectedAllyCommands(ally, targets)
         }
     }
 
@@ -252,54 +248,54 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         private fun bindDescriptionLabel(entry: Ally, viewModel: AgentViewModel) {
             val context = entryBinding.root.context
 
-            val description = mutableListOf(context.getString(entry.status.description))
-            if (!entry.isTrap && entry.status != AllyStatus.PIRATE_DATA) {
-                if (entry.hasEnergy) {
-                    description.add(context.getString(R.string.has_energy))
-                }
+            val description = buildList {
+                add(context.getString(entry.status.description))
+
+                if (entry.isTrap || entry.status == AllyStatus.PIRATE_DATA) return@buildList
+
+                if (entry.hasEnergy) add(context.getString(R.string.has_energy))
+
                 if (viewModel.isDeepStrike) {
-                    description[0] = context.getString(R.string.ally_status_deep_strike)
-                    description.add(
-                        if (viewModel.torpedoesReady) {
-                            context.getString(R.string.has_ordnance)
-                        } else {
-                            viewModel.getManufacturingTimer(context)
-                        }
+                    this[0] = context.getString(R.string.ally_status_deep_strike)
+                    add(
+                        if (viewModel.torpedoesReady) context.getString(R.string.has_ordnance)
+                        else viewModel.getManufacturingTimer(context)
                     )
                 }
-                if (entry.missions > 0) {
-                    description.add(entry.getMissionsText(context))
-                }
 
-                val destination = entry.destination
-                if (destination == null) {
-                    entry.direction?.also {
-                        description.add(
-                            context.getString(
-                                R.string.currently_moving_to_heading,
-                                viewModel.formattedHeading(it),
-                            )
-                        )
-                    }
-                } else {
-                    val destinationText =
-                        context.getString(
-                            if (entry.isAttacking) {
-                                R.string.currently_moving_to_attack
-                            } else {
-                                R.string.currently_moving_toward
-                            },
-                            destination,
-                        )
-                    if (entry.status == AllyStatus.FLYING_BLIND && entry.isMovingToStation) {
-                        description[0] = destinationText
-                    } else {
-                        description.add(destinationText)
-                    }
-                }
+                if (entry.missions > 0) add(entry.getMissionsText(context))
+
+                addDestinationInfo(entry, viewModel)
             }
 
             entryBinding.allyDescriptionLabel.text = description.joinSpaceDelimited()
+        }
+
+        private fun MutableList<String>.addDestinationInfo(entry: Ally, viewModel: AgentViewModel) {
+            val context = entryBinding.root.context
+
+            val destination = entry.destination
+            if (destination != null) {
+                val destinationText =
+                    context.getString(
+                        if (entry.isAttacking) R.string.currently_moving_to_attack
+                        else R.string.currently_moving_toward,
+                        destination,
+                    )
+                if (entry.status == AllyStatus.FLYING_BLIND && entry.isMovingToStation)
+                    this[0] = destinationText
+                else add(destinationText)
+                return
+            }
+
+            entry.direction?.also {
+                add(
+                    context.getString(
+                        R.string.currently_moving_to_heading,
+                        viewModel.formattedHeading(it),
+                    )
+                )
+            }
         }
 
         private fun bindInfoLabels(entry: Ally) {

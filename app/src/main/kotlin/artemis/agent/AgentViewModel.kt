@@ -31,7 +31,6 @@ import artemis.agent.game.route.RouteObjective
 import artemis.agent.game.route.RouteTaskIncentive
 import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
-import artemis.agent.setup.ConnectFragment.ConnectionStatus
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
 import artemis.agent.util.AssetsResolver
@@ -152,15 +151,15 @@ class AgentViewModel(application: Application) :
 
     @StyleRes var themeRes: Int = R.style.Theme_ArtemisAgent
     var themeIndex: Int
-        get() {
-            return ALL_THEMES.indexOf(themeRes)
-        }
+        get() = ALL_THEMES.indexOf(themeRes)
         set(index) {
             themeRes = ALL_THEMES[index]
         }
 
     val rootOpacity: MutableStateFlow<Float> by lazy { MutableStateFlow(1f) }
     val jumping: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
+
+    private var damageVisJob: Job? = null
 
     // Ship settings from packet
     val selectableShips: MutableStateFlow<List<Ship>> by lazy { MutableStateFlow(emptyList()) }
@@ -497,18 +496,12 @@ class AgentViewModel(application: Application) :
     // Vessel data
     private val defaultVesselData: VesselData by lazy { VesselData.load(assetsResolver) }
     private val internalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.isEmpty()) {
-            null
-        } else {
-            setupFilePathResolver(storageDirectories[0])?.let(VesselData.Companion::load)
-        }
+        if (storageDirectories.isEmpty()) null
+        else setupFilePathResolver(storageDirectories[0])?.let(VesselData.Companion::load)
     }
     private val externalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.size <= 1) {
-            null
-        } else {
-            setupFilePathResolver(storageDirectories[1])?.let(VesselData.Companion::load)
-        }
+        if (storageDirectories.size <= 1) null
+        else setupFilePathResolver(storageDirectories[1])?.let(VesselData.Companion::load)
     }
 
     var vesselDataIndex: Int = 0
@@ -573,15 +566,14 @@ class AgentViewModel(application: Application) :
                             .let { stations ->
                                 stations.zip(
                                     stations.map {
-                                        if (it.ordnanceStock[objective.ordnanceType] == 0) {
+                                        if (it.ordnanceStock[objective.ordnanceType] == 0)
                                             Float.POSITIVE_INFINITY
-                                        } else {
+                                        else
                                             playerShip?.let { player ->
                                                 withContext(cpu.coroutineContext) {
                                                     graph.calculateRouteCost(player, it.obj)
                                                 }
                                             } ?: Float.POSITIVE_INFINITY
-                                        }
                                     }
                                 )
                             }
@@ -633,11 +625,8 @@ class AgentViewModel(application: Application) :
         allMissions
             .filter {
                 val isDest = it.destination == entry
-                if (it.isStarted) {
-                    isDest && it.associatedShipName == playerName
-                } else {
-                    isDest || it.source == entry
-                }
+                if (it.isStarted) isDest && it.associatedShipName == playerName
+                else isDest || it.source == entry
             }
             .sumOf { it.rewards[reward.ordinal] }
 
@@ -694,11 +683,9 @@ class AgentViewModel(application: Application) :
     private fun setupFilePathResolver(storageDir: File): FilePathResolver? {
         val datDir = File(storageDir, "dat")
 
-        return if (assetsResolver.copyVesselDataTo(datDir)) {
+        return if (assetsResolver.copyVesselDataTo(datDir))
             FilePathResolver(storageDir.toOkioPath())
-        } else {
-            null
-        }
+        else null
     }
 
     fun reconcileVesselDataIndex(index: Int): Int = if (allVesselData[index] == null) 0 else index
@@ -1032,11 +1019,7 @@ class AgentViewModel(application: Application) :
         val stationFlashOn = flashOn && stationMinimumShieldPercent < 1f
 
         val currentFlashOn =
-            if (flashOn) {
-                focusedStation?.let { it.obj.shieldsFront < it.obj.shieldsFrontMax } == true
-            } else {
-                false
-            }
+            flashOn && focusedStation?.let { it.obj.shieldsFront < it.obj.shieldsFrontMax } == true
 
         val pagesWithFlash = sortedMapOf<GameFragment.Page, Boolean>()
 
@@ -1108,11 +1091,8 @@ class AgentViewModel(application: Application) :
 
         doubleAgentText.value =
             doubleAgentSecondsLeft.let {
-                if (it < 0) {
-                    "${playerShip?.doubleAgentCount?.value?.coerceAtLeast(0) ?: 0}"
-                } else {
-                    it.seconds.timerString(false)
-                }
+                if (it < 0) "${playerShip?.doubleAgentCount?.value?.coerceAtLeast(0) ?: 0}"
+                else it.seconds.timerString(false)
             }
 
         if (routingEnabled && gameIsRunning.value) {
@@ -1209,11 +1189,9 @@ class AgentViewModel(application: Application) :
     private fun compareFriendlyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
         val firstName = firstNameOpt ?: ""
         val secondName = secondNameOpt ?: ""
-        return if (STATION_CALLSIGN.matches(firstName) && STATION_CALLSIGN.matches(secondName)) {
-            firstName.substring(2).toInt() - secondName.substring(2).toInt()
-        } else {
-            firstName.compareTo(secondName)
-        }
+        return if (STATION_CALLSIGN.matches(firstName) && STATION_CALLSIGN.matches(secondName))
+            firstName.substring(2).toInt().compareTo(secondName.substring(2).toInt())
+        else firstName.compareTo(secondName)
     }
 
     private fun compareEnemyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
@@ -1222,7 +1200,7 @@ class AgentViewModel(application: Application) :
         return if (ENEMY_STATION.matches(firstName) && ENEMY_STATION.matches(secondName)) {
             val firstIndex = firstName.run { substring(lastIndexOf(" ") + 1).toInt() }
             val secondIndex = secondName.run { substring(lastIndexOf(" ") + 1).toInt() }
-            firstIndex - secondIndex
+            firstIndex.compareTo(secondIndex)
         } else {
             firstName.compareTo(secondName)
         }
@@ -1288,8 +1266,6 @@ class AgentViewModel(application: Application) :
     fun onPacket(packet: AllShipSettingsPacket) {
         selectableShips.value = packet.ships
     }
-
-    private var damageVisJob: Job? = null
 
     @Listener
     fun onPacket(packet: PlayerShipDamagePacket) {

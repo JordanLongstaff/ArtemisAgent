@@ -50,10 +50,10 @@ class ClientSettingsFragmentTest {
             .forEach { closeSubMenu ->
                 SettingsFragmentTest.openSettingsSubMenu(0)
                 testClientSubMenuOpen(
-                    externalVesselDataCount.get(),
-                    expectedPort.toString(),
-                    expectedUpdateInterval.toString(),
-                    showingInfo.get(),
+                    externalVesselDataCount = externalVesselDataCount.get(),
+                    expectedPort = expectedPort.toString(),
+                    expectedUpdateInterval = expectedUpdateInterval.toString(),
+                    showingInfo = showingInfo.get(),
                 )
 
                 closeSubMenu()
@@ -64,10 +64,10 @@ class ClientSettingsFragmentTest {
     private companion object {
         val showNetworkInfoToggleSetting =
             SingleToggleButtonSetting(
-                R.id.showNetworkInfoDivider,
-                R.id.showNetworkInfoTitle,
-                R.string.show_network_info,
-                R.id.showNetworkInfoButton,
+                divider = R.id.showNetworkInfoDivider,
+                label = R.id.showNetworkInfoTitle,
+                text = R.string.show_network_info,
+                button = R.id.showNetworkInfoButton,
             )
 
         fun testClientSubMenuOpen(

@@ -627,8 +627,8 @@ class ArtemisNetworkInterfaceTest :
                                             TestListener.clear()
 
                                             sender =
-                                                socket.openWriteChannel(autoFlush = true).also {
-                                                    it.writePacketWithHeader(
+                                                socket.openWriteChannel(autoFlush = true).apply {
+                                                    writePacketWithHeader(
                                                         TestPacketTypes.CONNECTED,
                                                         data.buildPayload(),
                                                     )

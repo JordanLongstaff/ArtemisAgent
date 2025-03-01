@@ -79,10 +79,10 @@ class ConnectionSettingsFragmentTest {
     private companion object {
         val alwaysScanPublicToggleSetting =
             SingleToggleButtonSetting(
-                R.id.alwaysScanPublicDivider,
-                R.id.alwaysScanPublicTitle,
-                R.string.always_scan_publicly,
-                R.id.alwaysScanPublicButton,
+                divider = R.id.alwaysScanPublicDivider,
+                label = R.id.alwaysScanPublicTitle,
+                text = R.string.always_scan_publicly,
+                button = R.id.alwaysScanPublicButton,
             )
     }
 }

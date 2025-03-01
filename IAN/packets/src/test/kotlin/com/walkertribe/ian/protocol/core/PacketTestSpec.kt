@@ -25,6 +25,8 @@ import io.kotest.property.checkAll
 import io.ktor.utils.io.ByteChannel
 import io.mockk.clearAllMocks
 import io.mockk.unmockkAll
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.io.Source
 
 @Ignored
@@ -50,7 +52,7 @@ private constructor(
         final override val fixtures: List<PacketTestFixture.Client<T>>,
         autoIncludeTests: Boolean = true,
     ) : PacketTestSpec<T>(specName, fixtures, autoIncludeTests) {
-        open suspend fun DescribeSpecContainerScope.describeMore() {}
+        open fun DescribeSpecContainerScope.describeMore(): Job? = null
 
         override fun tests(): TestFactory = describeSpec {
             val sendChannel = ByteChannel()
@@ -106,7 +108,7 @@ private constructor(
             ListenerRegistry().apply { register(ArtemisObjectTestModule) }
         }
 
-        open suspend fun DescribeSpecContainerScope.describeMore() {}
+        open fun DescribeSpecContainerScope.describeMore(): Job? = null
 
         override fun tests(): TestFactory = describeSpec {
             describe(specName) {
@@ -189,7 +191,7 @@ private constructor(
             reader.close()
         }
 
-        private suspend fun DescribeSpecContainerScope.describeFailures() {
+        private fun DescribeSpecContainerScope.describeFailures() = launch {
             if (failures.isNotEmpty()) {
                 val readChannel = ByteChannel()
                 val reader =
@@ -198,9 +200,9 @@ private constructor(
                         ListenerRegistry().apply { register(TestListener.module) },
                     )
 
-                withData(nameFn = { it.testName }, failures) {
-                    it.payloadGen.checkAll { payload ->
-                        readChannel.writePacketWithHeader(it.packetType, payload)
+                withData(nameFn = { it.testName }, failures) { failure ->
+                    failure.payloadGen.checkAll { payload ->
+                        readChannel.writePacketWithHeader(failure.packetType, payload)
 
                         val result = reader.readPacket()
                         result.shouldBeInstanceOf<ParseResult.Fail>()

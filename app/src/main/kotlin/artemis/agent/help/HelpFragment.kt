@@ -123,11 +123,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         private val contents: List<ViewProvider>
             get() =
                 currentHelpTopicIndex.let {
-                    if (it == MENU) {
-                        helpTopics
-                    } else {
-                        helpTopics[it].contents
-                    }
+                    if (it == MENU) helpTopics else helpTopics[it].contents
                 }
 
         override fun getItemCount(): Int = contents.size

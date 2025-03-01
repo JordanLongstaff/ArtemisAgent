@@ -35,9 +35,9 @@ class OriginTest :
             it("Invalid") {
                 Arb.bind<Origin>()
                     .filter { it.value !in 1..2 }
-                    .forAll {
-                        collect(if (it.value > 2) "POSITIVE" else "NON-POSITIVE")
-                        !it.isValid
+                    .forAll { origin ->
+                        collect(if (origin.value > 2) "POSITIVE" else "NON-POSITIVE")
+                        !origin.isValid
                     }
             }
         }

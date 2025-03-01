@@ -49,11 +49,16 @@ class PacketReader(
 ) : KoinComponent {
     private val koinApp = koinApplication { defaultModule() }
 
-    override fun getKoin(): Koin = koinApp.koin
-
     private val protocol: Protocol by inject()
 
     private val rejectedObjectIDs = mutableSetOf<Int>()
+
+    /**
+     * Returns false if the current object's ID has been marked as one for which to reject updates,
+     * true otherwise.
+     */
+    val isAcceptingCurrentObject: Boolean
+        get() = !rejectedObjectIDs.contains(objectId)
 
     /**
      * Returns the server [Version]. Defaults to the latest version, but subject to change if a
@@ -62,6 +67,10 @@ class PacketReader(
     var version = Version.DEFAULT
 
     private lateinit var payload: Source
+
+    /** Returns true if the payload currently being read has more data; false otherwise. */
+    val hasMore: Boolean
+        get() = !payload.exhausted()
 
     /** Returns the ID of the current object being read from the payload. */
     var objectId = 0
@@ -130,10 +139,6 @@ class PacketReader(
         }
         return ParseResult.Success(packet, result)
     }
-
-    /** Returns true if the payload currently being read has more data; false otherwise. */
-    val hasMore: Boolean
-        get() = !payload.exhausted()
 
     /** Returns the next byte in the current packet's payload without moving the pointer. */
     fun peekByte(): Byte = payload.preview { it.readByte() }
@@ -271,13 +276,6 @@ class PacketReader(
         koinApp.close()
     }
 
-    /**
-     * Returns false if the current object's ID has been marked as one for which to reject updates,
-     * true otherwise.
-     */
-    val isAcceptingCurrentObject: Boolean
-        get() = !rejectedObjectIDs.contains(objectId)
-
     /** Removes the given object ID from the set of IDs for which to reject updates. */
     fun acceptObjectID(id: Int) {
         rejectedObjectIDs.remove(id)
@@ -337,4 +335,6 @@ class PacketReader(
 
         return packetType to payloadPacket
     }
+
+    override fun getKoin(): Koin = koinApp.koin
 }

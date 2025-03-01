@@ -684,30 +684,16 @@ sealed interface MessageParser {
     data object HailResponse : MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
             val message = packet.message
-            val responseMatch = OUR_SHIELDS.find(message)
-            return when {
-                responseMatch == null -> false
-                responseMatch.value.length == message.length -> true
+            return when (
+                val responseMatchLength = OUR_SHIELDS.find(message)?.run { value.length }
+            ) {
+                null -> false
+                message.length -> true
                 else -> {
-                    val response = message.substring(responseMatch.value.length + 1)
+                    val response = message.substring(responseMatchLength + 1)
                     val sender = packet.sender
                     !sender.startsWith("DS") &&
-                        HailResponseEffect.entries.any {
-                            if (!it.appliesTo(response)) return@any false
-                            val splitPoint = sender.lastIndexOf(" ")
-                            val vesselName = sender.substring(0, splitPoint)
-                            val name = sender.substring(splitPoint + 1)
-                            viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also {
-                                ally ->
-                                if (ally.vesselName == vesselName) {
-                                    if (ally.status != AllyStatus.FLYING_BLIND)
-                                        ally.status = it.getAllyStatus(response)
-                                    ally.hasEnergy = response.endsWith(HAS_ENERGY)
-                                    ally.checkNebulaStatus()
-                                }
-                            }
-                            true
-                        }
+                        HailResponseEffect.entries.any { it(response, sender, viewModel) }
                 }
             }
         }
@@ -720,7 +706,6 @@ sealed interface MessageParser {
 
         const val TSNCOM = "TSNCOM"
         val STAND_DOWN_SEARCH_RANGE = 25 until 28
-        const val HAS_ENERGY = "some."
         const val SCRAMBLED = "iGH \nERROR% w23jr20ruj!!!"
         const val STANDBY = "Docking crew is ready, "
         const val PRODUCED = "We've produced another "

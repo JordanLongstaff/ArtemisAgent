@@ -35,9 +35,9 @@ private fun <E : Enum<E>> Sink.writeEnumFlag(flag: Flag<E>) {
 }
 
 internal fun Sink.writeStringFlags(vararg flags: Flag<String>) {
-    flags.forEach {
-        if (it.enabled) {
-            val str = it.value
+    flags.forEach { flag ->
+        if (flag.enabled) {
+            val str = flag.value
             writeIntLe(str.length + 1)
             writeText(str, charset = Charsets.UTF_16LE)
             writeShort(0)

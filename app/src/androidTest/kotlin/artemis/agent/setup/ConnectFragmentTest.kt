@@ -26,6 +26,7 @@ import dev.tmapps.konnection.Konnection
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -112,7 +113,7 @@ class ConnectFragmentTest {
     }
 
     @Test
-    fun showNetworkInfoTest() = runTest {
+    fun showNetworkInfoTest(): TestResult = runTest {
         val showingInfo = AtomicBoolean()
         activityScenarioManager.onActivity { activity ->
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)

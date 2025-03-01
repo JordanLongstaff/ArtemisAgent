@@ -49,14 +49,14 @@ class ShipTest :
 
                 it("With specified accent colour") {
                     checkAll(
-                        Arb.string().orNull(),
-                        Arb.int(),
-                        Arb.numericFloat(min = 0f, max = 1f),
-                        Arb.enum<DriveType>(),
-                    ) { name, shipType, accentColor, driveType ->
+                        genA = Arb.string().orNull(),
+                        genB = Arb.int(),
+                        genC = Arb.numericFloat(min = 0f, max = 1f),
+                        genD = Arb.enum<DriveType>(),
+                    ) { name, shipType, accentColor, drive ->
                         collect(if (name == null) "Does not have name" else "Has name")
 
-                        val ship = Ship(name, shipType, driveType, accentColor)
+                        val ship = Ship(name, shipType, drive, accentColor)
                         ship.accentColor.shouldNotBeNaN()
                         ship.hue.shouldNotBeNaN()
                         ship.hue.shouldBeWithinPercentageOf(accentColor * Ship.HUE_RANGE, EPSILON)
@@ -72,13 +72,13 @@ class ShipTest :
                     "Too high" to Arb.numericFloat(min = 1.001f),
                 ) { (_, arbAccentColor) ->
                     checkAll(
-                        Arb.string().orNull(),
-                        Arb.int(),
-                        arbAccentColor,
-                        Arb.enum<DriveType>(),
-                    ) { name, shipType, accentColor, driveType ->
+                        genA = Arb.string().orNull(),
+                        genB = Arb.int(),
+                        genC = arbAccentColor,
+                        genD = Arb.enum<DriveType>(),
+                    ) { name, shipType, accentColor, drive ->
                         shouldThrow<IllegalArgumentException> {
-                            Ship(name, shipType, driveType, accentColor)
+                            Ship(name, shipType, drive, accentColor)
                         }
                     }
                 }
@@ -91,16 +91,16 @@ class ShipTest :
 
                 it("Retrieved from vessel data if found") {
                     TestVessel.arbitrary()
-                        .flatMap {
+                        .flatMap { vessel ->
                             Arb.pair(
                                 Arb.vesselData(
                                     factions = emptyList(),
-                                    vessels = Arb.of(it),
+                                    vessels = Arb.of(vessel),
                                     numVessels = 1..1,
                                 ),
                                 Arb.bind(Arb.string().orNull(), Arb.enum<DriveType>()) { name, drive
                                     ->
-                                    Ship(name = name, shipType = it.id, drive = drive)
+                                    Ship(name, shipType = vessel.id, drive)
                                 },
                             )
                         }

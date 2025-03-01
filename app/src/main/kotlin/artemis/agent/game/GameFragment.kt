@@ -152,22 +152,18 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectableShips) { ships ->
-            val shipNameVisibility: Int
-            binding.shipNumberLabel.text =
-                if (ships.isEmpty()) {
-                    shipNameVisibility = View.GONE
-                    getString(R.string.no_ships)
-                } else {
-                    val index = viewModel.shipIndex.value
-                    if (index >= 0) {
+            val index = viewModel.shipIndex.value
+            val (shipNameVisibility, shipNumberText) =
+                when {
+                    ships.isEmpty() -> View.GONE to getString(R.string.no_ships)
+                    index in ships.indices -> {
                         binding.shipNameLabel.text = ships[index].name
-                        shipNameVisibility = View.VISIBLE
-                        getString(R.string.ship_number, index + 1)
-                    } else {
-                        shipNameVisibility = View.GONE
-                        getString(R.string.no_ship_selected)
+                        View.VISIBLE to getString(R.string.ship_number, index + 1)
                     }
+                    else -> View.GONE to getString(R.string.no_ship_selected)
                 }
+
+            binding.shipNumberLabel.text = shipNumberText
             binding.shipNameLabel.visibility = shipNameVisibility
             binding.waitingForGameLabel.visibility = shipNameVisibility
         }
@@ -349,11 +345,8 @@ class GameFragment : Fragment(R.layout.game_fragment) {
                 holder.bind(page, flashing)
                 holder.itemView.setOnClickListener {
                     viewModel.playSound(
-                        if (viewModel.currentGamePage.value == page) {
-                            SoundEffect.BEEP_2
-                        } else {
-                            SoundEffect.CONFIRMATION
-                        }
+                        if (viewModel.currentGamePage.value == page) SoundEffect.BEEP_2
+                        else SoundEffect.CONFIRMATION
                     )
                     if (page != Page.ALLIES) {
                         viewModel.focusedAlly.value = null
@@ -371,11 +364,8 @@ class GameFragment : Fragment(R.layout.game_fragment) {
             pages = newList
 
             binding.gamePageSelectorFlash.visibility =
-                if (newList.any { it.first != currentPage && it.second }) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                if (newList.any { it.first != currentPage && it.second }) View.VISIBLE
+                else View.GONE
 
             viewModel.currentGamePage.also {
                 val pageStillExists = it.value?.let(value::containsKey)

@@ -53,15 +53,15 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemy) {
             var backgroundColor: Int = Color.TRANSPARENT
             val visibility =
-                if (it != null) {
-                    binding.selectedEnemyLabel.text = viewModel.getFullNameForShip(it.enemy)
-                    backgroundColor = it.getBackgroundColor(context)
+                when {
+                    it != null -> {
+                        binding.selectedEnemyLabel.text = viewModel.getFullNameForShip(it.enemy)
+                        backgroundColor = it.getBackgroundColor(context)
 
-                    View.VISIBLE
-                } else if (isLandscape) {
-                    View.INVISIBLE
-                } else {
-                    View.GONE
+                        View.VISIBLE
+                    }
+                    isLandscape -> View.INVISIBLE
+                    else -> View.GONE
                 }
 
             binding.selectedEnemyLabel.visibility = visibility
@@ -147,12 +147,12 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
                 enemyStatusLabel.text =
                     context.getString(
-                        if (!enemy.isSurrendered.value.booleanValue) {
-                            entry.captainStatus.description
-                        } else if (entry.captainStatus == EnemyCaptainStatus.DUPLICITOUS) {
-                            R.string.surrendered_duplicitous
-                        } else {
-                            R.string.surrendered
+                        when {
+                            !enemy.isSurrendered.value.booleanValue ->
+                                entry.captainStatus.description
+                            entry.captainStatus == EnemyCaptainStatus.DUPLICITOUS ->
+                                R.string.surrendered_duplicitous
+                            else -> R.string.surrendered
                         }
                     )
 

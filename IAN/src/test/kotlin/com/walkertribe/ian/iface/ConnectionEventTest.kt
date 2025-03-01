@@ -44,12 +44,12 @@ class ConnectionEventTest :
                 val events = mutableListOf<ConnectionEvent.Success>()
 
                 it("Constructor") {
-                    Arb.string().checkAll {
+                    Arb.string().checkAll { message ->
                         val startTime = Clock.System.now().toEpochMilliseconds()
-                        val event = ConnectionEvent.Success(it)
+                        val event = ConnectionEvent.Success(message)
                         val endTime = Clock.System.now().toEpochMilliseconds()
 
-                        event.message shouldBeEqual it
+                        event.message shouldBeEqual message
                         event.timestamp shouldBeIn startTime..endTime
 
                         events.add(event)

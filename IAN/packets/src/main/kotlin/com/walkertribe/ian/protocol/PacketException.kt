@@ -6,11 +6,11 @@ package com.walkertribe.ian.protocol
  */
 class PacketException
 private constructor(
-    string: String?,
+    message: String?,
     cause: Throwable?,
     packetType: Int = 0,
     payload: ByteArray? = null,
-) : Exception(string ?: cause?.let { it.message ?: it::class.simpleName }, cause) {
+) : Exception(message ?: cause?.let { it.message ?: it::class.simpleName }, cause) {
     /** The type value for this packet, or 0 if unknown. */
     var packetType: Int = packetType
         private set
@@ -20,10 +20,10 @@ private constructor(
         private set
 
     /**
-     * @param string The exception's message.
+     * @param message The exception's message.
      * @constructor Constructs a [PacketException] with a message.
      */
-    constructor(string: String) : this(string, null)
+    constructor(message: String) : this(message, null)
 
     /**
      * @param cause The cause of this [PacketException].
@@ -43,15 +43,15 @@ private constructor(
     ) : this(null, cause, packetType, payload)
 
     /**
-     * @param string A description of the problem
+     * @param message A description of the problem
      * @param packetType The packet's type value
      * @param payload The packet's payload bytes
      */
     constructor(
-        string: String?,
+        message: String?,
         packetType: Int,
         payload: ByteArray?,
-    ) : this(string, null, packetType, payload)
+    ) : this(message, null, packetType, payload)
 
     /** Adds the packet type and payload to this exception. */
     fun appendParsingDetails(packetType: Int, payload: ByteArray) {

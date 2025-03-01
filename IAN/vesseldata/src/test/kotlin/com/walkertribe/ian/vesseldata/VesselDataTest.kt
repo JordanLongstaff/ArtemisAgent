@@ -36,8 +36,8 @@ class VesselDataTest :
                                 val vesselName = attributes[index++]
                                 val broadType = attributes[index++]
 
-                                val prodCoefficient = attributes[index].toFloatOrNull()
-                                if (prodCoefficient != null) {
+                                val productionCoefficient = attributes[index].toFloatOrNull()
+                                if (productionCoefficient != null) {
                                     index++
                                 }
 
@@ -66,7 +66,7 @@ class VesselDataTest :
                                     faction,
                                     vesselName,
                                     broadType,
-                                    prodCoefficient,
+                                    productionCoefficient,
                                     ordnanceCounts,
                                     bayCount,
                                     expectedAttributes,

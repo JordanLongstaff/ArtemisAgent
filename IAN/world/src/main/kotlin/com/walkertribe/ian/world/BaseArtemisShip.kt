@@ -19,15 +19,6 @@ abstract class BaseArtemisShip<T : BaseArtemisShip<T>>(id: Int, timestamp: Long)
      */
     val side = Property.ByteProperty(timestamp)
 
-    override fun updates(other: T) {
-        shieldsRear updates other.shieldsRear
-        shieldsRearMax updates other.shieldsRearMax
-        impulse updates other.impulse
-        side updates other.side
-
-        super.updates(other)
-    }
-
     /** Returns true if this object contains any data. */
     override val hasData
         get() =
@@ -36,6 +27,15 @@ abstract class BaseArtemisShip<T : BaseArtemisShip<T>>(id: Int, timestamp: Long)
                 shieldsRearMax.hasValue ||
                 impulse.hasValue ||
                 side.hasValue
+
+    override fun updates(other: T) {
+        shieldsRear updates other.shieldsRear
+        shieldsRearMax updates other.shieldsRearMax
+        impulse updates other.impulse
+        side updates other.side
+
+        super.updates(other)
+    }
 
     abstract class Dsl<T : BaseArtemisShip<T>> : BaseArtemisShielded.Dsl<T>() {
         var shieldsRear: Float = Float.NaN

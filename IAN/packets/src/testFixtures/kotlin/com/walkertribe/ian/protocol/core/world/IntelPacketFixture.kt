@@ -44,7 +44,7 @@ class IntelPacketFixture private constructor(arbVersion: Arb<Version>, intelType
 
     override val generator: Gen<Data> =
         Arb.bind(arbVersion, Arb.int(), Arb.string()) { version, id, intel ->
-            Data(version, id, intelType, intel)
+            Data(version, objectID = id, intelType, intel)
         }
 
     override suspend fun testType(packet: Packet.Server): IntelPacket = packet.shouldBeInstanceOf()

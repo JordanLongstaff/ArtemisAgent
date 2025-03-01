@@ -1,7 +1,9 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>CognitiveComplexMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
+    <ID>CognitiveComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>CyclomaticComplexMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
     <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>LargeClass:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>

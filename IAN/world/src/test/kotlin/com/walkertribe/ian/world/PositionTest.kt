@@ -275,12 +275,12 @@ class PositionTest :
             obj1.x.value = 0f
             obj1.z.value = 0f
 
-            withData(HeadingTestCase.ALL) {
-                obj2.x.value = it.xDiff
-                obj2.z.value = it.zDiff
+            withData(HeadingTestCase.ALL) { (expectedHeading, xDiff, zDiff) ->
+                obj2.x.value = xDiff
+                obj2.z.value = zDiff
 
                 val headingToInt = (obj1.headingTo(obj2) * 2f).roundToInt()
-                val expectedHeadingToInt = (it.expectedHeading * 2f).roundToInt()
+                val expectedHeadingToInt = (expectedHeading * 2f).roundToInt()
                 headingToInt shouldBeEqual expectedHeadingToInt
 
                 val expectedReverseHeading =
@@ -341,8 +341,8 @@ data class HeadingTestCase(val expectedHeading: Float, val xDiff: Float, val zDi
 
         val ALL =
             (SIMPLE + INTERMEDIATE)
-                .flatMap {
-                    val rotations = mutableListOf(it)
+                .flatMap { heading ->
+                    val rotations = mutableListOf(heading)
                     repeat(3) { rotations.add(rotations.last().rotate()) }
                     rotations
                 }

@@ -76,11 +76,8 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
                 view.context.userSettings.updateData {
                     it.copy {
                         updateInterval =
-                            if (text.isNullOrBlank()) {
-                                0
-                            } else {
-                                text.toInt().coerceIn(0, MAX_UPDATE_INTERVAL)
-                            }
+                            if (text.isNullOrBlank()) 0
+                            else text.toInt().coerceIn(0, MAX_UPDATE_INTERVAL)
                     }
                 }
             }
@@ -176,14 +173,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             val text = binding.addressLimitField.text?.toString()
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
-                    it.copy {
-                        recentAddressLimit =
-                            if (text.isNullOrBlank()) {
-                                0
-                            } else {
-                                text.toInt()
-                            }
-                    }
+                    it.copy { recentAddressLimit = if (text.isNullOrBlank()) 0 else text.toInt() }
                 }
             }
         }

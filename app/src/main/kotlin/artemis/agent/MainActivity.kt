@@ -35,7 +35,6 @@ import artemis.agent.databinding.ActivityMainBinding
 import artemis.agent.game.GameFragment
 import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
-import artemis.agent.setup.ConnectFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.VersionString
@@ -246,11 +245,9 @@ class MainActivity : AppCompatActivity() {
                             channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
                             title = viewModel.getFullNameForShip(ally.obj),
                             message =
-                                if (viewModel.torpedoesReady) {
+                                if (viewModel.torpedoesReady)
                                     getString(R.string.manufacturing_torpedoes_ready)
-                                } else {
-                                    viewModel.getManufacturingTimer(this@MainActivity)
-                                },
+                                else viewModel.getManufacturingTimer(this@MainActivity),
                             ongoing = true,
                             onIntent = {
                                 putExtra(Section.GAME.name, GameFragment.Page.ALLIES.ordinal)
@@ -365,9 +362,8 @@ class MainActivity : AppCompatActivity() {
                 service.collectLatestWhileStarted(viewModel.connectionStatus) { status ->
                     val message =
                         when (status) {
-                            is ConnectFragment.ConnectionStatus.NotConnected,
-                            is ConnectFragment.ConnectionStatus.Connecting ->
-                                return@collectLatestWhileStarted
+                            is ConnectionStatus.NotConnected,
+                            is ConnectionStatus.Connecting -> return@collectLatestWhileStarted
 
                             else -> getString(status.stringId)
                         }
@@ -377,15 +373,10 @@ class MainActivity : AppCompatActivity() {
                         title = viewModel.lastAttemptedHost,
                         message = message,
                         onIntent = {
-                            putExtra(
-                                Section.SETUP.name,
-                                when (status) {
-                                    is ConnectFragment.ConnectionStatus.Connected ->
-                                        SetupFragment.Page.SHIPS.ordinal
-
-                                    else -> SetupFragment.Page.CONNECT.ordinal
-                                },
-                            )
+                            val openPage =
+                                if (status is ConnectionStatus.Connected) SetupFragment.Page.SHIPS
+                                else SetupFragment.Page.CONNECT
+                            putExtra(Section.SETUP.name, openPage.ordinal)
                         },
                     )
                 }
@@ -422,11 +413,8 @@ class MainActivity : AppCompatActivity() {
                         onIntent = {
                             putExtra(
                                 GameFragment.Page.STATIONS.name,
-                                if (includeSenderName) {
-                                    packet.sender
-                                } else {
-                                    StationsFragment.Page.FRIENDLY.name
-                                },
+                                if (includeSenderName) packet.sender
+                                else StationsFragment.Page.FRIENDLY.name,
                             )
                         },
                     )
@@ -699,47 +687,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupConnectionObservers() {
-        with(viewModel) {
-            collectLatestWhileStarted(connectionStatus) {
-                if (isIdle) {
-                    selectableShips.value = emptyList()
-                }
+        collectLatestWhileStarted(viewModel.connectionStatus) {
+            if (viewModel.isIdle) {
+                viewModel.selectableShips.value = emptyList()
             }
+        }
 
-            collectLatestWhileStarted(connectedUrl) { newUrl ->
-                if (newUrl.isNotBlank()) {
-                    userSettings.updateData {
-                        val serversList = it.recentServersList.toMutableList()
-                        serversList.remove(newUrl)
-                        serversList.add(0, newUrl)
+        collectLatestWhileStarted(viewModel.connectedUrl) { newUrl ->
+            if (newUrl.isNotBlank()) {
+                userSettings.updateData {
+                    val serversList = it.recentServersList.toMutableList()
+                    serversList.remove(newUrl)
+                    serversList.add(0, newUrl)
 
-                        it.copy {
-                            recentServers.clear()
+                    it.copy {
+                        recentServers.clear()
 
-                            recentServers +=
-                                if (recentAddressLimitEnabled) {
-                                    serversList.take(recentAddressLimit)
-                                } else {
-                                    serversList
-                                }
-                        }
+                        recentServers +=
+                            if (recentAddressLimitEnabled) serversList.take(recentAddressLimit)
+                            else serversList
                     }
                 }
             }
+        }
 
-            collectLatestWhileStarted(disconnectCause) {
-                val (message, suggestUpdate) =
-                    getDisconnectDialogContents(it) ?: return@collectLatestWhileStarted
-                AlertDialog.Builder(this@MainActivity)
-                    .setMessage(message)
-                    .setCancelable(true)
-                    .apply {
-                        if (suggestUpdate) {
-                            setPositiveButton(R.string.update) { _, _ -> checkForUpdates() }
-                        }
+        collectLatestWhileStarted(viewModel.disconnectCause) {
+            val (message, suggestUpdate) =
+                getDisconnectDialogContents(it) ?: return@collectLatestWhileStarted
+            AlertDialog.Builder(this@MainActivity)
+                .setMessage(message)
+                .setCancelable(true)
+                .apply {
+                    if (suggestUpdate) {
+                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates() }
                     }
-                    .show()
-            }
+                }
+                .show()
         }
     }
 
@@ -765,15 +748,13 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.disconnect_remote) to false
             }
             is DisconnectCause.UnsupportedVersion -> {
-                if (cause.version < Version.MINIMUM) {
+                if (cause.version < Version.MINIMUM)
                     getString(
                         R.string.disconnect_unsupported_version_old,
                         Version.MINIMUM,
                         cause.version,
                     ) to false
-                } else {
-                    getString(R.string.disconnect_unsupported_version_new, cause.version) to true
-                }
+                else getString(R.string.disconnect_unsupported_version_new, cause.version) to true
             }
             is DisconnectCause.UnknownError -> {
                 crashlytics.recordException(cause.throwable)
@@ -784,53 +765,54 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUserSettingsObserver() {
-        with(viewModel) {
-            collectLatestWhileStarted(userSettings.data) { settings ->
-                var newContextIndex = reconcileVesselDataIndex(settings.vesselDataLocationValue)
-                checkContext(newContextIndex) { message ->
-                    newContextIndex = if (vesselDataIndex == newContextIndex) 0 else vesselDataIndex
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.xml_error)
-                        .setMessage(getString(R.string.xml_error_message, message))
-                        .setCancelable(true)
-                        .show()
-                }
+        collectLatestWhileStarted(userSettings.data) { settings ->
+            var newContextIndex =
+                viewModel.reconcileVesselDataIndex(settings.vesselDataLocationValue)
+            viewModel.checkContext(newContextIndex) { message ->
+                newContextIndex =
+                    if (viewModel.vesselDataIndex == newContextIndex) 0
+                    else viewModel.vesselDataIndex
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.xml_error)
+                    .setMessage(getString(R.string.xml_error_message, message))
+                    .setCancelable(true)
+                    .show()
+            }
 
-                val limit = settings.recentAddressLimit
-                val hasLimit = settings.recentAddressLimitEnabled
+            val limit = settings.recentAddressLimit
+            val hasLimit = settings.recentAddressLimitEnabled
 
-                val adjustedSettings =
-                    settings.copy {
-                        vesselDataLocationValue = newContextIndex
-                        val recentServersCount = recentServers.size
-                        if (hasLimit && recentServersCount > limit) {
-                            val min = recentServersCount.coerceAtMost(limit)
-                            val serversList = recentServers.take(min)
-                            recentServers.clear()
-                            recentServers += serversList
-                        }
+            val adjustedSettings =
+                settings.copy {
+                    vesselDataLocationValue = newContextIndex
+                    val recentServersCount = recentServers.size
+                    if (hasLimit && recentServersCount > limit) {
+                        val min = recentServersCount.coerceAtMost(limit)
+                        val serversList = recentServers.take(min)
+                        recentServers.clear()
+                        recentServers += serversList
                     }
-
-                if (!isIdle && newContextIndex != vesselDataIndex) {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.vessel_data)
-                        .setMessage(R.string.xml_location_warning)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            launch { userSettings.updateData { revertSettings(it) } }
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            playSound(SoundEffect.BEEP_2)
-                            disconnectFromServer()
-                            updateFromSettings(adjustedSettings)
-                            launch { userSettings.updateData { adjustedSettings } }
-                        }
-                        .show()
-                    return@collectLatestWhileStarted
-                } else {
-                    updateFromSettings(adjustedSettings)
-                    userSettings.updateData { adjustedSettings }
                 }
+
+            if (!viewModel.isIdle && newContextIndex != viewModel.vesselDataIndex) {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.vessel_data)
+                    .setMessage(R.string.xml_location_warning)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        launch { userSettings.updateData { viewModel.revertSettings(it) } }
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                        viewModel.disconnectFromServer()
+                        viewModel.updateFromSettings(adjustedSettings)
+                        launch { userSettings.updateData { adjustedSettings } }
+                    }
+                    .show()
+                return@collectLatestWhileStarted
+            } else {
+                viewModel.updateFromSettings(adjustedSettings)
+                userSettings.updateData { adjustedSettings }
             }
         }
     }

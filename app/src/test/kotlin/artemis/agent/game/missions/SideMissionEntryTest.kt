@@ -35,8 +35,8 @@ class SideMissionEntryTest :
                 it("Not started") { entry.isStarted.shouldBeFalse() }
 
                 it("Starts when associated with a ship name") {
-                    Arb.cars().checkAll {
-                        entry.associatedShipName = it.value
+                    Arb.cars().checkAll { ship ->
+                        entry.associatedShipName = ship.value
                         entry.isStarted.shouldBeTrue()
                     }
                 }
@@ -44,21 +44,21 @@ class SideMissionEntryTest :
                 it("Not completed") { entry.isCompleted.shouldBeFalse() }
 
                 it("Completes when timestamp is set") {
-                    Arb.long(max = Long.MAX_VALUE - 1).checkAll {
-                        entry.completionTimestamp = it
+                    Arb.long(max = Long.MAX_VALUE - 1).checkAll { timestamp ->
+                        entry.completionTimestamp = timestamp
                         entry.isCompleted.shouldBeTrue()
                     }
                 }
             }
 
             describe("Initial payout") {
-                withData(RewardType.entries) {
-                    val entry = create(it)
+                withData(RewardType.entries) { rewardType ->
+                    val entry = create(rewardType)
 
                     val expectedPayouts = IntArray(RewardType.entries.size)
                     entry.rewards.size shouldBeEqual expectedPayouts.size
 
-                    expectedPayouts[it.ordinal] = 1
+                    expectedPayouts[rewardType.ordinal] = 1
                     entry.rewards.zip(expectedPayouts).shouldForAll { (actual, expected) ->
                         actual shouldBeEqual expected
                     }

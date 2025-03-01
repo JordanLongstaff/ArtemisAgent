@@ -25,20 +25,6 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
     const val DEFAULT_UPDATE_INTERVAL = 50
     const val DEFAULT_SURRENDER_RANGE = 5000
 
-    val Context.userSettings by dataStore(fileName = USER_SETTINGS_FILE_NAME, serializer = this)
-
-    override suspend fun readFrom(input: InputStream): UserSettingsOuterClass.UserSettings {
-        try {
-            return UserSettingsOuterClass.UserSettings.parseFrom(input)
-        } catch (ex: InvalidProtocolBufferException) {
-            throw CorruptionException("Could not read user settings.", ex)
-        }
-    }
-
-    override suspend fun writeTo(t: UserSettingsOuterClass.UserSettings, output: OutputStream) {
-        t.writeTo(output)
-    }
-
     override val defaultValue: UserSettingsOuterClass.UserSettings = userSettings {
         vesselDataLocation =
             UserSettingsOuterClass.UserSettings.VesselDataLocation.VESSEL_DATA_LOCATION_DEFAULT
@@ -122,5 +108,19 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
 
         showNetworkInfo = true
         alwaysScanPublic = false
+    }
+
+    val Context.userSettings by dataStore(fileName = USER_SETTINGS_FILE_NAME, serializer = this)
+
+    override suspend fun readFrom(input: InputStream): UserSettingsOuterClass.UserSettings {
+        try {
+            return UserSettingsOuterClass.UserSettings.parseFrom(input)
+        } catch (ex: InvalidProtocolBufferException) {
+            throw CorruptionException("Could not read user settings.", ex)
+        }
+    }
+
+    override suspend fun writeTo(t: UserSettingsOuterClass.UserSettings, output: OutputStream) {
+        t.writeTo(output)
     }
 }

@@ -29,6 +29,16 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class SettingsFragmentTest {
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+
+    @Test
+    fun settingsMenuTest() {
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
+        openSettingsMenu()
+        assertDisplayed(R.id.settingsReset)
+    }
+
     companion object {
         private val pageTitles =
             intArrayOf(
@@ -52,11 +62,9 @@ class SettingsFragmentTest {
             usingToggle: Boolean = false,
             toggleDisplayed: Boolean = usingToggle,
         ) {
-            if (usingToggle) {
+            if (usingToggle)
                 clickListItemChild(R.id.settingsPageMenu, index, R.id.settingsEntryToggle)
-            } else {
-                clickListItem(R.id.settingsPageMenu, index)
-            }
+            else clickListItem(R.id.settingsPageMenu, index)
 
             assertDisplayed(R.id.settingsPageTitle, pageTitles[index])
             assertDisplayed(R.id.settingsBack)
@@ -90,10 +98,10 @@ class SettingsFragmentTest {
 
         fun assertSettingsMenuEntryToggleState(index: Int, isOn: Boolean) {
             assertDisplayedAtPosition(
-                R.id.settingsPageMenu,
-                index,
-                R.id.settingsEntryToggle,
-                if (isOn) R.string.on else R.string.off,
+                listId = R.id.settingsPageMenu,
+                position = index,
+                targetViewId = R.id.settingsEntryToggle,
+                textId = if (isOn) R.string.on else R.string.off,
             )
         }
 
@@ -119,7 +127,13 @@ class SettingsFragmentTest {
             listOf(Triple(allButton, noneButton, true), Triple(noneButton, allButton, false))
                 .let { if (allEnabled) it.reversed() else it }
                 .forEach { (clicked, other, checked) ->
-                    testMultipleOptions(clicked, other, settingsButtons, checked, ifEnabled)
+                    testMultipleOptions(
+                        allButton = clicked,
+                        otherButton = other,
+                        buttons = settingsButtons,
+                        checked = checked,
+                        ifEnabled = ifEnabled,
+                    )
                 }
 
             if (anyEnabled && !allEnabled) {
@@ -189,15 +203,5 @@ class SettingsFragmentTest {
             assertUnchecked(sortButton)
             assertChecked(defaultSortButton)
         }
-    }
-
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
-
-    @Test
-    fun settingsMenuTest() {
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
-
-        openSettingsMenu()
-        assertDisplayed(R.id.settingsReset)
     }
 }

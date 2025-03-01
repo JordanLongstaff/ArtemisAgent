@@ -18,6 +18,7 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.core.buildPacket
+import kotlinx.coroutines.launch
 import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
@@ -40,7 +41,7 @@ class VersionPacketTest :
             ),
         isRequired = true,
     ) {
-    override suspend fun DescribeSpecContainerScope.describeMore() {
+    override fun DescribeSpecContainerScope.describeMore() = launch {
         it("Sets version of PacketReader") {
             val listenerRegistry = ListenerRegistry().apply { register(PacketTestListenerModule) }
             val readChannel = ByteChannel()

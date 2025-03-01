@@ -38,6 +38,44 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     private val pendingStations = ConcurrentHashMap<Int, ArtemisBase>()
     private val pendingCreatures = ConcurrentHashMap<Int, ArtemisCreature>()
 
+    private val npcUpdateFunctions =
+        arrayOf(
+            this::updateAllyShip,
+            this::updateUnscannedBiomech,
+            this::updateScannedBiomech,
+            this::updateEnemy,
+        )
+
+    private val npcDeleteFunctions =
+        arrayOf(this::deleteBiomech, this::deleteEnemy, this::deleteAlly)
+
+    private val messageParsers =
+        arrayOf(
+            MessageParser.TauntResponse,
+            MessageParser.BorderWar,
+            MessageParser.Scrambled,
+            MessageParser.Standby,
+            MessageParser.Production,
+            MessageParser.Fighters,
+            MessageParser.Ordnance,
+            MessageParser.HeaveTo,
+            MessageParser.TorpedoTransfer,
+            MessageParser.EnergyTransfer,
+            MessageParser.DeliveringReward,
+            MessageParser.NewMission,
+            MessageParser.MissionProgress,
+            MessageParser.UnderAttack,
+            MessageParser.StationDestroyed,
+            MessageParser.RewardDelivered,
+            MessageParser.RealCaptain,
+            MessageParser.RescuedAmbassador,
+            MessageParser.Directions,
+            MessageParser.PlannedDestination,
+            MessageParser.Attacking,
+            MessageParser.HasDestination,
+            MessageParser.HailResponse,
+        )
+
     fun onStationDelete(id: Int) {
         with(viewModel) {
             livingEnemyStations.also { enemyStations ->
@@ -212,54 +250,45 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun onSelectedPlayerUpdate(update: ArtemisPlayer) {
-        val player = viewModel.playerShip ?: return
+        val player = viewModel.playerShip
 
-        if (update == player) {
-            var count = player.doubleAgentCount.value
-            var active = player.doubleAgentActive.value.booleanValue
-            var agentUpdate = false
-
-            val doubleAgentCount = update.doubleAgentCount.value
-            if (doubleAgentCount >= 0) {
-                agentUpdate = true
-                count = doubleAgentCount
-            }
-
-            val doubleAgentActive = update.doubleAgentActive.value
-            if (doubleAgentActive.isKnown) {
-                agentUpdate = true
-                active = doubleAgentActive.booleanValue
-                viewModel.doubleAgentActive.value = active
-                if (!active) {
-                    viewModel.doubleAgentSecondsLeft = -1
-                }
-            }
-
-            update.doubleAgentSecondsLeft.value.also {
-                if (it > 0 || (it == 0 && active)) {
-                    viewModel.doubleAgentSecondsLeft = it
-                }
-            }
-
-            update.alertStatus.value?.also { viewModel.alertStatus.value = it }
-
-            if (agentUpdate) {
-                viewModel.doubleAgentEnabled.value = count > 0 && !active
-            }
-        }
-
-        if (update.capitalShipID.value == player.id) {
+        if (update.capitalShipID.value == player?.id) {
             viewModel.fighterIDs.add(update.id)
         }
-    }
 
-    private val npcUpdateFunctions =
-        arrayOf(
-            this::updateAllyShip,
-            this::updateUnscannedBiomech,
-            this::updateScannedBiomech,
-            this::updateEnemy,
-        )
+        if (player != update) return
+
+        var count = player.doubleAgentCount.value
+        var active = player.doubleAgentActive.value.booleanValue
+        var agentUpdate = false
+
+        val doubleAgentCount = update.doubleAgentCount.value
+        if (doubleAgentCount >= 0) {
+            agentUpdate = true
+            count = doubleAgentCount
+        }
+
+        val doubleAgentActive = update.doubleAgentActive.value
+        if (doubleAgentActive.isKnown) {
+            agentUpdate = true
+            active = doubleAgentActive.booleanValue
+            viewModel.doubleAgentActive.value = active
+            if (!active) {
+                viewModel.doubleAgentSecondsLeft = -1
+            }
+        }
+
+        val secondsLeft = update.doubleAgentSecondsLeft.value
+        if (secondsLeft > 0 || (secondsLeft == 0 && active)) {
+            viewModel.doubleAgentSecondsLeft = secondsLeft
+        }
+
+        update.alertStatus.value?.also { viewModel.alertStatus.value = it }
+
+        if (agentUpdate) {
+            viewModel.doubleAgentEnabled.value = count > 0 && !active
+        }
+    }
 
     @Listener
     fun onNpcUpdate(update: ArtemisNpc) {
@@ -334,11 +363,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         val description = intel.substring(INTEL_PREFIX_LENGTH)
         val tauntIndex = taunts.indexOfFirst { taunt -> description.startsWith(taunt.immunity) }
         val immunityEnd =
-            if (tauntIndex < 0) {
-                description.indexOf(',')
-            } else {
-                taunts[tauntIndex].immunity.length
-            }
+            if (tauntIndex < 0) description.indexOf(',') else taunts[tauntIndex].immunity.length
 
         val rest = description.substring(immunityEnd)
         val captainStatus =
@@ -357,57 +382,65 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     fun onNpcDelete(id: Int) {
-        viewModel.apply {
-            val biomech = unscannedBiomechs.remove(id)
-            if (biomech != null) return@apply
+        npcDeleteFunctions.firstNotNullOfOrNull { it(id) }
+    }
 
-            val biomechIndex = scannedBiomechs.indexOfFirst { it.biomech.id == id }
-            if (biomechIndex >= 0) {
-                scannedBiomechs.removeAt(biomechIndex).biomech.also {
-                    destroyedBiomechName.tryEmit(getFullNameForShip(it))
-                }
-                if (scannedBiomechs.isEmpty()) {
-                    biomechUpdate = false
-                }
-                return@apply
+    private fun deleteBiomech(id: Int): ArtemisNpc? {
+        val unscannedBiomech = viewModel.unscannedBiomechs.remove(id)
+        if (unscannedBiomech != null) return unscannedBiomech
+
+        val biomechIndex = viewModel.scannedBiomechs.indexOfFirst { it.biomech.id == id }
+        return if (biomechIndex >= 0) {
+            val scannedBiomech = viewModel.scannedBiomechs.removeAt(biomechIndex).biomech
+            viewModel.destroyedBiomechName.tryEmit(viewModel.getFullNameForShip(scannedBiomech))
+
+            if (viewModel.scannedBiomechs.isEmpty()) {
+                viewModel.biomechUpdate = false
             }
 
-            enemies.remove(id)?.also { entry ->
-                val enemy = entry.enemy
-                destroyedEnemyName.tryEmit(getFullNameForShip(enemy))
-
-                val name = enemy.name.value
-                allyShips.values
-                    .filter { it.isAttacking && it.destination == name }
-                    .forEach {
-                        it.isAttacking = false
-                        it.destination = null
-                    }
-                name?.also(enemyNameIndex::remove)
-
-                if (selectedEnemy.value == entry) {
-                    selectedEnemy.value = null
-                }
-
-                return@apply
-            }
-
-            allyShips.remove(id)?.also { ally ->
-                ally.obj.also {
-                    it.name.value?.also(allyShipIndex::remove)
-
-                    val destroyedAllyList = destroyedAllies.value.toMutableList()
-                    destroyedAllyList.add(getFullNameForShip(it))
-                    destroyedAllies.value = destroyedAllyList
-
-                    if (focusedAlly.value == ally) {
-                        focusedAlly.value = null
-                    }
-                    purgeMissions(it)
-                }
-            }
+            scannedBiomech
+        } else {
+            null
         }
     }
+
+    private fun deleteEnemy(id: Int): ArtemisNpc? =
+        viewModel.enemies.remove(id)?.let { entry ->
+            val enemy = entry.enemy
+            viewModel.destroyedEnemyName.tryEmit(viewModel.getFullNameForShip(enemy))
+
+            val name = enemy.name.value
+            viewModel.allyShips.values
+                .filter { it.isAttacking && it.destination == name }
+                .forEach {
+                    it.isAttacking = false
+                    it.destination = null
+                }
+            name?.also(viewModel.enemyNameIndex::remove)
+
+            if (viewModel.selectedEnemy.value == entry) {
+                viewModel.selectedEnemy.value = null
+            }
+
+            enemy
+        }
+
+    private fun deleteAlly(id: Int): ArtemisNpc? =
+        viewModel.allyShips.remove(id)?.let { ally ->
+            val npc = ally.obj
+            npc.name.value?.also(viewModel.allyShipIndex::remove)
+
+            val destroyedAllyList = viewModel.destroyedAllies.value.toMutableList()
+            destroyedAllyList.add(viewModel.getFullNameForShip(npc))
+            viewModel.destroyedAllies.value = destroyedAllyList
+
+            if (viewModel.focusedAlly.value == ally) {
+                viewModel.focusedAlly.value = null
+            }
+            purgeMissions(npc)
+
+            npc
+        }
 
     private fun purgeMissions(obj: BaseArtemisShielded<*>) {
         with(viewModel) {
@@ -488,33 +521,6 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     ) {
         obj updates map.getOrPut(obj.id) { obj }
     }
-
-    private val messageParsers =
-        arrayOf(
-            MessageParser.TauntResponse,
-            MessageParser.BorderWar,
-            MessageParser.Scrambled,
-            MessageParser.Standby,
-            MessageParser.Production,
-            MessageParser.Fighters,
-            MessageParser.Ordnance,
-            MessageParser.HeaveTo,
-            MessageParser.TorpedoTransfer,
-            MessageParser.EnergyTransfer,
-            MessageParser.DeliveringReward,
-            MessageParser.NewMission,
-            MessageParser.MissionProgress,
-            MessageParser.UnderAttack,
-            MessageParser.StationDestroyed,
-            MessageParser.RewardDelivered,
-            MessageParser.RealCaptain,
-            MessageParser.RescuedAmbassador,
-            MessageParser.Directions,
-            MessageParser.PlannedDestination,
-            MessageParser.Attacking,
-            MessageParser.HasDestination,
-            MessageParser.HailResponse,
-        )
 
     @Listener
     fun onCommsPacket(packet: CommsIncomingPacket) {

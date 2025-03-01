@@ -189,10 +189,28 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         override val parserName: String = "Base"
         override val dataGenerator: Gen<Data> =
             Arb.bind(
-                ID,
-                Arb.flags(NAME, SHIELDS, MAX_SHIELDS, UNK_1_4, HULL_ID, X, Y, Z),
-                Arb.flags(UNK_2_1, UNK_2_2, UNK_2_3, UNK_2_4, UNK_2_5, UNK_2_6),
-                ::Data,
+                genA = ID,
+                genB =
+                    Arb.flags(
+                        arb1 = NAME,
+                        arb2 = SHIELDS,
+                        arb3 = MAX_SHIELDS,
+                        arb4 = UNK_1_4,
+                        arb5 = HULL_ID,
+                        arb6 = X,
+                        arb7 = Y,
+                        arb8 = Z,
+                    ),
+                genC =
+                    Arb.flags(
+                        arb1 = UNK_2_1,
+                        arb2 = UNK_2_2,
+                        arb3 = UNK_2_3,
+                        arb4 = UNK_2_4,
+                        arb5 = UNK_2_5,
+                        arb6 = UNK_2_6,
+                    ),
+                bindFn = ::Data,
             )
     }
 
@@ -228,51 +246,6 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
     sealed class CreatureParser(override val specName: String, versionArb: Arb<Version>) :
         ObjectParserTestConfig(true) {
-        protected companion object {
-            private val UNK_1_4 = Arb.string()
-            private val UNK_1_5 = Arb.float()
-            private val UNK_1_6 = Arb.float()
-            private val UNK_1_7 = Arb.float()
-
-            private val UNK_2_1 = Arb.int()
-            private val UNK_2_2 = Arb.int()
-            private val UNK_2_3 = Arb.int()
-            private val UNK_2_4 = Arb.int()
-            private val UNK_2_5 = Arb.int()
-            private val UNK_2_6 = Arb.int()
-            private val UNK_2_7 = Arb.float()
-            private val UNK_2_8 = Arb.float()
-
-            private val UNK_3_1 = Arb.byte()
-            private val UNK_3_2 = Arb.int()
-
-            private const val CREATURE_TYPE_BIT = 0x80
-
-            private fun arbData(
-                arbVersion: Arb<Version>,
-                arbCreatureType: Arb<Int>,
-                arbForceCreatureType: Arb<Boolean>,
-            ): Arb<Data> =
-                Arb.bind(
-                    ID,
-                    arbVersion,
-                    Arb.flags(X, Y, Z, UNK_1_4, UNK_1_5, UNK_1_6, UNK_1_7, arbCreatureType),
-                    Arb.flags(
-                        UNK_2_1,
-                        UNK_2_2,
-                        UNK_2_3,
-                        UNK_2_4,
-                        UNK_2_5,
-                        UNK_2_6,
-                        UNK_2_7,
-                        UNK_2_8,
-                    ),
-                    Arb.flags(UNK_3_1, UNK_3_2),
-                    arbForceCreatureType,
-                    ::Data,
-                )
-        }
-
         class Data
         internal constructor(
             objectID: Int,
@@ -339,10 +312,14 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             }
         }
 
-        data object V1 : CreatureParser("Before 2.6.0", Arb.version(major = 2, minorRange = 3..5))
+        data object V1 :
+            CreatureParser(before(VERSION_2_6_0), Arb.version(major = 2, minorRange = 3..5))
 
         data object V2 :
-            CreatureParser("Since 2.6.0", Arb.version(major = 2, minorArb = Arb.int(min = 6)))
+            CreatureParser(
+                since(VERSION_2_6_0),
+                Arb.version(major = 2, minorArb = Arb.int(min = 6)),
+            )
 
         override val parserName: String = "Creature"
         override val dataGenerator: Gen<Data> = arbData(versionArb, Arb.of(0), Arb.of(false))
@@ -359,13 +336,13 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                         ListenerRegistry().apply { register(TestListener.module) },
                     )
 
-                nonTyphonDataGenerator.checkAll {
+                nonTyphonDataGenerator.checkAll { data ->
                     readChannel.writePacketWithHeader(
                         TestPacketTypes.OBJECT_BIT_STREAM,
-                        it.buildPayload(),
+                        data.buildPayload(),
                     )
 
-                    reader.version = it.version
+                    reader.version = data.version
 
                     val result = reader.readPacket()
                     result.shouldBeInstanceOf<ParseResult.Success>()
@@ -379,6 +356,62 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
                 reader.close()
             }
+        }
+
+        protected companion object {
+            private val UNK_1_4 = Arb.string()
+            private val UNK_1_5 = Arb.float()
+            private val UNK_1_6 = Arb.float()
+            private val UNK_1_7 = Arb.float()
+
+            private val UNK_2_1 = Arb.int()
+            private val UNK_2_2 = Arb.int()
+            private val UNK_2_3 = Arb.int()
+            private val UNK_2_4 = Arb.int()
+            private val UNK_2_5 = Arb.int()
+            private val UNK_2_6 = Arb.int()
+            private val UNK_2_7 = Arb.float()
+            private val UNK_2_8 = Arb.float()
+
+            private val UNK_3_1 = Arb.byte()
+            private val UNK_3_2 = Arb.int()
+
+            private const val CREATURE_TYPE_BIT = 0x80
+
+            private fun arbData(
+                arbVersion: Arb<Version>,
+                arbCreatureType: Arb<Int>,
+                arbForceCreatureType: Arb<Boolean>,
+            ): Arb<Data> =
+                Arb.bind(
+                    genA = ID,
+                    genB = arbVersion,
+                    genC =
+                        Arb.flags(
+                            arb1 = X,
+                            arb2 = Y,
+                            arb3 = Z,
+                            arb4 = UNK_1_4,
+                            arb5 = UNK_1_5,
+                            arb6 = UNK_1_6,
+                            arb7 = UNK_1_7,
+                            arb8 = arbCreatureType,
+                        ),
+                    genD =
+                        Arb.flags(
+                            arb1 = UNK_2_1,
+                            arb2 = UNK_2_2,
+                            arb3 = UNK_2_3,
+                            arb4 = UNK_2_4,
+                            arb5 = UNK_2_5,
+                            arb6 = UNK_2_6,
+                            arb7 = UNK_2_7,
+                            arb8 = UNK_2_8,
+                        ),
+                    genE = Arb.flags(arb1 = UNK_3_1, arb2 = UNK_3_2),
+                    genF = arbForceCreatureType,
+                    bindFn = ::Data,
+                )
         }
     }
 
@@ -409,50 +442,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     sealed class NpcShipParser(override val specName: String) : ObjectParserTestConfig(true) {
-        protected companion object {
-            val NAME = Arb.string()
-            val IMPULSE = Arb.numericFloat()
-            val IS_ENEMY = Arb.int()
-            val HULL_ID = Arb.int().filter { it != -1 }
-            val SURRENDERED = Arb.byte()
-            val IN_NEBULA_OLD = Arb.short()
-            val IN_NEBULA_NEW = Arb.byte()
-            val FRONT = Arb.numericFloat()
-            val FRONT_MAX = Arb.numericFloat()
-            val REAR = Arb.numericFloat()
-            val REAR_MAX = Arb.numericFloat()
-            val SCAN_BITS = Arb.int()
-            val SIDE = Arb.byte().filter { it.toInt() != -1 }
-
-            val DAMAGE = Arb.float()
-            val FREQ = Arb.float()
-
-            val UNK_1_3 = Arb.float()
-            val UNK_1_4 = Arb.float()
-            val UNK_1_5 = Arb.float()
-
-            val UNK_2_3 = Arb.float()
-            val UNK_2_4 = Arb.float()
-            val UNK_2_5 = Arb.float()
-            val UNK_2_6 = Arb.float()
-
-            val UNK_3_5 = Arb.short()
-            val UNK_3_6 = Arb.byte()
-            val UNK_3_7 = Arb.int()
-            val UNK_3_8 = Arb.int()
-
-            val UNK_4_2 = Arb.int()
-            val UNK_4_3 = Arb.int()
-            val UNK_4_5 = Arb.byte()
-            val UNK_4_6 = Arb.byte()
-            val UNK_4_7 = Arb.byte()
-            val UNK_4_8 = Arb.float()
-
-            val UNK_5_1 = Arb.float()
-            val UNK_5_2 = Arb.float()
-            val UNK_5_3 = Arb.byte()
-            val UNK_5_4 = Arb.byte()
-        }
+        override val parserName: String = "NPC ship"
 
         abstract class NpcData
         internal constructor(
@@ -542,9 +532,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             }
         }
 
-        override val parserName: String = "NPC ship"
-
-        data object V1 : NpcShipParser("Before 2.6.3") {
+        data object V1 : NpcShipParser(before(VERSION_2_6_3)) {
             class Data
             internal constructor(
                 objectID: Int,
@@ -587,31 +575,82 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    Arb.choose(
-                        3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
-                        997 to Arb.version(major = 2, minorRange = 3..5),
-                    ),
-                    Arb.flags(NAME, IMPULSE, UNK_1_3, UNK_1_4, UNK_1_5, IS_ENEMY, HULL_ID, X),
-                    Arb.flags(Y, Z, UNK_2_3, UNK_2_4, UNK_2_5, UNK_2_6, SURRENDERED, IN_NEBULA_OLD),
-                    Arb.flags(FRONT, FRONT_MAX, REAR, REAR_MAX, UNK_3_5, UNK_3_6, UNK_3_7, UNK_3_8),
-                    Arb.flags(
-                        SCAN_BITS,
-                        UNK_4_2,
-                        UNK_4_3,
-                        SIDE,
-                        UNK_4_5,
-                        UNK_4_6,
-                        UNK_4_7,
-                        UNK_4_8,
-                    ),
-                    Arb.flags(UNK_5_1, UNK_5_2, DAMAGE, DAMAGE, DAMAGE, DAMAGE, DAMAGE, DAMAGE),
-                    Arb.flags(DAMAGE, DAMAGE, FREQ, FREQ, FREQ, FREQ, FREQ),
-                    ::Data,
+                    genA = ID,
+                    genB =
+                        Arb.choose(
+                            3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
+                            997 to Arb.version(major = 2, minorRange = 3..5),
+                        ),
+                    genC =
+                        Arb.flags(
+                            arb1 = NAME,
+                            arb2 = IMPULSE,
+                            arb3 = UNK_1_3,
+                            arb4 = UNK_1_4,
+                            arb5 = UNK_1_5,
+                            arb6 = IS_ENEMY,
+                            arb7 = HULL_ID,
+                            arb8 = X,
+                        ),
+                    genD =
+                        Arb.flags(
+                            arb1 = Y,
+                            arb2 = Z,
+                            arb3 = UNK_2_3,
+                            arb4 = UNK_2_4,
+                            arb5 = UNK_2_5,
+                            arb6 = UNK_2_6,
+                            arb7 = SURRENDERED,
+                            arb8 = IN_NEBULA_OLD,
+                        ),
+                    genE =
+                        Arb.flags(
+                            arb1 = FRONT,
+                            arb2 = FRONT_MAX,
+                            arb3 = REAR,
+                            arb4 = REAR_MAX,
+                            arb5 = UNK_3_5,
+                            arb6 = UNK_3_6,
+                            arb7 = UNK_3_7,
+                            arb8 = UNK_3_8,
+                        ),
+                    genF =
+                        Arb.flags(
+                            arb1 = SCAN_BITS,
+                            arb2 = UNK_4_2,
+                            arb3 = UNK_4_3,
+                            arb4 = SIDE,
+                            arb5 = UNK_4_5,
+                            arb6 = UNK_4_6,
+                            arb7 = UNK_4_7,
+                            arb8 = UNK_4_8,
+                        ),
+                    genG =
+                        Arb.flags(
+                            arb1 = UNK_5_1,
+                            arb2 = UNK_5_2,
+                            arb3 = DAMAGE,
+                            arb4 = DAMAGE,
+                            arb5 = DAMAGE,
+                            arb6 = DAMAGE,
+                            arb7 = DAMAGE,
+                            arb8 = DAMAGE,
+                        ),
+                    genH =
+                        Arb.flags(
+                            arb1 = DAMAGE,
+                            arb2 = DAMAGE,
+                            arb3 = FREQ,
+                            arb4 = FREQ,
+                            arb5 = FREQ,
+                            arb6 = FREQ,
+                            arb7 = FREQ,
+                        ),
+                    bindFn = ::Data,
                 )
         }
 
-        data object V2 : NpcShipParser("From 2.6.3 until 2.7.0") {
+        data object V2 : NpcShipParser(between(VERSION_2_6_3, VERSION_2_7_0)) {
             class Data
             internal constructor(
                 objectID: Int,
@@ -655,29 +694,80 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
-                    Arb.flags(NAME, IMPULSE, UNK_1_3, UNK_1_4, UNK_1_5, IS_ENEMY, HULL_ID, X),
-                    Arb.flags(Y, Z, UNK_2_3, UNK_2_4, UNK_2_5, UNK_2_6, SURRENDERED, IN_NEBULA_OLD),
-                    Arb.flags(FRONT, FRONT_MAX, REAR, REAR_MAX, UNK_3_5, UNK_3_6, UNK_3_7, UNK_3_8),
-                    Arb.flags(
-                        SCAN_BITS,
-                        UNK_4_2,
-                        UNK_4_3,
-                        SIDE,
-                        UNK_4_5,
-                        UNK_4_6,
-                        UNK_4_7,
-                        UNK_4_8,
-                    ),
-                    Arb.flags(UNK_5_1, UNK_5_2, UNK_5_3, UNK_5_4, DAMAGE, DAMAGE, DAMAGE, DAMAGE),
-                    Arb.flags(DAMAGE, DAMAGE, DAMAGE, DAMAGE, FREQ, FREQ, FREQ, FREQ),
-                    Arb.flags(FREQ),
-                    ::Data,
+                    genA = ID,
+                    genB = Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
+                    genC =
+                        Arb.flags(
+                            arb1 = NAME,
+                            arb2 = IMPULSE,
+                            arb3 = UNK_1_3,
+                            arb4 = UNK_1_4,
+                            arb5 = UNK_1_5,
+                            arb6 = IS_ENEMY,
+                            arb7 = HULL_ID,
+                            arb8 = X,
+                        ),
+                    genD =
+                        Arb.flags(
+                            arb1 = Y,
+                            arb2 = Z,
+                            arb3 = UNK_2_3,
+                            arb4 = UNK_2_4,
+                            arb5 = UNK_2_5,
+                            arb6 = UNK_2_6,
+                            arb7 = SURRENDERED,
+                            arb8 = IN_NEBULA_OLD,
+                        ),
+                    genE =
+                        Arb.flags(
+                            arb1 = FRONT,
+                            arb2 = FRONT_MAX,
+                            arb3 = REAR,
+                            arb4 = REAR_MAX,
+                            arb5 = UNK_3_5,
+                            arb6 = UNK_3_6,
+                            arb7 = UNK_3_7,
+                            arb8 = UNK_3_8,
+                        ),
+                    genF =
+                        Arb.flags(
+                            arb1 = SCAN_BITS,
+                            arb2 = UNK_4_2,
+                            arb3 = UNK_4_3,
+                            arb4 = SIDE,
+                            arb5 = UNK_4_5,
+                            arb6 = UNK_4_6,
+                            arb7 = UNK_4_7,
+                            arb8 = UNK_4_8,
+                        ),
+                    genG =
+                        Arb.flags(
+                            arb1 = UNK_5_1,
+                            arb2 = UNK_5_2,
+                            arb3 = UNK_5_3,
+                            arb4 = UNK_5_4,
+                            arb5 = DAMAGE,
+                            arb6 = DAMAGE,
+                            arb7 = DAMAGE,
+                            arb8 = DAMAGE,
+                        ),
+                    genH =
+                        Arb.flags(
+                            arb1 = DAMAGE,
+                            arb2 = DAMAGE,
+                            arb3 = DAMAGE,
+                            arb4 = DAMAGE,
+                            arb5 = FREQ,
+                            arb6 = FREQ,
+                            arb7 = FREQ,
+                            arb8 = FREQ,
+                        ),
+                    genI = Arb.flags(arb1 = FREQ),
+                    bindFn = ::Data,
                 )
         }
 
-        data object V3 : NpcShipParser("Since 2.7.0") {
+        data object V3 : NpcShipParser(since(VERSION_2_7_0)) {
             class Data
             internal constructor(
                 objectID: Int,
@@ -721,98 +811,127 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    Arb.version(2, Arb.int(min = 7)),
-                    Arb.flags(NAME, IMPULSE, UNK_1_3, UNK_1_4, UNK_1_5, IS_ENEMY, HULL_ID, X),
-                    Arb.flags(Y, Z, UNK_2_3, UNK_2_4, UNK_2_5, UNK_2_6, SURRENDERED, IN_NEBULA_NEW),
-                    Arb.flags(FRONT, FRONT_MAX, REAR, REAR_MAX, UNK_3_5, UNK_3_6, UNK_3_7, UNK_3_8),
-                    Arb.flags(
-                        SCAN_BITS,
-                        UNK_4_2,
-                        UNK_4_3,
-                        SIDE,
-                        UNK_4_5,
-                        UNK_4_6,
-                        UNK_4_7,
-                        UNK_4_8,
-                    ),
-                    Arb.flags(UNK_5_1, UNK_5_2, UNK_5_3, UNK_5_4, DAMAGE, DAMAGE, DAMAGE, DAMAGE),
-                    Arb.flags(DAMAGE, DAMAGE, DAMAGE, DAMAGE, FREQ, FREQ, FREQ, FREQ),
-                    Arb.flags(FREQ),
-                    ::Data,
+                    genA = ID,
+                    genB = Arb.version(2, Arb.int(min = 7)),
+                    genC =
+                        Arb.flags(
+                            arb1 = NAME,
+                            arb2 = IMPULSE,
+                            arb3 = UNK_1_3,
+                            arb4 = UNK_1_4,
+                            arb5 = UNK_1_5,
+                            arb6 = IS_ENEMY,
+                            arb7 = HULL_ID,
+                            arb8 = X,
+                        ),
+                    genD =
+                        Arb.flags(
+                            arb1 = Y,
+                            arb2 = Z,
+                            arb3 = UNK_2_3,
+                            arb4 = UNK_2_4,
+                            arb5 = UNK_2_5,
+                            arb6 = UNK_2_6,
+                            arb7 = SURRENDERED,
+                            arb8 = IN_NEBULA_NEW,
+                        ),
+                    genE =
+                        Arb.flags(
+                            arb1 = FRONT,
+                            arb2 = FRONT_MAX,
+                            arb3 = REAR,
+                            arb4 = REAR_MAX,
+                            arb5 = UNK_3_5,
+                            arb6 = UNK_3_6,
+                            arb7 = UNK_3_7,
+                            arb8 = UNK_3_8,
+                        ),
+                    genF =
+                        Arb.flags(
+                            arb1 = SCAN_BITS,
+                            arb2 = UNK_4_2,
+                            arb3 = UNK_4_3,
+                            arb4 = SIDE,
+                            arb5 = UNK_4_5,
+                            arb6 = UNK_4_6,
+                            arb7 = UNK_4_7,
+                            arb8 = UNK_4_8,
+                        ),
+                    genG =
+                        Arb.flags(
+                            arb1 = UNK_5_1,
+                            arb2 = UNK_5_2,
+                            arb3 = UNK_5_3,
+                            arb4 = UNK_5_4,
+                            arb5 = DAMAGE,
+                            arb6 = DAMAGE,
+                            arb7 = DAMAGE,
+                            arb8 = DAMAGE,
+                        ),
+                    genH =
+                        Arb.flags(
+                            arb1 = DAMAGE,
+                            arb2 = DAMAGE,
+                            arb3 = DAMAGE,
+                            arb4 = DAMAGE,
+                            arb5 = FREQ,
+                            arb6 = FREQ,
+                            arb7 = FREQ,
+                            arb8 = FREQ,
+                        ),
+                    genI = Arb.flags(arb1 = FREQ),
+                    bindFn = ::Data,
                 )
+        }
+
+        protected companion object {
+            val NAME = Arb.string()
+            val IMPULSE = Arb.numericFloat()
+            val IS_ENEMY = Arb.int()
+            val HULL_ID = Arb.int().filter { it != -1 }
+            val SURRENDERED = Arb.byte()
+            val IN_NEBULA_OLD = Arb.short()
+            val IN_NEBULA_NEW = Arb.byte()
+            val FRONT = Arb.numericFloat()
+            val FRONT_MAX = Arb.numericFloat()
+            val REAR = Arb.numericFloat()
+            val REAR_MAX = Arb.numericFloat()
+            val SCAN_BITS = Arb.int()
+            val SIDE = Arb.byte().filter { it.toInt() != -1 }
+
+            val DAMAGE = Arb.float()
+            val FREQ = Arb.float()
+
+            val UNK_1_3 = Arb.float()
+            val UNK_1_4 = Arb.float()
+            val UNK_1_5 = Arb.float()
+
+            val UNK_2_3 = Arb.float()
+            val UNK_2_4 = Arb.float()
+            val UNK_2_5 = Arb.float()
+            val UNK_2_6 = Arb.float()
+
+            val UNK_3_5 = Arb.short()
+            val UNK_3_6 = Arb.byte()
+            val UNK_3_7 = Arb.int()
+            val UNK_3_8 = Arb.int()
+
+            val UNK_4_2 = Arb.int()
+            val UNK_4_3 = Arb.int()
+            val UNK_4_5 = Arb.byte()
+            val UNK_4_6 = Arb.byte()
+            val UNK_4_7 = Arb.byte()
+            val UNK_4_8 = Arb.float()
+
+            val UNK_5_1 = Arb.float()
+            val UNK_5_2 = Arb.float()
+            val UNK_5_3 = Arb.byte()
+            val UNK_5_4 = Arb.byte()
         }
     }
 
     sealed class PlayerShipParser(override val specName: String, val versionArb: Arb<Version>) :
         ObjectParserTestConfig(true) {
-        protected companion object {
-            private val IMPULSE = Arb.numericFloat()
-            private val WARP = Arb.byte(min = 0, max = Artemis.MAX_WARP)
-            private val HULL_ID = Arb.int().filter { it != -1 }
-            val NAME = Arb.string()
-            val FRONT = Arb.numericFloat()
-            val FRONT_MAX = Arb.numericFloat()
-            val REAR = Arb.numericFloat()
-            val REAR_MAX = Arb.numericFloat()
-            private val DOCKING_BASE = Arb.int().filter { it != -1 }
-            private val ALERT = Arb.enum<AlertStatus>()
-            private val DRIVE_TYPE = Arb.enum<DriveType>()
-            private val SIDE = Arb.byte().filter { it.toInt() != -1 }
-            private val SHIP_INDEX = Arb.byte(min = 0x81.toByte())
-            private val CAPITAL_SHIP_ID = Arb.int().filter { it != -1 }
-
-            private val UNK_1_1 = Arb.int()
-            private val UNK_1_3 = Arb.float()
-            private val UNK_1_4 = Arb.float()
-            private val UNK_1_5 = Arb.float()
-            private val UNK_1_6 = Arb.byte()
-            private val UNK_1_8 = Arb.float()
-
-            private val UNK_2_1 = Arb.short()
-            private val UNK_2_2 = Arb.int()
-            private val UNK_2_7 = Arb.float()
-            private val UNK_2_8 = Arb.float()
-
-            val UNK_3_1 = Arb.float()
-            val UNK_3_2 = Arb.float()
-            private val UNK_3_3_OLD = Arb.short()
-            val UNK_3_3_NEW = Arb.byte()
-
-            private val UNK_4_3 = Arb.float()
-            private val UNK_4_4 = Arb.byte()
-            private val UNK_4_5 = Arb.byte()
-            private val UNK_4_6 = Arb.byte()
-            private val UNK_4_7 = Arb.int()
-            private val UNK_4_8 = Arb.int()
-
-            private val UNK_5_2 = Arb.int()
-            private val UNK_5_3 = Arb.float()
-            private val UNK_5_4 = Arb.byte()
-            private val UNK_5_5 = Arb.float()
-            private val UNK_5_7 = Arb.int()
-
-            private val UNK_6_2 = Arb.float()
-            private val UNK_6_3 = Arb.float()
-            private val UNK_6_4 = Arb.byte()
-            private val UNK_6_5 = Arb.byte()
-
-            internal val PLAYER_FLAGS_1 =
-                Arb.flags(UNK_1_1, IMPULSE, UNK_1_3, UNK_1_4, UNK_1_5, UNK_1_6, WARP, UNK_1_8)
-
-            internal val PLAYER_FLAGS_2 =
-                Arb.flags(UNK_2_1, UNK_2_2, HULL_ID, X, Y, Z, UNK_2_7, UNK_2_8)
-
-            internal val PLAYER_FLAGS_4 =
-                Arb.flags(DOCKING_BASE, ALERT, UNK_4_3, UNK_4_4, UNK_4_5, UNK_4_6, UNK_4_7, UNK_4_8)
-
-            internal val PLAYER_FLAGS_5 =
-                Arb.flags(DRIVE_TYPE, UNK_5_2, UNK_5_3, UNK_5_4, UNK_5_5, SIDE, UNK_5_7, SHIP_INDEX)
-
-            internal val PLAYER_FLAGS_6 =
-                Arb.flags(CAPITAL_SHIP_ID, UNK_6_2, UNK_6_3, UNK_6_4, UNK_6_5)
-        }
-
         sealed class Data
         private constructor(
             objectID: Int,
@@ -994,22 +1113,22 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         override val parserName: String = "Player ship"
         override val dataGenerator: Gen<Data> =
             Arb.bind(
-                ID,
-                versionArb,
-                PLAYER_FLAGS_1,
-                PLAYER_FLAGS_2,
-                Arb.flags(UNK_3_1, UNK_3_2, UNK_3_3_OLD, NAME, FRONT, FRONT_MAX, REAR, REAR_MAX),
-                PLAYER_FLAGS_4,
-                PLAYER_FLAGS_5,
-                PLAYER_FLAGS_6,
-                Data::Old,
+                genA = ID,
+                genB = versionArb,
+                genC = PLAYER_FLAGS_1,
+                genD = PLAYER_FLAGS_2,
+                genE = playerFlags3(UNK_3_3_OLD),
+                genF = PLAYER_FLAGS_4,
+                genG = PLAYER_FLAGS_5,
+                genH = PLAYER_FLAGS_6,
+                bindFn = Data::Old,
             )
 
-        data object V1 : PlayerShipParser("Before 2.4.0", Arb.version(major = 2, minor = 3))
+        data object V1 : PlayerShipParser(before(VERSION_2_4_0), Arb.version(major = 2, minor = 3))
 
         data object V2 :
             PlayerShipParser(
-                "From 2.4.0 until 2.6.3",
+                between(VERSION_2_4_0, VERSION_2_6_3),
                 Arb.choose(
                     3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
                     997 to Arb.version(major = 2, minorRange = 4..5),
@@ -1018,32 +1137,147 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         data object V3 :
             PlayerShipParser(
-                "From 2.6.3 until 2.7.0",
+                between(VERSION_2_6_3, VERSION_2_7_0),
                 Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
             )
 
         data object V4 :
-            PlayerShipParser("Since 2.7.0", Arb.version(major = 2, minorArb = Arb.int(min = 7))) {
+            PlayerShipParser(
+                since(VERSION_2_7_0),
+                Arb.version(major = 2, minorArb = Arb.int(min = 7)),
+            ) {
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    versionArb,
-                    PLAYER_FLAGS_1,
-                    PLAYER_FLAGS_2,
-                    Arb.flags(
-                        UNK_3_1,
-                        UNK_3_2,
-                        UNK_3_3_NEW,
-                        NAME,
-                        FRONT,
-                        FRONT_MAX,
-                        REAR,
-                        REAR_MAX,
-                    ),
-                    PLAYER_FLAGS_4,
-                    PLAYER_FLAGS_5,
-                    PLAYER_FLAGS_6,
-                    Data::New,
+                    genA = ID,
+                    genB = versionArb,
+                    genC = PLAYER_FLAGS_1,
+                    genD = PLAYER_FLAGS_2,
+                    genE = playerFlags3(UNK_3_3_NEW),
+                    genF = PLAYER_FLAGS_4,
+                    genG = PLAYER_FLAGS_5,
+                    genH = PLAYER_FLAGS_6,
+                    bindFn = Data::New,
+                )
+        }
+
+        protected companion object {
+            private val IMPULSE = Arb.numericFloat()
+            private val WARP = Arb.byte(min = 0, max = Artemis.MAX_WARP)
+            private val HULL_ID = Arb.int().filter { it != -1 }
+            val NAME = Arb.string()
+            val FRONT = Arb.numericFloat()
+            val FRONT_MAX = Arb.numericFloat()
+            val REAR = Arb.numericFloat()
+            val REAR_MAX = Arb.numericFloat()
+            private val DOCKING_BASE = Arb.int().filter { it != -1 }
+            private val ALERT = Arb.enum<AlertStatus>()
+            private val DRIVE_TYPE = Arb.enum<DriveType>()
+            private val SIDE = Arb.byte().filter { it.toInt() != -1 }
+            private val SHIP_INDEX = Arb.byte(min = 0x81.toByte())
+            private val CAPITAL_SHIP_ID = Arb.int().filter { it != -1 }
+
+            private val UNK_1_1 = Arb.int()
+            private val UNK_1_3 = Arb.float()
+            private val UNK_1_4 = Arb.float()
+            private val UNK_1_5 = Arb.float()
+            private val UNK_1_6 = Arb.byte()
+            private val UNK_1_8 = Arb.float()
+
+            private val UNK_2_1 = Arb.short()
+            private val UNK_2_2 = Arb.int()
+            private val UNK_2_7 = Arb.float()
+            private val UNK_2_8 = Arb.float()
+
+            val UNK_3_1 = Arb.float()
+            val UNK_3_2 = Arb.float()
+            private val UNK_3_3_OLD = Arb.short()
+            val UNK_3_3_NEW = Arb.byte()
+
+            private val UNK_4_3 = Arb.float()
+            private val UNK_4_4 = Arb.byte()
+            private val UNK_4_5 = Arb.byte()
+            private val UNK_4_6 = Arb.byte()
+            private val UNK_4_7 = Arb.int()
+            private val UNK_4_8 = Arb.int()
+
+            private val UNK_5_2 = Arb.int()
+            private val UNK_5_3 = Arb.float()
+            private val UNK_5_4 = Arb.byte()
+            private val UNK_5_5 = Arb.float()
+            private val UNK_5_7 = Arb.int()
+
+            private val UNK_6_2 = Arb.float()
+            private val UNK_6_3 = Arb.float()
+            private val UNK_6_4 = Arb.byte()
+            private val UNK_6_5 = Arb.byte()
+
+            internal val PLAYER_FLAGS_1 =
+                Arb.flags(
+                    arb1 = UNK_1_1,
+                    arb2 = IMPULSE,
+                    arb3 = UNK_1_3,
+                    arb4 = UNK_1_4,
+                    arb5 = UNK_1_5,
+                    arb6 = UNK_1_6,
+                    arb7 = WARP,
+                    arb8 = UNK_1_8,
+                )
+
+            internal val PLAYER_FLAGS_2 =
+                Arb.flags(
+                    arb1 = UNK_2_1,
+                    arb2 = UNK_2_2,
+                    arb3 = HULL_ID,
+                    arb4 = X,
+                    arb5 = Y,
+                    arb6 = Z,
+                    arb7 = UNK_2_7,
+                    arb8 = UNK_2_8,
+                )
+
+            internal val PLAYER_FLAGS_4 =
+                Arb.flags(
+                    arb1 = DOCKING_BASE,
+                    arb2 = ALERT,
+                    arb3 = UNK_4_3,
+                    arb4 = UNK_4_4,
+                    arb5 = UNK_4_5,
+                    arb6 = UNK_4_6,
+                    arb7 = UNK_4_7,
+                    arb8 = UNK_4_8,
+                )
+
+            internal val PLAYER_FLAGS_5 =
+                Arb.flags(
+                    arb1 = DRIVE_TYPE,
+                    arb2 = UNK_5_2,
+                    arb3 = UNK_5_3,
+                    arb4 = UNK_5_4,
+                    arb5 = UNK_5_5,
+                    arb6 = SIDE,
+                    arb7 = UNK_5_7,
+                    arb8 = SHIP_INDEX,
+                )
+
+            internal val PLAYER_FLAGS_6 =
+                Arb.flags(
+                    arb1 = CAPITAL_SHIP_ID,
+                    arb2 = UNK_6_2,
+                    arb3 = UNK_6_3,
+                    arb4 = UNK_6_4,
+                    arb5 = UNK_6_5,
+                )
+
+            internal fun <T> playerFlags3(flag3: Arb<T>) =
+                Arb.flags(
+                    arb1 = UNK_3_1,
+                    arb2 = UNK_3_2,
+                    arb3 = flag3,
+                    arb4 = NAME,
+                    arb5 = FRONT,
+                    arb6 = FRONT_MAX,
+                    arb7 = REAR,
+                    arb8 = REAR_MAX,
                 )
         }
     }
@@ -1078,29 +1312,29 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override fun Sink.buildObject() {
                 writeFlagBytes(a1, a2, a3, ac, c2, c3, c4, t1, t2, t3, t4)
 
-                arrayOf(a1, a2, a3, ac, c2, c3, c4).forEach {
+                arrayOf(a1, a2, a3, ac, c2, c3, c4).forEach { flagByte ->
                     writeByteFlags(
-                        it.flag1,
-                        it.flag2,
-                        it.flag3,
-                        it.flag4,
-                        it.flag5,
-                        it.flag6,
-                        it.flag7,
-                        it.flag8,
+                        flagByte.flag1,
+                        flagByte.flag2,
+                        flagByte.flag3,
+                        flagByte.flag4,
+                        flagByte.flag5,
+                        flagByte.flag6,
+                        flagByte.flag7,
+                        flagByte.flag8,
                     )
                 }
 
-                arrayOf(t1, t2, t3).forEach {
+                arrayOf(t1, t2, t3).forEach { flagByte ->
                     writeShortFlags(
-                        it.flag1,
-                        it.flag2,
-                        it.flag3,
-                        it.flag4,
-                        it.flag5,
-                        it.flag6,
-                        it.flag7,
-                        it.flag8,
+                        flagByte.flag1,
+                        flagByte.flag2,
+                        flagByte.flag3,
+                        flagByte.flag4,
+                        flagByte.flag5,
+                        flagByte.flag6,
+                        flagByte.flag7,
+                        flagByte.flag8,
                     )
                 }
 
@@ -1126,31 +1360,73 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         override val parserName: String = "Player ship upgrades"
         override val dataGenerator: Gen<Data> =
             Arb.bind(
-                ID,
-                allFlags(ACTIVE),
-                allFlags(ACTIVE),
-                allFlags(ACTIVE),
-                Arb.flags(ACTIVE, ACTIVE, ACTIVE, ACTIVE, COUNT, COUNT, COUNT, COUNT),
-                allFlags(COUNT),
-                allFlags(COUNT),
-                allFlags(COUNT),
-                allFlags(TIME),
-                allFlags(TIME),
-                allFlags(TIME),
-                Arb.flags(TIME, TIME, TIME, TIME),
-                ::Data,
+                genA = ID,
+                genB = allFlags(ACTIVE),
+                genC = allFlags(ACTIVE),
+                genD = allFlags(ACTIVE),
+                genE =
+                    Arb.flags(
+                        arb1 = ACTIVE,
+                        arb2 = ACTIVE,
+                        arb3 = ACTIVE,
+                        arb4 = ACTIVE,
+                        arb5 = COUNT,
+                        arb6 = COUNT,
+                        arb7 = COUNT,
+                        arb8 = COUNT,
+                    ),
+                genF = allFlags(COUNT),
+                genG = allFlags(COUNT),
+                genH = allFlags(COUNT),
+                genI = allFlags(TIME),
+                genJ = allFlags(TIME),
+                genK = allFlags(TIME),
+                genL = Arb.flags(arb1 = TIME, arb2 = TIME, arb3 = TIME, arb4 = TIME),
+                bindFn = ::Data,
             )
 
         private fun <T> allFlags(arb: Arb<T>): Arb<FlagByte<T, T, T, T, T, T, T, T>> =
-            Arb.flags(arb, arb, arb, arb, arb, arb, arb, arb)
+            Arb.flags(
+                arb1 = arb,
+                arb2 = arb,
+                arb3 = arb,
+                arb4 = arb,
+                arb5 = arb,
+                arb6 = arb,
+                arb7 = arb,
+                arb8 = arb,
+            )
     }
 
     sealed class WeaponsParser(override val specName: String) : ObjectParserTestConfig(true) {
-        protected companion object {
-            val COUNT = Arb.byte().filter { it.toInt() != -1 }
-            val UNKNOWN = Arb.byte()
-            val TIME = Arb.numericFloat()
-            val STATUS = Arb.enum<TubeState>()
+        override val parserName: String = "Player ship weapons"
+
+        override suspend fun describeMore(scope: DescribeSpecContainerScope) {
+            scope.describe("Bits") {
+                describe("OrdnanceCountBit") {
+                    withData(OrdnanceType.entries) { ordnanceType ->
+                        OrdnanceCountBit(ordnanceType).ordnanceType shouldBeEqual ordnanceType
+                    }
+                }
+
+                describe("TubeTimeBit") {
+                    withData(nameFn = { testName(it) }, 0 until Artemis.MAX_TUBES) { index ->
+                        TubeTimeBit(index).index shouldBeEqual index
+                    }
+                }
+
+                describe("TubeStateBit") {
+                    withData(nameFn = { testName(it) }, 0 until Artemis.MAX_TUBES) { index ->
+                        TubeStateBit(index).index shouldBeEqual index
+                    }
+                }
+
+                describe("TubeContentsBit") {
+                    withData(nameFn = { testName(it) }, 0 until Artemis.MAX_TUBES) { index ->
+                        TubeContentsBit(index).index shouldBeEqual index
+                    }
+                }
+            }
         }
 
         abstract class WeaponsData
@@ -1218,9 +1494,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             }
         }
 
-        override val parserName: String = "Player ship weapons"
-
-        data object V1 : WeaponsParser("Before 2.6.3") {
+        data object V1 : WeaponsParser(before(VERSION_2_6_3)) {
             class Data
             internal constructor(
                 objectID: Int,
@@ -1269,7 +1543,16 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                         flags1,
                         flags2,
                         flags3,
-                        FlagByte(dummy, dummy, dummy, dummy, dummy, dummy, dummy, dummy),
+                        FlagByte(
+                            flag1 = dummy,
+                            flag2 = dummy,
+                            flag3 = dummy,
+                            flag4 = dummy,
+                            flag5 = dummy,
+                            flag6 = dummy,
+                            flag7 = dummy,
+                            flag8 = dummy,
+                        ),
                     )
             }
 
@@ -1277,19 +1560,50 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    Arb.choose(
-                        3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
-                        997 to Arb.version(major = 2, minorRange = 3..5),
-                    ),
-                    Arb.flags(COUNT, COUNT, COUNT, COUNT, COUNT, UNKNOWN, TIME, TIME),
-                    Arb.flags(TIME, TIME, TIME, TIME, STATUS, STATUS, STATUS, STATUS),
-                    Arb.flags(STATUS, STATUS, typeArb, typeArb, typeArb, typeArb, typeArb, typeArb),
-                    ::Data,
+                    genA = ID,
+                    genB =
+                        Arb.choose(
+                            3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
+                            997 to Arb.version(major = 2, minorRange = 3..5),
+                        ),
+                    genC =
+                        Arb.flags(
+                            arb1 = COUNT,
+                            arb2 = COUNT,
+                            arb3 = COUNT,
+                            arb4 = COUNT,
+                            arb5 = COUNT,
+                            arb6 = UNKNOWN,
+                            arb7 = TIME,
+                            arb8 = TIME,
+                        ),
+                    genD =
+                        Arb.flags(
+                            arb1 = TIME,
+                            arb2 = TIME,
+                            arb3 = TIME,
+                            arb4 = TIME,
+                            arb5 = STATUS,
+                            arb6 = STATUS,
+                            arb7 = STATUS,
+                            arb8 = STATUS,
+                        ),
+                    genE =
+                        Arb.flags(
+                            arb1 = STATUS,
+                            arb2 = STATUS,
+                            arb3 = typeArb,
+                            arb4 = typeArb,
+                            arb5 = typeArb,
+                            arb6 = typeArb,
+                            arb7 = typeArb,
+                            arb8 = typeArb,
+                        ),
+                    bindFn = ::Data,
                 )
         }
 
-        data object V2 : WeaponsParser("Since 2.6.3") {
+        data object V2 : WeaponsParser(since(VERSION_2_6_3)) {
             class Data
             internal constructor(
                 objectID: Int,
@@ -1351,46 +1665,58 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    Arb.choose(
-                        1 to Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
-                        PropertyTesting.defaultIterationCount - 1 to
-                            Arb.version(major = 2, minorArb = Arb.int(min = 7)),
-                    ),
-                    Arb.flags(COUNT, COUNT, COUNT, COUNT, COUNT, COUNT, COUNT, COUNT),
-                    Arb.flags(TIME, TIME, TIME, TIME, TIME, TIME, STATUS, STATUS),
-                    Arb.flags(STATUS, STATUS, STATUS, STATUS, typeArb, typeArb, typeArb, typeArb),
-                    Arb.flags(typeArb, typeArb),
-                    ::Data,
+                    genA = ID,
+                    genB =
+                        Arb.choose(
+                            1 to Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
+                            PropertyTesting.defaultIterationCount - 1 to
+                                Arb.version(major = 2, minorArb = Arb.int(min = 7)),
+                        ),
+                    genC =
+                        Arb.flags(
+                            arb1 = COUNT,
+                            arb2 = COUNT,
+                            arb3 = COUNT,
+                            arb4 = COUNT,
+                            arb5 = COUNT,
+                            arb6 = COUNT,
+                            arb7 = COUNT,
+                            arb8 = COUNT,
+                        ),
+                    genD =
+                        Arb.flags(
+                            arb1 = TIME,
+                            arb2 = TIME,
+                            arb3 = TIME,
+                            arb4 = TIME,
+                            arb5 = TIME,
+                            arb6 = TIME,
+                            arb7 = STATUS,
+                            arb8 = STATUS,
+                        ),
+                    genE =
+                        Arb.flags(
+                            arb1 = STATUS,
+                            arb2 = STATUS,
+                            arb3 = STATUS,
+                            arb4 = STATUS,
+                            arb5 = typeArb,
+                            arb6 = typeArb,
+                            arb7 = typeArb,
+                            arb8 = typeArb,
+                        ),
+                    genF = Arb.flags(arb1 = typeArb, arb2 = typeArb),
+                    bindFn = ::Data,
                 )
         }
 
-        override suspend fun describeMore(scope: DescribeSpecContainerScope) {
-            scope.describe("Bits") {
-                describe("OrdnanceCountBit") {
-                    withData(OrdnanceType.entries) { ordnanceType ->
-                        OrdnanceCountBit(ordnanceType).ordnanceType shouldBeEqual ordnanceType
-                    }
-                }
+        protected companion object {
+            val COUNT = Arb.byte().filter { it.toInt() != -1 }
+            val UNKNOWN = Arb.byte()
+            val TIME = Arb.numericFloat()
+            val STATUS = Arb.enum<TubeState>()
 
-                describe("TubeTimeBit") {
-                    withData(nameFn = { "Index: $it" }, 0 until Artemis.MAX_TUBES) { index ->
-                        TubeTimeBit(index).index shouldBeEqual index
-                    }
-                }
-
-                describe("TubeStateBit") {
-                    withData(nameFn = { "Index: $it" }, 0 until Artemis.MAX_TUBES) { index ->
-                        TubeStateBit(index).index shouldBeEqual index
-                    }
-                }
-
-                describe("TubeContentsBit") {
-                    withData(nameFn = { "Index: $it" }, 0 until Artemis.MAX_TUBES) { index ->
-                        TubeContentsBit(index).index shouldBeEqual index
-                    }
-                }
-            }
+            private fun testName(index: Int): String = "Index: $index"
         }
     }
 
@@ -1438,15 +1764,24 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val parserName: String = "Player ship engineering"
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    systemFlags(Arb.numericFloat()),
-                    systemFlags(Arb.numericFloat()),
-                    systemFlags(Arb.byte()),
-                    ::Data,
+                    genA = ID,
+                    genB = systemFlags(Arb.numericFloat()),
+                    genC = systemFlags(Arb.numericFloat()),
+                    genD = systemFlags(Arb.byte()),
+                    bindFn = ::Data,
                 )
 
             private fun <T> systemFlags(arb: Arb<T>): Arb<FlagByte<T, T, T, T, T, T, T, T>> =
-                Arb.flags(arb, arb, arb, arb, arb, arb, arb, arb)
+                Arb.flags(
+                    arb1 = arb,
+                    arb2 = arb,
+                    arb3 = arb,
+                    arb4 = arb,
+                    arb5 = arb,
+                    arb6 = arb,
+                    arb7 = arb,
+                    arb8 = arb,
+                )
         }
 
         sealed class Anomaly(override val specName: String, versionArb: Arb<Version>) :
@@ -1474,7 +1809,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             data object V1 :
                 Anomaly(
-                    "Before 2.6.3",
+                    before(VERSION_2_6_3),
                     Arb.choose(
                         3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
                         997 to Arb.version(major = 2, minorRange = 3..5),
@@ -1483,7 +1818,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             data object V2 :
                 Anomaly(
-                    "Since 2.6.3",
+                    since(VERSION_2_6_3),
                     Arb.choose(
                         1 to Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
                         PropertyTesting.defaultIterationCount - 1 to
@@ -1494,19 +1829,20 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val parserName: String = "Anomaly"
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    versionArb,
-                    Arb.flags(
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.int(),
-                        Arb.int(),
-                        Arb.int(),
-                        Arb.byte(),
-                        Arb.byte(),
-                    ),
-                    ::Data,
+                    genA = ID,
+                    genB = versionArb,
+                    genC =
+                        Arb.flags(
+                            arb1 = Arb.numericFloat(),
+                            arb2 = Arb.numericFloat(),
+                            arb3 = Arb.numericFloat(),
+                            arb4 = Arb.int(),
+                            arb5 = Arb.int(),
+                            arb6 = Arb.int(),
+                            arb7 = Arb.byte(),
+                            arb8 = Arb.byte(),
+                        ),
+                    bindFn = ::Data,
                 )
         }
 
@@ -1536,26 +1872,28 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 }
             }
 
-            data object V1 : Nebula("Before 2.7.0", Arb.version(major = 2, minorRange = 3..6))
+            data object V1 :
+                Nebula(before(VERSION_2_7_0), Arb.version(major = 2, minorRange = 3..6))
 
             data object V2 :
-                Nebula("Since 2.7.0", Arb.version(major = 2, minorArb = Arb.int(min = 7)))
+                Nebula(since(VERSION_2_7_0), Arb.version(major = 2, minorArb = Arb.int(min = 7)))
 
             override val parserName: String = "Nebula"
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    versionArb,
-                    Arb.flags(
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.byte(),
-                    ),
-                    ::Data,
+                    genA = ID,
+                    genB = versionArb,
+                    genC =
+                        Arb.flags(
+                            arb1 = Arb.numericFloat(),
+                            arb2 = Arb.numericFloat(),
+                            arb3 = Arb.numericFloat(),
+                            arb4 = Arb.numericFloat(),
+                            arb5 = Arb.numericFloat(),
+                            arb6 = Arb.numericFloat(),
+                            arb7 = Arb.byte(),
+                        ),
+                    bindFn = ::Data,
                 )
         }
 
@@ -1586,14 +1924,14 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 Arb.bind(
                     ID,
                     Arb.flags(
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.int(),
-                        Arb.int(),
+                        arb1 = Arb.numericFloat(),
+                        arb2 = Arb.numericFloat(),
+                        arb3 = Arb.numericFloat(),
+                        arb4 = Arb.numericFloat(),
+                        arb5 = Arb.numericFloat(),
+                        arb6 = Arb.numericFloat(),
+                        arb7 = Arb.int(),
+                        arb8 = Arb.int(),
                     ),
                     ::Data,
                 )
@@ -1665,48 +2003,55 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 }
             }
 
-            data object V1 : GenericMesh("Before 2.7.0", Arb.version(major = 2, minorRange = 3..6))
+            data object V1 :
+                GenericMesh(before(VERSION_2_7_0), Arb.version(major = 2, minorRange = 3..6))
 
             data object V2 :
-                GenericMesh("Since 2.7.0", Arb.version(major = 2, minorArb = Arb.int(min = 7)))
+                GenericMesh(
+                    since(VERSION_2_7_0),
+                    Arb.version(major = 2, minorArb = Arb.int(min = 7)),
+                )
 
             override val parserName: String = "Generic mesh"
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    versionArb,
-                    Arb.flags(
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.int(),
-                        Arb.int(),
-                        Arb.int(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                    ),
-                    Arb.flags(
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.string(),
-                        Arb.string(),
-                        Arb.string(),
-                        Arb.numericFloat(),
-                    ),
-                    Arb.flags(
-                        Arb.byte(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.byte(),
-                    ),
-                    Arb.flags(Arb.string(), Arb.string(), Arb.int()),
-                    ::Data,
+                    genA = ID,
+                    genB = versionArb,
+                    genC =
+                        Arb.flags(
+                            arb1 = Arb.numericFloat(),
+                            arb2 = Arb.numericFloat(),
+                            arb3 = Arb.numericFloat(),
+                            arb4 = Arb.int(),
+                            arb5 = Arb.int(),
+                            arb6 = Arb.int(),
+                            arb7 = Arb.numericFloat(),
+                            arb8 = Arb.numericFloat(),
+                        ),
+                    genD =
+                        Arb.flags(
+                            arb1 = Arb.numericFloat(),
+                            arb2 = Arb.numericFloat(),
+                            arb3 = Arb.numericFloat(),
+                            arb4 = Arb.numericFloat(),
+                            arb5 = Arb.string(),
+                            arb6 = Arb.string(),
+                            arb7 = Arb.string(),
+                            arb8 = Arb.numericFloat(),
+                        ),
+                    genE =
+                        Arb.flags(
+                            arb1 = Arb.byte(),
+                            arb2 = Arb.numericFloat(),
+                            arb3 = Arb.numericFloat(),
+                            arb4 = Arb.numericFloat(),
+                            arb5 = Arb.numericFloat(),
+                            arb6 = Arb.numericFloat(),
+                            arb7 = Arb.numericFloat(),
+                            arb8 = Arb.byte(),
+                        ),
+                    genF = Arb.flags(arb1 = Arb.string(), arb2 = Arb.string(), arb3 = Arb.int()),
+                    bindFn = ::Data,
                 )
         }
 
@@ -1740,19 +2085,20 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val parserName: String = "Drone"
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
-                    ID,
-                    Arb.flags(
-                        Arb.int(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.numericFloat(),
-                        Arb.int(),
-                    ),
-                    Arb.flags(Arb.numericFloat()),
-                    ::Data,
+                    genA = ID,
+                    genB =
+                        Arb.flags(
+                            arb1 = Arb.int(),
+                            arb2 = Arb.numericFloat(),
+                            arb3 = Arb.numericFloat(),
+                            arb4 = Arb.numericFloat(),
+                            arb5 = Arb.numericFloat(),
+                            arb6 = Arb.numericFloat(),
+                            arb7 = Arb.numericFloat(),
+                            arb8 = Arb.int(),
+                        ),
+                    genC = Arb.flags(arb1 = Arb.numericFloat()),
+                    bindFn = ::Data,
                 )
         }
     }
@@ -1778,6 +2124,17 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         val X = Arb.numericFloat()
         val Y = Arb.numericFloat()
         val Z = Arb.numericFloat()
+
+        const val VERSION_2_4_0 = "2.4.0"
+        const val VERSION_2_6_0 = "2.6.0"
+        const val VERSION_2_6_3 = "2.6.3"
+        const val VERSION_2_7_0 = "2.7.0"
+
+        private fun before(version: String): String = "Before $version"
+
+        private fun since(version: String): String = "Since $version"
+
+        private fun between(from: String, until: String) = "From $from until $until"
 
         fun buildObject(block: Sink.() -> Unit): Source = buildPacket {
             block()

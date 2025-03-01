@@ -32,17 +32,17 @@ internal fun testIntPropertyFlags(vararg pairs: Pair<Flag<Int>, Property.IntProp
 }
 
 internal fun Sink.writeIntFlags(vararg flags: Flag<Int>) {
-    flags.forEach {
-        if (it.enabled) {
-            writeIntLe(it.value)
+    flags.forEach { flag ->
+        if (flag.enabled) {
+            writeIntLe(flag.value)
         }
     }
 }
 
 internal fun Sink.writeShortFlags(vararg flags: Flag<Short>) {
-    flags.forEach {
-        if (it.enabled) {
-            writeShortLe(it.value)
+    flags.forEach { flag ->
+        if (flag.enabled) {
+            writeShortLe(flag.value)
         }
     }
 }

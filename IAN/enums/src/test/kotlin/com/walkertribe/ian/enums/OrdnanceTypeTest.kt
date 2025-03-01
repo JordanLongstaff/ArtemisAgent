@@ -44,15 +44,15 @@ class OrdnanceTypeTest :
             it("Invalid code returns null") {
                 Arb.string()
                     .filter { !validCodes.contains(it) }
-                    .forAll {
+                    .forAll { code ->
                         val lengthClass =
-                            when (it.length) {
+                            when (code.length) {
                                 in 0..2 -> "Shorter than"
                                 3 -> "Exactly"
                                 else -> "Longer than"
                             }
                         collect("$lengthClass 3 characters")
-                        OrdnanceType[it] == null
+                        OrdnanceType[code] == null
                     }
             }
 
