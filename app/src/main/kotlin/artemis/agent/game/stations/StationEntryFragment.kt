@@ -253,18 +253,10 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             selectorBackground?.let { drawable ->
                 InsetDrawable(
                     drawable,
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_vertical_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_vertical_material
-                    ),
+                    context.resources.getDimensionPixelSize(R.dimen.horizontalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.verticalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.horizontalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.verticalInset),
                 )
             }
         stationSelectorButton.text = viewModel.getFullNameForShip(station)
