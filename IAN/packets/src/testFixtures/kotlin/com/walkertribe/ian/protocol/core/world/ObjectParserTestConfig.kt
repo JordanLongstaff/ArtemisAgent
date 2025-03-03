@@ -32,6 +32,7 @@ import io.kotest.core.spec.style.scopes.DescribeSpecContainerScope
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -78,15 +79,11 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             abstract fun validateObject(obj: T)
 
             override fun validate(packet: ObjectUpdatePacket) {
-                packet.objects.size shouldBeEqual 1
-                realObject =
-                    packet.objects[0]
-                        .let { obj ->
-                            obj.id shouldBeEqual objectID
-                            obj should beInstanceOf(objectClass)
-                            objectClass.cast(obj)
-                        }
-                        .also(this::validateObject)
+                packet.objects.shouldBeSingleton { obj ->
+                    obj.id shouldBeEqual objectID
+                    obj should beInstanceOf(objectClass)
+                    realObject = objectClass.cast(obj).also(this::validateObject)
+                }
             }
         }
 

@@ -64,6 +64,8 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -209,8 +211,7 @@ class ArtemisNetworkInterfaceTest :
                         }
 
                         eventually(testTimeout) {
-                            val packets = TestListener.calls(packetClass)
-                            packets.size shouldBeEqual packetCount
+                            TestListener.calls(packetClass) shouldHaveSize packetCount
                         }
                     }
 
@@ -403,8 +404,7 @@ class ArtemisNetworkInterfaceTest :
 
                         client.setTimeout(1L)
                         eventually(2.seconds) {
-                            val events = TestListener.calls<ConnectionEvent.HeartbeatLost>()
-                            events.size shouldBeEqual 1
+                            TestListener.calls<ConnectionEvent.HeartbeatLost>().shouldBeSingleton()
                         }
                     }
 
@@ -418,8 +418,8 @@ class ArtemisNetworkInterfaceTest :
                             )
 
                             eventually(5.seconds) {
-                                val events = TestListener.calls<ConnectionEvent.HeartbeatRegained>()
-                                events.size shouldBeEqual 1
+                                TestListener.calls<ConnectionEvent.HeartbeatRegained>()
+                                    .shouldBeSingleton()
                             }
                         }
                     }
@@ -453,12 +453,9 @@ class ArtemisNetworkInterfaceTest :
                         client.stop()
 
                         eventually(1.seconds) {
-                            val events = TestListener.calls<ConnectionEvent.Disconnect>()
-                            events.size shouldBeEqual 1
-                            events
-                                .first()
-                                .cause
-                                .shouldBeInstanceOf<DisconnectCause.LocalDisconnect>()
+                            TestListener.calls<ConnectionEvent.Disconnect>().shouldBeSingleton {
+                                it.cause.shouldBeInstanceOf<DisconnectCause.LocalDisconnect>()
+                            }
 
                             TestListener.calls<ConnectionEvent.Success>().shouldBeEmpty()
                             TestListener.calls<WelcomePacket>().shouldBeEmpty()
@@ -502,12 +499,11 @@ class ArtemisNetworkInterfaceTest :
 
                             eventually(testTimeout) {
                                 assertSoftly {
-                                    val events = TestListener.calls<ConnectionEvent.Disconnect>()
-                                    events.size shouldBeEqual 1
-                                    events
-                                        .first()
-                                        .cause
-                                        .shouldBeInstanceOf<DisconnectCause.RemoteDisconnect>()
+                                    TestListener.calls<ConnectionEvent.Disconnect>()
+                                        .shouldBeSingleton {
+                                            it.cause should
+                                                beInstanceOf<DisconnectCause.RemoteDisconnect>()
+                                        }
                                 }
                             }
                         }
@@ -539,12 +535,11 @@ class ArtemisNetworkInterfaceTest :
 
                             eventually(2.seconds) {
                                 assertSoftly {
-                                    val events = TestListener.calls<ConnectionEvent.Disconnect>()
-                                    events.size shouldBeEqual 1
-                                    events
-                                        .first()
-                                        .cause
-                                        .shouldBeInstanceOf<DisconnectCause.PacketParseError>()
+                                    TestListener.calls<ConnectionEvent.Disconnect>()
+                                        .shouldBeSingleton {
+                                            it.cause should
+                                                beInstanceOf<DisconnectCause.PacketParseError>()
+                                        }
                                 }
                             }
                         }
@@ -582,9 +577,8 @@ class ArtemisNetworkInterfaceTest :
 
                             eventually(2.seconds) {
                                 assertSoftly {
-                                    val events = TestListener.calls<ConnectionEvent.Disconnect>()
-                                    events.size shouldBeEqual 1
-                                    testCause(events.first().cause)
+                                    TestListener.calls<ConnectionEvent.Disconnect>()
+                                        .shouldBeSingleton { testCause(it.cause) }
                                 }
                             }
                         }
@@ -635,13 +629,12 @@ class ArtemisNetworkInterfaceTest :
                                                 }
 
                                             eventually(5.seconds) {
-                                                val events =
-                                                    TestListener.calls<ConnectionEvent.Disconnect>()
-                                                events.size shouldBeEqual 1
-                                                events.first().cause should
-                                                    beInstanceOf<
-                                                        DisconnectCause.UnsupportedVersion
-                                                    >()
+                                                TestListener.calls<ConnectionEvent.Disconnect>()
+                                                    .shouldBeSingleton {
+                                                        it.cause.shouldBeInstanceOf<
+                                                            DisconnectCause.UnsupportedVersion
+                                                        >()
+                                                    }
                                             }
                                         }
 
@@ -681,8 +674,7 @@ class ArtemisNetworkInterfaceTest :
                             }
 
                             eventually(testTimeout) {
-                                val packets = TestListener.calls<VersionPacket>()
-                                packets.size shouldBeEqual count
+                                TestListener.calls<VersionPacket>() shouldHaveSize count
                             }
 
                             sender.flushAndClose()

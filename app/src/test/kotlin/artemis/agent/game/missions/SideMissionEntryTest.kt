@@ -6,6 +6,7 @@ import io.kotest.datatest.withData
 import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.bind
@@ -56,7 +57,7 @@ class SideMissionEntryTest :
                     val entry = create(rewardType)
 
                     val expectedPayouts = IntArray(RewardType.entries.size)
-                    entry.rewards.size shouldBeEqual expectedPayouts.size
+                    entry.rewards shouldBeSameSizeAs expectedPayouts
 
                     expectedPayouts[rewardType.ordinal] = 1
                     entry.rewards.zip(expectedPayouts).shouldForAll { (actual, expected) ->
