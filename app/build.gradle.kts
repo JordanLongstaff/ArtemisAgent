@@ -107,6 +107,7 @@ dependencies {
     implementation(projects.ian.util)
     implementation(projects.ian.vesseldata)
     implementation(projects.ian.world)
+    testImplementation(projects.ian.testing)
 
     ksp(projects.ian.processor)
 

@@ -43,6 +43,7 @@ android {
 
 dependencies {
     testImplementation(projects.app)
+    testImplementation(projects.ian.testing)
 
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)
