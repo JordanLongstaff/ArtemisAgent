@@ -12,16 +12,14 @@ import io.kotest.property.arbitrary.map
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-class AudioCommandPacketFixture private constructor(
-    audioCommand: AudioCommand,
-) : PacketTestFixture.Client<AudioCommandPacket>(
-    packetType = TestPacketTypes.CONTROL_MESSAGE,
-    expectedPayloadSize = Int.SIZE_BYTES * 2,
-) {
-    class Data internal constructor(
-        private val audioID: Int,
-        private val audioCommand: AudioCommand,
-    ) : PacketTestData.Client<AudioCommandPacket>(AudioCommandPacket(audioID, audioCommand)) {
+class AudioCommandPacketFixture private constructor(audioCommand: AudioCommand) :
+    PacketTestFixture.Client<AudioCommandPacket>(
+        packetType = TestPacketTypes.CONTROL_MESSAGE,
+        expectedPayloadSize = Int.SIZE_BYTES * 2,
+    ) {
+    class Data
+    internal constructor(private val audioID: Int, private val audioCommand: AudioCommand) :
+        PacketTestData.Client<AudioCommandPacket>(AudioCommandPacket(audioID, audioCommand)) {
         init {
             packet.audioId shouldBeEqual audioID
             packet.command shouldBeEqual audioCommand

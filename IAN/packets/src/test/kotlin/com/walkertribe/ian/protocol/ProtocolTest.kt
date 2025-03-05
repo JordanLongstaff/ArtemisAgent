@@ -37,16 +37,13 @@ import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
 import io.kotest.property.exhaustive.filterNot
 import io.kotest.property.exhaustive.of
+import kotlin.reflect.KClass
 import org.koin.ksp.generated.defaultModule
 import org.koin.test.KoinTest
 import org.koin.test.inject
-import kotlin.reflect.KClass
 
 class ProtocolTest : DescribeSpec(), KoinTest {
     private val protocol: Protocol by inject()
-
-    override fun extensions(): List<Extension> =
-        listOf(KoinExtension(defaultModule, mode = KoinLifecycleMode.Root))
 
     init {
         describe("Protocol") {
@@ -141,13 +138,13 @@ class ProtocolTest : DescribeSpec(), KoinTest {
                         WelcomePacket::class,
                         type = TestPacketTypes.PLAIN_TEXT_GREETING,
                     ),
-                ) {
-                    val subtypeGen: Gen<Byte> = it.subtype?.let { byte -> Exhaustive.of(byte) }
-                        ?: Exhaustive.bytes()
+                ) { (packetClass, _, type, specificSubtype) ->
+                    val subtypeGen: Gen<Byte> =
+                        specificSubtype?.let { Exhaustive.of(it) } ?: Exhaustive.bytes()
                     subtypeGen.checkAll { subtype ->
-                        val factory = protocol.getFactory(it.type, subtype)
+                        val factory = protocol.getFactory(type, subtype)
                         factory.shouldNotBeNull()
-                        factory.factoryClass shouldBeEqual it.packetClass
+                        factory.factoryClass shouldBeEqual packetClass
                     }
                 }
             }
@@ -163,36 +160,40 @@ class ProtocolTest : DescribeSpec(), KoinTest {
                     nameFn = { it.packetName },
                     ClientPacketTestCase("ActivateUpgradePacket.Current", 0x1c),
                     ClientPacketTestCase("ActivateUpgradePacket.Old", 0x1b),
-                    ClientPacketTestCase("AudioCommandMessage", type = TestPacketTypes.CONTROL_MESSAGE),
+                    ClientPacketTestCase(
+                        "AudioCommandMessage",
+                        type = TestPacketTypes.CONTROL_MESSAGE,
+                    ),
                     ClientPacketTestCase("ButtonClickPacket", 0x15),
-                    ClientPacketTestCase("CommsOutgoingPacket", type = TestPacketTypes.COMMS_MESSAGE),
+                    ClientPacketTestCase(
+                        "CommsOutgoingPacket",
+                        type = TestPacketTypes.COMMS_MESSAGE,
+                    ),
                     ClientPacketTestCase("HeartbeatPacket.Client", 0x24),
                     ClientPacketTestCase("ReadyPacket", 0x0f),
                     ClientPacketTestCase("SetConsolePacket", 0x0e),
                     ClientPacketTestCase("SetShipPacket", 0x0d),
                     ClientPacketTestCase("ToggleRedAlertPacket", 0x0a),
-                ) {
-                    val subtypeGen: Gen<Byte> = it.subtype?.let { byte -> Exhaustive.of(byte) }
-                        ?: Exhaustive.bytes()
-                    subtypeGen.checkAll { subtype ->
-                        val factory = protocol.getFactory(it.type, subtype)
-                        factory.shouldBeNull()
-                    }
+                ) { (_, specificSubtype, type) ->
+                    val subtypeGen: Gen<Byte> =
+                        specificSubtype?.let { Exhaustive.of(it) } ?: Exhaustive.bytes()
+                    subtypeGen.checkAll { protocol.getFactory(type, it).shouldBeNull() }
                 }
             }
 
             describe("Does not have factories registered for arbitrary packet types") {
                 it("Simple event packets") {
-                    val simpleEventSubtypes = setOf(
-                        SimpleEventPacket.Subtype.PAUSE,
-                        SimpleEventPacket.Subtype.PLAYER_SHIP_DAMAGE,
-                        SimpleEventPacket.Subtype.END_GAME,
-                        SimpleEventPacket.Subtype.JUMP_END,
-                        SimpleEventPacket.Subtype.SHIP_SETTINGS,
-                        SimpleEventPacket.Subtype.GAME_OVER_REASON,
-                        SimpleEventPacket.Subtype.BIOMECH_STANCE,
-                        SimpleEventPacket.Subtype.DOCKED,
-                    )
+                    val simpleEventSubtypes =
+                        setOf(
+                            SimpleEventPacket.Subtype.PAUSE,
+                            SimpleEventPacket.Subtype.PLAYER_SHIP_DAMAGE,
+                            SimpleEventPacket.Subtype.END_GAME,
+                            SimpleEventPacket.Subtype.JUMP_END,
+                            SimpleEventPacket.Subtype.SHIP_SETTINGS,
+                            SimpleEventPacket.Subtype.GAME_OVER_REASON,
+                            SimpleEventPacket.Subtype.BIOMECH_STANCE,
+                            SimpleEventPacket.Subtype.DOCKED,
+                        )
 
                     Exhaustive.bytes().filterNot(simpleEventSubtypes::contains).checkAll {
                         protocol.getFactory(TestPacketTypes.SIMPLE_EVENT, it).shouldBeNull()
@@ -200,19 +201,20 @@ class ProtocolTest : DescribeSpec(), KoinTest {
                 }
 
                 it("Other packets") {
-                    val registeredPacketTypes = setOf(
-                        TestPacketTypes.CARRIER_RECORD,
-                        TestPacketTypes.COMMS_BUTTON,
-                        TestPacketTypes.COMM_TEXT,
-                        TestPacketTypes.CONNECTED,
-                        TestPacketTypes.HEARTBEAT,
-                        TestPacketTypes.INCOMING_MESSAGE,
-                        TestPacketTypes.OBJECT_BIT_STREAM,
-                        TestPacketTypes.OBJECT_DELETE,
-                        TestPacketTypes.PLAIN_TEXT_GREETING,
-                        TestPacketTypes.SIMPLE_EVENT,
-                        TestPacketTypes.START_GAME,
-                    )
+                    val registeredPacketTypes =
+                        setOf(
+                            TestPacketTypes.CARRIER_RECORD,
+                            TestPacketTypes.COMMS_BUTTON,
+                            TestPacketTypes.COMM_TEXT,
+                            TestPacketTypes.CONNECTED,
+                            TestPacketTypes.HEARTBEAT,
+                            TestPacketTypes.INCOMING_MESSAGE,
+                            TestPacketTypes.OBJECT_BIT_STREAM,
+                            TestPacketTypes.OBJECT_DELETE,
+                            TestPacketTypes.PLAIN_TEXT_GREETING,
+                            TestPacketTypes.SIMPLE_EVENT,
+                            TestPacketTypes.START_GAME,
+                        )
 
                     checkAll(
                         Arb.int().filterNot(registeredPacketTypes::contains),
@@ -224,4 +226,7 @@ class ProtocolTest : DescribeSpec(), KoinTest {
             }
         }
     }
+
+    override fun extensions(): List<Extension> =
+        listOf(KoinExtension(defaultModule, mode = KoinLifecycleMode.Root))
 }

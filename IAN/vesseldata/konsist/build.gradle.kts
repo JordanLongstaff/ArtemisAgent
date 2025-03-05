@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
   id("java-library")
   id("kotlin")
+  alias(libs.plugins.detekt)
+  alias(libs.plugins.ktfmt)
   alias(libs.plugins.dependency.analysis)
 }
 
@@ -20,11 +22,12 @@ tasks.compileKotlin {
   }
 }
 
-tasks.test {
-  useJUnitPlatform()
-}
+tasks.test { useJUnitPlatform() }
+
+ktfmt { kotlinLangStyle() }
 
 dependencies {
+  testImplementation(projects.ian.testing)
   testImplementation(libs.bundles.konsist.common)
   testImplementation(libs.bundles.konsist.vesseldata)
   testRuntimeOnly(libs.bundles.konsist.runtime)

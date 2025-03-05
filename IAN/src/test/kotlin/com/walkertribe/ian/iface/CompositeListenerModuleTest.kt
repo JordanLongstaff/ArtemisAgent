@@ -40,81 +40,90 @@ import io.kotest.property.arbitrary.subsequence
 import io.kotest.property.checkAll
 import io.mockk.mockk
 
-class CompositeListenerModuleTest : DescribeSpec({
-    describe("CompositeListenerModule") {
-        val connectionEventClasses = listOf(
-            ConnectionEvent::class,
-            ConnectionEvent.Success::class,
-            ConnectionEvent.Disconnect::class,
-            ConnectionEvent.HeartbeatLost::class,
-            ConnectionEvent.HeartbeatRegained::class,
-        )
-
-        val packetClasses = listOf(
-            Packet.Server::class,
-            ObjectUpdatePacket::class,
-            DeleteObjectPacket::class,
-            GameStartPacket::class,
-            PausePacket::class,
-            CommsButtonPacket::class,
-            IncomingAudioPacket::class,
-            AllShipSettingsPacket::class,
-            BayStatusPacket::class,
-            EndGamePacket::class,
-            GameOverReasonPacket::class,
-            HeartbeatPacket.Server::class,
-            JumpEndPacket::class,
-            PlayerShipDamagePacket::class,
-            CommsIncomingPacket::class,
-            BiomechRagePacket::class,
-            DockedPacket::class,
-            IntelPacket::class,
-            WelcomePacket::class,
-            VersionPacket::class,
-            SimpleEventPacket::class,
-        )
-
-        val objectClasses = listOf(
-            ArtemisObject::class,
-            ArtemisShielded::class,
-            BaseArtemisObject::class,
-            BaseArtemisShielded::class,
-            BaseArtemisShip::class,
-            ArtemisBase::class,
-            ArtemisBlackHole::class,
-            ArtemisCreature::class,
-            ArtemisMine::class,
-            ArtemisNpc::class,
-            ArtemisPlayer::class,
-        )
-
-        it("Accepted types") {
-            checkAll(
-                Arb.subsequence(connectionEventClasses),
-                Arb.subsequence(packetClasses),
-                Arb.subsequence(objectClasses),
-            ) { connectionEvents, packets, objects ->
-                CompositeListenerModule(
-                    connectionEventListeners = connectionEvents.map { ListenerFunction(it) { } },
-                    packetListeners = packets.map { ListenerFunction(it) { } },
-                    artemisObjectListeners = objects.map { ListenerFunction(it) { } },
-                ).acceptedTypes.shouldContainExactlyInAnyOrder(
-                    connectionEvents + packets + objects
+class CompositeListenerModuleTest :
+    DescribeSpec({
+        describe("CompositeListenerModule") {
+            val connectionEventClasses =
+                listOf(
+                    ConnectionEvent::class,
+                    ConnectionEvent.Success::class,
+                    ConnectionEvent.Disconnect::class,
+                    ConnectionEvent.HeartbeatLost::class,
+                    ConnectionEvent.HeartbeatRegained::class,
                 )
+
+            val packetClasses =
+                listOf(
+                    Packet.Server::class,
+                    ObjectUpdatePacket::class,
+                    DeleteObjectPacket::class,
+                    GameStartPacket::class,
+                    PausePacket::class,
+                    CommsButtonPacket::class,
+                    IncomingAudioPacket::class,
+                    AllShipSettingsPacket::class,
+                    BayStatusPacket::class,
+                    EndGamePacket::class,
+                    GameOverReasonPacket::class,
+                    HeartbeatPacket.Server::class,
+                    JumpEndPacket::class,
+                    PlayerShipDamagePacket::class,
+                    CommsIncomingPacket::class,
+                    BiomechRagePacket::class,
+                    DockedPacket::class,
+                    IntelPacket::class,
+                    WelcomePacket::class,
+                    VersionPacket::class,
+                    SimpleEventPacket::class,
+                )
+
+            val objectClasses =
+                listOf(
+                    ArtemisObject::class,
+                    ArtemisShielded::class,
+                    BaseArtemisObject::class,
+                    BaseArtemisShielded::class,
+                    BaseArtemisShip::class,
+                    ArtemisBase::class,
+                    ArtemisBlackHole::class,
+                    ArtemisCreature::class,
+                    ArtemisMine::class,
+                    ArtemisNpc::class,
+                    ArtemisPlayer::class,
+                )
+
+            it("Accepted types") {
+                checkAll(
+                    Arb.subsequence(connectionEventClasses),
+                    Arb.subsequence(packetClasses),
+                    Arb.subsequence(objectClasses),
+                ) { connectionEvents, packets, objects ->
+                    CompositeListenerModule(
+                            connectionEventListeners =
+                                connectionEvents.map { ListenerFunction(it) {} },
+                            packetListeners = packets.map { ListenerFunction(it) {} },
+                            artemisObjectListeners = objects.map { ListenerFunction(it) {} },
+                        )
+                        .acceptedTypes
+                        .shouldContainExactlyInAnyOrder(connectionEvents + packets + objects)
+                }
+            }
+
+            it("Offer objects") {
+                var onArtemisObjectCalled = false
+                val module =
+                    CompositeListenerModule(
+                        connectionEventListeners = emptyList(),
+                        packetListeners = emptyList(),
+                        artemisObjectListeners =
+                            listOf(
+                                ListenerFunction(ArtemisObject::class) {
+                                    onArtemisObjectCalled = true
+                                }
+                            ),
+                    )
+                module.onArtemisObject(mockk<ArtemisObject<*>>())
+                onArtemisObjectCalled.shouldBeTrue()
             }
         }
-
-        it("Offer objects") {
-            var onArtemisObjectCalled = false
-            val module = CompositeListenerModule(
-                connectionEventListeners = listOf(),
-                packetListeners = listOf(),
-                artemisObjectListeners = listOf(
-                    ListenerFunction(ArtemisObject::class) { onArtemisObjectCalled = true },
-                ),
-            )
-            module.onArtemisObject(mockk<ArtemisObject<*>>())
-            onArtemisObjectCalled.shouldBeTrue()
-        }
-    }
-})
+    })

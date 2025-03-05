@@ -11,10 +11,11 @@ import io.kotest.property.exhaustive.of
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-data object ReadyPacketFixture : PacketTestFixture.Client<ReadyPacket>(
-    packetType = TestPacketTypes.VALUE_INT,
-    expectedPayloadSize = Int.SIZE_BYTES * 2,
-) {
+data object ReadyPacketFixture :
+    PacketTestFixture.Client<ReadyPacket>(
+        packetType = TestPacketTypes.VALUE_INT,
+        expectedPayloadSize = Int.SIZE_BYTES * 2,
+    ) {
     data object Data : PacketTestData.Client<ReadyPacket>(ReadyPacket()) {
         override fun validatePayload(payload: Source) {
             payload.readIntLe() shouldBeEqual ValueIntPacket.Subtype.READY.toInt()

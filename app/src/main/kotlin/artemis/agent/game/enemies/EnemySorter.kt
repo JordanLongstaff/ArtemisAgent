@@ -9,20 +9,23 @@ data class EnemySorter(
     val sortByFactionReversed: Boolean = false,
     val sortByName: Boolean = false,
     val sortByDistance: Boolean = false,
-) : Comparator<EnemyEntry> by buildSortingComparator(
-    SURRENDERED_COMPARATOR to sortBySurrendered,
-    FACTION_COMPARATOR.reversedIf(sortByFactionReversed) to sortByFaction,
-    NAME_COMPARATOR to sortByName,
-    DISTANCE_COMPARATOR to sortByDistance,
-) {
-    fun buildCategoryMap(enemies: List<EnemyEntry>): List<EnemySortCategory> = when {
-        sortByFaction -> buildCategoryMap(enemies, sortBySurrendered) { it.faction.name }
-        sortByName -> buildCategoryMap(enemies, sortBySurrendered) {
-            it.enemy.name.value?.substring(0, 1)
+) :
+    Comparator<EnemyEntry> by buildSortingComparator(
+        SURRENDERED_COMPARATOR to sortBySurrendered,
+        FACTION_COMPARATOR.reversedIf(sortByFactionReversed) to sortByFaction,
+        NAME_COMPARATOR to sortByName,
+        DISTANCE_COMPARATOR to sortByDistance,
+    ) {
+    fun buildCategoryMap(enemies: List<EnemyEntry>): List<EnemySortCategory> =
+        when {
+            sortByFaction -> buildCategoryMap(enemies, sortBySurrendered) { it.faction.name }
+            sortByName ->
+                buildCategoryMap(enemies, sortBySurrendered) {
+                    it.enemy.name.value?.substring(0, 1)
+                }
+            sortBySurrendered -> buildCategoryMap(enemies, true) { null }
+            else -> emptyList()
         }
-        sortBySurrendered -> buildCategoryMap(enemies, true) { null }
-        else -> listOf()
-    }
 
     private companion object {
         val FACTION_COMPARATOR: Comparator<EnemyEntry> = compareBy { it.faction.id }

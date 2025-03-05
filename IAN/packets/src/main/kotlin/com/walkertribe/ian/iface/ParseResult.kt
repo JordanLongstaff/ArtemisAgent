@@ -6,9 +6,10 @@ import com.walkertribe.ian.protocol.core.world.ObjectUpdatePacket
 
 /**
  * Object which reports the results of a packet parsing attempt.
+ *
  * @author rjwut
  */
-sealed class ParseResult {
+sealed class ParseResult private constructor() {
     internal class Processing : ParseResult()
 
     data object Skip : ParseResult() {
@@ -18,11 +19,8 @@ sealed class ParseResult {
     }
 
     class Success(
-        /**
-         * Returns the packet object that was parsed.
-         */
+        /** Returns the packet object that was parsed. */
         val packet: Packet.Server,
-
         prevResult: ParseResult,
     ) : ParseResult() {
         init {
@@ -36,10 +34,9 @@ sealed class ParseResult {
 
     data class Fail(
         /**
-         * Return any exception that occurred while parsing the packet. This
-         * is only for non-fatal exceptions. A fatal exception (one occurring before
-         * the payload can be read) should cause the exception to be thrown
-         * instead.
+         * Return any exception that occurred while parsing the packet. This is only for non-fatal
+         * exceptions. A fatal exception (one occurring before the payload can be read) should cause
+         * the exception to be thrown instead.
          */
         val exception: PacketException
     ) : ParseResult() {
@@ -51,17 +48,18 @@ sealed class ParseResult {
     protected val interestedListeners: MutableSet<ListenerModule> = mutableSetOf()
 
     /**
+     * Returns true if the packet was of interest to any listeners. Note that in the case of an
+     * [ObjectUpdatePacket], there may be listeners that aren't interested in the packet itself, but
+     * are interested in certain types of objects the packet may contain.
+     */
+    val isInteresting: Boolean
+        get() = interestedListeners.isNotEmpty()
+
+    /**
      * Adds [ListenerModule]s that are interested in the packet, or any objects in an
      * [ObjectUpdatePacket].
      */
     open fun addListeners(listeners: Iterable<ListenerModule>) {
         interestedListeners.addAll(listeners)
     }
-
-    /**
-     * Returns true if the packet was of interest to any listeners. Note that in the case of an
-     * [ObjectUpdatePacket], there may be listeners that aren't interested in the packet itself,
-     * but are interested in certain types of objects the packet may contain.
-     */
-    val isInteresting: Boolean get() = interestedListeners.isNotEmpty()
 }

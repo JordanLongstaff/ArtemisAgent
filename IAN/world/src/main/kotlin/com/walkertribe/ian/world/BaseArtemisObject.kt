@@ -5,26 +5,26 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
-import kotlin.reflect.KClass
-import kotlin.reflect.full.primaryConstructor
 
-/**
- * Base implementation for all ArtemisObjects.
- */
+/** Base implementation for all ArtemisObjects. */
 abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     final override val id: Int,
-    final override val timestamp: Long
+    final override val timestamp: Long,
 ) : ArtemisObject<T> {
     override val x = Property.FloatProperty(timestamp)
     override val y = Property.FloatProperty(timestamp)
     override val z = Property.FloatProperty(timestamp)
 
-    override val hasPosition: Boolean get() = x.hasValue && z.hasValue
+    /** Returns true if this object contains any data. */
+    internal open val hasData: Boolean
+        get() = x.hasValue || y.hasValue || z.hasValue
+
+    override val hasPosition: Boolean
+        get() = x.hasValue && z.hasValue
 
     override fun distanceTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val y0 = other.y.valueOrZero
         val y1 = y.valueOrZero
         val dX = other.x.value.toDouble() - x.value.toDouble()
@@ -40,9 +40,8 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     override fun distanceSquaredTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val y0 = other.y.valueOrZero
         val y1 = y.valueOrZero
         val dX = other.x.value.toDouble() - x.value.toDouble()
@@ -52,9 +51,8 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     override fun horizontalDistanceTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val dX = other.x.value.toDouble() - x.value.toDouble()
         val dZ = other.z.value.toDouble() - z.value.toDouble()
 
@@ -66,18 +64,16 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     override fun horizontalDistanceSquaredTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val dX = other.x.value.toDouble() - x.value.toDouble()
         val dZ = other.z.value.toDouble() - z.value.toDouble()
         return (dX * dX + dZ * dZ).toFloat()
     }
 
     override fun headingTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute heading if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(HEADING) }
+
         val dX = other.x.value - x.value
         val dZ = other.z.value - z.value
         return (atan2(dX, dZ) * RAD_TO_DEG + HALF_CIRCLE) % FULL_CIRCLE
@@ -93,23 +89,19 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
         module.onArtemisObject(this)
     }
 
-    /**
-     * Returns true if this object contains any data.
-     */
-    internal open val hasData: Boolean get() = x.hasValue || y.hasValue || z.hasValue
-
     override fun equals(other: Any?): Boolean =
         this === other || (other is ArtemisObject<*> && id == other.id && type == other.type)
 
     override fun hashCode(): Int = id
 
-    open class Dsl<T : BaseArtemisObject<T>>(private val objectClass: KClass<T>) {
+    abstract class Dsl<T : BaseArtemisObject<T>> {
         var x: Float = Float.NaN
         var y: Float = Float.NaN
         var z: Float = Float.NaN
 
-        fun create(id: Int, timestamp: Long): T =
-            objectClass.primaryConstructor!!.call(id, timestamp).also(this::updates)
+        fun build(id: Int, timestamp: Long): T = create(id, timestamp).also(this::updates)
+
+        protected abstract fun create(id: Int, timestamp: Long): T
 
         protected open fun isObjectEmpty(obj: T): Boolean = !obj.hasData
 
@@ -127,8 +119,14 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     private companion object {
-        private const val HALF_CIRCLE = 180f
-        private const val FULL_CIRCLE = HALF_CIRCLE * 2f
-        private const val RAD_TO_DEG = (HALF_CIRCLE / PI).toFloat()
+        const val HALF_CIRCLE = 180f
+        const val FULL_CIRCLE = HALF_CIRCLE * 2f
+        const val RAD_TO_DEG = (HALF_CIRCLE / PI).toFloat()
+
+        const val DISTANCE = "distance"
+        const val HEADING = "heading"
+
+        fun cannotCompute(type: String): String =
+            "Can't compute $type if both objects don't have a position"
     }
 }

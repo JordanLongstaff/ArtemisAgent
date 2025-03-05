@@ -1,9 +1,10 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.activity.viewModels
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
@@ -15,127 +16,129 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.PermissionGranter
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class EnemySettingsFragmentTest {
-    @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun enemySettingsTest() {
         val enemiesEnabled = AtomicBoolean()
         val maxSurrenderRange = AtomicInteger(-1)
-        val showIntel = AtomicBoolean()
-        val showTauntStatus = AtomicBoolean()
-        val disableIneffectiveTaunts = AtomicBoolean()
 
-        val sortBySurrendered = AtomicBoolean()
-        val sortByFaction = AtomicBoolean()
-        val sortByFactionReversed = AtomicBoolean()
-        val sortByName = AtomicBoolean()
-        val sortByDistance = AtomicBoolean()
+        val sortSettings = Array(5) { AtomicBoolean() }
+        val toggleSettings = Array(3) { AtomicBoolean() }
 
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             val enemySorter = viewModel.enemySorter
 
-            sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
-            sortByFaction.lazySet(enemySorter.sortByFaction)
-            sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
-            sortByName.lazySet(enemySorter.sortByName)
-            sortByDistance.lazySet(enemySorter.sortByDistance)
-
             enemiesEnabled.lazySet(viewModel.enemiesEnabled)
             viewModel.maxSurrenderDistance?.also { maxSurrenderRange.lazySet(it.toInt()) }
-            showIntel.lazySet(viewModel.showEnemyIntel)
-            showTauntStatus.lazySet(viewModel.showTauntStatuses)
-            disableIneffectiveTaunts.lazySet(viewModel.disableIneffectiveTaunts)
+
+            booleanArrayOf(
+                    enemySorter.sortBySurrendered,
+                    enemySorter.sortByFaction,
+                    enemySorter.sortByFactionReversed,
+                    enemySorter.sortByName,
+                    enemySorter.sortByDistance,
+                )
+                .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
+
+            booleanArrayOf(
+                    viewModel.showEnemyIntel,
+                    viewModel.showTauntStatuses,
+                    viewModel.disableIneffectiveTaunts,
+                )
+                .forEachIndexed { index, toggle -> toggleSettings[index].lazySet(toggle) }
         }
+
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         SettingsFragmentTest.openSettingsMenu()
 
         val enabled = enemiesEnabled.get()
         val surrenderRange = maxSurrenderRange.get()
-        val intel = showIntel.get()
-        val tauntStatuses = showTauntStatus.get()
-        val disableIneffective = disableIneffectiveTaunts.get()
 
-        val sortSettings = booleanArrayOf(
-            sortBySurrendered.get(),
-            sortByFaction.get(),
-            sortByFactionReversed.get(),
-            sortByName.get(),
-            sortByDistance.get(),
-        )
+        val sortMethods = sortSettings.map { it.get() }.toBooleanArray()
+        val singleToggles = toggleSettings.map { it.get() }.toBooleanArray()
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(4, usingToggle = usingToggle, toggleDisplayed = true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testEnemySubMenuOpen(
-                sortSettings,
-                surrenderRange.takeIf { it >= 0 },
-                !usingToggle,
-                intel,
-                tauntStatuses,
-                disableIneffective,
+                sortMethods,
+                surrenderRange = surrenderRange.takeIf { it >= 0 },
+                shouldTestSettings = !usingToggle,
+                singleToggles = singleToggles,
             )
 
             SettingsFragmentTest.closeSettingsSubMenu(usingToggle = !usingToggle)
-            testEnemySubMenuClosed()
+            testEnemySubMenuClosed(usingToggle)
+
+            if (usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testEnemySubMenuOpen(
+                    sortMethods,
+                    surrenderRange = surrenderRange.takeIf { it >= 0 },
+                    shouldTestSettings = false,
+                    singleToggles = singleToggles,
+                )
+
+                SettingsFragmentTest.backFromSubMenu()
+                testEnemySubMenuClosed(true)
+            }
         }
     }
 
     private companion object {
-        val enemySortMethodSettings = arrayOf(
-            GroupedToggleButtonSetting(
-                R.id.enemySortingSurrenderButton,
-                R.string.surrender,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.enemySortingRaceButton,
-                R.string.sort_by_race,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.enemySortingNameButton,
-                R.string.sort_by_name,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.enemySortingRangeButton,
-                R.string.sort_by_range,
-            ),
-        )
+        const val ENTRY_INDEX = 4
 
-        val enemySingleToggleSettings = arrayOf(
-            SingleToggleButtonSetting(
-                R.id.showIntelDivider,
-                R.id.showIntelTitle,
-                R.string.show_intel,
-                R.id.showIntelButton,
-            ),
-            SingleToggleButtonSetting(
-                R.id.showTauntStatusDivider,
-                R.id.showTauntStatusTitle,
-                R.string.show_taunt_status,
-                R.id.showTauntStatusButton,
-            ),
-            SingleToggleButtonSetting(
-                R.id.disableIneffectiveDivider,
-                R.id.disableIneffectiveTitle,
-                R.string.disable_ineffective_taunts,
-                R.id.disableIneffectiveButton,
-            ),
-        )
+        val enemySortMethodSettings =
+            arrayOf(
+                GroupedToggleButtonSetting(R.id.enemySortingSurrenderButton, R.string.surrender),
+                GroupedToggleButtonSetting(R.id.enemySortingRaceButton, R.string.sort_by_race),
+                GroupedToggleButtonSetting(R.id.enemySortingNameButton, R.string.sort_by_name),
+                GroupedToggleButtonSetting(R.id.enemySortingRangeButton, R.string.sort_by_range),
+            )
+
+        val enemySingleToggleSettings =
+            arrayOf(
+                SingleToggleButtonSetting(
+                    divider = R.id.showIntelDivider,
+                    label = R.id.showIntelTitle,
+                    text = R.string.show_intel,
+                    button = R.id.showIntelButton,
+                ),
+                SingleToggleButtonSetting(
+                    divider = R.id.showTauntStatusDivider,
+                    label = R.id.showTauntStatusTitle,
+                    text = R.string.show_taunt_status,
+                    button = R.id.showTauntStatusButton,
+                ),
+                SingleToggleButtonSetting(
+                    divider = R.id.disableIneffectiveDivider,
+                    label = R.id.disableIneffectiveTitle,
+                    text = R.string.disable_ineffective_taunts,
+                    button = R.id.disableIneffectiveButton,
+                ),
+            )
 
         fun testEnemySubMenuOpen(
             sortMethods: BooleanArray,
             surrenderRange: Int?,
             shouldTestSettings: Boolean,
-            vararg singleToggles: Boolean,
+            singleToggles: BooleanArray,
         ) {
             testEnemySubMenuSortMethods(sortMethods, shouldTestSettings)
             testEnemySubMenuSurrenderRange(surrenderRange, shouldTestSettings)
@@ -145,7 +148,7 @@ class EnemySettingsFragmentTest {
             }
         }
 
-        fun testEnemySubMenuClosed() {
+        fun testEnemySubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.enemySortingTitle)
             assertNotExist(R.id.enemySortingDefaultButton)
             enemySortMethodSettings.forEach { assertNotExist(it.button) }
@@ -159,6 +162,8 @@ class EnemySettingsFragmentTest {
             assertNotExist(R.id.surrenderRangeInfinity)
             assertNotExist(R.id.surrenderRangeDivider)
             enemySingleToggleSettings.forEach { it.testNotExist() }
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
 
         fun testEnemySubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {
@@ -242,20 +247,19 @@ class EnemySettingsFragmentTest {
             assertDisplayed(R.id.surrenderRangeTitle, R.string.surrender_range)
             assertDisplayed(R.id.surrenderRangeEnableButton)
 
-            testEnemySubMenuSurrenderRange(surrenderRange != null, surrenderRange)
+            val isSurrenderRangeEnabled = surrenderRange != null
+
+            testEnemySubMenuSurrenderRange(isSurrenderRangeEnabled, surrenderRange)
 
             if (!shouldTest) return
 
-            booleanArrayOf(true, false).forEach {
+            booleanArrayOf(false, true).forEach { isEnabled ->
                 clickOn(R.id.surrenderRangeEnableButton)
-                testEnemySubMenuSurrenderRange((surrenderRange == null) == it, surrenderRange)
+                testEnemySubMenuSurrenderRange(isSurrenderRangeEnabled == isEnabled, surrenderRange)
             }
         }
 
-        fun testEnemySubMenuSurrenderRange(
-            isEnabled: Boolean,
-            surrenderRange: Int?,
-        ) {
+        fun testEnemySubMenuSurrenderRange(isEnabled: Boolean, surrenderRange: Int?) {
             if (isEnabled) {
                 assertChecked(R.id.surrenderRangeEnableButton)
                 assertNotDisplayed(R.id.surrenderRangeInfinity)

@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.ShipEntryBinding
 import artemis.agent.databinding.ShipsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.protocol.core.setup.Ship
 
 class ShipsFragment : Fragment(R.layout.ships_fragment) {
@@ -30,58 +30,45 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
         val shipsList = binding.shipsList
         shipsList.itemAnimator = null
         shipsList.adapter = shipAdapter
-        shipsList.layoutManager = GridLayoutManager(
-            view.context,
-            view.resources.configuration.orientation
-        )
+        shipsList.layoutManager =
+            GridLayoutManager(view.context, view.resources.configuration.orientation)
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectableShips) {
             shipAdapter.update(it)
-            binding.noShipsLabel.visibility =
-                if (it.isEmpty()) View.VISIBLE else View.GONE
+            binding.noShipsLabel.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.shipIndex) {
-            shipAdapter.update(it)
-        }
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.shipIndex) { shipAdapter.update(it) }
     }
 
     private class ShipDiffUtilCallback(
         private val oldList: List<Ship>,
-        private val newList: List<Ship>
+        private val newList: List<Ship>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldItemPosition == newItemPosition
-        }
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldItemPosition == newItemPosition
 
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            val oldShip = oldList[oldItemPosition]
-            val newShip = newList[newItemPosition]
-            return oldShip == newShip
-        }
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldList[oldItemPosition] == newList[newItemPosition]
     }
 
     private class ShipViewHolder(val entryBinding: ShipEntryBinding) :
         RecyclerView.ViewHolder(entryBinding.root)
 
-    private class ShipAdapter(
-        private val viewModel: AgentViewModel
-    ) : RecyclerView.Adapter<ShipViewHolder>() {
-        private var shipsList: List<Ship> = listOf()
+    private class ShipAdapter(private val viewModel: AgentViewModel) :
+        RecyclerView.Adapter<ShipViewHolder>() {
+        private var shipsList: List<Ship> = emptyList()
         private var selectedShipIndex: Int = -1
 
         override fun getItemCount(): Int = shipsList.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShipViewHolder =
             ShipViewHolder(
-                ShipEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                ShipEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: ShipViewHolder, position: Int) {
@@ -89,17 +76,14 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
             val entryBinding = holder.entryBinding
 
             entryBinding.driveTypeLabel.text = ship.drive.name.substring(0, 1)
-            entryBinding.nameLabel.text = ship.name
-                ?: holder.itemView.context.getString(R.string.ship_number, position + 1)
+            entryBinding.nameLabel.text =
+                ship.name ?: holder.itemView.context.getString(R.string.ship_number, position + 1)
 
             val hue = ship.hue
             val root = entryBinding.root
             root.setBackgroundColor(
-                if (hue.isNaN()) {
-                    Color.TRANSPARENT
-                } else {
-                    Color.HSVToColor(floatArrayOf(hue, 1f, VALUE))
-                }
+                if (hue.isNaN()) Color.TRANSPARENT
+                else Color.HSVToColor(floatArrayOf(hue, 1f, VALUE))
             )
 
             entryBinding.vesselLabel.text = viewModel.getFullNameForVessel(ship)
@@ -124,9 +108,7 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
         }
 
         fun update(newList: List<Ship>) {
-            DiffUtil.calculateDiff(
-                ShipDiffUtilCallback(shipsList, newList)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(ShipDiffUtilCallback(shipsList, newList)).dispatchUpdatesTo(this)
             shipsList = newList
         }
     }

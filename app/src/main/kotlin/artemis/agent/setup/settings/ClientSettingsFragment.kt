@@ -12,12 +12,12 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsClientBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class ClientSettingsFragment : Fragment(R.layout.settings_client) {
@@ -29,16 +29,15 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val vesselDataOptionButtons = arrayOf(
-            binding.vesselDataDefault,
-            binding.vesselDataInternalStorage,
-            binding.vesselDataExternalStorage,
-        )
+        val vesselDataOptionButtons =
+            arrayOf(
+                binding.vesselDataDefault,
+                binding.vesselDataInternalStorage,
+                binding.vesselDataExternalStorage,
+            )
         prepareVesselDataSettingButtons(vesselDataOptionButtons)
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsReset) {
-            clearFocus()
-        }
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsReset) { clearFocus() }
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             vesselDataOptionButtons[it.vesselDataLocationValue].isChecked = true
@@ -76,11 +75,9 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             viewModel.viewModelScope.launch {
                 view.context.userSettings.updateData {
                     it.copy {
-                        updateInterval = if (text.isNullOrBlank()) {
-                            0
-                        } else {
-                            text.toInt().coerceIn(0, MAX_UPDATE_INTERVAL)
-                        }
+                        updateInterval =
+                            if (text.isNullOrBlank()) 0
+                            else text.toInt().coerceIn(0, MAX_UPDATE_INTERVAL)
                     }
                 }
             }
@@ -95,24 +92,25 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     private fun prepareVesselDataSettingButtons(vesselDataOptionButtons: Array<RadioButton>) {
         val numAvailableOptions = viewModel.storageDirectories.size + 1
         vesselDataOptionButtons.forEachIndexed { index, button ->
-            button.visibility = if (index < numAvailableOptions) {
-                button.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                    clearFocus()
-                }
-                button.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        viewModel.viewModelScope.launch {
-                            binding.root.context.userSettings.updateData {
-                                it.copy { vesselDataLocationValue = index }
+            button.visibility =
+                if (index < numAvailableOptions) {
+                    button.setOnClickListener {
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                        clearFocus()
+                    }
+                    button.setOnCheckedChangeListener { _, isChecked ->
+                        if (isChecked) {
+                            viewModel.viewModelScope.launch {
+                                binding.root.context.userSettings.updateData {
+                                    it.copy { vesselDataLocationValue = index }
+                                }
                             }
                         }
                     }
+                    View.VISIBLE
+                } else {
+                    View.GONE
                 }
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
         }
     }
 
@@ -123,9 +121,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             }
         }
 
-        binding.serverPortField.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.serverPortField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.serverPortField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -148,9 +144,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     }
 
     private fun prepareShowNetworkInfoSettingToggle() {
-        binding.showNetworkInfoButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.showNetworkInfoButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.showNetworkInfoButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
@@ -168,9 +162,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             }
         }
 
-        binding.addressLimitField.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
+        binding.addressLimitField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
 
         binding.addressLimitField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
@@ -181,13 +173,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             val text = binding.addressLimitField.text?.toString()
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
-                    it.copy {
-                        recentAddressLimit = if (text.isNullOrBlank()) {
-                            0
-                        } else {
-                            text.toInt()
-                        }
-                    }
+                    it.copy { recentAddressLimit = if (text.isNullOrBlank()) 0 else text.toInt() }
                 }
             }
         }

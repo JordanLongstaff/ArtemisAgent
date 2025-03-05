@@ -5,14 +5,18 @@ plugins {
     id("java-library")
     id("java-test-fixtures")
     id("kotlin")
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.dependency.analysis)
 }
 
 val javaVersion: JavaVersion by rootProject.extra
+val kotlinMainPath: String by rootProject.extra
+val kotlinTestPath: String by rootProject.extra
+val kotlinTestFixturesPath: String by rootProject.extra
 
 java {
     sourceCompatibility = javaVersion
@@ -33,10 +37,9 @@ tasks.test {
 
 tasks.assemble.dependsOn(":IAN:world:konsist:test")
 
-detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-}
+ktfmt { kotlinLangStyle() }
+
+detekt { source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinTestFixturesPath)) }
 
 dependencies {
     api(projects.ian.enums)
@@ -47,12 +50,11 @@ dependencies {
 
     ksp(projects.ian.processor)
 
-    implementation(libs.kotlin.reflect)
-
     testFixturesApi(projects.ian.listener)
     testFixturesApi(projects.ian.util)
     testFixturesImplementation(libs.bundles.ian.world.test.fixtures)
 
+    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)
@@ -61,13 +63,7 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover {
-    currentProject {
-        sources {
-            excludedSourceSets.add("testFixtures")
-        }
-    }
-}
+kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
 
 val pitestMutators: Set<String> by rootProject.extra
 val pitestTimeoutFactor: BigDecimal by rootProject.extra

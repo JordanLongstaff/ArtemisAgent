@@ -18,33 +18,32 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.core.buildPacket
+import kotlinx.coroutines.launch
 import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
 
-class VersionPacketTest : PacketTestSpec.Server<VersionPacket>(
-    specName = "VersionPacket",
-    fixtures = listOf(VersionPacketFixture()),
-    failures = listOf(
-        object : Failure(TestPacketTypes.CONNECTED, "Fails to parse legacy version") {
-            override val payloadGen: Gen<Source> = Arb.bind(
-                Arb.int(),
-                Arb.float(),
-            ) { unknown, legacy ->
-                buildPacket {
-                    writeIntLe(unknown)
-                    writeFloatLe(legacy)
+class VersionPacketTest :
+    PacketTestSpec.Server<VersionPacket>(
+        specName = "VersionPacket",
+        fixtures = listOf(VersionPacketFixture()),
+        failures =
+            listOf(
+                object : Failure(TestPacketTypes.CONNECTED, "Fails to parse legacy version") {
+                    override val payloadGen: Gen<Source> =
+                        Arb.bind(Arb.int(), Arb.float()) { unknown, legacy ->
+                            buildPacket {
+                                writeIntLe(unknown)
+                                writeFloatLe(legacy)
+                            }
+                        }
                 }
-            }
-        }
-    ),
-    isRequired = true,
-) {
-    override suspend fun DescribeSpecContainerScope.describeMore() {
+            ),
+        isRequired = true,
+    ) {
+    override fun DescribeSpecContainerScope.describeMore() = launch {
         it("Sets version of PacketReader") {
-            val listenerRegistry = ListenerRegistry().apply {
-                register(PacketTestListenerModule)
-            }
+            val listenerRegistry = ListenerRegistry().apply { register(PacketTestListenerModule) }
             val readChannel = ByteChannel()
             val reader = PacketReader(readChannel, listenerRegistry)
 

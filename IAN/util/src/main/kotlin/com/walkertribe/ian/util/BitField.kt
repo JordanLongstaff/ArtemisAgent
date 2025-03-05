@@ -17,37 +17,32 @@ import kotlinx.io.readByteArray
  * @author rjwut
  */
 class BitField(private val bitCount: Int) {
-    private val bytes: ByteArray = ByteArray(
-        countBytes(
-            bitCount.also {
-                require(it >= 0) { "Bit field cannot have a negative number of bits" }
-            }
+    private val bytes: ByteArray =
+        ByteArray(
+            countBytes(
+                bitCount.also {
+                    require(it >= 0) { "Bit field cannot have a negative number of bits" }
+                }
+            )
         )
-    )
+
+    /** Returns the number of bytes in this BitField. */
+    val byteCount: Int by lazy { bytes.size }
 
     /**
-     * Creates a BitField large enough to accommodate the enumerated bits, and
-     * stores the indicated bytes in it.
+     * Creates a BitField large enough to accommodate the enumerated bits, and stores the indicated
+     * bytes in it.
      */
     internal constructor(bitCount: Int, packet: Source) : this(bitCount) {
         packet.readByteArray(byteCount).copyInto(this.bytes)
     }
 
-    /**
-     * Returns the number of bytes in this BitField.
-     */
-    val byteCount: Int by lazy { bytes.size }
-
-    /**
-     * Returns true if the indicated bit is 1, false if it's 0.
-     */
+    /** Returns true if the indicated bit is 1, false if it's 0. */
     operator fun get(bitIndex: Int): Boolean =
         bitIndex in 0 until bitCount &&
             bytes[bitIndex shr BYTE_INDEX_SHIFT].toInt() and (1 shl bitIndex % Byte.SIZE_BITS) != 0
 
-    /**
-     * If value is true, the indicated bit is set to 1; otherwise, it's set to 0.
-     */
+    /** If value is true, the indicated bit is set to 1; otherwise, it's set to 0. */
     operator fun set(bitIndex: Int, value: Boolean) {
         if (bitIndex !in 0 until bitCount) return
         val byteIndex = bitIndex / Byte.SIZE_BITS

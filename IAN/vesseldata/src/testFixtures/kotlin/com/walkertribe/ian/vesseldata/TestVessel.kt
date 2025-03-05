@@ -40,18 +40,22 @@ class TestVessel(
     private val expectedAttributes: Set<String>,
     private val description: String? = null,
 ) : WithDataTestName {
-    fun build(): Vessel = Vessel(
-        id = id,
-        side = side,
-        name = vesselName,
-        broadType = broadType,
-        ordnanceStorage = ordnanceCounts.mapIndexedNotNull { index, count ->
-            count?.let { OrdnanceType.entries[index] to it }
-        }.toMap(),
-        productionCoefficient = productionCoefficient ?: 0f,
-        bayCount = bayCount ?: 0,
-        description = description,
-    )
+    fun build(): Vessel =
+        Vessel(
+            id = id,
+            side = side,
+            name = vesselName,
+            broadType = broadType,
+            ordnanceStorage =
+                ordnanceCounts
+                    .mapIndexedNotNull { index, count ->
+                        count?.let { OrdnanceType.entries[index] to it }
+                    }
+                    .toMap(),
+            productionCoefficient = productionCoefficient ?: 0f,
+            bayCount = bayCount ?: 0,
+            description = description,
+        )
 
     suspend fun test(vessel: Vessel?, vesselData: VesselData?) {
         vessel.shouldNotBeNull()
@@ -59,11 +63,8 @@ class TestVessel(
         vessel.side shouldBeEqual side
 
         val coefficient = productionCoefficient
-        if (coefficient == null) {
-            vessel.productionCoefficient.shouldBeZero()
-        } else {
-            vessel.productionCoefficient.shouldBeWithinPercentageOf(coefficient, EPSILON)
-        }
+        if (coefficient == null) vessel.productionCoefficient.shouldBeZero()
+        else vessel.productionCoefficient.shouldBeWithinPercentageOf(coefficient, EPSILON)
 
         val bays = bayCount
         if (bays == null) {
@@ -77,51 +78,39 @@ class TestVessel(
         vessel.attributes shouldContainExactly expectedAttributes
 
         val desc = description
-        if (desc == null) {
-            vessel.description.shouldBeNull()
-        } else {
-            vessel.description.shouldNotBeNull() shouldBeEqual desc.replace('^', '\n')
-        }
+        if (desc == null) vessel.description.shouldBeNull()
+        else vessel.description.shouldNotBeNull() shouldBeEqual desc.replace('^', '\n')
 
-        expectedAttributes.forEach {
-            vessel[it].shouldBeTrue()
-        }
+        expectedAttributes.forEach { vessel[it].shouldBeTrue() }
 
-        Arb.string().filterNot(expectedAttributes::contains).checkAll {
-            vessel[it].shouldBeFalse()
-        }
+        Arb.string().filterNot(expectedAttributes::contains).checkAll { vessel[it].shouldBeFalse() }
 
         if (vesselData != null) {
             vessel.getFaction(vesselData).shouldNotBeNull().id shouldBeEqual faction.ordinal
         }
     }
 
-    fun serialize(): Xml = Xml(
-        "vessel",
-        "uniqueID" to id,
-        "side" to side,
-        "classname" to vesselName,
-        "broadType" to broadType,
-    ) {
-        productionCoefficient?.let {
-            node("production", "coeff" to it)
-        }
+    fun serialize(): Xml =
+        Xml(
+            "vessel",
+            "uniqueID" to id,
+            "side" to side,
+            "classname" to vesselName,
+            "broadType" to broadType,
+        ) {
+            productionCoefficient?.let { node("production", "coeff" to it) }
 
-        OrdnanceType.entries.forEachIndexed { index, ordnanceType ->
-            val count = ordnanceCounts[index] ?: return@forEachIndexed
-            node("torpedo_storage", "type" to ordnanceType.code, "amount" to count)
-        }
-
-        description?.let { text ->
-            if (text.isBlank()) {
-                node("long_desc")
-            } else {
-                node("long_desc", "text" to text)
+            OrdnanceType.entries.forEachIndexed { index, ordnanceType ->
+                val count = ordnanceCounts[index] ?: return@forEachIndexed
+                node("torpedo_storage", "type" to ordnanceType.code, "amount" to count)
             }
-        }
 
-        bayCount?.let { node("carrierload", "baycount" to it) }
-    }
+            description?.let { text ->
+                if (text.isBlank()) node("long_desc") else node("long_desc", "text" to text)
+            }
+
+            bayCount?.let { node("carrierload", "baycount" to it) }
+        }
 
     override fun dataTestName(): String = "$vesselName #$id"
 
@@ -136,40 +125,41 @@ class TestVessel(
         fun arbitrary(arbFaction: Arb<TestFaction> = Arb.enum<TestFaction>()): Arb<TestVessel> {
             val arbXmlString = Arb.string().map { it.replace(Regex("[\"&]"), "") }
 
-            val arbOrdnanceCounts = Arb.bind(
-                Arb.int().orNull(),
-                Arb.int().orNull(),
-                Arb.int().orNull(),
-                Arb.int().orNull(),
-                Arb.int().orNull(),
-                Arb.int().orNull(),
-                Arb.int().orNull(),
-                Arb.int().orNull(),
-            ) { trp, nuk, mine, emp, shk, bea, pro, tag ->
-                listOf(trp, nuk, mine, emp, shk, bea, pro, tag)
-            }
+            val arbOrdnanceCounts =
+                Arb.bind(
+                    genA = Arb.int().orNull(),
+                    genB = Arb.int().orNull(),
+                    genC = Arb.int().orNull(),
+                    genD = Arb.int().orNull(),
+                    genE = Arb.int().orNull(),
+                    genF = Arb.int().orNull(),
+                    genG = Arb.int().orNull(),
+                    genH = Arb.int().orNull(),
+                ) { trp, nuk, mine, emp, shk, bea, pro, tag ->
+                    listOf(trp, nuk, mine, emp, shk, bea, pro, tag)
+                }
 
             return Arb.bind(
-                Arb.int().filter { it != -1 },
-                arbFaction,
-                arbXmlString,
-                Arb.set(Arb.string(minSize = 1, codepoints = Codepoint.az())),
-                Arb.numericFloat().orNull(),
-                arbOrdnanceCounts,
-                Arb.int().orNull(),
-                arbXmlString.orNull(),
+                genA = Arb.int().filter { it != -1 },
+                genB = arbFaction,
+                genC = arbXmlString,
+                genD = Arb.set(Arb.string(minSize = 1, codepoints = Codepoint.az())),
+                genE = Arb.numericFloat().orNull(),
+                genF = arbOrdnanceCounts,
+                genG = Arb.int().orNull(),
+                genH = arbXmlString.orNull(),
             ) { id, faction, name, broadType, prod, ordCounts, bays, desc ->
                 TestVessel(
                     id,
-                    faction.ordinal,
+                    side = faction.ordinal,
                     faction,
-                    name,
-                    broadType.joinToString(" "),
-                    prod,
-                    ordCounts,
-                    bays,
-                    broadType.map { it.lowercase() }.toSet(),
-                    desc?.trim(),
+                    vesselName = name,
+                    broadType = broadType.joinToString(" "),
+                    productionCoefficient = prod,
+                    ordnanceCounts = ordCounts,
+                    bayCount = bays,
+                    expectedAttributes = broadType.map { it.lowercase() }.toSet(),
+                    description = desc?.trim(),
                 )
             }
         }

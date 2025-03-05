@@ -17,12 +17,10 @@ import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
 
-class PlayerShipDamagePacketFixture(
-    arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<PlayerShipDamagePacket>(
-    TestPacketTypes.SIMPLE_EVENT,
-) {
-    class Data internal constructor(
+class PlayerShipDamagePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<PlayerShipDamagePacket>(TestPacketTypes.SIMPLE_EVENT) {
+    class Data
+    internal constructor(
         override val version: Version,
         private val shipIndex: Int,
         private val damageDuration: Float,
@@ -39,7 +37,8 @@ class PlayerShipDamagePacketFixture(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int(), Arb.numericFloat(), ::Data)
+    override val generator: Gen<Data> =
+        Arb.bind(genA = arbVersion, genB = Arb.int(), genC = Arb.numericFloat(), bindFn = ::Data)
 
     override suspend fun testType(packet: Packet.Server): PlayerShipDamagePacket =
         packet.shouldBeInstanceOf()

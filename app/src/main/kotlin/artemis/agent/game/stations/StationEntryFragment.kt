@@ -19,8 +19,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.SelectorEntryBinding
 import artemis.agent.databinding.SelectorPopupBinding
 import artemis.agent.databinding.StationEntryBinding
@@ -28,6 +26,8 @@ import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.ObjectEntry.Station
 import artemis.agent.game.route.RouteObjective
 import artemis.agent.generic.GenericDataViewHolder
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.enums.BaseMessage
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
@@ -53,20 +53,15 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                     root.measure(
                         View.MeasureSpec.makeMeasureSpec(
                             it.measuredWidth,
-                            View.MeasureSpec.EXACTLY
+                            View.MeasureSpec.EXACTLY,
                         ),
                         View.MeasureSpec.makeMeasureSpec(
                             binding.root.measuredHeight,
-                            View.MeasureSpec.AT_MOST
-                        )
+                            View.MeasureSpec.AT_MOST,
+                        ),
                     )
                     popup.showAsDropDown(selectorButton)
-                    popup.update(
-                        it.left,
-                        it.top,
-                        it.measuredWidth,
-                        root.measuredHeight
-                    )
+                    popup.update(it.left, it.top, it.measuredWidth, root.measuredHeight)
                 }
 
                 selectorList.itemAnimator = null
@@ -93,20 +88,15 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                     root.measure(
                         View.MeasureSpec.makeMeasureSpec(
                             selectorButton.measuredWidth,
-                            View.MeasureSpec.EXACTLY
+                            View.MeasureSpec.EXACTLY,
                         ),
                         View.MeasureSpec.makeMeasureSpec(
                             binding.root.measuredHeight,
-                            View.MeasureSpec.AT_MOST
-                        )
+                            View.MeasureSpec.AT_MOST,
+                        ),
                     )
                     popup.showAsDropDown(selectorButton)
-                    popup.update(
-                        it.left,
-                        it.bottom,
-                        it.measuredWidth,
-                        root.measuredHeight
-                    )
+                    popup.update(it.left, it.bottom, it.measuredWidth, root.measuredHeight)
                 }
 
                 selectorList.itemAnimator = null
@@ -151,23 +141,25 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
         preparePopupBindings()
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.stationSelectorFlashPercent) {
-            binding.stationSelectorFlash.alpha = if (it < 1f) {
-                val flashColorSlot = SELECTOR_COLORS.find { (percent) -> it >= percent }
-                val alpha = flashColorSlot?.first?.let { percent ->
-                    1f - percent.pow(ALPHA_EXPONENT)
-                } ?: 0f
-                val color = flashColorSlot?.second.let { colorRes ->
-                    ContextCompat.getColor(
-                        view.context,
-                        colorRes ?: R.color.stationSelectorCritical
-                    )
-                }
+            binding.stationSelectorFlash.alpha =
+                if (it < 1f) {
+                    val flashColorSlot = SELECTOR_COLORS.find { (percent) -> it >= percent }
+                    val alpha =
+                        flashColorSlot?.first?.let { percent -> 1f - percent.pow(ALPHA_EXPONENT) }
+                            ?: 0f
+                    val color =
+                        flashColorSlot?.second.let { colorRes ->
+                            ContextCompat.getColor(
+                                view.context,
+                                colorRes ?: R.color.stationSelectorCritical,
+                            )
+                        }
 
-                binding.stationSelectorFlash.setBackgroundColor(color)
-                alpha
-            } else {
-                0f
-            }
+                    binding.stationSelectorFlash.setBackgroundColor(color)
+                    alpha
+                } else {
+                    0f
+                }
         }
     }
 
@@ -223,9 +215,10 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             val context = root.context
             root.setBackgroundColor(entry.getBackgroundColor(context))
 
-            entry.isDocking = (viewModel.playerShip?.dockingBase?.value == entry.obj.id).also {
-                entry.isDocked = it && viewModel.playerShip?.docked?.booleanValue == true
-            }
+            entry.isDocking =
+                (viewModel.playerShip?.dockingBase?.value == entry.obj.id).also {
+                    entry.isDocked = it && viewModel.playerShip?.docked?.booleanValue == true
+                }
 
             bindStationSelector(entry)
             updateInfoLabels(entry)
@@ -245,34 +238,27 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
         val shieldsMax = station.shieldsFrontMax.value
         val percent = shields / shieldsMax
 
-        val selectorBackground = ResourcesCompat.getDrawable(
-            context.resources,
-            R.drawable.station_selector,
-            context.theme
-        ) as? GradientDrawable
+        val selectorBackground =
+            ResourcesCompat.getDrawable(
+                context.resources,
+                R.drawable.station_selector,
+                context.theme,
+            ) as? GradientDrawable
         selectorBackground?.setStroke(
             context.resources.getDimensionPixelSize(R.dimen.paddingSmall),
-            SELECTOR_COLORS.find { percent >= it.first }?.let {
-                ContextCompat.getColor(context, it.second)
-            } ?: Color.TRANSPARENT
+            SELECTOR_COLORS.find { percent >= it.first }
+                ?.let { ContextCompat.getColor(context, it.second) } ?: Color.TRANSPARENT,
         )
-        stationSelectorButton.background = selectorBackground?.let { drawable ->
-            InsetDrawable(
-                drawable,
-                context.resources.getDimensionPixelSize(
-                    androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                ),
-                context.resources.getDimensionPixelSize(
-                    androidx.appcompat.R.dimen.abc_button_inset_vertical_material
-                ),
-                context.resources.getDimensionPixelSize(
-                    androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                ),
-                context.resources.getDimensionPixelSize(
-                    androidx.appcompat.R.dimen.abc_button_inset_vertical_material
+        stationSelectorButton.background =
+            selectorBackground?.let { drawable ->
+                InsetDrawable(
+                    drawable,
+                    context.resources.getDimensionPixelSize(R.dimen.horizontalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.verticalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.horizontalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.verticalInset),
                 )
-            )
-        }
+            }
         stationSelectorButton.text = viewModel.getFullNameForShip(station)
     }
 
@@ -290,11 +276,8 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
         }
 
         stationMissionsLabel.text = entry.getMissionsText(context)
-        stationShieldLabel.text = context.getString(
-            R.string.station_shield,
-            shields.coerceAtLeast(0f),
-            shieldsMax
-        )
+        stationShieldLabel.text =
+            context.getString(R.string.station_shield, shields.coerceAtLeast(0f), shieldsMax)
         stationStatusLabel.text = entry.statusString?.let(context::getString).orEmpty()
         stationSpeedLabel.text = entry.getSpeedText(context)
 
@@ -308,11 +291,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
         requestStatusButton.setOnClickListener { _ ->
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.sendToServer(
-                CommsOutgoingPacket(
-                    entry.obj,
-                    BaseMessage.PleaseReportStatus,
-                    viewModel.vesselData
-                )
+                CommsOutgoingPacket(entry.obj, BaseMessage.PleaseReportStatus, viewModel.vesselData)
             )
         }
 
@@ -322,7 +301,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                 CommsOutgoingPacket(
                     entry.obj,
                     BaseMessage.StandByForDockingOrCeaseOperation,
-                    viewModel.vesselData
+                    viewModel.vesselData,
                 )
             )
         }
@@ -335,16 +314,17 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
         val visibleOnRight = numOrdnanceTypes / 2
         val visibleOnLeft = numOrdnanceTypes - visibleOnRight
 
-        val ordnanceLabels = arrayOf(
-            stationOrdnanceLabel1,
-            stationOrdnanceLabel2,
-            stationOrdnanceLabel3,
-            stationOrdnanceLabel4,
-            stationOrdnanceLabel5,
-            stationOrdnanceLabel6,
-            stationOrdnanceLabel7,
-            stationOrdnanceLabel8,
-        )
+        val ordnanceLabels =
+            arrayOf(
+                stationOrdnanceLabel1,
+                stationOrdnanceLabel2,
+                stationOrdnanceLabel3,
+                stationOrdnanceLabel4,
+                stationOrdnanceLabel5,
+                stationOrdnanceLabel6,
+                stationOrdnanceLabel7,
+                stationOrdnanceLabel8,
+            )
         val halfway = ordnanceLabels.size / 2
 
         for (i in 0 until visibleOnLeft) {
@@ -365,16 +345,17 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             label.text = entry.getOrdnanceText(viewModel, root.context, ordnanceType)
         }
 
-        for (i in (halfway + visibleOnRight) until ordnanceLabels.size) {
+        for (i in halfway + visibleOnRight until ordnanceLabels.size) {
             ordnanceLabels[i].visibility = View.GONE
         }
     }
 
     private class StationDiffUtilCallback(
         private val oldList: List<Pair<Station, Boolean>>,
-        private val newList: List<Pair<Station, Boolean>>
+        private val newList: List<Pair<Station, Boolean>>,
     ) : DiffUtil.Callback() {
         override fun getOldListSize(): Int = oldList.size
+
         override fun getNewListSize(): Int = newList.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
@@ -384,9 +365,8 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             oldList[oldItemPosition].second == newList[newItemPosition].second
     }
 
-    private class StationEntryViewHolder(
-        private val entryBinding: SelectorEntryBinding
-    ) : RecyclerView.ViewHolder(entryBinding.root) {
+    private class StationEntryViewHolder(private val entryBinding: SelectorEntryBinding) :
+        RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(station: Station, flashing: Boolean, viewModel: AgentViewModel) {
             val context = itemView.context
             val orientation = context.resources.configuration.orientation
@@ -400,20 +380,23 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                 isAllCaps = true
             }
 
-            entryBinding.flashBackground.visibility = if (flashing) {
-                val percent = station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value
-                val flashColor = SELECTOR_COLORS.find { percent >= it.first }.let {
-                    ContextCompat.getColor(
-                        context,
-                        it?.second ?: R.color.stationSelectorCritical
-                    )
-                }
-                entryBinding.flashBackground.setBackgroundColor(flashColor)
+            entryBinding.flashBackground.visibility =
+                if (flashing) {
+                    val percent = station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value
+                    val flashColor =
+                        SELECTOR_COLORS.find { percent >= it.first }
+                            .let {
+                                ContextCompat.getColor(
+                                    context,
+                                    it?.second ?: R.color.stationSelectorCritical,
+                                )
+                            }
+                    entryBinding.flashBackground.setBackgroundColor(flashColor)
 
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
         }
     }
 
@@ -424,11 +407,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StationEntryViewHolder =
             StationEntryViewHolder(
-                SelectorEntryBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
+                SelectorEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
 
         override fun onBindViewHolder(holder: StationEntryViewHolder, position: Int) {
@@ -436,18 +415,15 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                 holder.bind(station, flashing, viewModel)
                 holder.itemView.setOnClickListener {
                     viewModel.playSound(SoundEffect.BEEP_2)
-                    station.obj.name.value?.also { name ->
-                        viewModel.stationName.value = name
-                    }
+                    station.obj.name.value?.also { name -> viewModel.stationName.value = name }
                     stationSelectorPopup.dismiss()
                 }
             }
         }
 
         fun update(newList: List<Pair<Station, Boolean>>) {
-            DiffUtil.calculateDiff(
-                StationDiffUtilCallback(stations, newList)
-            ).dispatchUpdatesTo(this)
+            DiffUtil.calculateDiff(StationDiffUtilCallback(stations, newList))
+                .dispatchUpdatesTo(this)
             stations = newList
         }
     }
@@ -469,7 +445,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                     CommsOutgoingPacket(
                         station.obj,
                         BaseMessage.Build(ordnance),
-                        viewModel.vesselData
+                        viewModel.vesselData,
                     )
                 )
                 ordnanceSelectorPopup.dismiss()
@@ -485,12 +461,13 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
         const val PORTRAIT_SELECTOR_TEXT_SIZE = 22f
         const val ALPHA_EXPONENT = 1.25f
 
-        val SELECTOR_COLORS = arrayOf(
-            Pair(1.0f, R.color.stationSelectorFull),
-            Pair(0.7f, R.color.stationSelectorDamaged),
-            Pair(0.4f, R.color.stationSelectorModerate),
-            Pair(0.2f, R.color.stationSelectorSevere),
-            Pair(0.0f, R.color.stationSelectorCritical)
-        )
+        val SELECTOR_COLORS =
+            arrayOf(
+                Pair(1.0f, R.color.stationSelectorFull),
+                Pair(0.7f, R.color.stationSelectorDamaged),
+                Pair(0.4f, R.color.stationSelectorModerate),
+                Pair(0.2f, R.color.stationSelectorSevere),
+                Pair(0.0f, R.color.stationSelectorCritical),
+            )
     }
 }

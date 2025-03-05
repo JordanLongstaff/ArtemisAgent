@@ -11,6 +11,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import korlibs.io.serialization.xml.Xml
 
+@Suppress("StringLiteralDuplication")
 enum class TestFaction(
     val factionName: String,
     val attributes: TestFactionAttributes,
@@ -30,7 +31,7 @@ enum class TestFaction(
             ),
             Taunt(
                 "is decorated for strategic thinking and is not interested in offering " +
-                        "a challenge in battle",
+                    "a challenge in battle",
                 "You chicken-hearted cowards! I've had more challenging battles with a space bug!",
             ),
         ),
@@ -49,7 +50,7 @@ enum class TestFaction(
             ),
             Taunt(
                 "is decorated for strategic thinking and is not interested in offering " +
-                        "a challenge in battle",
+                    "a challenge in battle",
                 "You chicken-hearted cowards! I've had more challenging battles with a space bug!",
             ),
         ),
@@ -61,16 +62,13 @@ enum class TestFaction(
             Taunt(
                 "does not practice the Kralien religion faithfully",
                 "Hey wormface! Can I borrow your Holy Scroll of Amborax? " +
-                        "I need to wipe my stinky feet!",
+                    "I need to wipe my stinky feet!",
             ),
             Taunt(
                 "complained to Kralien High Command that Kralien ships are too weak",
                 "You call that a warship? I could crush that toy with my bare hands.",
             ),
-            Taunt(
-                "is unmarried",
-                "You're so ugly that your wife will thank me for killing you!",
-            ),
+            Taunt("is unmarried", "You're so ugly that your wife will thank me for killing you!"),
         ),
     ),
     ARVONIAN(
@@ -81,10 +79,7 @@ enum class TestFaction(
                 "openly dislikes the Arvonian Royal Family",
                 "Queen Marah looks like a hideous pustule and smells like a flatulent Space Whale.",
             ),
-            Taunt(
-                "is unmarried",
-                "Your husband dresses like a Situlan scum slug!",
-            ),
+            Taunt("is unmarried", "Your husband dresses like a Situlan scum slug!"),
             Taunt(
                 "does not care about space whales",
                 "I'll kill you later, Arvonian. Right now I'm enjoying a bowl of space whale soup.",
@@ -105,7 +100,7 @@ enum class TestFaction(
             ),
             Taunt(
                 "has the highest Torgoth efficiency rating and will not react to taunts " +
-                        "about his ship's condition",
+                    "about his ship's condition",
                 "That broken down rust bucket guarantees victory for Earth.",
             ),
         ),
@@ -114,10 +109,7 @@ enum class TestFaction(
         "Skaraan",
         TestFactionAttributes.ENEMY_LONER_HASSPECIALS,
         listOf(
-            Taunt(
-                "has no living family",
-                "Your father is a flea-bitten Laparian mule!",
-            ),
+            Taunt("has no living family", "Your father is a flea-bitten Laparian mule!"),
             Taunt(
                 "does not care about his ship's appearance",
                 "Your ship is so ugly my eyeballs burn just looking at it!",
@@ -163,10 +155,7 @@ enum class TestFaction(
                 "is proud of his laid back crew with lax discipline",
                 "Your crew is a sloppy bunch of disrespectful layabouts!",
             ),
-            Taunt(
-                "isn't familiar with Terran animals",
-                "You're nothing but pirhana bait!",
-            ),
+            Taunt("isn't familiar with Terran animals", "You're nothing but pirhana bait!"),
             Taunt(
                 "has a well maintained personal appearance",
                 "Your breath could kill a space whale!",
@@ -174,11 +163,12 @@ enum class TestFaction(
         ),
     );
 
-    val isEnemy: Boolean get() = attributes.keys.contains("enemy")
+    val isEnemy: Boolean
+        get() = attributes.keys.contains("enemy")
 
     override fun toString(): String = factionName
 
-    fun build(): Faction = Faction(ordinal, factionName, attributes.keys, taunts)
+    fun build(): Faction = Faction(id = ordinal, name = factionName, keys = attributes.keys, taunts)
 
     suspend fun test(faction: Faction?) {
         faction.shouldNotBeNull()
@@ -187,9 +177,7 @@ enum class TestFaction(
         val expectedAttributes = attributes.expected.toSet()
         faction.attributes shouldContainExactly expectedAttributes
 
-        expectedAttributes.forEach {
-            faction[it].shouldBeTrue()
-        }
+        expectedAttributes.forEach { faction[it].shouldBeTrue() }
 
         Arb.string().filterNot(expectedAttributes::contains).checkAll {
             faction[it].shouldBeFalse()
@@ -198,14 +186,8 @@ enum class TestFaction(
         faction.taunts shouldContainExactly taunts
     }
 
-    fun serialize(): Xml = Xml(
-        "hullRace",
-        "ID" to ordinal,
-        "name" to factionName,
-        "keys" to attributes.keys,
-    ) {
-        taunts.forEach {
-            node("taunt", "immunity" to it.immunity, "text" to it.text)
+    fun serialize(): Xml =
+        Xml("hullRace", "ID" to ordinal, "name" to factionName, "keys" to attributes.keys) {
+            taunts.forEach { node("taunt", "immunity" to it.immunity, "text" to it.text) }
         }
-    }
 }

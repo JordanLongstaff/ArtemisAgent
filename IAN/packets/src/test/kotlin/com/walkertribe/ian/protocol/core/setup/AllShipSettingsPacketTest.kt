@@ -22,42 +22,44 @@ import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
 
-class AllShipSettingsPacketTest : PacketTestSpec.Server<AllShipSettingsPacket>(
-    specName = "AllShipSettingsPacket",
-    fixtures = AllShipSettingsPacketFixture.ALL,
-    failures = listOf(
-        "low" to Arb.negativeFloat(),
-        "high" to Arb.numericFloat(min = 1.001f),
-    ).map { (condition, arbAccentColor) ->
-        object : Failure(TestPacketTypes.SIMPLE_EVENT, "Accent color too $condition") {
-            override val payloadGen: Gen<Source> = Arb.list(
-                Arb.bind(
-                    Arb.int(),
-                    Arb.string(),
-                    Arb.int(),
-                    arbAccentColor,
-                    Arb.enum<DriveType>(),
-                ) { hasName, name, shipType, accentColor, drive ->
-                    Pair(
-                        hasName to name.takeIf { hasName != 0 },
-                        Triple(shipType, drive, accentColor)
-                    )
-                },
-                Artemis.SHIP_COUNT..Artemis.SHIP_COUNT,
-            ).map { shipList ->
-                buildPacket {
-                    writeIntLe(SimpleEventPacket.Subtype.SHIP_SETTINGS.toInt())
-                    shipList.forEach { (nameData, shipData) ->
-                        writeIntLe(shipData.second.ordinal)
-                        writeIntLe(shipData.first)
-                        writeFloatLe(shipData.third)
-                        writeIntLe(nameData.first)
-                        if (nameData.first != 0) {
-                            writeString(nameData.second.shouldNotBeNull())
-                        }
-                    }
+class AllShipSettingsPacketTest :
+    PacketTestSpec.Server<AllShipSettingsPacket>(
+        specName = "AllShipSettingsPacket",
+        fixtures = AllShipSettingsPacketFixture.ALL,
+        failures =
+            listOf("low" to Arb.negativeFloat(), "high" to Arb.numericFloat(min = 1.001f)).map {
+                (condition, arbAccentColor) ->
+                object : Failure(TestPacketTypes.SIMPLE_EVENT, "Accent color too $condition") {
+                    override val payloadGen: Gen<Source> =
+                        Arb.list(
+                                Arb.bind(
+                                    genA = Arb.int(),
+                                    genB = Arb.string(),
+                                    genC = Arb.int(),
+                                    genD = arbAccentColor,
+                                    genE = Arb.enum<DriveType>(),
+                                ) { hasName, name, shipType, accentColor, drive ->
+                                    Pair(
+                                        hasName to name.takeIf { hasName != 0 },
+                                        Triple(shipType, drive, accentColor),
+                                    )
+                                },
+                                Artemis.SHIP_COUNT..Artemis.SHIP_COUNT,
+                            )
+                            .map { shipList ->
+                                buildPacket {
+                                    writeIntLe(SimpleEventPacket.Subtype.SHIP_SETTINGS.toInt())
+                                    shipList.forEach { (nameData, shipData) ->
+                                        writeIntLe(shipData.second.ordinal)
+                                        writeIntLe(shipData.first)
+                                        writeFloatLe(shipData.third)
+                                        writeIntLe(nameData.first)
+                                        if (nameData.first != 0) {
+                                            writeString(nameData.second.shouldNotBeNull())
+                                        }
+                                    }
+                                }
+                            }
                 }
-            }
-        }
-    },
-)
+            },
+    )

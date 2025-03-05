@@ -18,13 +18,12 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class IntelPacketFixture private constructor(
-    arbVersion: Arb<Version>,
-    intelType: IntelType,
-) : PacketTestFixture.Server<IntelPacket>(TestPacketTypes.OBJECT_TEXT) {
+class IntelPacketFixture private constructor(arbVersion: Arb<Version>, intelType: IntelType) :
+    PacketTestFixture.Server<IntelPacket>(TestPacketTypes.OBJECT_TEXT) {
     override val specName: String = "Intel type: ${normalize(intelType.name)}"
 
-    class Data internal constructor(
+    class Data
+    internal constructor(
         override val version: Version,
         private val objectID: Int,
         private val intelType: IntelType,
@@ -45,11 +44,10 @@ class IntelPacketFixture private constructor(
 
     override val generator: Gen<Data> =
         Arb.bind(arbVersion, Arb.int(), Arb.string()) { version, id, intel ->
-            Data(version, id, intelType, intel)
+            Data(version, objectID = id, intelType, intel)
         }
 
-    override suspend fun testType(packet: Packet.Server): IntelPacket =
-        packet.shouldBeInstanceOf()
+    override suspend fun testType(packet: Packet.Server): IntelPacket = packet.shouldBeInstanceOf()
 
     companion object {
         fun allFixtures(arbVersion: Arb<Version> = Arb.version()): List<IntelPacketFixture> =

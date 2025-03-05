@@ -22,6 +22,8 @@ import io.ktor.utils.io.readPacket
 import korlibs.io.lang.ASCII
 import korlibs.io.lang.UTF16_LE
 import korlibs.io.lang.toString
+import kotlin.enums.enumEntries
+import kotlin.reflect.full.isSubclassOf
 import kotlinx.datetime.Clock
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
@@ -33,13 +35,12 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.dsl.koinApplication
 import org.koin.ksp.generated.defaultModule
-import kotlin.enums.enumEntries
-import kotlin.reflect.full.isSubclassOf
 
 /**
  * Facilitates reading packets from an [ByteReadChannel]. This object may be reused to read as many
  * packets as desired from a single [ByteReadChannel]. Individual packet classes can read their
  * properties by using the read*() methods on this class.
+ *
  * @author rjwut
  */
 class PacketReader(
@@ -47,109 +48,50 @@ class PacketReader(
     private val listenerRegistry: ListenerRegistry,
 ) : KoinComponent {
     private val koinApp = koinApplication { defaultModule() }
-    override fun getKoin(): Koin = koinApp.koin
 
     private val protocol: Protocol by inject()
 
     private val rejectedObjectIDs = mutableSetOf<Int>()
 
     /**
+     * Returns false if the current object's ID has been marked as one for which to reject updates,
+     * true otherwise.
+     */
+    val isAcceptingCurrentObject: Boolean
+        get() = !rejectedObjectIDs.contains(objectId)
+
+    /**
      * Returns the server [Version]. Defaults to the latest version, but subject to change if a
      * [VersionPacket] is received.
      */
-    var version = Version.LATEST
+    var version = Version.DEFAULT
 
     private lateinit var payload: Source
 
-    /**
-     * Returns the ID of the current object being read from the payload.
-     */
+    /** Returns true if the payload currently being read has more data; false otherwise. */
+    val hasMore: Boolean
+        get() = !payload.exhausted()
+
+    /** Returns the ID of the current object being read from the payload. */
     var objectId = 0
         private set
 
     private var bitField: BitField? = null
 
-    /**
-     * Returns the timestamp of the packet currently being parsed.
-     */
+    /** Returns the timestamp of the packet currently being parsed. */
     internal var packetTimestamp: Long = 0L
         private set
 
-    /**
-     * Reads a single packet and returns it.
-     */
+    /** Reads a single packet and returns it. */
     @Throws(PacketException::class)
     suspend fun readPacket(): ParseResult {
         objectId = 0
         bitField = null
-
-        // header (0xdeadbeef)
-        val header = channel.readInt().reverseByteOrder()
         packetTimestamp = Clock.System.now().toEpochMilliseconds()
 
-        if (header != Packet.HEADER) {
-            throw PacketException(
-                "Illegal packet header: ${Integer.toHexString(header)}"
-            )
-        }
-
-        // packet length
-        val len = channel.readInt().reverseByteOrder()
-        if (len < Packet.PREAMBLE_SIZE) {
-            throw PacketException("Illegal packet length: $len")
-        }
-
-        // Read the rest of the packet
-        val origin = Origin(channel.readInt().reverseByteOrder())
-        val padding = channel.readInt().reverseByteOrder()
-        val remainingBytes = channel.readInt().reverseByteOrder()
-        val packetType = channel.readInt().reverseByteOrder()
-        val remaining = len - Packet.PREAMBLE_SIZE
-        val payloadPacket = channel.readPacket(remaining)
-
-        // Check preamble fields for issues
-        if (!origin.isValid) {
-            throw PacketException(
-                "Unknown origin: ${origin.value}",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        val requiredOrigin = Origin.SERVER
-        if (origin != requiredOrigin) {
-            throw PacketException(
-                "Origin mismatch: expected $requiredOrigin, got $origin",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        // padding
-        if (padding != 0) {
-            throw PacketException(
-                "No empty padding after connection type?",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        // remaining bytes
-        val expectedRemainingBytes = remaining + Int.SIZE_BYTES
-        if (remainingBytes != expectedRemainingBytes) {
-            throw PacketException(
-                "Packet length discrepancy: total length = $len; " +
-                    "expected $expectedRemainingBytes for remaining bytes field, " +
-                    "but got $remainingBytes",
-                packetType,
-                payloadPacket.readByteArray(),
-            )
-        }
-
-        // Find the PacketFactory that knows how to handle this packet type
-        val subtype = if (payloadPacket.exhausted()) 0x00 else payloadPacket.preview {
-            it.readByte()
-        }
+        val (packetType, payloadPacket) = readPayload()
+        val subtype =
+            if (payloadPacket.exhausted()) 0x00 else payloadPacket.preview { it.readByte() }
         val factory = protocol.getFactory(packetType, subtype) ?: return ParseResult.Skip
         val factoryClass = factory.factoryClass
         val payloadBytes = payloadPacket.preview { it.readByteArray() }
@@ -164,8 +106,8 @@ class PacketReader(
         payload = payloadPacket
         if (
             result.isInteresting ||
-            factoryClass.isSubclassOf(ObjectUpdatePacket::class) ||
-            factoryClass.isSubclassOf(VersionPacket::class)
+                factoryClass.isSubclassOf(ObjectUpdatePacket::class) ||
+                factoryClass.isSubclassOf(VersionPacket::class)
         ) {
             // We need this packet
             try {
@@ -188,7 +130,7 @@ class PacketReader(
                     }
                     if (!result.isInteresting) return ParseResult.Skip
                 }
-                else -> { }
+                else -> {}
             }
         } else {
             // Nothing is interested in this packet
@@ -198,29 +140,16 @@ class PacketReader(
         return ParseResult.Success(packet, result)
     }
 
-    /**
-     * Returns true if the payload currently being read has more data; false otherwise.
-     */
-    val hasMore: Boolean get() = !payload.exhausted()
-
-    /**
-     * Returns the next byte in the current packet's payload without moving the pointer.
-     */
+    /** Returns the next byte in the current packet's payload without moving the pointer. */
     fun peekByte(): Byte = payload.preview { it.readByte() }
 
-    /**
-     * Reads a single byte from the current packet's payload.
-     */
+    /** Reads a single byte from the current packet's payload. */
     fun readByte(): Byte = payload.readByte()
 
-    /**
-     * Reads a single byte from the current packet's payload and converts it to an [Enum] value.
-     */
+    /** Reads a single byte from the current packet's payload and converts it to an [Enum] value. */
     inline fun <reified E : Enum<E>> readByteAsEnum(): E = enumEntries<E>()[readByte().toInt()]
 
-    /**
-     * Convenience method for `readByte(bit.getIndex(version), defaultValue)`.
-     */
+    /** Convenience method for `readByte(bit.getIndex(version), defaultValue)`. */
     fun readByte(bit: Bit, defaultValue: Byte = -1): Byte =
         readByte(bit.getIndex(version), defaultValue)
 
@@ -232,9 +161,7 @@ class PacketReader(
     fun readByte(bitIndex: Int, defaultValue: Byte = -1): Byte =
         if (has(bitIndex)) readByte() else defaultValue
 
-    /**
-     * Convenience method for `readByteAsEnum<E>(bit.getIndex(version))`.
-     */
+    /** Convenience method for `readByteAsEnum<E>(bit.getIndex(version))`. */
     inline fun <reified E : Enum<E>> readByteAsEnum(bit: Bit): E? =
         readByteAsEnum<E>(bit.getIndex(version))
 
@@ -252,9 +179,7 @@ class PacketReader(
      */
     fun readBool(byteCount: Int): BoolState = payload.readBoolState(byteCount)
 
-    /**
-     * Convenience method for `readBool(bit.getIndex(version), bytes)`.
-     */
+    /** Convenience method for `readBool(bit.getIndex(version), bytes)`. */
     fun readBool(bit: Bit, bytes: Int): BoolState = readBool(bit.getIndex(version), bytes)
 
     /**
@@ -265,9 +190,7 @@ class PacketReader(
     fun readBool(bitIndex: Int, bytes: Int): BoolState =
         if (has(bitIndex)) readBool(bytes) else BoolState.Unknown
 
-    /**
-     * Reads a short from the current packet's payload.
-     */
+    /** Reads a short from the current packet's payload. */
     fun readShort(): Int = payload.readShortLe().toInt()
 
     /**
@@ -278,19 +201,13 @@ class PacketReader(
     fun readShort(bitIndex: Int, defaultValue: Int): Int =
         if (has(bitIndex)) readShort() else defaultValue
 
-    /**
-     * Reads an integer from the current packet's payload.
-     */
+    /** Reads an integer from the current packet's payload. */
     fun readInt(): Int = payload.readIntLe()
 
-    /**
-     * Reads an integer from the current packet's payload and converts it to an [Enum] value.
-     */
+    /** Reads an integer from the current packet's payload and converts it to an [Enum] value. */
     inline fun <reified E : Enum<E>> readIntAsEnum(): E = enumEntries<E>()[readInt()]
 
-    /**
-     * Convenience method for `readInt(bit.getIndex(version), defaultValue)`.
-     */
+    /** Convenience method for `readInt(bit.getIndex(version), defaultValue)`. */
     fun readInt(bit: Bit, defaultValue: Int): Int = readInt(bit.getIndex(version), defaultValue)
 
     /**
@@ -301,14 +218,10 @@ class PacketReader(
     fun readInt(bitIndex: Int, defaultValue: Int): Int =
         if (has(bitIndex)) readInt() else defaultValue
 
-    /**
-     * Reads a float from the current packet's payload.
-     */
+    /** Reads a float from the current packet's payload. */
     fun readFloat(): Float = payload.readFloatLe()
 
-    /**
-     * Convenience method for `readFloat(bit.getIndex(version))`.
-     */
+    /** Convenience method for `readFloat(bit.getIndex(version))`. */
     fun readFloat(bit: Bit): Float = readFloat(bit.getIndex(version))
 
     /**
@@ -317,21 +230,14 @@ class PacketReader(
      */
     fun readFloat(bitIndex: Int): Float = if (has(bitIndex)) readFloat() else Float.NaN
 
-    /**
-     * Reads a UTF-16LE String from the current packet's payload.
-     */
+    /** Reads a UTF-16LE String from the current packet's payload. */
     fun readString(): String =
         payload.readByteArray(payload.readIntLe() * 2).toString(UTF16_LE).substringBefore(Char(0))
 
-    /**
-     * Reads an ASCII String from the current packet's payload.
-     */
-    fun readUsAsciiString(): String =
-        payload.readByteArray(payload.readIntLe()).toString(ASCII)
+    /** Reads an ASCII String from the current packet's payload. */
+    fun readUsAsciiString(): String = payload.readByteArray(payload.readIntLe()).toString(ASCII)
 
-    /**
-     * Convenience method for readString(bit.getIndex(version)).
-     */
+    /** Convenience method for readString(bit.getIndex(version)). */
     fun readString(bit: Bit): String? = readString(bit.getIndex(version))
 
     /**
@@ -340,9 +246,7 @@ class PacketReader(
      */
     fun readString(bitIndex: Int): String? = if (has(bitIndex)) readString() else null
 
-    /**
-     * Reads the given number of bytes from the current packet's payload.
-     */
+    /** Reads the given number of bytes from the current packet's payload. */
     fun readBytes(byteCount: Int): ByteArray = payload.readByteArray(byteCount)
 
     /**
@@ -352,9 +256,7 @@ class PacketReader(
     fun readBytes(bitIndex: Int, byteCount: Int): ByteArray? =
         if (has(bitIndex)) readBytes(byteCount) else null
 
-    /**
-     * Skips the given number of bytes in the current packet's payload.
-     */
+    /** Skips the given number of bytes in the current packet's payload. */
     fun skip(byteCount: Int) {
         payload.discard(byteCount.toLong())
     }
@@ -374,38 +276,65 @@ class PacketReader(
         koinApp.close()
     }
 
-    /**
-     * Returns false if the current object's ID has been marked as one for which to
-     * reject updates, true otherwise.
-     */
-    val isAcceptingCurrentObject: Boolean get() = !rejectedObjectIDs.contains(objectId)
-
-    /**
-     * Removes the given object ID from the set of IDs for which to reject updates.
-     */
+    /** Removes the given object ID from the set of IDs for which to reject updates. */
     fun acceptObjectID(id: Int) {
         rejectedObjectIDs.remove(id)
     }
 
-    /**
-     * Adds the current object ID to the set of IDs for which to reject updates.
-     */
+    /** Adds the current object ID to the set of IDs for which to reject updates. */
     fun rejectCurrentObject() {
         rejectedObjectIDs.add(objectId)
     }
 
-    /**
-     * Clears all information related to object IDs that get rejected on object update.
-     */
+    /** Clears all information related to object IDs that get rejected on object update. */
     fun clearObjectIDs() = rejectedObjectIDs.clear()
 
-    /**
-     * Convenience method for `has(bit.getIndex(version))`.
-     */
+    /** Convenience method for `has(bit.getIndex(version))`. */
     fun has(bit: Bit): Boolean = has(bit.getIndex(version))
 
-    /**
-     * Returns true if the current [BitField] has the indicated bit turned on.
-     */
+    /** Returns true if the current [BitField] has the indicated bit turned on. */
     fun has(bitIndex: Int): Boolean = bitField?.get(bitIndex) ?: false
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private suspend fun readHeaderAndLength(): Int {
+        val header = channel.readInt().reverseByteOrder()
+        if (header != Packet.HEADER) {
+            throw PacketException("Illegal packet header: ${header.toHexString()}")
+        }
+
+        val length = channel.readInt().reverseByteOrder()
+        if (length < Packet.PREAMBLE_SIZE) {
+            throw PacketException("Illegal packet length: $length")
+        }
+
+        return length
+    }
+
+    private suspend fun readPayload(): Pair<Int, Source> {
+        val length = readHeaderAndLength()
+        val origin = Origin(channel.readInt().reverseByteOrder())
+        val padding = channel.readInt().reverseByteOrder()
+        val remaining = channel.readInt().reverseByteOrder()
+        val packetType = channel.readInt().reverseByteOrder()
+
+        val payloadLength = length - Packet.PREAMBLE_SIZE
+        val payloadPacket = channel.readPacket(payloadLength)
+
+        val expectedRemaining = payloadLength + Int.SIZE_BYTES
+        val requiredOrigin = Origin.SERVER
+
+        when {
+            !origin.isValid -> "Unknown origin: ${origin.value}"
+            origin != requiredOrigin -> "Origin mismatch: expected $requiredOrigin, got $origin"
+            padding != 0 -> "No empty padding after connection type?"
+            remaining != expectedRemaining ->
+                "Packet length discrepancy: total length = $length; expected $expectedRemaining " +
+                    "for remaining bytes field, but got $remaining"
+            else -> null
+        }?.also { error -> throw PacketException(error, packetType, payloadPacket.readByteArray()) }
+
+        return packetType to payloadPacket
+    }
+
+    override fun getKoin(): Koin = koinApp.koin
 }

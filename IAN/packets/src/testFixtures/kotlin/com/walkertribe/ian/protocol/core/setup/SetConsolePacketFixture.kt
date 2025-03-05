@@ -14,18 +14,14 @@ import io.kotest.property.exhaustive.of
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-class SetConsolePacketFixture private constructor(
-    override val specName: String,
-    console: Console,
-    expectedValue: Int,
-) : PacketTestFixture.Client<SetConsolePacket>(
-    packetType = TestPacketTypes.VALUE_INT,
-    expectedPayloadSize = Int.SIZE_BYTES * 3,
-) {
-    class Data internal constructor(
-        private val console: Console,
-        private val expectedValue: Int,
-    ) : PacketTestData.Client<SetConsolePacket>(SetConsolePacket(console)) {
+class SetConsolePacketFixture
+private constructor(override val specName: String, console: Console, expectedValue: Int) :
+    PacketTestFixture.Client<SetConsolePacket>(
+        packetType = TestPacketTypes.VALUE_INT,
+        expectedPayloadSize = Int.SIZE_BYTES * 3,
+    ) {
+    class Data internal constructor(private val console: Console, private val expectedValue: Int) :
+        PacketTestData.Client<SetConsolePacket>(SetConsolePacket(console)) {
         override fun validatePayload(payload: Source) {
             payload.readIntLe() shouldBeEqual ValueIntPacket.Subtype.SET_CONSOLE.toInt()
 
@@ -42,10 +38,11 @@ class SetConsolePacketFixture private constructor(
     override val generator: Gen<Data> = Exhaustive.of(Data(console, expectedValue))
 
     companion object {
-        val ALL = listOf(
-            SetConsolePacketFixture("Main screen", Console.MAIN_SCREEN, 0),
-            SetConsolePacketFixture("Communications", Console.COMMUNICATIONS, 5),
-            SetConsolePacketFixture("Single-seat craft", Console.SINGLE_SEAT_CRAFT, 6),
-        )
+        val ALL =
+            listOf(
+                SetConsolePacketFixture("Main screen", Console.MAIN_SCREEN, 0),
+                SetConsolePacketFixture("Communications", Console.COMMUNICATIONS, 5),
+                SetConsolePacketFixture("Single-seat craft", Console.SINGLE_SEAT_CRAFT, 6),
+            )
     }
 }

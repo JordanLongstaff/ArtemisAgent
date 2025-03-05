@@ -14,6 +14,9 @@ sealed interface RouteObjective {
     }
 
     object ReplacementFighters : RouteObjective {
+        @Suppress("MagicNumber") val REPORT_VERSION = Version(2, 4, 0)
+        @Suppress("MagicNumber") val SHUTTLE_VERSION = Version(2, 6, 0)
+
         override fun hashCode(): Int = OrdnanceType.entries.size
 
         override fun equals(other: Any?): Boolean = other is ReplacementFighters
@@ -24,11 +27,6 @@ sealed interface RouteObjective {
             val totalFighters = viewModel.totalFighters.value
             return "$totalFighters/${maxFighters + extraShuttle}"
         }
-
-        @Suppress("MagicNumber")
-        val REPORT_VERSION = Version(2, 4, 0)
-        @Suppress("MagicNumber")
-        val SHUTTLE_VERSION = Version(2, 6, 0)
     }
 
     data class Ordnance(val ordnanceType: OrdnanceType) : RouteObjective {
@@ -39,9 +37,9 @@ sealed interface RouteObjective {
 
         override fun getDataFrom(viewModel: AgentViewModel): String {
             val playerShip = viewModel.playerShip ?: return ""
-            val maxOrdnance = playerShip.getVessel(viewModel.vesselData)?.run {
-                ordnanceStorage[ordnanceType]
-            } ?: 0
+            val maxOrdnance =
+                playerShip.getVessel(viewModel.vesselData)?.run { ordnanceStorage[ordnanceType] }
+                    ?: 0
             val currentOrdnance = playerShip.getTotalOrdnanceCount(ordnanceType)
             return "$currentOrdnance/$maxOrdnance"
         }

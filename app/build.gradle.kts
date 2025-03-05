@@ -1,31 +1,46 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("com.android.application")
     kotlin("android")
+    kotlin("plugin.serialization")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
-val appName: String = "Artemis Agent"
+val appName = "Artemis Agent"
+val appId = "artemis.agent"
 val sdkVersion: Int by rootProject.extra
 val minimumSdkVersion: Int by rootProject.extra
 val javaVersion: JavaVersion by rootProject.extra
+val stringRes = "string"
+
+val release = "release"
+val keystoreProperties =
+    Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
+
+val kotlinMainPath: String by rootProject.extra
+val kotlinTestPath: String by rootProject.extra
+val kotlinAndroidTestPath = "src/androidTest/kotlin"
 
 android {
-    namespace = "artemis.agent"
+    namespace = appId
     compileSdk = sdkVersion
 
     defaultConfig {
-        applicationId = "artemis.agent"
+        applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 9
-        versionName = "1.0.3"
+        versionCode = 30
+        versionName = "1.0.9"
         multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -38,25 +53,32 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    testOptions {
-        execution = "ANDROIDX_TEST_ORCHESTRATOR"
-    }
+    kotlinOptions { jvmTarget = javaVersion.toString() }
 
-    kotlinOptions {
-        jvmTarget = javaVersion.toString()
+    testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    testOptions.unitTests.all { it.useJUnitPlatform() }
+
+    signingConfigs {
+        create(release) {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storePassword = keystoreProperties["storePassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+        }
     }
 
     buildTypes {
         configureEach {
-            resValue("string", "app_name", appName)
-            resValue("string", "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "app_name", appName)
+            resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
         }
         release {
+            signingConfig = signingConfigs.getByName(release)
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
 
             ndk.debugSymbolLevel = "FULL"
@@ -86,11 +108,16 @@ dependencies {
     implementation(projects.ian.util)
     implementation(projects.ian.vesseldata)
     implementation(projects.ian.world)
+    testImplementation(projects.ian.testing)
 
     ksp(projects.ian.processor)
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
+
+    testImplementation(libs.bundles.app.test)
+    testRuntimeOnly(libs.bundles.app.test.runtime)
+
     androidTestImplementation(libs.bundles.app.androidTest)
     androidTestUtil(libs.test.orchestrator)
 
@@ -98,11 +125,11 @@ dependencies {
     implementation(libs.bundles.firebase)
 
     constraints {
+        implementation(libs.guava) {
+            because("Version 32.0.0-android patches a moderate security vulnerability")
+        }
         androidTestImplementation(libs.jsoup) {
             because("Version 1.14.2 patches a high-level security vulnerability")
-        }
-        androidTestImplementation(libs.guava) {
-            because("Version 32.0.0-android patches a moderate security vulnerability")
         }
         androidTestImplementation(libs.accessibility.test.framework) {
             because("Needed to resolve static method registerDefaultInstance")
@@ -112,27 +139,22 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 }
 
+ktfmt { kotlinLangStyle() }
+
 detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-    ignoredBuildTypes = listOf("release")
-    ignoredVariants = listOf("release")
+    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
+    ignoredBuildTypes = listOf(release)
+    ignoredVariants = listOf(release)
 }
 
 protobuf {
-    protoc {
-        artifact = libs.protoc.get().toString()
-    }
+    protoc { artifact = libs.protoc.get().toString() }
 
     generateProtoTasks {
         all().forEach {
             it.builtins {
-                create("java") {
-                    option("lite")
-                }
-                create("kotlin") {
-                    option("lite")
-                }
+                create("java") { option("lite") }
+                create("kotlin") { option("lite") }
             }
         }
     }

@@ -1,9 +1,10 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.activity.viewModels
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
@@ -15,31 +16,32 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.PermissionGranter
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class MissionSettingsFragmentTest {
-    @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun missionSettingsTest() {
         val missionsEnabled = AtomicBoolean()
         val autoDismissal = AtomicBoolean()
         val rewardsEnabled = Array(RewardType.entries.size) { AtomicBoolean() }
-        activityScenarioRule.scenario.onActivity { activity ->
+
+        activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             missionsEnabled.lazySet(viewModel.missionsEnabled)
             autoDismissal.lazySet(viewModel.autoDismissCompletedMissions)
 
-            viewModel.displayedRewards.forEach {
-                rewardsEnabled[it.ordinal].lazySet(true)
-            }
+            viewModel.displayedRewards.forEach { rewardsEnabled[it.ordinal].lazySet(true) }
         }
+
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         SettingsFragmentTest.openSettingsMenu()
 
@@ -48,22 +50,40 @@ class MissionSettingsFragmentTest {
         val rewardValues = rewardsEnabled.map { it.get() }.toBooleanArray()
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(2, usingToggle, true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testMissionsSubMenuOpen(autoDismissalOn, rewardValues, !usingToggle)
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testMissionsSubMenuClosed()
+            testMissionsSubMenuClosed(usingToggle)
+
+            if (usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testMissionsSubMenuOpen(autoDismissalOn, rewardValues, false)
+
+                SettingsFragmentTest.backFromSubMenu()
+                testMissionsSubMenuClosed(true)
+            }
         }
     }
 
     private companion object {
-        val rewardSettings = arrayOf(
-            GroupedToggleButtonSetting(R.id.rewardsBatteryButton, R.string.mission_battery),
-            GroupedToggleButtonSetting(R.id.rewardsCoolantButton, R.string.mission_coolant),
-            GroupedToggleButtonSetting(R.id.rewardsNukeButton, R.string.mission_nuke),
-            GroupedToggleButtonSetting(R.id.rewardsProductionButton, R.string.mission_production),
-            GroupedToggleButtonSetting(R.id.rewardsShieldButton, R.string.mission_shield),
-        )
+        const val ENTRY_INDEX = 2
+
+        val rewardSettings =
+            arrayOf(
+                GroupedToggleButtonSetting(R.id.rewardsBatteryButton, R.string.mission_battery),
+                GroupedToggleButtonSetting(R.id.rewardsCoolantButton, R.string.mission_coolant),
+                GroupedToggleButtonSetting(R.id.rewardsNukeButton, R.string.mission_nuke),
+                GroupedToggleButtonSetting(
+                    R.id.rewardsProductionButton,
+                    R.string.mission_production,
+                ),
+                GroupedToggleButtonSetting(R.id.rewardsShieldButton, R.string.mission_shield),
+            )
 
         fun testMissionsSubMenuOpen(
             autoDismissal: Boolean,
@@ -83,12 +103,13 @@ class MissionSettingsFragmentTest {
             rewardSettings.forEach { assertDisplayed(it.button, it.text) }
 
             SettingsFragmentTest.testSettingsWithAllAndNone(
-                R.id.rewardsAllButton,
-                R.id.rewardsNoneButton,
-                rewardSettings.mapIndexed { index, setting ->
-                    setting.button to rewardsEnabled[index]
-                },
-                !shouldTest,
+                allButton = R.id.rewardsAllButton,
+                noneButton = R.id.rewardsNoneButton,
+                settingsButtons =
+                    rewardSettings.mapIndexed { index, setting ->
+                        setting.button to rewardsEnabled[index]
+                    },
+                skipToggleTest = !shouldTest,
             )
         }
 
@@ -101,9 +122,9 @@ class MissionSettingsFragmentTest {
 
             if (!shouldTestToggle) return
 
-            booleanArrayOf(!autoDismissal, autoDismissal).forEach {
+            booleanArrayOf(!autoDismissal, autoDismissal).forEach { isChecked ->
                 clickOn(R.id.autoDismissalButton)
-                testMissionsSubMenuAutoDismissal(it)
+                testMissionsSubMenuAutoDismissal(isChecked)
             }
         }
 
@@ -119,7 +140,7 @@ class MissionSettingsFragmentTest {
             }
         }
 
-        fun testMissionsSubMenuClosed() {
+        fun testMissionsSubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.rewardsTitle)
             assertNotExist(R.id.rewardsAllButton)
             assertNotExist(R.id.rewardsNoneButton)
@@ -130,6 +151,8 @@ class MissionSettingsFragmentTest {
             assertNotExist(R.id.autoDismissalTimeInput)
             assertNotExist(R.id.autoDismissalSecondsLabel)
             assertNotExist(R.id.autoDismissalDivider)
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
     }
 }

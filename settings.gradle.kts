@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "ArtemisAgent"
+
 include(
     ":app",
     ":app:konsist",
@@ -31,6 +32,7 @@ include(
     ":IAN:packets",
     ":IAN:packets:konsist",
     ":IAN:processor",
+    ":IAN:testing",
     ":IAN:udp",
     ":IAN:udp:konsist",
     ":IAN:util",

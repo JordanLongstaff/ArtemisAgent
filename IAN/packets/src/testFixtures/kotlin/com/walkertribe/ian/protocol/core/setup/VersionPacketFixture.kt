@@ -18,15 +18,12 @@ import kotlinx.io.Source
 import kotlinx.io.writeFloatLe
 import kotlinx.io.writeIntLe
 
-data class VersionPacketFixture(
-    private val arbVersion: Arb<Version> = Arb.version(),
-) : PacketTestFixture.Server<VersionPacket>(TestPacketTypes.CONNECTED) {
-    data class Data(
-        val unknownInt: Int,
-        val legacyFloat: Float,
-        val packetVersion: Version,
-    ) : PacketTestData.Server<VersionPacket> {
-        override val version: Version get() = Version.LATEST
+data class VersionPacketFixture(private val arbVersion: Arb<Version> = Arb.version()) :
+    PacketTestFixture.Server<VersionPacket>(TestPacketTypes.CONNECTED) {
+    data class Data(val unknownInt: Int, val legacyFloat: Float, val packetVersion: Version) :
+        PacketTestData.Server<VersionPacket> {
+        override val version: Version
+            get() = Version.DEFAULT
 
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(unknownInt)
@@ -41,7 +38,8 @@ data class VersionPacketFixture(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(Arb.int(), Arb.float(), arbVersion, ::Data)
+    override val generator: Gen<Data> =
+        Arb.bind(genA = Arb.int(), genB = Arb.float(), genC = arbVersion, bindFn = ::Data)
 
     override suspend fun testType(packet: Packet.Server): VersionPacket =
         packet.shouldBeInstanceOf()

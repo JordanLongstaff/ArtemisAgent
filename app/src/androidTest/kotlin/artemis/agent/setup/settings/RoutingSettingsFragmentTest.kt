@@ -1,11 +1,12 @@
 package artemis.agent.setup.settings
 
+import android.Manifest
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
-import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
@@ -17,17 +18,17 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import com.adevinta.android.barista.interaction.PermissionGranter
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class RoutingSettingsFragmentTest {
-    @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
     fun routingSettingsTest() {
@@ -37,27 +38,27 @@ class RoutingSettingsFragmentTest {
         val clearances = Array(3) { AtomicInteger() }
         val incentives = Array(RouteTaskIncentive.entries.size + 1) { AtomicBoolean() }
 
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             routingEnabled.lazySet(viewModel.routingEnabled)
 
-            arrayOf(
-                viewModel.avoidBlackHoles,
-                viewModel.avoidMines,
-                viewModel.avoidTyphons,
-            ).forEachIndexed { index, avoid -> avoidances[index].lazySet(avoid) }
+            booleanArrayOf(viewModel.avoidBlackHoles, viewModel.avoidMines, viewModel.avoidTyphons)
+                .forEachIndexed { index, avoid -> avoidances[index].lazySet(avoid) }
 
-            arrayOf(
-                viewModel.blackHoleClearance,
-                viewModel.mineClearance,
-                viewModel.typhonClearance,
-            ).forEachIndexed { index, clearance -> clearances[index].lazySet(clearance.toInt()) }
+            floatArrayOf(
+                    viewModel.blackHoleClearance,
+                    viewModel.mineClearance,
+                    viewModel.typhonClearance,
+                )
+                .forEachIndexed { index, clearance -> clearances[index].lazySet(clearance.toInt()) }
 
             viewModel.routeIncentives.forEach { incentive ->
                 incentives[incentive.ordinal].lazySet(true)
             }
             incentives.last().lazySet(viewModel.routeIncludesMissions)
         }
+
+        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         SettingsFragmentTest.openSettingsMenu()
 
@@ -68,16 +69,33 @@ class RoutingSettingsFragmentTest {
         val clearanceValues = clearances.map { it.get() }.toIntArray()
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(6, usingToggle, true)
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testRoutingSubMenuOpen(
-                incentivesEnabled,
-                avoidancesEnabled,
-                clearanceValues,
-                !usingToggle,
+                incentives = incentivesEnabled,
+                avoidances = avoidancesEnabled,
+                clearances = clearanceValues,
+                shouldTestSettings = !usingToggle,
             )
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testRoutingSubMenuClosed()
+            testRoutingSubMenuClosed(usingToggle)
+
+            if (usingToggle) {
+                SettingsFragmentTest.openSettingsSubMenu(
+                    index = ENTRY_INDEX,
+                    usingToggle = false,
+                    toggleDisplayed = true,
+                )
+                testRoutingSubMenuOpen(
+                    incentives = incentivesEnabled,
+                    avoidances = avoidancesEnabled,
+                    clearances = clearanceValues,
+                    shouldTestSettings = false,
+                )
+
+                SettingsFragmentTest.backFromSubMenu()
+                testRoutingSubMenuClosed(true)
+            }
         }
     }
 
@@ -90,64 +108,68 @@ class RoutingSettingsFragmentTest {
     )
 
     private companion object {
-        val routingIncentiveSettings = arrayOf(
-            GroupedToggleButtonSetting(
-                R.id.incentivesNeedsEnergyButton,
-                R.string.route_incentive_needs_energy,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.incentivesNeedsDamConButton,
-                R.string.route_incentive_needs_damcon,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.incentivesMalfunctionButton,
-                R.string.route_incentive_malfunction,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.incentivesAmbassadorButton,
-                R.string.route_incentive_ambassador,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.incentivesHostageButton,
-                R.string.route_incentive_hostage,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.incentivesCommandeeredButton,
-                R.string.route_incentive_commandeered,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.incentivesHasEnergyButton,
-                R.string.route_incentive_has_energy,
-            ),
-            GroupedToggleButtonSetting(
-                R.id.incentivesMissionsButton,
-                R.string.route_incentive_missions,
-            ),
-        )
+        const val ENTRY_INDEX = 6
 
-        val routingAvoidanceSettings = arrayOf(
-            RoutingAvoidanceSetting(
-                R.id.blackHolesButton,
-                R.id.blackHolesTitle,
-                R.string.avoidance_black_hole,
-                R.id.blackHolesClearanceField,
-                R.id.blackHolesClearanceKm,
-            ),
-            RoutingAvoidanceSetting(
-                R.id.minesButton,
-                R.id.minesTitle,
-                R.string.avoidance_mine,
-                R.id.minesClearanceField,
-                R.id.minesClearanceKm,
-            ),
-            RoutingAvoidanceSetting(
-                R.id.typhonsButton,
-                R.id.typhonsTitle,
-                R.string.avoidance_typhon,
-                R.id.typhonsClearanceField,
-                R.id.typhonsClearanceKm,
-            ),
-        )
+        val routingIncentiveSettings =
+            arrayOf(
+                GroupedToggleButtonSetting(
+                    R.id.incentivesNeedsEnergyButton,
+                    R.string.route_incentive_needs_energy,
+                ),
+                GroupedToggleButtonSetting(
+                    R.id.incentivesNeedsDamConButton,
+                    R.string.route_incentive_needs_damcon,
+                ),
+                GroupedToggleButtonSetting(
+                    R.id.incentivesMalfunctionButton,
+                    R.string.route_incentive_malfunction,
+                ),
+                GroupedToggleButtonSetting(
+                    R.id.incentivesAmbassadorButton,
+                    R.string.route_incentive_ambassador,
+                ),
+                GroupedToggleButtonSetting(
+                    R.id.incentivesHostageButton,
+                    R.string.route_incentive_hostage,
+                ),
+                GroupedToggleButtonSetting(
+                    R.id.incentivesCommandeeredButton,
+                    R.string.route_incentive_commandeered,
+                ),
+                GroupedToggleButtonSetting(
+                    R.id.incentivesHasEnergyButton,
+                    R.string.route_incentive_has_energy,
+                ),
+                GroupedToggleButtonSetting(
+                    R.id.incentivesMissionsButton,
+                    R.string.route_incentive_missions,
+                ),
+            )
+
+        val routingAvoidanceSettings =
+            arrayOf(
+                RoutingAvoidanceSetting(
+                    button = R.id.blackHolesButton,
+                    label = R.id.blackHolesTitle,
+                    text = R.string.avoidance_black_hole,
+                    input = R.id.blackHolesClearanceField,
+                    kmLabel = R.id.blackHolesClearanceKm,
+                ),
+                RoutingAvoidanceSetting(
+                    button = R.id.minesButton,
+                    label = R.id.minesTitle,
+                    text = R.string.avoidance_mine,
+                    input = R.id.minesClearanceField,
+                    kmLabel = R.id.minesClearanceKm,
+                ),
+                RoutingAvoidanceSetting(
+                    button = R.id.typhonsButton,
+                    label = R.id.typhonsTitle,
+                    text = R.string.avoidance_typhon,
+                    input = R.id.typhonsClearanceField,
+                    kmLabel = R.id.typhonsClearanceKm,
+                ),
+            )
 
         fun testRoutingSubMenuOpen(
             incentives: BooleanArray,
@@ -168,12 +190,13 @@ class RoutingSettingsFragmentTest {
             routingIncentiveSettings.forEach { assertDisplayed(it.button, it.text) }
 
             SettingsFragmentTest.testSettingsWithAllAndNone(
-                R.id.incentivesAllButton,
-                R.id.incentivesNoneButton,
-                routingIncentiveSettings.mapIndexed { index, setting ->
-                    setting.button to incentives[index]
-                },
-                !shouldTest,
+                allButton = R.id.incentivesAllButton,
+                noneButton = R.id.incentivesNoneButton,
+                settingsButtons =
+                    routingIncentiveSettings.mapIndexed { index, setting ->
+                        setting.button to incentives[index]
+                    },
+                skipToggleTest = !shouldTest,
             )
         }
 
@@ -202,15 +225,19 @@ class RoutingSettingsFragmentTest {
             }
 
             SettingsFragmentTest.testSettingsWithAllAndNone(
-                R.id.avoidancesAllButton,
-                R.id.avoidancesNoneButton,
-                routingAvoidanceSettings.mapIndexed { index, setting ->
-                    setting.button to enabled[index]
-                },
-                !shouldTest,
+                allButton = R.id.avoidancesAllButton,
+                noneButton = R.id.avoidancesNoneButton,
+                settingsButtons =
+                    routingAvoidanceSettings.mapIndexed { index, setting ->
+                        setting.button to enabled[index]
+                    },
+                skipToggleTest = !shouldTest,
             ) { index, on ->
                 if (on) {
-                    assertDisplayed(routingAvoidanceSettings[index].input, clearances[index].toString())
+                    assertDisplayed(
+                        routingAvoidanceSettings[index].input,
+                        clearances[index].toString(),
+                    )
                     assertDisplayed(routingAvoidanceSettings[index].kmLabel, R.string.kilometres)
                 } else {
                     assertNotDisplayed(routingAvoidanceSettings[index].input)
@@ -235,7 +262,7 @@ class RoutingSettingsFragmentTest {
             }
         }
 
-        fun testRoutingSubMenuClosed() {
+        fun testRoutingSubMenuClosed(isToggleOn: Boolean) {
             assertNotExist(R.id.incentivesTitle)
             assertNotExist(R.id.incentivesAllButton)
             assertNotExist(R.id.incentivesNoneButton)
@@ -247,12 +274,14 @@ class RoutingSettingsFragmentTest {
             assertNotExist(R.id.avoidancesDivider)
 
             routingIncentiveSettings.forEach { assertNotExist(it.button) }
-            routingAvoidanceSettings.forEach {
-                assertNotExist(it.button)
-                assertNotExist(it.label)
-                assertNotExist(it.input)
-                assertNotExist(it.kmLabel)
+            routingAvoidanceSettings.forEach { avoidanceSetting ->
+                assertNotExist(avoidanceSetting.button)
+                assertNotExist(avoidanceSetting.label)
+                assertNotExist(avoidanceSetting.input)
+                assertNotExist(avoidanceSetting.kmLabel)
             }
+
+            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
     }
 }

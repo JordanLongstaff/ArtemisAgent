@@ -3,7 +3,7 @@ package artemis.agent.game.enemies
 import android.content.Context
 import androidx.annotation.StringRes
 
-sealed class EnemySortCategory(val scrollIndex: Int) {
+sealed class EnemySortCategory private constructor(val scrollIndex: Int) {
     class Res(@StringRes val resId: Int, scrollIndex: Int) : EnemySortCategory(scrollIndex) {
         override fun getString(context: Context): String = context.getString(resId)
     }

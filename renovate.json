@@ -13,6 +13,10 @@
         "kotlin",
         "ksp"
       ]
+    },
+    {
+      "groupName": "firebase",
+      "matchPackageNames": ["/^com\\.google\\.firebase/"]
     }
   ]
 }

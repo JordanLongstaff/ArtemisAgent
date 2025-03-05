@@ -1,6 +1,8 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -24,7 +26,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -34,25 +36,20 @@ android {
         targetCompatibility = javaVersion
     }
 
-    kotlinOptions {
-        jvmTarget = javaVersion.toString()
-    }
+    kotlinOptions { jvmTarget = javaVersion.toString() }
 
-    tasks.withType<Test>().configureEach {
-        useJUnitPlatform()
-    }
+    tasks.withType<Test>().configureEach { useJUnitPlatform() }
 }
 
 dependencies {
     testImplementation(projects.app)
+    testImplementation(projects.ian.testing)
 
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)
     testRuntimeOnly(libs.bundles.konsist.runtime)
 }
 
-dependencyAnalysis {
-    issues {
-        ignoreSourceSet("androidTest")
-    }
-}
+ktfmt { kotlinLangStyle() }
+
+dependencyAnalysis { issues { ignoreSourceSet("androidTest") } }

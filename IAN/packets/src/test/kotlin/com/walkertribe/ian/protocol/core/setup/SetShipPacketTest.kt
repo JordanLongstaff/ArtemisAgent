@@ -9,21 +9,21 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.negativeInt
 import io.kotest.property.checkAll
+import kotlinx.coroutines.launch
 
-class SetShipPacketTest : PacketTestSpec.Client<SetShipPacket>(
-    specName = "SetShipPacket",
-    fixtures = SetShipPacketFixture.ALL,
-) {
-    override suspend fun DescribeSpecContainerScope.describeMore() {
+class SetShipPacketTest :
+    PacketTestSpec.Client<SetShipPacket>(
+        specName = "SetShipPacket",
+        fixtures = SetShipPacketFixture.ALL,
+    ) {
+    override fun DescribeSpecContainerScope.describeMore() = launch {
         describe("Invalid ship index throws") {
             withData(
                 nameFn = { it.first },
                 "Negative" to Arb.negativeInt(),
                 "Too high" to Arb.int(min = Artemis.SHIP_COUNT),
             ) { (_, arbInt) ->
-                arbInt.checkAll {
-                    shouldThrow<IllegalArgumentException> { SetShipPacket(it) }
-                }
+                arbInt.checkAll { shouldThrow<IllegalArgumentException> { SetShipPacket(it) } }
             }
         }
     }

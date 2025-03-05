@@ -21,7 +21,8 @@ import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 import kotlinx.io.writeShortLe
 
-class CommsIncomingPacketFixture private constructor(
+class CommsIncomingPacketFixture
+private constructor(
     override val specName: String,
     isUsingCommFilters: Boolean,
     versionArb: Arb<Version>,
@@ -49,34 +50,34 @@ class CommsIncomingPacketFixture private constructor(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(
-        versionArb,
-        Arb.string(),
-        Arb.string(),
-        if (isUsingCommFilters) {
-            Arb.short().map(Short::toInt)
-        } else {
-            Arb.int()
-        },
-    ) { version, from, contents, channelValue ->
-        Data(version, from, contents, isUsingCommFilters, channelValue)
-    }
+    override val generator: Gen<Data> =
+        Arb.bind(
+            genA = versionArb,
+            genB = Arb.string(),
+            genC = Arb.string(),
+            genD = if (isUsingCommFilters) Arb.short().map(Short::toInt) else Arb.int(),
+        ) { version, from, contents, channelValue ->
+            Data(
+                version = version,
+                sender = from,
+                message = contents,
+                isUsingCommFilters = isUsingCommFilters,
+                channel = channelValue,
+            )
+        }
 
     override suspend fun testType(packet: Packet.Server): CommsIncomingPacket =
         packet.shouldBeInstanceOf()
 
     companion object {
-        val ALL = listOf(
-            CommsIncomingPacketFixture(
-                "Before version 2.6.0",
-                false,
-                Arb.version(2, 3..5),
-            ),
-            CommsIncomingPacketFixture(
-                "Since version 2.6.0",
-                true,
-                Arb.version(2, Arb.int(min = 6)),
-            ),
-        )
+        val ALL =
+            listOf(
+                CommsIncomingPacketFixture("Before version 2.6.0", false, Arb.version(2, 3..5)),
+                CommsIncomingPacketFixture(
+                    "Since version 2.6.0",
+                    true,
+                    Arb.version(2, Arb.int(min = 6)),
+                ),
+            )
     }
 }

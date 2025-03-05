@@ -14,38 +14,39 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class IncomingAudioPacketTest : PacketTestSpec.Server<IncomingAudioPacket>(
-    specName = "IncomingAudioPacket",
-    fixtures = IncomingAudioPacketFixture.allFixtures(),
-    failures = listOf(
-        "invalid audio mode" to Arb.bind(
-            Arb.int(),
-            Arb.int().filter { it !in 1..2 },
-        ) { id, mode ->
-            buildPacket {
-                writeIntLe(id)
-                writeIntLe(mode)
-            }
-        },
-        "incoming audio without title" to Arb.int().map {
-            buildPacket {
-                writeIntLe(it)
-                writeIntLe(2)
-            }
-        },
-        "incoming audio without filename" to Arb.bind(
-            Arb.int(),
-            Arb.string(),
-        ) { id, title ->
-            buildPacket {
-                writeIntLe(id)
-                writeIntLe(2)
-                writeString(title)
-            }
-        },
-    ).map { (condition, payloadGen) ->
-        object : Failure(TestPacketTypes.INCOMING_MESSAGE, "Fails to parse $condition") {
-            override val payloadGen: Gen<Source> = payloadGen
-        }
-    },
-)
+class IncomingAudioPacketTest :
+    PacketTestSpec.Server<IncomingAudioPacket>(
+        specName = "IncomingAudioPacket",
+        fixtures = IncomingAudioPacketFixture.allFixtures(),
+        failures =
+            listOf(
+                    "invalid audio mode" to
+                        Arb.bind(Arb.int(), Arb.int().filter { it !in 1..2 }) { id, mode ->
+                            buildPacket {
+                                writeIntLe(id)
+                                writeIntLe(mode)
+                            }
+                        },
+                    "incoming audio without title" to
+                        Arb.int().map {
+                            buildPacket {
+                                writeIntLe(it)
+                                writeIntLe(2)
+                            }
+                        },
+                    "incoming audio without filename" to
+                        Arb.bind(Arb.int(), Arb.string()) { id, title ->
+                            buildPacket {
+                                writeIntLe(id)
+                                writeIntLe(2)
+                                writeString(title)
+                            }
+                        },
+                )
+                .map { (condition, payloadGen) ->
+                    object :
+                        Failure(TestPacketTypes.INCOMING_MESSAGE, "Fails to parse $condition") {
+                        override val payloadGen: Gen<Source> = payloadGen
+                    }
+                },
+    )

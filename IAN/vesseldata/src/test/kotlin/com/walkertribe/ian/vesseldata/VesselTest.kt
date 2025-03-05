@@ -12,115 +12,89 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import korlibs.io.serialization.xml.Xml
 
-class VesselTest : DescribeSpec({
-    describe("Vessel") {
-        describe("XML") {
-            describe("Success") {
-                TestVessel.arbitrary().checkAll {
-                    it.test(Vessel(it.serialize()), null)
-                }
-            }
-
-            describe("Error") {
-                withData(
-                    nameFn = { "Missing ${it.first}" },
-                    Triple(
-                        "uniqueID",
-                        "Integer",
-                        listOf(
-                            "side" to "0",
-                            "classname" to "A",
-                        ),
-                    ),
-                    Triple(
-                        "side",
-                        "Integer",
-                        listOf(
-                            "uniqueID" to "0",
-                            "classname" to "A",
-                        ),
-                    ),
-                    Triple(
-                        "classname",
-                        "String",
-                        listOf(
-                            "uniqueID" to "0",
-                            "side" to "0",
-                        ),
-                    ),
-                ) { (missing, type, included) ->
-                    val attrs = included.joinToString(" ") { (key, value) ->
-                        "$key=\"$value\""
-                    }
-                    val exception = shouldThrow<IllegalArgumentException> {
-                        Vessel(Xml("<vessel $attrs></vessel>"))
-                    }
-                    exception.message.shouldNotBeNull() shouldBeEqual
-                        missingAttribute("vessel", missing, type)
+class VesselTest :
+    DescribeSpec({
+        describe("Vessel") {
+            describe("XML") {
+                describe("Success") {
+                    TestVessel.arbitrary().checkAll { it.test(Vessel(it.serialize()), null) }
                 }
 
-                describe("Torpedo storage") {
+                describe("Error") {
                     withData(
                         nameFn = { "Missing ${it.first}" },
-                        Triple(
-                            "type",
-                            "String",
-                            "amount" to "0",
-                        ),
-                        Triple(
-                            "amount",
-                            "Integer",
-                            "type" to "trp",
-                        ),
+                        Triple("uniqueID", "Integer", listOf("side" to "0", "classname" to "A")),
+                        Triple("side", "Integer", listOf("uniqueID" to "0", "classname" to "A")),
+                        Triple("classname", "String", listOf("uniqueID" to "0", "side" to "0")),
                     ) { (missing, type, included) ->
-                        val xml = """
+                        val attrs = included.joinToString(" ") { (key, value) -> "$key=\"$value\"" }
+                        val exception =
+                            shouldThrow<IllegalArgumentException> {
+                                Vessel(Xml("<vessel $attrs></vessel>"))
+                            }
+                        exception.message.shouldNotBeNull() shouldBeEqual
+                            missingAttribute("vessel", missing, type)
+                    }
+
+                    describe("Torpedo storage") {
+                        withData(
+                            nameFn = { "Missing ${it.first}" },
+                            Triple("type", "String", "amount" to "0"),
+                            Triple("amount", "Integer", "type" to "trp"),
+                        ) { (missing, type, included) ->
+                            val xml =
+                                """
                             <vessel uniqueID="0" side="0" classname="A">
                                 <torpedo_storage ${included.first}="${included.second}" />
                             </vessel>
-                        """.trimIndent()
-                        val exception = shouldThrow<IllegalArgumentException> {
-                            Vessel(Xml(xml))
-                        }
-                        exception.message.shouldNotBeNull() shouldBeEqual
-                            missingAttribute("torpedo_storage", missing, type)
-                    }
-
-                    it("Invalid code") {
-                        Arb.string(size = 4, codepoints = Codepoint.alphanumeric()).checkAll {
-                            val xml = """
-                                <vessel uniqueID="0" side="0" classname="A">
-                                    <torpedo_storage type="$it" amount="0" />
-                                </vessel>
-                            """.trimIndent()
-                            val exception = shouldThrow<IllegalArgumentException> {
-                                Vessel(Xml(xml))
-                            }
+                        """
+                                    .trimIndent()
+                            val exception =
+                                shouldThrow<IllegalArgumentException> { Vessel(Xml(xml)) }
                             exception.message.shouldNotBeNull() shouldBeEqual
-                                "Invalid ordnance type code: $it"
+                                missingAttribute("torpedo_storage", missing, type)
+                        }
+
+                        it("Invalid code") {
+                            Arb.string(size = 4, codepoints = Codepoint.alphanumeric()).checkAll {
+                                code ->
+                                val xml =
+                                    """
+                                <vessel uniqueID="0" side="0" classname="A">
+                                    <torpedo_storage type="$code" amount="0" />
+                                </vessel>
+                            """
+                                        .trimIndent()
+
+                                val exception =
+                                    shouldThrow<IllegalArgumentException> { Vessel(Xml(xml)) }
+                                exception.message.shouldNotBeNull() shouldBeEqual
+                                    "Invalid ordnance type code: $code"
+                            }
                         }
                     }
                 }
             }
-        }
 
-        describe("Single-seat") {
-            withData(
-                nameFn = { it.first },
-                Triple("True", "singleseat", true),
-                Triple("False", "", false),
-            ) { (_, broadType, expectedValue) ->
-                val testVessel = Vessel(
-                    id = 0,
-                    side = 0,
-                    name = "",
-                    broadType = broadType,
-                    ordnanceStorage = mapOf(),
-                    productionCoefficient = 0f,
-                    bayCount = 0,
-                    description = null,
-                )
-                testVessel.isSingleseat shouldBeEqual expectedValue
+            describe("Single-seat") {
+                withData(
+                    nameFn = { it.first },
+                    Triple("True", "singleseat", true),
+                    Triple("False", "", false),
+                ) { (_, broadType, expectedValue) ->
+                    val testVessel =
+                        Vessel(
+                            id = 0,
+                            side = 0,
+                            name = "",
+                            broadType = broadType,
+                            ordnanceStorage = emptyMap(),
+                            productionCoefficient = 0f,
+                            bayCount = 0,
+                            description = null,
+                        )
+                    testVessel.isSingleseat shouldBeEqual expectedValue
+                }
             }
         }
-    }
-})
+    })
