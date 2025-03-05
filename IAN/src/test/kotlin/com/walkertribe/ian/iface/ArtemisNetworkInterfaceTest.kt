@@ -90,9 +90,12 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.readByteArray
 import io.mockk.clearAllMocks
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -102,7 +105,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -585,6 +587,26 @@ class ArtemisNetworkInterfaceTest :
                     }
 
                     describe("Closes on unsupported version") {
+                        val clientSpy = spyk(client)
+
+                        every { clientSpy.isRunning } returns true
+                        every { clientSpy.startTime } returns null
+
+                        val spyConnectDeferred =
+                            async(testDispatcher) {
+                                clientSpy.connect(
+                                    host = loopbackAddress,
+                                    port = port,
+                                    timeoutMs = 1000L,
+                                )
+                            }
+
+                        socket = server.accept()
+                        spyConnectDeferred.await().shouldBeTrue()
+                        clientSpy.start()
+
+                        val spySender = socket.openWriteChannel(autoFlush = true)
+
                         val unsupportedTestCases =
                             listOf(
                                 "Too old" to
@@ -600,49 +622,31 @@ class ArtemisNetworkInterfaceTest :
                         withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb) ->
                             val versionFixture = VersionPacketFixture(versionArb)
 
-                            versionFixture.generator.checkAll(100) { data ->
-                                eventually(testTimeout) {
-                                    var sender: ByteWriteChannel? = null
+                            TestListener.clear()
+                            var count = 0
+                            versionFixture.generator.checkAll { data ->
+                                spySender.writePacketWithHeader(
+                                    TestPacketTypes.CONNECTED,
+                                    data.buildPayload(),
+                                )
+                                count++
+                            }
 
-                                    val result =
-                                        withTimeoutOrNull(6.seconds) {
-                                            val connectDeferred =
-                                                async(testDispatcher) {
-                                                    client.connect(
-                                                        host = loopbackAddress,
-                                                        port = port,
-                                                        timeoutMs = 1000L,
-                                                    )
-                                                }
-
-                                            socket = server.accept()
-                                            connectDeferred.await().shouldBeTrue()
-                                            client.start()
-                                            TestListener.clear()
-
-                                            sender =
-                                                socket.openWriteChannel(autoFlush = true).apply {
-                                                    writePacketWithHeader(
-                                                        TestPacketTypes.CONNECTED,
-                                                        data.buildPayload(),
-                                                    )
-                                                }
-
-                                            eventually(5.seconds) {
-                                                TestListener.calls<ConnectionEvent.Disconnect>()
-                                                    .shouldBeSingleton {
-                                                        it.cause.shouldBeInstanceOf<
-                                                            DisconnectCause.UnsupportedVersion
-                                                        >()
-                                                    }
-                                            }
-                                        }
-
-                                    sender?.flushAndClose()
-                                    result.shouldNotBeNull()
+                            eventually(testTimeout) {
+                                TestListener.calls<ConnectionEvent.Disconnect>().shouldBeSingleton {
+                                    it.cause should
+                                        beInstanceOf<DisconnectCause.UnsupportedVersion>()
                                 }
                             }
+
+                            verify(exactly = count) { clientSpy.stop() }
                         }
+
+                        spySender.flushAndClose()
+                        clearMocks(clientSpy)
+                        clientSpy.stop()
+                        clientSpy.dispose()
+                        socket.dispose()
 
                         it("No upper bound in debug mode") {
                             val versionFixture =
