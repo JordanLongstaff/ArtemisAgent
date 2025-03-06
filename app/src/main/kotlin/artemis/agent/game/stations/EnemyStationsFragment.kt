@@ -81,8 +81,8 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
             entryBinding.enemyShieldLabel.text =
                 context.getString(
                     R.string.station_shield,
-                    station.shieldsFront.value.coerceAtLeast(0f),
-                    station.shieldsFrontMax.value,
+                    station.shieldsFront.strength.value.coerceAtLeast(0f),
+                    station.shieldsFront.maxStrength.value,
                 )
             entryBinding.enemyHeadingLabel.text =
                 context.getString(R.string.direction, entry.heading)

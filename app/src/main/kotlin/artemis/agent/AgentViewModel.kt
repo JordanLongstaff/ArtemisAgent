@@ -992,10 +992,7 @@ class AgentViewModel(application: Application) :
         val stationShieldPercents =
             livingStationNameIndex.mapNotNull {
                 livingStations[it.value]?.let { station ->
-                    Pair(
-                        station,
-                        station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value,
-                    )
+                    station to station.obj.shieldsFront.percentage
                 }
             }
         val stationMinimumShieldPercent =
@@ -1006,8 +1003,7 @@ class AgentViewModel(application: Application) :
                 } ?: 1f
         val stationFlashOn = flashOn && stationMinimumShieldPercent < 1f
 
-        val currentFlashOn =
-            flashOn && focusedStation?.let { it.obj.shieldsFront < it.obj.shieldsFrontMax } == true
+        val currentFlashOn = flashOn && focusedStation?.run { obj.shieldsFront.isDamaged } == true
 
         val pagesWithFlash = sortedMapOf<GameFragment.Page, Boolean>()
 

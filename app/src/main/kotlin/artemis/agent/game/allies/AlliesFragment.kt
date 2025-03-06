@@ -307,14 +307,14 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
             entryBinding.allyFrontShieldLabel.text =
                 context.getString(
                     R.string.front_shield,
-                    entry.obj.shieldsFront.value.coerceAtLeast(0f),
-                    entry.obj.shieldsFrontMax.value,
+                    entry.obj.shieldsFront.strength.value.coerceAtLeast(0f),
+                    entry.obj.shieldsFront.maxStrength.value,
                 )
             entryBinding.allyRearShieldLabel.text =
                 context.getString(
                     R.string.rear_shield,
-                    entry.obj.shieldsRear.value.coerceAtLeast(0f),
-                    entry.obj.shieldsRearMax.value,
+                    entry.obj.shieldsRear.strength.value.coerceAtLeast(0f),
+                    entry.obj.shieldsRear.maxStrength.value,
                 )
         }
     }

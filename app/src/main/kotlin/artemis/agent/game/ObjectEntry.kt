@@ -49,7 +49,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
             get() = status.sortIndex == AllySortIndex.NORMAL
 
         val isDamaged: Boolean
-            get() = obj.shieldsFront < obj.shieldsFrontMax || obj.shieldsRear < obj.shieldsRearMax
+            get() = obj.shieldsFront.isDamaged || obj.shieldsRear.isDamaged
 
         val isInstructable: Boolean
             get() = isHailed && (isNormal || status == AllyStatus.FLYING_BLIND)
@@ -123,7 +123,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         override val missionStatus: SideMissionStatus
             get() =
-                if (obj.shieldsFront < obj.shieldsFrontMax) SideMissionStatus.DAMAGED
+                if (obj.shieldsFront.isDamaged) SideMissionStatus.DAMAGED
                 else SideMissionStatus.ALL_CLEAR
 
         @get:StringRes
@@ -136,11 +136,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
                     else -> null
                 }
 
-        override fun getBackgroundColor(context: Context): Int {
-            val shields = obj.shieldsFront.value
-            val shieldsMax = obj.shieldsFrontMax.value
-            return getStationColorForShieldPercent(shields / shieldsMax, context)
-        }
+        override fun getBackgroundColor(context: Context): Int =
+            getStationColorForShieldPercent(obj.shieldsFront.percentage, context)
 
         fun setBuildMinutes(minutes: Int) {
             if (firstMissile || setMissile) return

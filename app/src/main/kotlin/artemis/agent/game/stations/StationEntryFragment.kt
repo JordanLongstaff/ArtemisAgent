@@ -232,11 +232,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
     private fun StationEntryBinding.bindStationSelector(entry: Station) {
         val context = root.context
-
-        val station = entry.obj
-        val shields = station.shieldsFront.value
-        val shieldsMax = station.shieldsFrontMax.value
-        val percent = shields / shieldsMax
+        val percent = entry.obj.shieldsFront.percentage
 
         val selectorBackground =
             ResourcesCompat.getDrawable(
@@ -265,8 +261,8 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
     private fun StationEntryBinding.updateInfoLabels(entry: Station) {
         val context = root.context
 
-        val shields = entry.obj.shieldsFront.value
-        val shieldsMax = entry.obj.shieldsFrontMax.value
+        val shields = entry.obj.shieldsFront.strength.value
+        val shieldsMax = entry.obj.shieldsFront.maxStrength.value
 
         if (viewModel.version < RouteObjective.ReplacementFighters.REPORT_VERSION) {
             stationFightersLabel.visibility = View.GONE
@@ -382,7 +378,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
             entryBinding.flashBackground.visibility =
                 if (flashing) {
-                    val percent = station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value
+                    val percent = station.obj.shieldsFront.percentage
                     val flashColor =
                         SELECTOR_COLORS.find { percent >= it.first }
                             .let {

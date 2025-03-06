@@ -164,8 +164,8 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     xFlag to obj.x,
                     yFlag to obj.y,
                     zFlag to obj.z,
-                    shieldsFlag to obj.shieldsFront,
-                    maxShieldsFlag to obj.shieldsFrontMax,
+                    shieldsFlag to obj.shieldsFront.strength,
+                    maxShieldsFlag to obj.shieldsFront.maxStrength,
                 )
             }
         }
@@ -510,10 +510,10 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     yFlag to obj.y,
                     zFlag to obj.z,
                     impulseFlag to obj.impulse,
-                    shieldsFrontFlag to obj.shieldsFront,
-                    maxShieldsFrontFlag to obj.shieldsFrontMax,
-                    shieldsRearFlag to obj.shieldsRear,
-                    maxShieldsRearFlag to obj.shieldsRearMax,
+                    shieldsFrontFlag to obj.shieldsFront.strength,
+                    maxShieldsFrontFlag to obj.shieldsFront.maxStrength,
+                    shieldsRearFlag to obj.shieldsRear.strength,
+                    maxShieldsRearFlag to obj.shieldsRear.maxStrength,
                 )
 
                 obj.name shouldMatch nameFlag
@@ -1083,10 +1083,10 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                     yFlag to obj.y,
                     zFlag to obj.z,
                     impulseFlag to obj.impulse,
-                    shieldsFrontFlag to obj.shieldsFront,
-                    maxShieldsFrontFlag to obj.shieldsFrontMax,
-                    shieldsRearFlag to obj.shieldsRear,
-                    maxShieldsRearFlag to obj.shieldsRearMax,
+                    shieldsFrontFlag to obj.shieldsFront.strength,
+                    maxShieldsFrontFlag to obj.shieldsFront.maxStrength,
+                    shieldsRearFlag to obj.shieldsRear.strength,
+                    maxShieldsRearFlag to obj.shieldsRear.maxStrength,
                 )
 
                 testBytePropertyFlags(
