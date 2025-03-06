@@ -9,7 +9,12 @@ import com.walkertribe.ian.vesseldata.Vessel
 import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.ArtemisNpc
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.floats.shouldBeZero
+import io.kotest.matchers.ints.shouldBeZero
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.string.shouldBeEmpty
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
@@ -52,7 +57,29 @@ class EnemyEntryTest :
             EnemyEntry(ArtemisNpc(0, 0L), mockk<Vessel>(), mockk<Faction>(), mockk<VesselData>())
 
         describe("EnemyEntry") {
+            describe("Constructor") {
+                val enemy = create()
+
+                it("Heading") { enemy.heading.shouldBeEmpty() }
+
+                it("Range") { enemy.range.shouldBeZero() }
+
+                it("Taunt count") { enemy.tauntCount.shouldBeZero() }
+
+                it("Last taunt") { enemy.lastTaunt.shouldBeNull() }
+
+                it("Intel") { enemy.intel.shouldBeNull() }
+
+                it("Captain status") {
+                    enemy.captainStatus shouldBeEqual EnemyCaptainStatus.NO_INTEL
+                }
+            }
+
             describe("Taunt count text") {
+                it("Three explicit taunt count strings") {
+                    EnemyEntry.TAUNT_COUNT_STRINGS shouldHaveSize 3
+                }
+
                 it(cannotTaunt) {
                     val enemy = create()
                     enemy.tauntStatuses.fill(TauntStatus.INEFFECTIVE)
