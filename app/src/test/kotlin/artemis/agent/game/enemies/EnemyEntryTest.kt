@@ -6,6 +6,7 @@ import artemis.agent.R
 import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.vesseldata.Faction
 import com.walkertribe.ian.vesseldata.Vessel
+import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.ArtemisNpc
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equals.shouldBeEqual
@@ -28,7 +29,7 @@ class EnemyEntryTest :
                 R.string.taunts_two to "Taunted twice",
             )
 
-        val contextStrings = tauntCountStrings.toMap() + R.string.cannot_taunt.to(cannotTaunt)
+        val contextStrings = tauntCountStrings.toMap() + (R.string.cannot_taunt to cannotTaunt)
 
         val mockContext =
             mockk<Context> {
@@ -47,7 +48,8 @@ class EnemyEntryTest :
             unmockkStatic(ContextCompat::getColor)
         }
 
-        fun create(): EnemyEntry = EnemyEntry(ArtemisNpc(0, 0L), mockk<Vessel>(), mockk<Faction>())
+        fun create(): EnemyEntry =
+            EnemyEntry(ArtemisNpc(0, 0L), mockk<Vessel>(), mockk<Faction>(), mockk<VesselData>())
 
         describe("EnemyEntry") {
             describe("Taunt count text") {

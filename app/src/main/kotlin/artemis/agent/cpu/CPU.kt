@@ -92,31 +92,26 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                     livingStations.also { stations ->
                         stations.remove(id)?.apply {
                             obj.name.value?.also { name ->
-                                getFullNameForShip(obj).also { fullName ->
-                                    val replacementName =
-                                        livingStationNameIndex.run {
-                                            higherKey(name) ?: lowerKey(name)
-                                        }
+                                val replacementName =
+                                    livingStationNameIndex.run { higherKey(name) ?: lowerKey(name) }
 
-                                    val destroyedStationList =
-                                        destroyedStations.value.toMutableList()
-                                    destroyedStationList.add(fullName)
-                                    destroyedStations.value = destroyedStationList
+                                val destroyedStationList = destroyedStations.value.toMutableList()
+                                destroyedStationList.add(fullName)
+                                destroyedStations.value = destroyedStationList
 
-                                    if (replacementName == null) {
-                                        stationsRemain.value = false
-                                    } else if (stationName.value == name) {
-                                        stationName.value = replacementName
-                                    }
-
-                                    allyShips.values
-                                        .filter { it.destination == name }
-                                        .forEach {
-                                            it.destination = null
-                                            it.isMovingToStation = false
-                                        }
-                                    livingStationFullNameIndex.remove(fullName)
+                                if (replacementName == null) {
+                                    stationsRemain.value = false
+                                } else if (stationName.value == name) {
+                                    stationName.value = replacementName
                                 }
+
+                                allyShips.values
+                                    .filter { it.destination == name }
+                                    .forEach {
+                                        it.destination = null
+                                        it.isMovingToStation = false
+                                    }
+                                livingStationFullNameIndex.remove(fullName)
                                 livingStationNameIndex.remove(name)
                             }
                             purgeMissions(obj)
@@ -183,9 +178,10 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             with(viewModel) {
                 val firstStation = livingStations.isEmpty()
                 val id = station.id
-                livingStations[id] = ObjectEntry.Station(station, vesselData)
+                val entry = ObjectEntry.Station(station, vesselData)
+                livingStations[id] = entry
                 livingStationNameIndex[name] = id
-                livingStationFullNameIndex[getFullNameForShip(station)] = id
+                livingStationFullNameIndex[entry.fullName] = id
 
                 if (firstStation) {
                     stationName.value = livingStationNameIndex.firstKey()
@@ -391,14 +387,14 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
         val biomechIndex = viewModel.scannedBiomechs.indexOfFirst { it.biomech.id == id }
         return if (biomechIndex >= 0) {
-            val scannedBiomech = viewModel.scannedBiomechs.removeAt(biomechIndex).biomech
-            viewModel.destroyedBiomechName.tryEmit(viewModel.getFullNameForShip(scannedBiomech))
+            val scannedBiomech = viewModel.scannedBiomechs.removeAt(biomechIndex)
+            viewModel.destroyedBiomechName.tryEmit(scannedBiomech.getFullName(viewModel))
 
             if (viewModel.scannedBiomechs.isEmpty()) {
                 viewModel.biomechUpdate = false
             }
 
-            scannedBiomech
+            scannedBiomech.biomech
         } else {
             null
         }
@@ -407,7 +403,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     private fun deleteEnemy(id: Int): ArtemisNpc? =
         viewModel.enemies.remove(id)?.let { entry ->
             val enemy = entry.enemy
-            viewModel.destroyedEnemyName.tryEmit(viewModel.getFullNameForShip(enemy))
+            viewModel.destroyedEnemyName.tryEmit(entry.fullName)
 
             val name = enemy.name.value
             viewModel.allyShips.values
@@ -431,7 +427,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             npc.name.value?.also(viewModel.allyShipIndex::remove)
 
             val destroyedAllyList = viewModel.destroyedAllies.value.toMutableList()
-            destroyedAllyList.add(viewModel.getFullNameForShip(npc))
+            destroyedAllyList.add(ally.fullName)
             viewModel.destroyedAllies.value = destroyedAllyList
 
             if (viewModel.focusedAlly.value == ally) {
@@ -466,7 +462,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                                 alliesExist = true
                             }
                             allyShipIndex[it] = npc.id
-                            allyShips[npc.id] = ObjectEntry.Ally(npc, vessel.name, isDeepStrike)
+                            allyShips[npc.id] = ObjectEntry.Ally(npc, vesselData, isDeepStrike)
                             sendToServer(CommsOutgoingPacket(npc, OtherMessage.Hail, vesselData))
                         }
                     faction[Faction.BIOMECH] -> {
@@ -479,7 +475,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                     }
                     faction[Faction.ENEMY] ->
                         npc.name.value?.also {
-                            enemies[npc.id] = EnemyEntry(npc, vessel, faction)
+                            enemies[npc.id] = EnemyEntry(npc, vessel, faction, vesselData)
                             enemyNameIndex[it] = npc.id
                         }
                 }

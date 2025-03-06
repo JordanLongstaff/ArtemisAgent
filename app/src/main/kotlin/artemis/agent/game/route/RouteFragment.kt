@@ -208,7 +208,7 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             entryBinding.destRangeLabel.text = getString(R.string.range, objEntry.range)
 
             entryBinding.destReasonsLabel.text = entry.getReasonText(objective, context, viewModel)
-            entryBinding.destNameLabel.text = viewModel.getFullNameForShip(objEntry.obj)
+            entryBinding.destNameLabel.text = objEntry.fullName
 
             if (objEntry is ObjectEntry.Station) bindStation(entry, objEntry)
             else if (objEntry is ObjectEntry.Ally) bindAlly(objEntry)

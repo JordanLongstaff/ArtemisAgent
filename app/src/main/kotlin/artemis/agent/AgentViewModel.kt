@@ -72,11 +72,9 @@ import com.walkertribe.ian.protocol.udp.Server
 import com.walkertribe.ian.protocol.udp.ServerDiscoveryRequester
 import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.util.FilePathResolver
-import com.walkertribe.ian.util.Util.joinSpaceDelimited
 import com.walkertribe.ian.util.Version
 import com.walkertribe.ian.vesseldata.Taunt
 import com.walkertribe.ian.vesseldata.VesselData
-import com.walkertribe.ian.vesseldata.VesselDataObject
 import com.walkertribe.ian.world.Artemis
 import com.walkertribe.ian.world.ArtemisBlackHole
 import com.walkertribe.ian.world.ArtemisCreature
@@ -609,16 +607,6 @@ class AgentViewModel(application: Application) :
     /** Calculates the distance from the player ship to the given object. */
     private fun calculatePlayerRangeTo(obj: ArtemisObject<*>): Float =
         playerShip?.distanceTo(obj) ?: 0f
-
-    /** Returns the full name for the given object, including callsign, faction and vessel name. */
-    fun getFullNameForShip(obj: ArtemisShielded<*>?): String =
-        obj?.run { listOf(name.value, getFullNameForVessel(this)).joinSpaceDelimited() } ?: ""
-
-    /** Returns the faction and model name of the given object's vessel. */
-    fun getFullNameForVessel(obj: VesselDataObject?): String =
-        obj?.getVessel(vesselData)?.run {
-            listOfNotNull(getFaction(vesselData)?.name, name).joinSpaceDelimited()
-        } ?: ""
 
     /** Determines how many currently applicable missions involve the given object. */
     private fun calculateMissionsFor(entry: ObjectEntry<*>, reward: RewardType): Int =

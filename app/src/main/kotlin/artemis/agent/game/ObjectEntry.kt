@@ -23,10 +23,12 @@ import kotlin.time.Duration.Companion.minutes
 
 sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     val obj: Obj,
+    vesselData: VesselData,
     @PluralsRes private val missionsTextRes: Int,
 ) {
-    class Ally(npc: ArtemisNpc, val vesselName: String, private val isDeepStrikeShip: Boolean) :
-        ObjectEntry<ArtemisNpc>(npc, R.plurals.side_missions_for_ally) {
+    class Ally(npc: ArtemisNpc, vesselData: VesselData, private val isDeepStrikeShip: Boolean) :
+        ObjectEntry<ArtemisNpc>(npc, vesselData, R.plurals.side_missions_for_ally) {
+        val vesselName: String by lazy { npc.getVessel(vesselData)?.name ?: "" }
         var status: AllyStatus = AllyStatus.NORMAL
             set(value) {
                 field = value
@@ -78,7 +80,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     }
 
     class Station(station: ArtemisBase, vesselData: VesselData) :
-        ObjectEntry<ArtemisBase>(station, R.plurals.side_missions) {
+        ObjectEntry<ArtemisBase>(station, vesselData, R.plurals.side_missions) {
         var fighters: Int = 0
         var isDocking: Boolean = false
         var isDocked: Boolean = false
@@ -220,6 +222,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     var missions: Int = 0
     var heading: String = ""
     var range: Float = 0f
+
+    val fullName: String by lazy { obj.getFullName(vesselData) ?: "" }
 
     abstract val missionStatus: SideMissionStatus
 

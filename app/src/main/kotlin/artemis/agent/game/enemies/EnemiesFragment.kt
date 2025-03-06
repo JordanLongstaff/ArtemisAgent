@@ -50,13 +50,13 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         tauntListView.itemAnimator = null
         tauntListView.adapter = tauntsAdapter
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemy) {
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemy) { enemy ->
             var backgroundColor: Int = Color.TRANSPARENT
             val visibility =
                 when {
-                    it != null -> {
-                        binding.selectedEnemyLabel.text = viewModel.getFullNameForShip(it.enemy)
-                        backgroundColor = it.getBackgroundColor(context)
+                    enemy != null -> {
+                        binding.selectedEnemyLabel.text = enemy.fullName
+                        backgroundColor = enemy.getBackgroundColor(context)
 
                         View.VISIBLE
                     }
@@ -140,7 +140,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
                 root.setBackgroundColor(entry.getBackgroundColor(context))
 
-                enemyNameLabel.text = viewModel.getFullNameForShip(enemy)
+                enemyNameLabel.text = entry.fullName
 
                 enemyDirectionLabel.text = context.getString(R.string.direction, entry.heading)
                 enemyRangeLabel.text = context.getString(R.string.range, entry.range)

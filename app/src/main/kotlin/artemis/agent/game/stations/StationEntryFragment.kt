@@ -259,7 +259,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                     context.resources.getDimensionPixelSize(R.dimen.verticalInset),
                 )
             }
-        stationSelectorButton.text = viewModel.getFullNameForShip(station)
+        stationSelectorButton.text = entry.fullName
     }
 
     private fun StationEntryBinding.updateInfoLabels(entry: Station) {
@@ -367,7 +367,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
     private class StationEntryViewHolder(private val entryBinding: SelectorEntryBinding) :
         RecyclerView.ViewHolder(entryBinding.root) {
-        fun bind(station: Station, flashing: Boolean, viewModel: AgentViewModel) {
+        fun bind(station: Station, flashing: Boolean) {
             val context = itemView.context
             val orientation = context.resources.configuration.orientation
 
@@ -376,7 +376,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                     textSize = PORTRAIT_SELECTOR_TEXT_SIZE
                 }
 
-                text = viewModel.getFullNameForShip(station.obj)
+                text = station.fullName
                 isAllCaps = true
             }
 
@@ -412,7 +412,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
         override fun onBindViewHolder(holder: StationEntryViewHolder, position: Int) {
             stations[position].also { (station, flashing) ->
-                holder.bind(station, flashing, viewModel)
+                holder.bind(station, flashing)
                 holder.itemView.setOnClickListener {
                     viewModel.playSound(SoundEffect.BEEP_2)
                     station.obj.name.value?.also { name -> viewModel.stationName.value = name }

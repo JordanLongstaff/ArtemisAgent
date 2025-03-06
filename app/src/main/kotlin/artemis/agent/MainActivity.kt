@@ -243,7 +243,7 @@ class MainActivity : AppCompatActivity() {
                     allies.firstOrNull()?.also { ally ->
                         buildNotification(
                             channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
-                            title = viewModel.getFullNameForShip(ally.obj),
+                            title = ally.fullName,
                             message =
                                 if (viewModel.torpedoesReady)
                                     getString(R.string.manufacturing_torpedoes_ready)
@@ -265,7 +265,7 @@ class MainActivity : AppCompatActivity() {
                 service.collectLatestWhileStarted(viewModel.nextActiveBiomech) { entry ->
                     buildNotification(
                         channelId = NotificationManager.CHANNEL_REANIMATE,
-                        title = viewModel.getFullNameForShip(entry.biomech),
+                        title = entry.getFullName(viewModel),
                         message = getString(R.string.biomech_notification),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.BIOMECHS.ordinal)
@@ -304,7 +304,7 @@ class MainActivity : AppCompatActivity() {
                 service.collectLatestWhileStarted(viewModel.perfidiousEnemy) { entry ->
                     buildNotification(
                         channelId = NotificationManager.CHANNEL_PERFIDY,
-                        title = viewModel.getFullNameForShip(entry.enemy),
+                        title = entry.fullName,
                         message = getString(R.string.enemy_perfidy_notification),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.ENEMIES.ordinal)

@@ -206,7 +206,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         ) : this(AlliesEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
         fun bind(entry: Ally, viewModel: AgentViewModel) {
-            entryBinding.allyNameLabel.text = viewModel.getFullNameForShip(entry.obj)
+            entryBinding.allyNameLabel.text = entry.fullName
             entryBinding.allyHailButton.setOnClickListener {
                 viewModel.playSound(SoundEffect.BEEP_2)
                 viewModel.sendToServer(

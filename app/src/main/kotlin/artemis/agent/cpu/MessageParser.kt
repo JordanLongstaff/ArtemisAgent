@@ -327,7 +327,7 @@ sealed interface MessageParser {
                     viewModel.livingStations[it]
                 }
                     ?: viewModel.allyShips.values.find {
-                        !it.isTrap && viewModel.getFullNameForShip(it.obj) == destinationName
+                        !it.isTrap && it.fullName == destinationName
                     }
                     ?: return
 
@@ -453,7 +453,7 @@ sealed interface MessageParser {
             viewModel.allMissions.forEach { mission ->
                 if (
                     mission.isStarted ||
-                        source != viewModel.getFullNameForShip(mission.source.obj) ||
+                        source != mission.source.fullName ||
                         destination != mission.destination.obj.name.value
                 ) {
                     return@forEach
@@ -480,7 +480,7 @@ sealed interface MessageParser {
                 .filterNot { mission ->
                     mission.associatedShipName != shipName ||
                         mission.isCompleted ||
-                        destination != viewModel.getFullNameForShip(mission.destination.obj)
+                        destination != mission.destination.fullName
                 }
                 .forEach { mission ->
                     mission.completionTimestamp = timestamp
