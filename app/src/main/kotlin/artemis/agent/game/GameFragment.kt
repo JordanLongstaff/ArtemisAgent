@@ -246,7 +246,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
                 neededOrdnanceType?.let(RouteObjective::Ordnance)
                     ?: RouteObjective.ReplacementFighters.takeIf { lostFighters > 0 }
 
-            AlertDialog.Builder(requireContext())
+            AlertDialog.Builder(binding.root.context)
                 .setMessage(fullMessage)
                 .setCancelable(true)
                 .apply {
