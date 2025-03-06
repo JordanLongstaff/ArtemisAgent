@@ -214,6 +214,30 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         fun getTimerText(context: Context): String =
             context.getString(R.string.build_timer, TimerText.getTimeUntil(endTime))
+
+        companion object {
+            private val CALLSIGN_REGEX = Regex("DS\\d+")
+            private val ENEMY_REGEX = Regex("^[A-Z][a-z]+ Base \\d+")
+
+            val FRIENDLY_COMPARATOR =
+                buildStationNameComparator(CALLSIGN_REGEX) { it.substring(2).toInt() }
+
+            val ENEMY_COMPARATOR =
+                buildStationNameComparator(ENEMY_REGEX) { it.substringAfterLast(' ').toInt() }
+
+            private fun buildStationNameComparator(
+                regex: Regex,
+                selector: (String) -> Comparable<*>,
+            ) =
+                Comparator<String> { first, second ->
+                    val firstName = first.orEmpty()
+                    val secondName = second.orEmpty()
+
+                    if (regex matches firstName && regex matches secondName)
+                        compareValuesBy(firstName, secondName, selector)
+                    else compareValues(firstName, secondName)
+                }
+        }
     }
 
     var missions: Int = 0

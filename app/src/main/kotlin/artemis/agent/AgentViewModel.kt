@@ -298,7 +298,7 @@ class AgentViewModel(application: Application) :
     // Friendly station data
     val stationsRemain: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val livingStationNameIndex =
-        ConcurrentSkipListMap<String, Int>(Comparator(this::compareFriendlyStationNames))
+        ConcurrentSkipListMap<String, Int>(ObjectEntry.Station.FRIENDLY_COMPARATOR)
     val livingStationFullNameIndex = ConcurrentHashMap<String, Int>()
     val livingStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
 
@@ -314,7 +314,7 @@ class AgentViewModel(application: Application) :
 
     // Enemy station data
     val enemyStationNameIndex =
-        ConcurrentSkipListMap<String, Int>(Comparator(this::compareEnemyStationNames))
+        ConcurrentSkipListMap<String, Int>(ObjectEntry.Station.ENEMY_COMPARATOR)
     val livingEnemyStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
     val enemyStations: MutableSharedFlow<List<ObjectEntry.Station>> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -1170,26 +1170,6 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    private fun compareFriendlyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
-        val firstName = firstNameOpt ?: ""
-        val secondName = secondNameOpt ?: ""
-        return if (STATION_CALLSIGN.matches(firstName) && STATION_CALLSIGN.matches(secondName))
-            firstName.substring(2).toInt().compareTo(secondName.substring(2).toInt())
-        else firstName.compareTo(secondName)
-    }
-
-    private fun compareEnemyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
-        val firstName = firstNameOpt ?: ""
-        val secondName = secondNameOpt ?: ""
-        return if (ENEMY_STATION.matches(firstName) && ENEMY_STATION.matches(secondName)) {
-            val firstIndex = firstName.run { substring(lastIndexOf(" ") + 1).toInt() }
-            val secondIndex = secondName.run { substring(lastIndexOf(" ") + 1).toInt() }
-            firstIndex.compareTo(secondIndex)
-        } else {
-            firstName.compareTo(secondName)
-        }
-    }
-
     fun refreshEnemyTaunts() {
         val enemy = selectedEnemy.value
 
@@ -1590,8 +1570,6 @@ class AgentViewModel(application: Application) :
         const val VOLUME_SCALE = 100f
         private const val PADDED_ZEROES = 3
 
-        private val STATION_CALLSIGN = Regex("DS\\d+")
-        private val ENEMY_STATION = Regex("^[A-Z][a-z]+ Base \\d+")
         private const val GAME_OVER_REASON_INDEX = 13
 
         val PLURALS_FOR_INVENTORY =
