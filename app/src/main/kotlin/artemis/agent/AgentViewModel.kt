@@ -199,7 +199,7 @@ class AgentViewModel(application: Application) :
     // Miscellaneous Comms actions
     val miscActionsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val miscAudioExists: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-    val commsActionSet = CopyOnWriteArraySet<CommsActionEntry>()
+    val commsActions = ConcurrentHashMap<String, CommsActionEntry>()
     val commsAudioSet = CopyOnWriteArraySet<AudioEntry>()
     val miscActions: MutableStateFlow<List<CommsActionEntry>> by lazy {
         MutableStateFlow(emptyList())
@@ -840,7 +840,7 @@ class AgentViewModel(application: Application) :
         enemies.clear()
         enemyNameIndex.clear()
         selectedEnemy.value = null
-        commsActionSet.clear()
+        commsActions.clear()
         commsAudioSet.clear()
         miscActions.value = emptyList()
         miscAudio.value = emptyList()
@@ -1260,20 +1260,18 @@ class AgentViewModel(application: Application) :
     fun onPacket(packet: CommsButtonPacket) {
         when (val action = packet.action) {
             is CommsButtonPacket.Action.RemoveAll -> {
-                commsActionSet.clear()
+                commsActions.clear()
             }
             is CommsButtonPacket.Action.Create -> {
-                commsActionSet.add(CommsActionEntry(action.label))
+                commsActions[action.label] = CommsActionEntry(action.label)
                 miscActionsExist.value = true
                 miscUpdate = true
             }
             is CommsButtonPacket.Action.Remove -> {
-                if (!commsActionSet.remove(CommsActionEntry(action.label))) {
-                    return
-                }
+                if (commsActions.remove(action.label) == null) return
             }
         }
-        miscActions.value = commsActionSet.toList()
+        miscActions.value = commsActions.values.toList()
     }
 
     @Listener
