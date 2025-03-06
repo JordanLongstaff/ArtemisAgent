@@ -10,6 +10,7 @@ import artemis.agent.UserSettingsOuterClass.UserSettings
 import artemis.agent.cpu.CPU
 import artemis.agent.cpu.RoutingGraph
 import artemis.agent.cpu.RoutingGraph.Companion.calculateRouteCost
+import artemis.agent.cpu.VesselDataManager
 import artemis.agent.cpu.listeners
 import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
@@ -33,7 +34,6 @@ import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
-import artemis.agent.util.AssetsResolver
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
 import artemis.agent.util.TimerText.timerString
@@ -71,7 +71,6 @@ import com.walkertribe.ian.protocol.core.world.DockedPacket
 import com.walkertribe.ian.protocol.udp.Server
 import com.walkertribe.ian.protocol.udp.ServerDiscoveryRequester
 import com.walkertribe.ian.util.BoolState
-import com.walkertribe.ian.util.FilePathResolver
 import com.walkertribe.ian.util.Version
 import com.walkertribe.ian.vesseldata.Taunt
 import com.walkertribe.ian.vesseldata.VesselData
@@ -84,7 +83,6 @@ import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
 import com.walkertribe.ian.world.ArtemisShielded
 import com.walkertribe.ian.world.Property
-import java.io.File
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListMap
@@ -106,7 +104,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okio.Path.Companion.toOkioPath
 
 /** The view model containing all running client data and utility functions used by the UI. */
 class AgentViewModel(application: Application) :
@@ -481,10 +478,6 @@ class AgentViewModel(application: Application) :
                 timeoutMs = scanTimeout.seconds.inWholeMilliseconds,
             )
 
-    // I/O resolver data
-    private val assetsResolver: AssetsResolver = AssetsResolver(application.assets)
-    val storageDirectories: Array<File> = application.applicationContext.getExternalFilesDirs(null)
-
     // Artemis version
     var version: Version = Version.DEFAULT
         private set
@@ -492,34 +485,10 @@ class AgentViewModel(application: Application) :
     var maxVersion: Version = Version.DEFAULT
 
     // Vessel data
-    private val defaultVesselData: VesselData by lazy { VesselData.load(assetsResolver) }
-    private val internalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.isEmpty()) null
-        else setupFilePathResolver(storageDirectories[0])?.let(VesselData.Companion::load)
-    }
-    private val externalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.size <= 1) null
-        else setupFilePathResolver(storageDirectories[1])?.let(VesselData.Companion::load)
-    }
+    val vesselDataManager = VesselDataManager(application)
 
-    var vesselDataIndex: Int = 0
-        set(index) {
-            if (field != index) {
-                field = index
-                vesselData =
-                    when (index) {
-                        1 -> internalStorageVesselData
-                        2 -> externalStorageVesselData
-                        else -> null
-                    } ?: defaultVesselData
-            }
-        }
-
-    var vesselData: VesselData = defaultVesselData
-        private set
-
-    private val allVesselData
-        get() = arrayOf(defaultVesselData, internalStorageVesselData, externalStorageVesselData)
+    val vesselData: VesselData
+        get() = vesselDataManager.vesselData
 
     // Sound effects players
     private val playSounds: Boolean
@@ -662,27 +631,6 @@ class AgentViewModel(application: Application) :
         }
 
         updatePayouts()
-    }
-
-    /**
-     * Attempts to set up the default vessel data in a given file path if it does not exist, and
-     * return a file path resolver using that file if successful, or null if there was an error.
-     */
-    private fun setupFilePathResolver(storageDir: File): FilePathResolver? {
-        val datDir = File(storageDir, "dat")
-
-        return if (assetsResolver.copyVesselDataTo(datDir))
-            FilePathResolver(storageDir.toOkioPath())
-        else null
-    }
-
-    fun reconcileVesselDataIndex(index: Int): Int = if (allVesselData[index] == null) 0 else index
-
-    fun checkContext(index: Int, ifError: (String) -> Unit) {
-        val vesselDataAtIndex = allVesselData[index]
-        if (vesselDataAtIndex is VesselData.Error) {
-            ifError(vesselDataAtIndex.message ?: "")
-        }
     }
 
     /** Selects a player ship by its index. */
@@ -1373,7 +1321,7 @@ class AgentViewModel(application: Application) :
     }
 
     fun updateFromSettings(settings: UserSettings) {
-        vesselDataIndex = settings.vesselDataLocationValue
+        vesselDataManager.index = settings.vesselDataLocationValue
         port = settings.serverPort
         updateObjectsInterval = settings.updateInterval
 
@@ -1465,7 +1413,7 @@ class AgentViewModel(application: Application) :
 
     fun revertSettings(settings: UserSettings): UserSettings =
         settings.copy {
-            vesselDataLocationValue = vesselDataIndex
+            vesselDataLocationValue = vesselDataManager.index
             serverPort = port
             updateInterval = updateObjectsInterval
 

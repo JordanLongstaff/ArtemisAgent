@@ -35,7 +35,7 @@ class ClientSettingsFragmentTest {
             val viewModel = activity.viewModels<AgentViewModel>().value
             expectedPort.lazySet(viewModel.port)
             expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
-            externalVesselDataCount.lazySet(viewModel.storageDirectories.size)
+            externalVesselDataCount.lazySet(viewModel.vesselDataManager.externalCount)
             showingInfo.lazySet(viewModel.showingNetworkInfo)
         }
 
@@ -86,11 +86,8 @@ class ClientSettingsFragmentTest {
                     R.id.vesselDataExternalStorage to R.string.vessel_data_external,
                 )
                 .forEachIndexed { index, (id, label) ->
-                    if (index < externalVesselDataCount) {
-                        assertDisplayed(id, label)
-                    } else {
-                        assertNotDisplayed(id)
-                    }
+                    if (index < externalVesselDataCount) assertDisplayed(id, label)
+                    else assertNotDisplayed(id)
                 }
 
             showNetworkInfoToggleSetting.testSingleToggle(showingInfo)

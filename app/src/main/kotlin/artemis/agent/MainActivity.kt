@@ -766,12 +766,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupUserSettingsObserver() {
         collectLatestWhileStarted(userSettings.data) { settings ->
-            var newContextIndex =
-                viewModel.reconcileVesselDataIndex(settings.vesselDataLocationValue)
-            viewModel.checkContext(newContextIndex) { message ->
+            val vesselDataManager = viewModel.vesselDataManager
+            var newContextIndex = vesselDataManager.reconcileIndex(settings.vesselDataLocationValue)
+            vesselDataManager.checkContext(newContextIndex) { message ->
                 newContextIndex =
-                    if (viewModel.vesselDataIndex == newContextIndex) 0
-                    else viewModel.vesselDataIndex
+                    if (vesselDataManager.index == newContextIndex) 0 else vesselDataManager.index
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.xml_error)
                     .setMessage(getString(R.string.xml_error_message, message))
@@ -794,7 +793,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-            if (!viewModel.isIdle && newContextIndex != viewModel.vesselDataIndex) {
+            if (!viewModel.isIdle && newContextIndex != vesselDataManager.index) {
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.vessel_data)
                     .setMessage(R.string.xml_location_warning)
