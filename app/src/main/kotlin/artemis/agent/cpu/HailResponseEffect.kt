@@ -68,7 +68,7 @@ enum class HailResponseEffect(private val prefix: String) {
         viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also { ally ->
             if (ally.vesselName == vesselName) {
                 if (ally.status != AllyStatus.FLYING_BLIND) ally.status = getAllyStatus(response)
-                ally.hasEnergy = response.endsWith(HAS_ENERGY)
+                ally.hasEnergy = ally.hasEnergy || response.endsWith(HAS_ENERGY)
                 ally.checkNebulaStatus()
             }
         }
