@@ -109,31 +109,28 @@ jobs:
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
         uses: w9jds/firebase-action@v13.33.0
         with:
-          args: remoteconfig:get -o ${{ github.workspace }}/app/remote-config.json
+          args: remoteconfig:get -o app/remote-config.json
 
       - name: Update Artemis Version Parameter
         if: ${{ inputs.artemisSoftUpdate }}
-        uses: jossef/action-set-json-field@v2.2
+        uses: tnikFi/json-file-transform@v2
         with:
-          file: ${{ github.workspace }}/app/remote-config.json
-          field: parameters.artemis_latest_version.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ inputs.artemisSoftUpdate }}
+          files: app/remote-config.json
+          key-value-pairs: parameters.artemis_latest_version.conditionalValues.Everyone.rolloutValue.value=${{ inputs.artemisSoftUpdate }}
 
       - name: Update Version Code for Artemis Parameter
         if: ${{ inputs.artemisRequiredUpdate }}
-        uses: jossef/action-set-json-field@v2.2
+        uses: tnikFi/json-file-transform@v2
         with:
-          file: ${{ github.workspace }}/app/remote-config.json
-          field: parameterGroups.required_versions.parameters.required_version_artemis.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.nextVersion.outputs.versionCode }}
+          files: app/remote-config.json
+          key-value-pairs: parameterGroups.required_versions.parameters.required_version_artemis.conditionalValues.Everyone.rolloutValue.value=${{ steps.nextVersion.outputs.versionCode }}
 
       - name: Update Version Code for Security Parameter
         if: ${{ inputs.securityRequiredUpdate }}
-        uses: jossef/action-set-json-field@v2.2
+        uses: tnikFi/json-file-transform@v2
         with:
-          file: ${{ github.workspace }}/app/remote-config.json
-          field: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.nextVersion.outputs.versionCode }}
+          files: app/remote-config.json
+          key-value-pairs: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value=${{ steps.nextVersion.outputs.versionCode }}
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
