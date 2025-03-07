@@ -93,23 +93,23 @@ jobs:
           echo "${{ vars.CHANGELOG }}" > fastlane/metadata/android/en-US/changelogs/default.txt
 
       - name: Authenticate for Firebase
-        id: auth
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/${{ secrets.WIF_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL }}/providers/${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
 
-      - name: Setup Firebase
+      - name: Set Firebase Project
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/setup-firebase@main
+        uses: w9jds/firebase-action@v13.33.0
         with:
-          project_id: ${{ secrets.FIREBASE_SA_PROJECT }}
-          gcp_sa_key: ${{ steps.auth.outputs.credentials_file_path }}
+          args: use ${{ secrets.FIREBASE_SA_PROJECT }}
 
       - name: Get Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        run: firebase remoteconfig:get -o app/remote-config.json
+        uses: w9jds/firebase-action@v13.33.0
+        with:
+          args: remoteconfig:get -o app/remote-config.json
 
       - name: Update Artemis Version Parameter
         if: ${{ inputs.artemisSoftUpdate }}
@@ -137,7 +137,9 @@ jobs:
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        run: firebase deploy --only remoteconfig
+        uses: w9jds/firebase-action@v13.33.0
+        with:
+          args: deploy --only remoteconfig
 
       - name: Bundle and Upload
         run: bundle exec fastlane android deploy version:${{ inputs.versionName }}
