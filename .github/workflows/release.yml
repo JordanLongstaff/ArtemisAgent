@@ -111,6 +111,10 @@ jobs:
         with:
           args: remoteconfig:get -o app/remote-config.json
 
+      - name: Allow Access to Remote Config
+        if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
+        run: chmod +rw app/remote-config.json
+
       - name: Update Artemis Version Parameter
         if: ${{ inputs.artemisSoftUpdate }}
         uses: jossef/action-set-json-field@v2.2
