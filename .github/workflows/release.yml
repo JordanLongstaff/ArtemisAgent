@@ -93,6 +93,7 @@ jobs:
           echo "${{ vars.CHANGELOG }}" > fastlane/metadata/android/en-US/changelogs/default.txt
 
       - name: Authenticate for Firebase
+        id: auth
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
         uses: google-github-actions/auth@v2
         with:
@@ -104,6 +105,7 @@ jobs:
         uses: w9jds/setup-firebase@main
         with:
           project_id: ${{ secrets.FIREBASE_SA_PROJECT }}
+          gcp_sa_key: ${{ steps.auth.outputs.credentials_file_path }}
 
       - name: Get Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
