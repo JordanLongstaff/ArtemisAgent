@@ -117,24 +117,27 @@ jobs:
 
       - name: Update Artemis Version Parameter
         if: ${{ inputs.artemisSoftUpdate }}
-        uses: tnikFi/json-file-transform@v2
+        uses: jossef/action-set-json-field@v2.2
         with:
-          files: app/remote-config.json
-          key-value-pairs: parameters.artemis_latest_version.conditionalValues.Everyone.rolloutValue.value=${{ inputs.artemisSoftUpdate }}
+          file: app/remote-config.json
+          field: parameters.artemis_latest_version.conditionalValues.Everyone.rolloutValue.value
+          value: ${{ inputs.artemisSoftUpdate }}
 
       - name: Update Version Code for Artemis Parameter
         if: ${{ inputs.artemisRequiredUpdate }}
-        uses: tnikFi/json-file-transform@v2
+        uses: jossef/action-set-json-field@v2.2
         with:
-          files: app/remote-config.json
-          key-value-pairs: parameterGroups.required_versions.parameters.required_version_artemis.conditionalValues.Everyone.rolloutValue.value=${{ steps.nextVersion.outputs.versionCode }}
+          file: app/remote-config.json
+          field: parameterGroups.required_versions.parameters.required_version_artemis.conditionalValues.Everyone.rolloutValue.value
+          value: ${{ steps.nextVersion.outputs.versionCode }}
 
       - name: Update Version Code for Security Parameter
         if: ${{ inputs.securityRequiredUpdate }}
-        uses: tnikFi/json-file-transform@v2
+        uses: jossef/action-set-json-field@v2.2
         with:
-          files: app/remote-config.json
-          key-value-pairs: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value=${{ steps.nextVersion.outputs.versionCode }}
+          file: app/remote-config.json
+          field: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value
+          value: ${{ steps.nextVersion.outputs.versionCode }}
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
