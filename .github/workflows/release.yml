@@ -129,9 +129,9 @@ jobs:
 
       - name: Update Version Code for Security Parameter
         if: ${{ inputs.securityRequiredUpdate }}
-        uses: ${{ github.workspace }}/jossef/action-set-json-field@v2.2
+        uses: jossef/action-set-json-field@v2.2
         with:
-          file: app/remote-config.json
+          file: ${{ github.workspace }}/app/remote-config.json
           field: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value
           value: ${{ steps.nextVersion.outputs.versionCode }}
 
