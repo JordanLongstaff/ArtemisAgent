@@ -154,14 +154,13 @@ jobs:
           sed -i "1s/.*/# Artemis Agent $var/" ${{ github.workspace }}/README.md
 
       - name: Commit
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: Amraneze/push-to-protected-branch@latest
         with:
+          repository: ${{ github.repository }}
+          branch_name: main
           commit_message: Release version ${{ inputs.versionName }}
-          commit_options: "--no-verify --signoff"
-          commit_user_name: ${{ github.triggering_actor }}
-          commit_user_email: ${{ github.triggering_actor }}@users.noreply.github.com
-          branch: main
-          add_options: "-u"
+          files_to_commit: README.md,app/build.gradle.kts
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag
         id: tag
