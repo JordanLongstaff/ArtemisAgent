@@ -111,9 +111,9 @@ jobs:
         with:
           args: remoteconfig:get -o app/remote-config.json
 
-      - name: Show File Permissions
+      - name: Obtain Ownership
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        run: stat -c "%a" app/remote-config.json
+        run: sudo chown -R $(whoami):$(id -g) app/remote-config.json
 
       - name: Update Artemis Version Parameter
         if: ${{ inputs.artemisSoftUpdate }}
