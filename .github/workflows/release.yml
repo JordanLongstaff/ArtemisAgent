@@ -111,6 +111,10 @@ jobs:
         with:
           args: remoteconfig:get -o app/remote-config.json
 
+      - name: Show File Permissions
+        if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
+        run: stat -c "%a" app/remote-config.json
+
       - name: Update Artemis Version Parameter
         if: ${{ inputs.artemisSoftUpdate }}
         uses: tnikFi/json-file-transform@v2
