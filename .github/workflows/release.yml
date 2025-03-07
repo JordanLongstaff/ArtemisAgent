@@ -41,7 +41,7 @@ jobs:
           stat app/build.gradle.kts
 
       - name: Obtain Ownership
-        run: sudo chown -R $(user -u):$(group -g) app/remote-config.json
+        run: sudo chown -R $(whoami):$(id -g) app/remote-config.json
 
       - name: Update Version Code for Security Parameter
         uses: tnikFi/json-file-transform@v2
