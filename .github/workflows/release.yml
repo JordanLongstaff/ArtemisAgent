@@ -36,7 +36,9 @@ jobs:
           args: remoteconfig:get -o app/remote-config.json
 
       - name: Show File Permissions
-        run: stat app/remote-config.json
+        run: |
+          stat app/remote-config.json
+          stat app/build.gradle.kts
 
       - name: Update Version Code for Security Parameter
         uses: tnikFi/json-file-transform@v2
