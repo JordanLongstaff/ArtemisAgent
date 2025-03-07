@@ -1,5 +1,6 @@
 package artemis.agent.game.allies
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
@@ -212,6 +213,17 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 viewModel.sendToServer(
                     CommsOutgoingPacket(entry.obj, OtherMessage.Hail, viewModel.vesselData)
                 )
+            }
+
+            entryBinding.allyRecapButton.setOnClickListener {
+                viewModel.playSound(SoundEffect.BEEP_2)
+                if (entry.latestHailMessage.isBlank()) return@setOnClickListener
+
+                AlertDialog.Builder(entryBinding.root.context)
+                    .setTitle(entry.fullName)
+                    .setMessage(entry.latestHailMessage)
+                    .setCancelable(true)
+                    .show()
             }
 
             bindAllyCommandButton(entry, viewModel)

@@ -35,6 +35,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
                 isHailed = true
             }
 
+        var latestHailMessage: String = ""
+
         var hasEnergy: Boolean = false
         var destination: String? = null
         var isAttacking: Boolean = false

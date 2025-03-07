@@ -675,6 +675,7 @@ sealed interface MessageParser {
                 destination = destName
                 isAttacking = false
                 isMovingToStation = viewModel.livingStationNameIndex.containsKey(destName)
+                latestHailMessage = message
             }
 
             return true
@@ -684,17 +685,24 @@ sealed interface MessageParser {
     data object HailResponse : MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
             val message = packet.message
-            return when (
-                val responseMatchLength = OUR_SHIELDS.find(message)?.run { value.length }
-            ) {
-                null -> false
-                message.length -> true
-                else -> {
-                    val response = message.substring(responseMatchLength + 1)
-                    val sender = packet.sender
-                    !sender.startsWith("DS") &&
-                        HailResponseEffect.entries.any { it(response, sender, viewModel) }
+            val responseMatch = OUR_SHIELDS.find(message) ?: return false
+            val sender = packet.sender
+
+            val vesselName = sender.substringBeforeLast(' ')
+            val name = sender.substring(vesselName.length + 1)
+            val ally =
+                viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.takeIf {
+                    it.vesselName == vesselName
                 }
+
+            val responseMatchLength = responseMatch.value.length
+            return if (responseMatchLength == message.length) {
+                true
+            } else {
+                val response = message.substring(responseMatchLength + 1)
+                ally?.latestHailMessage = response
+
+                !sender.startsWith("DS") && HailResponseEffect.entries.any { it(response, ally) }
             }
         }
     }

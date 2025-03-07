@@ -190,7 +190,8 @@
             \nLike stations, ally ships communicate their statuses to Artemis Agent through Comms
             messages. The app automatically sends a status requests to all ally ships when the
             simulation starts, or if the app connects to a simulation in progress. You can also
-            manually request status by pressing the Hail button.
+            manually request status by pressing the Hail button, or display the latest hail response
+            received in full by pressing the Recap button.\n
         </item>
         <item>
             \nYou can also send commands to an ally ship by pressing the Command button. Commands
@@ -603,6 +604,7 @@
     <string name="reason_needs_damcon">transfer DamCon personnel</string>
     <string name="reason_needs_energy">deliver energy</string>
     <string name="reason_pirate_boss">pick up boss</string>
+    <string name="recap">Recap</string>
     <string name="recent_address_limit">Recent address limit</string>
     <string name="refreeze">Re-freeze</string>
     <string name="rendezvous_with">Rendezvous with:</string>
