@@ -49,7 +49,7 @@ jobs:
           args: remoteconfig:get -o app/remote-config.json
 
       - name: Show File Permissions
-        run: stat -c "%a" app/remote-config.json
+        run: stat app/remote-config.json
 
       - name: Update Version Code for Security Parameter
         uses: tnikFi/json-file-transform@v2
