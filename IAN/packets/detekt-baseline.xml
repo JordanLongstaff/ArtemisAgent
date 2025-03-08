@@ -2,14 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.NpcShipParser.V1$3</ID>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.NpcShipParser.V1$997</ID>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.PlayerShipParser.V2$3</ID>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.PlayerShipParser.V2$997</ID>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.Unobserved.Anomaly.V1$3</ID>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.Unobserved.Anomaly.V1$997</ID>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.WeaponsParser.V1$3</ID>
-    <ID>MagicNumber:ObjectParserTestConfig.kt$ObjectParserTestConfig.WeaponsParser.V1$997</ID>
     <ID>TooManyFunctions:PacketReader.kt$PacketReader : KoinComponent</ID>
   </CurrentIssues>
 </SmellBaseline>

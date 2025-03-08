@@ -593,11 +593,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
                     genA = ID,
-                    genB =
-                        Arb.choose(
-                            3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
-                            997 to Arb.version(major = 2, minorRange = 3..5),
-                        ),
+                    genB = arbPreBeacon(),
                     genC =
                         Arb.flags(
                             arb1 = NAME,
@@ -1170,13 +1166,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         data object V1 : PlayerShipParser(before(VERSION_2_4_0), Arb.version(major = 2, minor = 3))
 
         data object V2 :
-            PlayerShipParser(
-                between(VERSION_2_4_0, VERSION_2_6_3),
-                Arb.choose(
-                    3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
-                    997 to Arb.version(major = 2, minorRange = 4..5),
-                ),
-            )
+            PlayerShipParser(between(VERSION_2_4_0, VERSION_2_6_3), arbPreBeacon(sinceMinor = 4))
 
         data object V3 :
             PlayerShipParser(
@@ -1594,11 +1584,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
                     genA = ID,
-                    genB =
-                        Arb.choose(
-                            3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
-                            997 to Arb.version(major = 2, minorRange = 3..5),
-                        ),
+                    genB = arbPreBeacon(),
                     genC =
                         Arb.flags(
                             arb1 = COUNT,
@@ -1699,12 +1685,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             override val dataGenerator: Gen<Data> =
                 Arb.bind(
                     genA = ID,
-                    genB =
-                        Arb.choose(
-                            1 to Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
-                            PropertyTesting.defaultIterationCount - 1 to
-                                Arb.version(major = 2, minorArb = Arb.int(min = 7)),
-                        ),
+                    genB = arbPostBeacon,
                     genC =
                         Arb.flags(
                             arb1 = COUNT,
@@ -1840,24 +1821,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 }
             }
 
-            data object V1 :
-                Anomaly(
-                    before(VERSION_2_6_3),
-                    Arb.choose(
-                        3 to Arb.version(major = 2, minor = 6, patchRange = 0..2),
-                        997 to Arb.version(major = 2, minorRange = 3..5),
-                    ),
-                )
+            data object V1 : Anomaly(before(VERSION_2_6_3), arbPreBeacon())
 
-            data object V2 :
-                Anomaly(
-                    since(VERSION_2_6_3),
-                    Arb.choose(
-                        1 to Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
-                        PropertyTesting.defaultIterationCount - 1 to
-                            Arb.version(major = 2, minorArb = Arb.int(min = 7)),
-                    ),
-                )
+            data object V2 : Anomaly(since(VERSION_2_6_3), arbPostBeacon)
 
             override val parserName: String = "Anomaly"
             override val dataGenerator: Gen<Data> =
@@ -2165,6 +2131,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         const val VERSION_2_6_3 = "2.6.3"
         const val VERSION_2_7_0 = "2.7.0"
 
+        private const val V26_PRE_BEACON = 3
+
+        val arbPostBeacon =
+            Arb.choose(
+                1 to Arb.version(major = 2, minor = 6, patchArb = Arb.int(min = 3)),
+                PropertyTesting.defaultIterationCount - 1 to
+                    Arb.version(major = 2, minorArb = Arb.int(min = 7)),
+            )
+
         private fun before(version: String): String = "Before $version"
 
         private fun since(version: String): String = "Since $version"
@@ -2192,5 +2167,12 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         private fun Sink.writeFlagBytes(flagBytes: Iterator<AnyFlagByte>) {
             flagBytes.forEach { writeByte(it.byteValue) }
         }
+
+        private fun arbPreBeacon(sinceMinor: Int = 3) =
+            Arb.choose(
+                V26_PRE_BEACON to Arb.version(major = 2, minor = 6, patchRange = 0..2),
+                PropertyTesting.defaultIterationCount - V26_PRE_BEACON to
+                    Arb.version(major = 2, minorRange = sinceMinor..5),
+            )
     }
 }
