@@ -250,18 +250,20 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         }
     }
 
-    protected abstract class BaseProperties<T : ArtemisObject<T>>(val location: Location) {
-        open fun updateDirectly(obj: T) {
+    protected interface BaseProperties<T : ArtemisObject<T>> {
+        val location: Location
+
+        fun updateDirectly(obj: T) {
             obj.x.value = location.x
             obj.y.value = location.y
             obj.z.value = location.z
         }
 
-        abstract fun createThroughDsl(id: Int, timestamp: Long): T
+        fun createThroughDsl(id: Int, timestamp: Long): T
 
-        abstract fun updateThroughDsl(obj: T)
+        fun updateThroughDsl(obj: T)
 
-        abstract fun testKnownObject(obj: T)
+        fun testKnownObject(obj: T)
     }
 
     protected data class PartialUpdateTestSuite<
@@ -291,12 +293,12 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         private val NAME = Arb.string()
         private val HULL_ID = Arb.int().filter { it != -1 }
 
-        private class Properties(
+        private data class Properties(
             private val name: String,
             private val shields: ShieldStrength,
             private val hullId: Int,
-            location: Location,
-        ) : BaseProperties<ArtemisBase>(location) {
+            override val location: Location,
+        ) : BaseProperties<ArtemisBase> {
             override fun updateDirectly(obj: ArtemisBase) {
                 super.updateDirectly(obj)
                 obj.name.value = name
@@ -337,11 +339,11 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.shouldBeKnownObject(
                     id = obj.id,
                     type = objectType,
-                    name = name,
+                    name,
                     x = location.x,
                     y = location.y,
                     z = location.z,
-                    hullId = hullId,
+                    hullId,
                     shieldsFront = shields.strength,
                     shieldsFrontMax = shields.maxStrength,
                 )
@@ -522,7 +524,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
     }
 
     data object BlackHole : ObjectTestSuite<ArtemisBlackHole>(ObjectType.BLACK_HOLE) {
-        private class Properties(location: Location) : BaseProperties<ArtemisBlackHole>(location) {
+        private data class Properties(override val location: Location) :
+            BaseProperties<ArtemisBlackHole> {
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisBlackHole =
                 ArtemisBlackHole.Dsl.let { dsl ->
                     dsl.x = location.x
@@ -646,8 +649,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
     data object Creature : ObjectTestSuite<ArtemisCreature>(ObjectType.CREATURE) {
         private val IS_NOT_TYPHON = Arb.boolState()
 
-        private class Properties(private val isNotTyphon: BoolState, location: Location) :
-            BaseProperties<ArtemisCreature>(location) {
+        private data class Properties(
+            private val isNotTyphon: BoolState,
+            override val location: Location,
+        ) : BaseProperties<ArtemisCreature> {
             override fun updateDirectly(obj: ArtemisCreature) {
                 super.updateDirectly(obj)
                 obj.isNotTyphon.value = isNotTyphon
@@ -793,7 +798,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
     }
 
     data object Mine : ObjectTestSuite<ArtemisMine>(ObjectType.MINE) {
-        private class Properties(location: Location) : BaseProperties<ArtemisMine>(location) {
+        private data class Properties(override val location: Location) :
+            BaseProperties<ArtemisMine> {
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisMine =
                 ArtemisMine.Dsl.let { dsl ->
                     dsl.x = location.x
@@ -933,7 +939,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
         private val SCAN_BITS = Arb.int()
         private val SIDE = Arb.byte().filter { it.toInt() != -1 }
 
-        private class Properties(
+        private data class Properties(
             private val name: String,
             private val shields: Pair<ShieldStrength, ShieldStrength>,
             private val hullId: Int,
@@ -943,8 +949,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             private val inNebula: BoolState,
             private val scanBits: Int,
             private val side: Byte,
-            location: Location,
-        ) : BaseProperties<ArtemisNpc>(location) {
+            override val location: Location,
+        ) : BaseProperties<ArtemisNpc> {
             override fun updateDirectly(obj: ArtemisNpc) {
                 super.updateDirectly(obj)
                 obj.name.value = name
@@ -1380,7 +1386,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 Artemis.MAX_TUBES..Artemis.MAX_TUBES,
             )
 
-        private class Properties(
+        private data class Properties(
             private val name: String,
             private val shields: Pair<ShieldStrength, ShieldStrength>,
             private val hullId: Int,
@@ -1392,10 +1398,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             private val warp: Byte,
             private val dockingBase: Int,
             private val doubleAgentStatus: Triple<BoolState, Byte, Int>,
-            location: Location,
+            override val location: Location,
             private val ordnanceCounts: List<Byte>,
             private val tubes: List<Pair<TubeState, OrdnanceType>>,
-        ) : BaseProperties<ArtemisPlayer>(location) {
+        ) : BaseProperties<ArtemisPlayer> {
             override fun updateDirectly(obj: ArtemisPlayer) {
                 super.updateDirectly(obj)
                 obj.name.value = name

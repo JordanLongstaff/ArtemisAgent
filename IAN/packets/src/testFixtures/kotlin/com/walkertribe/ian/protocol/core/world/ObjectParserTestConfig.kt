@@ -65,15 +65,12 @@ import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
 sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
-    sealed class ObjectParserData<T : ArtemisObject<T>>(
-        val objectID: Int,
-        private val objectType: ObjectType,
-    ) : PacketTestData.Server<ObjectUpdatePacket> {
+    sealed class ObjectParserData<T : ArtemisObject<T>>(private val objectType: ObjectType) :
+        PacketTestData.Server<ObjectUpdatePacket> {
         abstract class Real<T : ArtemisObject<T>>(
-            objectID: Int,
             private val objectClass: KClass<T>,
             objectType: ObjectType,
-        ) : ObjectParserData<T>(objectID, objectType) {
+        ) : ObjectParserData<T>(objectType) {
             lateinit var realObject: T
 
             abstract fun validateObject(obj: T)
@@ -87,12 +84,13 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             }
         }
 
-        abstract class Unobserved(objectID: Int, objectType: ObjectType) :
-            ObjectParserData<Nothing>(objectID, objectType) {
+        abstract class Unobserved(objectType: ObjectType) : ObjectParserData<Nothing>(objectType) {
             override fun validate(packet: ObjectUpdatePacket) {
                 packet.objects.shouldBeEmpty()
             }
         }
+
+        abstract val objectID: Int
 
         abstract fun Sink.buildObject()
 
@@ -120,12 +118,12 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object BaseParser : ObjectParserTestConfig(true) {
-        class Data
+        data class Data
         internal constructor(
-            objectID: Int,
+            override val objectID: Int,
             private val flags1: BaseFlags1,
             private val flags2: BaseFlags2,
-        ) : ObjectParserData.Real<ArtemisBase>(objectID, ArtemisBase::class, ObjectType.BASE) {
+        ) : ObjectParserData.Real<ArtemisBase>(ArtemisBase::class, ObjectType.BASE) {
             override val version: Version
                 get() = Version.DEFAULT
 
@@ -212,9 +210,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object BlackHoleParser : ObjectParserTestConfig(true) {
-        class Data internal constructor(objectID: Int, private val flags: PositionFlags) :
+        data class Data
+        internal constructor(override val objectID: Int, private val flags: PositionFlags) :
             ObjectParserData.Real<ArtemisBlackHole>(
-                objectID,
                 ArtemisBlackHole::class,
                 ObjectType.BLACK_HOLE,
             ) {
@@ -243,20 +241,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
     sealed class CreatureParser(override val specName: String, versionArb: Arb<Version>) :
         ObjectParserTestConfig(true) {
-        class Data
+        data class Data
         internal constructor(
-            objectID: Int,
+            override val objectID: Int,
             override val version: Version,
             private val flags1: CreatureFlags1,
             private val flags2: CreatureFlags2,
             private val flags3: CreatureFlags3,
             private val forceCreatureType: Boolean,
-        ) :
-            ObjectParserData.Real<ArtemisCreature>(
-                objectID,
-                ArtemisCreature::class,
-                ObjectType.CREATURE,
-            ) {
+        ) : ObjectParserData.Real<ArtemisCreature>(ArtemisCreature::class, ObjectType.CREATURE) {
             private val xFlag = flags1.flag1
             private val yFlag = flags1.flag2
             private val zFlag = flags1.flag3
@@ -413,8 +406,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object MineParser : ObjectParserTestConfig(true) {
-        class Data internal constructor(objectID: Int, private val flags: PositionFlags) :
-            ObjectParserData.Real<ArtemisMine>(objectID, ArtemisMine::class, ObjectType.MINE) {
+        data class Data
+        internal constructor(override val objectID: Int, private val flags: PositionFlags) :
+            ObjectParserData.Real<ArtemisMine>(ArtemisMine::class, ObjectType.MINE) {
             override val version: Version
                 get() = Version.DEFAULT
 
@@ -441,29 +435,55 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     sealed class NpcShipParser(override val specName: String) : ObjectParserTestConfig(true) {
         override val parserName: String = "NPC ship"
 
-        abstract class NpcData
-        internal constructor(
-            objectID: Int,
-            private val flags1: NpcFlags1,
-            private val flags2: NpcFlags2,
-            private val flags3: NpcFlags3,
-            private val flags4: NpcFlags4,
-        ) : ObjectParserData.Real<ArtemisNpc>(objectID, ArtemisNpc::class, ObjectType.NPC_SHIP) {
-            private val nameFlag: Flag<String> = flags1.flag1
-            private val impulseFlag: Flag<Float> = flags1.flag2
-            private val isEnemyFlag: Flag<Int> = flags1.flag6
-            private val hullIdFlag: Flag<Int> = flags1.flag7
-            private val xFlag: Flag<Float> = flags1.flag8
-            private val yFlag: Flag<Float> = flags2.flag1
-            private val zFlag: Flag<Float> = flags2.flag2
-            private val surrenderedFlag: Flag<Byte> = flags2.flag7
+        abstract class NpcData internal constructor() :
+            ObjectParserData.Real<ArtemisNpc>(ArtemisNpc::class, ObjectType.NPC_SHIP) {
+            internal abstract val flags1: NpcFlags1
+            internal abstract val flags2: NpcFlags2
+            internal abstract val flags3: NpcFlags3
+            internal abstract val flags4: NpcFlags4
+
+            private val nameFlag: Flag<String>
+                get() = flags1.flag1
+
+            private val impulseFlag: Flag<Float>
+                get() = flags1.flag2
+
+            private val isEnemyFlag: Flag<Int>
+                get() = flags1.flag6
+
+            private val hullIdFlag: Flag<Int>
+                get() = flags1.flag7
+
+            private val xFlag: Flag<Float>
+                get() = flags1.flag8
+
+            private val yFlag: Flag<Float>
+                get() = flags2.flag1
+
+            private val zFlag: Flag<Float>
+                get() = flags2.flag2
+
+            private val surrenderedFlag: Flag<Byte>
+                get() = flags2.flag7
+
             internal abstract val inNebulaFlag: Flag<out Number>
-            private val shieldsFrontFlag: Flag<Float> = flags3.flag1
-            private val maxShieldsFrontFlag: Flag<Float> = flags3.flag2
-            private val shieldsRearFlag: Flag<Float> = flags3.flag3
-            private val maxShieldsRearFlag: Flag<Float> = flags3.flag4
-            private val scanBitsFlag: Flag<Int> = flags4.flag1
-            private val sideFlag: Flag<Byte> = flags4.flag4
+            private val shieldsFrontFlag: Flag<Float>
+                get() = flags3.flag1
+
+            private val maxShieldsFrontFlag: Flag<Float>
+                get() = flags3.flag2
+
+            private val shieldsRearFlag: Flag<Float>
+                get() = flags3.flag3
+
+            private val maxShieldsRearFlag: Flag<Float>
+                get() = flags3.flag4
+
+            private val scanBitsFlag: Flag<Int>
+                get() = flags4.flag1
+
+            private val sideFlag: Flag<Byte>
+                get() = flags4.flag4
 
             internal abstract val allFlagBytes: Array<AnyFlagByte>
 
@@ -530,17 +550,17 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V1 : NpcShipParser(before(VERSION_2_6_3)) {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 override val version: Version,
-                flags1: NpcFlags1,
-                flags2: NpcFlags2Old,
-                flags3: NpcFlags3,
-                flags4: NpcFlags4,
+                override val flags1: NpcFlags1,
+                override val flags2: NpcFlags2Old,
+                override val flags3: NpcFlags3,
+                override val flags4: NpcFlags4,
                 private val flags5: NpcFlags5Old,
                 private val flags6: NpcFlags6Old,
-            ) : NpcData(objectID, flags1, flags2, flags3, flags4) {
+            ) : NpcData() {
                 override val allFlagBytes: Array<AnyFlagByte> =
                     arrayOf(flags1, flags2, flags3, flags4, flags5, flags6)
                 override val inNebulaFlag: Flag<Short> = flags2.flag8
@@ -648,18 +668,18 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V2 : NpcShipParser(between(VERSION_2_6_3, VERSION_2_7_0)) {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 override val version: Version,
-                flags1: NpcFlags1,
-                flags2: NpcFlags2Old,
-                flags3: NpcFlags3,
-                flags4: NpcFlags4,
+                override val flags1: NpcFlags1,
+                override val flags2: NpcFlags2Old,
+                override val flags3: NpcFlags3,
+                override val flags4: NpcFlags4,
                 private val flags5: NpcFlags5New,
                 private val flags6: NpcFlags6New,
                 private val flags7: NpcFlags7,
-            ) : NpcData(objectID, flags1, flags2, flags3, flags4) {
+            ) : NpcData() {
                 override val allFlagBytes: Array<AnyFlagByte> =
                     arrayOf(flags1, flags2, flags3, flags4, flags5, flags6, flags7)
                 override val inNebulaFlag: Flag<Short> = flags2.flag8
@@ -765,18 +785,18 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V3 : NpcShipParser(since(VERSION_2_7_0)) {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 override val version: Version,
-                flags1: NpcFlags1,
-                flags2: NpcFlags2New,
-                flags3: NpcFlags3,
-                flags4: NpcFlags4,
+                override val flags1: NpcFlags1,
+                override val flags2: NpcFlags2New,
+                override val flags3: NpcFlags3,
+                override val flags4: NpcFlags4,
                 private val flags5: NpcFlags5New,
                 private val flags6: NpcFlags6New,
                 private val flags7: NpcFlags7,
-            ) : NpcData(objectID, flags1, flags2, flags3, flags4) {
+            ) : NpcData() {
                 override val allFlagBytes: Array<AnyFlagByte> =
                     arrayOf(flags1, flags2, flags3, flags4, flags5, flags6, flags7)
                 override val inNebulaFlag: Flag<Byte> = flags2.flag8
@@ -929,53 +949,79 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
     sealed class PlayerShipParser(override val specName: String, val versionArb: Arb<Version>) :
         ObjectParserTestConfig(true) {
-        sealed class Data
-        private constructor(
-            objectID: Int,
-            override val version: Version,
-            private val flags1: PlayerFlags1,
-            private val flags2: PlayerFlags2,
-            private val flags3: PlayerFlags3,
-            private val flags4: PlayerFlags4,
-            private val flags5: PlayerFlags5,
-            private val flags6: PlayerFlags6,
-        ) :
-            ObjectParserData.Real<ArtemisPlayer>(
-                objectID,
-                ArtemisPlayer::class,
-                ObjectType.PLAYER_SHIP,
-            ) {
-            private val impulseFlag: Flag<Float> = flags1.flag2
-            private val warpFlag: Flag<Byte> = flags1.flag7
-            private val hullIdFlag: Flag<Int> = flags2.flag3
-            private val xFlag: Flag<Float> = flags2.flag4
-            private val yFlag: Flag<Float> = flags2.flag5
-            private val zFlag: Flag<Float> = flags2.flag6
-            private val nameFlag: Flag<String> = flags3.flag4
-            private val shieldsFrontFlag: Flag<Float> = flags3.flag5
-            private val maxShieldsFrontFlag: Flag<Float> = flags3.flag6
-            private val shieldsRearFlag: Flag<Float> = flags3.flag7
-            private val maxShieldsRearFlag: Flag<Float> = flags3.flag8
-            private val dockingBaseFlag: Flag<Int> = flags4.flag1
-            private val alertStatusFlag: Flag<AlertStatus> = flags4.flag2
-            private val driveTypeFlag: Flag<DriveType> = flags5.flag1
-            private val sideFlag: Flag<Byte> = flags5.flag6
-            private val shipIndexFlag: Flag<Byte> = flags5.flag8
-            private val capitalShipFlag: Flag<Int> = flags6.flag1
+        sealed class Data private constructor() :
+            ObjectParserData.Real<ArtemisPlayer>(ArtemisPlayer::class, ObjectType.PLAYER_SHIP) {
+            internal abstract val flags1: PlayerFlags1
+            internal abstract val flags2: PlayerFlags2
+            internal abstract val flags3: PlayerFlags3
+            internal abstract val flags4: PlayerFlags4
+            internal abstract val flags5: PlayerFlags5
+            internal abstract val flags6: PlayerFlags6
+
+            private val impulseFlag: Flag<Float>
+                get() = flags1.flag2
+
+            private val warpFlag: Flag<Byte>
+                get() = flags1.flag7
+
+            private val hullIdFlag: Flag<Int>
+                get() = flags2.flag3
+
+            private val xFlag: Flag<Float>
+                get() = flags2.flag4
+
+            private val yFlag: Flag<Float>
+                get() = flags2.flag5
+
+            private val zFlag: Flag<Float>
+                get() = flags2.flag6
+
+            private val nameFlag: Flag<String>
+                get() = flags3.flag4
+
+            private val shieldsFrontFlag: Flag<Float>
+                get() = flags3.flag5
+
+            private val maxShieldsFrontFlag: Flag<Float>
+                get() = flags3.flag6
+
+            private val shieldsRearFlag: Flag<Float>
+                get() = flags3.flag7
+
+            private val maxShieldsRearFlag: Flag<Float>
+                get() = flags3.flag8
+
+            private val dockingBaseFlag: Flag<Int>
+                get() = flags4.flag1
+
+            private val alertStatusFlag: Flag<AlertStatus>
+                get() = flags4.flag2
+
+            private val driveTypeFlag: Flag<DriveType>
+                get() = flags5.flag1
+
+            private val sideFlag: Flag<Byte>
+                get() = flags5.flag6
+
+            private val shipIndexFlag: Flag<Byte>
+                get() = flags5.flag8
+
+            private val capitalShipFlag: Flag<Int>
+                get() = flags6.flag1
 
             internal abstract val nebulaTypeFlag: Flag<out Number>
 
-            class Old
+            data class Old
             internal constructor(
-                objectID: Int,
-                version: Version,
-                flags1: PlayerFlags1,
-                flags2: PlayerFlags2,
-                flags3: PlayerFlags3Old,
-                flags4: PlayerFlags4,
-                flags5: PlayerFlags5,
-                flags6: PlayerFlags6,
-            ) : Data(objectID, version, flags1, flags2, flags3, flags4, flags5, flags6) {
+                override val objectID: Int,
+                override val version: Version,
+                override val flags1: PlayerFlags1,
+                override val flags2: PlayerFlags2,
+                override val flags3: PlayerFlags3Old,
+                override val flags4: PlayerFlags4,
+                override val flags5: PlayerFlags5,
+                override val flags6: PlayerFlags6,
+            ) : Data() {
                 override val nebulaTypeFlag: Flag<Short> = flags3.flag3
 
                 override fun Sink.writeNebulaTypeFlag() {
@@ -983,17 +1029,17 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 }
             }
 
-            class New
+            data class New
             internal constructor(
-                objectID: Int,
-                version: Version,
-                flags1: PlayerFlags1,
-                flags2: PlayerFlags2,
-                flags3: PlayerFlags3New,
-                flags4: PlayerFlags4,
-                flags5: PlayerFlags5,
-                flags6: PlayerFlags6,
-            ) : Data(objectID, version, flags1, flags2, flags3, flags4, flags5, flags6) {
+                override val objectID: Int,
+                override val version: Version,
+                override val flags1: PlayerFlags1,
+                override val flags2: PlayerFlags2,
+                override val flags3: PlayerFlags3New,
+                override val flags4: PlayerFlags4,
+                override val flags5: PlayerFlags5,
+                override val flags6: PlayerFlags6,
+            ) : Data() {
                 override val nebulaTypeFlag: Flag<Byte> = flags3.flag3
 
                 override fun Sink.writeNebulaTypeFlag() {
@@ -1280,9 +1326,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object UpgradesParser : ObjectParserTestConfig(true) {
-        class Data
+        data class Data
         internal constructor(
-            objectID: Int,
+            override val objectID: Int,
             private val a1: UpgradesByteFlags,
             private val a2: UpgradesByteFlags,
             private val a3: UpgradesByteFlags,
@@ -1294,12 +1340,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             private val t2: UpgradesShortFlags,
             private val t3: UpgradesShortFlags,
             private val t4: UpgradesEndFlags,
-        ) :
-            ObjectParserData.Real<ArtemisPlayer>(
-                objectID,
-                ArtemisPlayer::class,
-                ObjectType.UPGRADES,
-            ) {
+        ) : ObjectParserData.Real<ArtemisPlayer>(ArtemisPlayer::class, ObjectType.UPGRADES) {
             override val version: Version = Version.DEFAULT
 
             private val activeFlag: Flag<Byte> = a2.flag1
@@ -1426,13 +1467,8 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
             }
         }
 
-        abstract class WeaponsData
-        internal constructor(objectID: Int, override val version: Version) :
-            ObjectParserData.Real<ArtemisPlayer>(
-                objectID,
-                ArtemisPlayer::class,
-                ObjectType.WEAPONS_CONSOLE,
-            ) {
+        abstract class WeaponsData internal constructor() :
+            ObjectParserData.Real<ArtemisPlayer>(ArtemisPlayer::class, ObjectType.WEAPONS_CONSOLE) {
             internal abstract val countFlags: Array<Flag<Byte>>
             internal abstract val unknownFlag: Flag<Byte>
             internal abstract val timeFlags: Array<Flag<Float>>
@@ -1492,14 +1528,14 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V1 : WeaponsParser(before(VERSION_2_6_3)) {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
-                version: Version,
-                flags1: WeaponsV1Flags1,
-                flags2: WeaponsV1Flags2,
-                flags3: WeaponsV1Flags3,
-            ) : WeaponsData(objectID, version) {
+                override val objectID: Int,
+                override val version: Version,
+                private val flags1: WeaponsV1Flags1,
+                private val flags2: WeaponsV1Flags2,
+                private val flags3: WeaponsV1Flags3,
+            ) : WeaponsData() {
                 override val countFlags: Array<Flag<Byte>> =
                     arrayOf(flags1.flag1, flags1.flag2, flags1.flag3, flags1.flag4, flags1.flag5)
 
@@ -1601,15 +1637,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V2 : WeaponsParser(since(VERSION_2_6_3)) {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
-                version: Version,
-                flags1: WeaponsV2Flags1,
-                flags2: WeaponsV2Flags2,
-                flags3: WeaponsV2Flags3,
-                flags4: WeaponsV2Flags4,
-            ) : WeaponsData(objectID, version) {
+                override val objectID: Int,
+                override val version: Version,
+                private val flags1: WeaponsV2Flags1,
+                private val flags2: WeaponsV2Flags2,
+                private val flags3: WeaponsV2Flags3,
+                private val flags4: WeaponsV2Flags4,
+            ) : WeaponsData() {
                 override val countFlags: Array<Flag<Byte>> =
                     arrayOf(
                         flags1.flag1,
@@ -1719,13 +1755,13 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
     sealed class Unobserved : ObjectParserTestConfig(false) {
         data object Engineering : Unobserved() {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 private val heatFlags: EngineeringFloatFlags,
                 private val enFlags: EngineeringFloatFlags,
                 private val coolFlags: EngineeringByteFlags,
-            ) : ObjectParserData.Unobserved(objectID, ObjectType.ENGINEERING_CONSOLE) {
+            ) : ObjectParserData.Unobserved(ObjectType.ENGINEERING_CONSOLE) {
                 override val version: Version
                     get() = Version.DEFAULT
 
@@ -1783,12 +1819,12 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         sealed class Anomaly(override val specName: String, versionArb: Arb<Version>) :
             Unobserved() {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 override val version: Version,
                 private val flags: AnomalyFlags,
-            ) : ObjectParserData.Unobserved(objectID, ObjectType.ANOMALY) {
+            ) : ObjectParserData.Unobserved(ObjectType.ANOMALY) {
                 override fun Sink.buildObject() {
                     val beaconVersion = version >= Version.BEACON
 
@@ -1845,12 +1881,12 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         sealed class Nebula(override val specName: String, versionArb: Arb<Version>) :
             Unobserved() {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 override val version: Version,
                 private val flags: NebulaFlags,
-            ) : ObjectParserData.Unobserved(objectID, ObjectType.NEBULA) {
+            ) : ObjectParserData.Unobserved(ObjectType.NEBULA) {
                 override fun Sink.buildObject() {
                     writeFlagBytes(flags)
 
@@ -1895,8 +1931,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object Torpedo : Unobserved() {
-            class Data internal constructor(objectID: Int, private val flags: TorpedoFlags) :
-                ObjectParserData.Unobserved(objectID, ObjectType.TORPEDO) {
+            data class Data
+            internal constructor(override val objectID: Int, private val flags: TorpedoFlags) :
+                ObjectParserData.Unobserved(ObjectType.TORPEDO) {
                 override val version: Version
                     get() = Version.DEFAULT
 
@@ -1935,8 +1972,9 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object Asteroid : Unobserved() {
-            class Data internal constructor(objectID: Int, private val flags: AsteroidFlags) :
-                ObjectParserData.Unobserved(objectID, ObjectType.ASTEROID) {
+            data class Data
+            internal constructor(override val objectID: Int, private val flags: AsteroidFlags) :
+                ObjectParserData.Unobserved(ObjectType.ASTEROID) {
                 override val version: Version
                     get() = Version.DEFAULT
 
@@ -1958,15 +1996,15 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         sealed class GenericMesh(override val specName: String, versionArb: Arb<Version>) :
             Unobserved() {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 override val version: Version,
                 private val flags1: GenericMeshFlags1,
                 private val flags2: GenericMeshFlags2,
                 private val flags3: GenericMeshFlags3,
                 private val flags4: GenericMeshFlags4,
-            ) : ObjectParserData.Unobserved(objectID, ObjectType.GENERIC_MESH) {
+            ) : ObjectParserData.Unobserved(ObjectType.GENERIC_MESH) {
                 override fun Sink.buildObject() {
                     writeFlagBytes(flags1, flags2, flags3, flags4)
 
@@ -2053,12 +2091,12 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object Drone : Unobserved() {
-            class Data
+            data class Data
             internal constructor(
-                objectID: Int,
+                override val objectID: Int,
                 private val flags1: DroneFlags1,
                 private val flags2: DroneFlags2,
-            ) : ObjectParserData.Unobserved(objectID, ObjectType.DRONE) {
+            ) : ObjectParserData.Unobserved(ObjectType.DRONE) {
                 override val version: Version
                     get() = Version.DEFAULT
 

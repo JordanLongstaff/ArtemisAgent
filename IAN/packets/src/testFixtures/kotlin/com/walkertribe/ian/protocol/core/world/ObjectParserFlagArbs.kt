@@ -1,3 +1,5 @@
+@file:Suppress("LongParameterList")
+
 package com.walkertribe.ian.protocol.core.world
 
 import io.kotest.property.Arb

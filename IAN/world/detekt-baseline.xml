@@ -4,7 +4,5 @@
   <CurrentIssues>
     <ID>LongParameterList:ObjectTestHelpers.kt$( id: Int, type: ObjectType, name: String, x: Float, y: Float, z: Float, hullId: Int, shieldsFront: Float, shieldsFrontMax: Float, )</ID>
     <ID>LongParameterList:ObjectTestHelpers.kt$( id: Int, type: ObjectType, name: String, x: Float, y: Float, z: Float, hullId: Int, shieldsFront: Float, shieldsFrontMax: Float, shieldsRear: Float, shieldsRearMax: Float, impulse: Float, side: Byte, )</ID>
-    <ID>LongParameterList:ObjectTestSuite.kt$ObjectTestSuite.Npc.Properties$( private val name: String, private val shields: Pair&lt;ShieldStrength, ShieldStrength&gt;, private val hullId: Int, private val impulse: Float, private val isEnemy: BoolState, private val isSurrendered: BoolState, private val inNebula: BoolState, private val scanBits: Int, private val side: Byte, location: Location, )</ID>
-    <ID>LongParameterList:ObjectTestSuite.kt$ObjectTestSuite.Player.Properties$( private val name: String, private val shields: Pair&lt;ShieldStrength, ShieldStrength&gt;, private val hullId: Int, private val impulse: Float, private val side: Byte, private val shipIndex: Byte, private val capitalShipID: Int, private val enumStates: Pair&lt;AlertStatus, DriveType&gt;, private val warp: Byte, private val dockingBase: Int, private val doubleAgentStatus: Triple&lt;BoolState, Byte, Int&gt;, location: Location, private val ordnanceCounts: List&lt;Byte&gt;, private val tubes: List&lt;Pair&lt;TubeState, OrdnanceType&gt;&gt;, )</ID>
   </CurrentIssues>
 </SmellBaseline>
