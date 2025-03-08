@@ -10,6 +10,7 @@ import artemis.agent.UserSettingsOuterClass.UserSettings
 import artemis.agent.cpu.BiomechManager
 import artemis.agent.cpu.CPU
 import artemis.agent.cpu.EnemiesManager
+import artemis.agent.cpu.MiscManager
 import artemis.agent.cpu.RoutingGraph
 import artemis.agent.cpu.RoutingGraph.Companion.calculateRouteCost
 import artemis.agent.cpu.VesselDataManager
@@ -18,8 +19,6 @@ import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
 import artemis.agent.game.WarStatus
 import artemis.agent.game.allies.AllySorter
-import artemis.agent.game.misc.AudioEntry
-import artemis.agent.game.misc.CommsActionEntry
 import artemis.agent.game.missions.RewardType
 import artemis.agent.game.missions.SideMissionEntry
 import artemis.agent.game.route.RouteEntry
@@ -33,7 +32,6 @@ import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
 import artemis.agent.util.TimerText.timerString
 import com.walkertribe.ian.enums.AlertStatus
-import com.walkertribe.ian.enums.AudioMode
 import com.walkertribe.ian.enums.Console
 import com.walkertribe.ian.enums.GameType
 import com.walkertribe.ian.enums.ObjectType
@@ -51,9 +49,7 @@ import com.walkertribe.ian.protocol.core.GameStartPacket
 import com.walkertribe.ian.protocol.core.JumpEndPacket
 import com.walkertribe.ian.protocol.core.PausePacket
 import com.walkertribe.ian.protocol.core.PlayerShipDamagePacket
-import com.walkertribe.ian.protocol.core.comm.CommsButtonPacket
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
-import com.walkertribe.ian.protocol.core.comm.IncomingAudioPacket
 import com.walkertribe.ian.protocol.core.setup.AllShipSettingsPacket
 import com.walkertribe.ian.protocol.core.setup.ReadyPacket
 import com.walkertribe.ian.protocol.core.setup.SetConsolePacket
@@ -78,7 +74,6 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -101,7 +96,9 @@ class AgentViewModel(application: Application) :
     // Connection status
     val networkInterface: ArtemisNetworkInterface by lazy {
         KtorArtemisNetworkInterface(maxVersion = if (BuildConfig.DEBUG) null else maxVersion).also {
-            it.addListeners(listeners + cpu.listeners + biomechManager.listeners)
+            it.addListeners(
+                listeners + cpu.listeners + biomechManager.listeners + miscManager.listeners
+            )
         }
     }
 
@@ -183,15 +180,7 @@ class AgentViewModel(application: Application) :
     val enemyStationsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     // Miscellaneous Comms actions
-    val miscActionsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-    val miscAudioExists: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-    val commsActionSet = CopyOnWriteArraySet<CommsActionEntry>()
-    val commsAudioSet = CopyOnWriteArraySet<AudioEntry>()
-    val miscActions: MutableStateFlow<List<CommsActionEntry>> by lazy {
-        MutableStateFlow(emptyList())
-    }
-    val miscAudio: MutableStateFlow<List<AudioEntry>> by lazy { MutableStateFlow(emptyList()) }
-    val showingAudio: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
+    val miscManager = MiscManager()
 
     // Current player ship data
     val shipIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(-1) }
@@ -376,7 +365,6 @@ class AgentViewModel(application: Application) :
 
     // Page flash variables
     var missionUpdate: Boolean = false
-    private var miscUpdate: Boolean = false
 
     // Setup fragment page
     val setupFragmentPage: MutableStateFlow<SetupFragment.Page> by lazy {
@@ -669,13 +657,6 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    /** Dismisses an audio message. */
-    fun dismissAudio(entry: AudioEntry) {
-        if (commsAudioSet.remove(entry)) {
-            miscAudio.value = commsAudioSet.toList()
-        }
-    }
-
     /** When a server is discovered via UDP, adds it to the current list of discovered servers. */
     override suspend fun onDiscovered(server: Server) {
         val servers = discoveredServers.value.toMutableList()
@@ -697,7 +678,6 @@ class AgentViewModel(application: Application) :
         }
         graph = null
         missionUpdate = false
-        miscUpdate = false
         isBorderWarPossible = false
         isDeepStrikePossible = false
         cpu.clear()
@@ -720,18 +700,13 @@ class AgentViewModel(application: Application) :
         stationsRemain.value = false
         enemiesManager.reset()
         biomechManager.reset()
-        commsActionSet.clear()
-        commsAudioSet.clear()
-        miscActions.value = emptyList()
-        miscAudio.value = emptyList()
+        miscManager.reset()
         onPlayerShipDisposed()
         missionsExist = false
         alliesExist = false
         stationsExist.value = false
         enemyStationsExist.value = false
         stationName.value = ""
-        miscActionsExist.value = false
-        miscAudioExists.value = false
         cpu.launch { updateObjects() }
     }
 
@@ -839,7 +814,7 @@ class AgentViewModel(application: Application) :
             GameFragment.Page.MISSIONS -> missionUpdate = false
             GameFragment.Page.ENEMIES -> enemiesManager.hasUpdate = false
             GameFragment.Page.BIOMECHS -> biomechManager.hasUpdate = false
-            GameFragment.Page.MISC -> miscUpdate = false
+            GameFragment.Page.MISC -> miscManager.hasUpdate = false
             else -> {}
         }
 
@@ -905,10 +880,7 @@ class AgentViewModel(application: Application) :
                             GameFragment.Page.BIOMECHS -> biomechManager.shouldFlash
                             GameFragment.Page.ROUTE ->
                                 false.takeIf { stationsExist.value && routingEnabled }
-                            GameFragment.Page.MISC ->
-                                miscUpdate.takeIf {
-                                    miscActionsExist.value || miscAudioExists.value
-                                }
+                            GameFragment.Page.MISC -> miscManager.shouldFlash
                         }?.also { pagesWithFlash[page] = it }
                     }
                 }
@@ -1113,37 +1085,6 @@ class AgentViewModel(application: Application) :
                     rootOpacity.value = 1f
                 }
         }
-    }
-
-    @Listener
-    fun onPacket(packet: IncomingAudioPacket) {
-        val audioMode = packet.audioMode
-        if (audioMode is AudioMode.Incoming) {
-            commsAudioSet.add(AudioEntry(packet.audioId, audioMode.title))
-            miscAudio.value = commsAudioSet.toList()
-            miscAudioExists.value = true
-            miscUpdate = true
-        }
-    }
-
-    @Listener
-    fun onPacket(packet: CommsButtonPacket) {
-        when (val action = packet.action) {
-            is CommsButtonPacket.Action.RemoveAll -> {
-                commsActionSet.clear()
-            }
-            is CommsButtonPacket.Action.Create -> {
-                commsActionSet.add(CommsActionEntry(action.label))
-                miscActionsExist.value = true
-                miscUpdate = true
-            }
-            is CommsButtonPacket.Action.Remove -> {
-                if (!commsActionSet.removeIf { it.label == action.label }) {
-                    return
-                }
-            }
-        }
-        miscActions.value = commsActionSet.toList()
     }
 
     @Listener
