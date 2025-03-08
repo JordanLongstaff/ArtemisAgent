@@ -329,18 +329,19 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun updateEnemy(update: ArtemisNpc): Boolean {
-        val entry = viewModel.enemies[update.id] ?: return false
+        val enemiesManager = viewModel.enemiesManager
+        val entry = enemiesManager.allEnemies[update.id] ?: return false
         val enemy = entry.enemy
 
         val wasSurrendered = enemy.isSurrendered.value.booleanValue
         val isSurrendered = update.isSurrendered.value.booleanValue
         update updates enemy
 
-        if (isSurrendered && viewModel.selectedEnemy.value?.enemy == enemy) {
-            viewModel.selectedEnemy.value = null
+        if (isSurrendered && enemiesManager.selection.value?.enemy == enemy) {
+            enemiesManager.selection.value = null
         } else if (update.isSurrendered.hasValue && !isSurrendered && wasSurrendered) {
-            viewModel.perfidiousEnemy.tryEmit(entry)
-            viewModel.enemiesUpdate = true
+            enemiesManager.perfidy.tryEmit(entry)
+            enemiesManager.hasUpdate = true
         }
 
         return true
@@ -350,7 +351,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     fun onIntel(packet: IntelPacket) {
         if (packet.intelType != IntelType.LEVEL_2_SCAN) return
 
-        val enemy = viewModel.enemies[packet.id] ?: return
+        val enemy = viewModel.enemiesManager.allEnemies[packet.id] ?: return
         val taunts = enemy.faction.taunts
 
         val intel = packet.intel
@@ -401,24 +402,26 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun deleteEnemy(id: Int): ArtemisNpc? =
-        viewModel.enemies.remove(id)?.let { entry ->
-            val enemy = entry.enemy
-            viewModel.destroyedEnemyName.tryEmit(entry.fullName)
+        viewModel.enemiesManager.let { enemiesManager ->
+            enemiesManager.allEnemies.remove(id)?.let { entry ->
+                val enemy = entry.enemy
+                enemiesManager.destroyedEnemyName.tryEmit(entry.fullName)
 
-            val name = enemy.name.value
-            viewModel.allyShips.values
-                .filter { it.isAttacking && it.destination == name }
-                .forEach {
-                    it.isAttacking = false
-                    it.destination = null
+                val name = enemy.name.value
+                viewModel.allyShips.values
+                    .filter { it.isAttacking && it.destination == name }
+                    .forEach {
+                        it.isAttacking = false
+                        it.destination = null
+                    }
+                name?.also(enemiesManager.nameIndex::remove)
+
+                if (enemiesManager.selection.value == entry) {
+                    enemiesManager.selection.value = null
                 }
-            name?.also(viewModel.enemyNameIndex::remove)
 
-            if (viewModel.selectedEnemy.value == entry) {
-                viewModel.selectedEnemy.value = null
+                enemy
             }
-
-            enemy
         }
 
     private fun deleteAlly(id: Int): ArtemisNpc? =
@@ -474,9 +477,11 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                         }
                     }
                     faction[Faction.ENEMY] ->
-                        npc.name.value?.also {
-                            enemies[npc.id] = EnemyEntry(npc, vessel, faction, vesselData)
-                            enemyNameIndex[it] = npc.id
+                        npc.name.value?.also { name ->
+                            enemiesManager.addEnemy(
+                                EnemyEntry(npc, vessel, faction, vesselData),
+                                name,
+                            )
                         }
                 }
             } != null

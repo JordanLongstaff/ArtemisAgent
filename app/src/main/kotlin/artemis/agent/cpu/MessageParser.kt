@@ -19,14 +19,14 @@ import kotlinx.coroutines.launch
 sealed interface MessageParser {
     data object TauntResponse : MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
-            val enemyIndex = viewModel.enemyNameIndex[packet.sender] ?: return false
-            val enemy = viewModel.enemies[enemyIndex]
+            val enemiesManager = viewModel.enemiesManager
+            val enemy = enemiesManager.getEnemyByName(packet.sender) ?: return false
 
             val message = packet.message
             return when {
                 message.startsWith(TAUNTED) -> {
                     setEnemyStatus(enemy, TauntStatus.SUCCESSFUL)
-                    enemy?.apply { tauntCount++ }
+                    enemy.tauntCount++
                     true
                 }
                 message.startsWith(REUSED_TAUNT) -> {
@@ -34,11 +34,9 @@ sealed interface MessageParser {
                     true
                 }
                 message.startsWith(RADIO_SILENCE) -> {
-                    if (enemy != null) {
-                        enemy.tauntStatuses.fill(TauntStatus.INEFFECTIVE)
-                        if (viewModel.selectedEnemy.value == enemy) {
-                            viewModel.selectedEnemy.value = null
-                        }
+                    enemy.tauntStatuses.fill(TauntStatus.INEFFECTIVE)
+                    if (enemiesManager.selection.value == enemy) {
+                        enemiesManager.selection.value = null
                     }
                     true
                 }
@@ -46,8 +44,8 @@ sealed interface MessageParser {
             }
         }
 
-        private fun setEnemyStatus(enemy: EnemyEntry?, status: TauntStatus) {
-            val taunt = enemy?.lastTaunt ?: return
+        private fun setEnemyStatus(enemy: EnemyEntry, status: TauntStatus) {
+            val taunt = enemy.lastTaunt ?: return
             enemy.tauntStatuses[taunt.ordinal - 1] = status
             enemy.lastTaunt = null
         }
@@ -652,7 +650,7 @@ sealed interface MessageParser {
 
             viewModel.allyShipIndex[packet.sender]?.let(viewModel.allyShips::get)?.apply {
                 val nearestEnemy =
-                    viewModel.enemies.values
+                    viewModel.enemiesManager.allEnemies.values
                         .map { it.enemy }
                         .minByOrNull { it.horizontalDistanceSquaredTo(obj) }
                 destination = nearestEnemy?.run { name.value }

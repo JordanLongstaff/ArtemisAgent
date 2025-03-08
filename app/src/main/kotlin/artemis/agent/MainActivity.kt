@@ -306,11 +306,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupEnemyNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedEnemyName) {
+                val enemiesManager = viewModel.enemiesManager
+
+                service.collectLatestWhileStarted(enemiesManager.destroyedEnemyName) {
                     notificationManager.dismissPerfidyMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.perfidiousEnemy) { entry ->
+                service.collectLatestWhileStarted(enemiesManager.perfidy) { entry ->
                     buildNotification(
                         info =
                             NotificationInfo(

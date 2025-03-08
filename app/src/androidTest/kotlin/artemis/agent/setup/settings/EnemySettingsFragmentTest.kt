@@ -38,10 +38,11 @@ class EnemySettingsFragmentTest {
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
-            val enemySorter = viewModel.enemySorter
+            val enemiesManager = viewModel.enemiesManager
+            val enemySorter = enemiesManager.sorter
 
-            enemiesEnabled.lazySet(viewModel.enemiesEnabled)
-            viewModel.maxSurrenderDistance?.also { maxSurrenderRange.lazySet(it.toInt()) }
+            enemiesEnabled.lazySet(enemiesManager.enabled)
+            enemiesManager.maxSurrenderDistance?.also { maxSurrenderRange.lazySet(it.toInt()) }
 
             booleanArrayOf(
                     enemySorter.sortBySurrendered,
@@ -53,9 +54,9 @@ class EnemySettingsFragmentTest {
                 .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
 
             booleanArrayOf(
-                    viewModel.showEnemyIntel,
-                    viewModel.showTauntStatuses,
-                    viewModel.disableIneffectiveTaunts,
+                    enemiesManager.showIntel,
+                    enemiesManager.showTauntStatuses,
+                    enemiesManager.disableIneffectiveTaunts,
                 )
                 .forEachIndexed { index, toggle -> toggleSettings[index].lazySet(toggle) }
         }

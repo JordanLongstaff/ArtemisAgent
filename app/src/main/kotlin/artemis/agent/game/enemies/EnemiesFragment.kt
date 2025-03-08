@@ -50,7 +50,9 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         tauntListView.itemAnimator = null
         tauntListView.adapter = tauntsAdapter
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemy) { enemy ->
+        val enemiesManager = viewModel.enemiesManager
+
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.selection) { enemy ->
             var backgroundColor: Int = Color.TRANSPARENT
             val visibility =
                 when {
@@ -70,34 +72,34 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
             binding.tauntList.visibility = visibility
 
             binding.enemyIntelLabel.visibility =
-                if (viewModel.showEnemyIntel) visibility else View.GONE
+                if (viewModel.enemiesManager.showIntel) visibility else View.GONE
 
             binding.selectedEnemyLabel.setBackgroundColor(backgroundColor)
             binding.enemyIntelLabel.setBackgroundColor(backgroundColor)
             binding.tauntList.setBackgroundColor(backgroundColor)
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.enemyIntel) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.intel) {
             binding.enemyIntelLabel.text = it ?: context.getText(R.string.enemy_status_no_intel)
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemyIndex) { index ->
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.selectionIndex) { index ->
             binding.selectedEnemyLabel.setOnClickListener {
                 if (index >= 0) binding.enemyList.scrollToPosition(index)
             }
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.displayedEnemies) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.displayedEnemies) {
             enemyAdapter.onEnemiesUpdate(it)
 
             binding.noEnemiesLabel.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.enemyCategories) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.categories) {
             categoryAdapter.onCategoriesUpdate(it)
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.enemyTaunts) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.taunts) {
             tauntsAdapter.onTauntsUpdate(it)
         }
     }
@@ -137,6 +139,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
                 val context = root.context
                 val entry = enemies[position]
                 val enemy = entry.enemy
+                val enemiesManager = viewModel.enemiesManager
 
                 root.setBackgroundColor(entry.getBackgroundColor(context))
 
@@ -163,7 +166,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
                         View.GONE
                     } else {
                         enemySurrenderButton.isEnabled =
-                            viewModel.maxSurrenderDistance?.let { entry.range < it } != false
+                            enemiesManager.maxSurrenderDistance?.let { entry.range < it } != false
                         enemySurrenderButton.setOnClickListener {
                             viewModel.playSound(SoundEffect.BEEP_2)
                             viewModel.sendToServer(
@@ -176,7 +179,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
                         }
 
                         val enemyToTaunt =
-                            if (viewModel.selectedEnemy.value?.enemy == enemy) {
+                            if (enemiesManager.selection.value?.enemy == enemy) {
                                 enemyTauntButton.setText(R.string.cancel)
                                 null
                             } else {
@@ -186,8 +189,8 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
 
                         enemyTauntButton.setOnClickListener {
                             viewModel.playSound(SoundEffect.BEEP_1)
-                            viewModel.selectedEnemy.value = enemyToTaunt
-                            viewModel.refreshEnemyTaunts()
+                            enemiesManager.selection.value = enemyToTaunt
+                            enemiesManager.refreshTaunts()
                         }
 
                         View.VISIBLE
@@ -278,12 +281,13 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
             if (position >= taunts.size) return
 
             val (taunt, status) = taunts[position]
+            val enemiesManager = viewModel.enemiesManager
 
             with(holder.tauntBinding) {
                 tauntLabel.text = taunt.text
 
                 statusLabel.visibility =
-                    if (viewModel.showTauntStatuses) {
+                    if (enemiesManager.showTauntStatuses) {
                         statusLabel.text = status.name
                         View.VISIBLE
                     } else {
@@ -291,17 +295,17 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
                     }
 
                 sendButton.isEnabled =
-                    !viewModel.disableIneffectiveTaunts || status != TauntStatus.INEFFECTIVE
+                    !enemiesManager.disableIneffectiveTaunts || status != TauntStatus.INEFFECTIVE
                 sendButton.setOnClickListener {
                     viewModel.playSound(SoundEffect.BEEP_2)
-                    viewModel.selectedEnemy.value?.also { enemy ->
+                    enemiesManager.selection.value?.also { enemy ->
                         val tauntMessage = EnemyMessage.entries[position + 1]
                         viewModel.sendToServer(
                             CommsOutgoingPacket(enemy.enemy, tauntMessage, viewModel.vesselData)
                         )
                         enemy.lastTaunt = tauntMessage
                     }
-                    viewModel.selectedEnemy.value = null
+                    enemiesManager.selection.value = null
                 }
             }
         }

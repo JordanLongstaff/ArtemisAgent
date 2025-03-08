@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
 import artemis.agent.cpu.CPU
+import artemis.agent.cpu.EnemiesManager
 import artemis.agent.cpu.RoutingGraph
 import artemis.agent.cpu.RoutingGraph.Companion.calculateRouteCost
 import artemis.agent.cpu.VesselDataManager
@@ -19,10 +20,6 @@ import artemis.agent.game.allies.AllySorter
 import artemis.agent.game.biomechs.BiomechEntry
 import artemis.agent.game.biomechs.BiomechRageStatus
 import artemis.agent.game.biomechs.BiomechSorter
-import artemis.agent.game.enemies.EnemyEntry
-import artemis.agent.game.enemies.EnemySortCategory
-import artemis.agent.game.enemies.EnemySorter
-import artemis.agent.game.enemies.TauntStatus
 import artemis.agent.game.misc.AudioEntry
 import artemis.agent.game.misc.CommsActionEntry
 import artemis.agent.game.missions.RewardType
@@ -72,7 +69,6 @@ import com.walkertribe.ian.protocol.udp.Server
 import com.walkertribe.ian.protocol.udp.ServerDiscoveryRequester
 import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.util.Version
-import com.walkertribe.ian.vesseldata.Taunt
 import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.Artemis
 import com.walkertribe.ian.world.ArtemisBlackHole
@@ -362,32 +358,7 @@ class AgentViewModel(application: Application) :
     }
 
     // Enemy ship data
-    var enemiesEnabled: Boolean = true
-    val selectedEnemy: MutableStateFlow<EnemyEntry?> by lazy { MutableStateFlow(null) }
-    val selectedEnemyIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(-1) }
-    val displayedEnemies: MutableSharedFlow<List<EnemyEntry>> by lazy {
-        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val enemyCategories: MutableStateFlow<List<EnemySortCategory>> by lazy {
-        MutableStateFlow(emptyList())
-    }
-    val enemyTaunts: MutableStateFlow<List<Pair<Taunt, TauntStatus>>> by lazy {
-        MutableStateFlow(emptyList())
-    }
-    val enemyIntel: MutableStateFlow<String?> by lazy { MutableStateFlow(null) }
-    val perfidiousEnemy: MutableSharedFlow<EnemyEntry> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val destroyedEnemyName: MutableSharedFlow<String> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    var enemySorter = EnemySorter()
-    val enemyNameIndex = ConcurrentHashMap<String, Int>()
-    val enemies = ConcurrentHashMap<Int, EnemyEntry>()
-    var showTauntStatuses: Boolean = true
-    var showEnemyIntel: Boolean = true
-    var disableIneffectiveTaunts: Boolean = true
-    var maxSurrenderDistance: Float? = Float.MAX_VALUE
+    val enemiesManager = EnemiesManager()
 
     // Routing data
     var routingEnabled: Boolean = true
@@ -432,7 +403,6 @@ class AgentViewModel(application: Application) :
 
     // Page flash variables
     var missionUpdate: Boolean = false
-    var enemiesUpdate: Boolean = false
     var biomechUpdate: Boolean = false
     private var miscUpdate: Boolean = false
 
@@ -760,7 +730,6 @@ class AgentViewModel(application: Application) :
         }
         graph = null
         missionUpdate = false
-        enemiesUpdate = false
         biomechUpdate = false
         miscUpdate = false
         isBorderWarPossible = false
@@ -785,9 +754,7 @@ class AgentViewModel(application: Application) :
         stationsRemain.value = false
         scannedBiomechs.clear()
         unscannedBiomechs.clear()
-        enemies.clear()
-        enemyNameIndex.clear()
-        selectedEnemy.value = null
+        enemiesManager.reset()
         commsActionSet.clear()
         commsAudioSet.clear()
         miscActions.value = emptyList()
@@ -876,8 +843,9 @@ class AgentViewModel(application: Application) :
                     it.range = calculatePlayerRangeTo(it.obj)
                 }
 
-        val selectedEnemyEntry = selectedEnemy.value
-        val enemyShipList = enemies.values.filter { !it.vessel.isSingleseat }
+        val selectedEnemyEntry = enemiesManager.selection.value
+        val enemyShipList = enemiesManager.allEnemies.values.filter { !it.vessel.isSingleseat }
+        val enemySorter = enemiesManager.sorter
         val scannedEnemies =
             enemyShipList
                 .filter { playerShip?.let(it.enemy::hasBeenScannedBy)?.booleanValue == true }
@@ -907,7 +875,7 @@ class AgentViewModel(application: Application) :
 
         when (currentGamePage.value) {
             GameFragment.Page.MISSIONS -> missionUpdate = false
-            GameFragment.Page.ENEMIES -> enemiesUpdate = false
+            GameFragment.Page.ENEMIES -> enemiesManager.hasUpdate = false
             GameFragment.Page.BIOMECHS -> biomechUpdate = false
             GameFragment.Page.MISC -> miscUpdate = false
             else -> {}
@@ -971,8 +939,7 @@ class AgentViewModel(application: Application) :
                                     ?.any { it.isDamaged }
                             GameFragment.Page.MISSIONS ->
                                 missionUpdate.takeIf { missionsEnabled && missionsExist }
-                            GameFragment.Page.ENEMIES ->
-                                enemiesUpdate.takeIf { enemiesEnabled && enemies.isNotEmpty() }
+                            GameFragment.Page.ENEMIES -> enemiesManager.shouldFlash
                             GameFragment.Page.BIOMECHS ->
                                 biomechUpdate.takeIf { biomechsEnabled && biomechsExist }
                             GameFragment.Page.ROUTE ->
@@ -1002,13 +969,13 @@ class AgentViewModel(application: Application) :
         missions.tryEmit(missionList)
         livingAllies.tryEmit(allyShipList)
         enemyStations.tryEmit(enemyStationList)
-        displayedEnemies.tryEmit(scannedEnemies)
-        enemyCategories.tryEmit(enemyNavOptions)
+        enemiesManager.displayedEnemies.tryEmit(scannedEnemies)
+        enemiesManager.categories.tryEmit(enemyNavOptions)
         biomechs.tryEmit(biomechList)
 
-        refreshEnemyTaunts()
-        enemyIntel.value = selectedEnemyEntry?.intel
-        selectedEnemyIndex.tryEmit(
+        enemiesManager.refreshTaunts()
+        enemiesManager.intel.value = selectedEnemyEntry?.intel
+        enemiesManager.selectionIndex.tryEmit(
             selectedEnemyEntry?.let { entry ->
                 scannedEnemies.indexOfFirst { it.enemy == entry.enemy }
             } ?: -1
@@ -1116,12 +1083,6 @@ class AgentViewModel(application: Application) :
             it.cancel()
             updateJob = null
         }
-    }
-
-    fun refreshEnemyTaunts() {
-        val enemy = selectedEnemy.value
-
-        enemyTaunts.value = enemy?.run { faction.taunts.zip(tauntStatuses) }.orEmpty()
     }
 
     fun activateDoubleAgent() {
@@ -1378,20 +1339,7 @@ class AgentViewModel(application: Application) :
                 RouteTaskIncentive.HAS_ENERGY.takeIf { settings.routeHasEnergy },
             )
 
-        enemiesEnabled = settings.enemiesEnabled
-        enemySorter =
-            EnemySorter(
-                sortBySurrendered = settings.enemySortSurrendered,
-                sortByFaction = settings.enemySortFaction,
-                sortByFactionReversed = settings.enemySortFactionReversed,
-                sortByName = settings.enemySortName,
-                sortByDistance = settings.enemySortDistance,
-            )
-        maxSurrenderDistance =
-            settings.surrenderRange.toFloat().takeIf { settings.surrenderRangeEnabled }
-        showEnemyIntel = settings.showEnemyIntel
-        showTauntStatuses = settings.showTauntStatuses
-        disableIneffectiveTaunts = settings.disableIneffectiveTaunts
+        enemiesManager.updateFromSettings(settings)
 
         avoidBlackHoles = settings.avoidBlackHoles
         avoidMines = settings.avoidMines
@@ -1456,17 +1404,7 @@ class AgentViewModel(application: Application) :
             routingEnabled = this@AgentViewModel.routingEnabled
             routeMissions = routeIncludesMissions
 
-            enemiesEnabled = this@AgentViewModel.enemiesEnabled
-            enemySortSurrendered = enemySorter.sortBySurrendered
-            enemySortFaction = enemySorter.sortByFaction
-            enemySortFactionReversed = enemySorter.sortByFactionReversed
-            enemySortName = enemySorter.sortByName
-            enemySortDistance = enemySorter.sortByDistance
-            surrenderRangeEnabled =
-                maxSurrenderDistance?.also { surrenderRange = it.toInt() } != null
-            showEnemyIntel = this@AgentViewModel.showEnemyIntel
-            showTauntStatuses = this@AgentViewModel.showTauntStatuses
-            disableIneffectiveTaunts = this@AgentViewModel.disableIneffectiveTaunts
+            enemiesManager.revertSettings(this)
 
             val incentiveSettings =
                 mapOf(
