@@ -7,6 +7,7 @@ import androidx.annotation.StyleRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
+import artemis.agent.cpu.BiomechManager
 import artemis.agent.cpu.CPU
 import artemis.agent.cpu.EnemiesManager
 import artemis.agent.cpu.RoutingGraph
@@ -17,9 +18,6 @@ import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
 import artemis.agent.game.WarStatus
 import artemis.agent.game.allies.AllySorter
-import artemis.agent.game.biomechs.BiomechEntry
-import artemis.agent.game.biomechs.BiomechRageStatus
-import artemis.agent.game.biomechs.BiomechSorter
 import artemis.agent.game.misc.AudioEntry
 import artemis.agent.game.misc.CommsActionEntry
 import artemis.agent.game.missions.RewardType
@@ -62,7 +60,6 @@ import com.walkertribe.ian.protocol.core.setup.SetConsolePacket
 import com.walkertribe.ian.protocol.core.setup.SetShipPacket
 import com.walkertribe.ian.protocol.core.setup.Ship
 import com.walkertribe.ian.protocol.core.setup.VersionPacket
-import com.walkertribe.ian.protocol.core.world.BiomechRagePacket
 import com.walkertribe.ian.protocol.core.world.DeleteObjectPacket
 import com.walkertribe.ian.protocol.core.world.DockedPacket
 import com.walkertribe.ian.protocol.udp.Server
@@ -74,11 +71,9 @@ import com.walkertribe.ian.world.Artemis
 import com.walkertribe.ian.world.ArtemisBlackHole
 import com.walkertribe.ian.world.ArtemisCreature
 import com.walkertribe.ian.world.ArtemisMine
-import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
 import com.walkertribe.ian.world.ArtemisShielded
-import com.walkertribe.ian.world.Property
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListMap
@@ -87,7 +82,6 @@ import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -107,7 +101,7 @@ class AgentViewModel(application: Application) :
     // Connection status
     val networkInterface: ArtemisNetworkInterface by lazy {
         KtorArtemisNetworkInterface(maxVersion = if (BuildConfig.DEBUG) null else maxVersion).also {
-            it.addListeners(listeners + cpu.listeners)
+            it.addListeners(listeners + cpu.listeners + biomechManager.listeners)
         }
     }
 
@@ -185,7 +179,6 @@ class AgentViewModel(application: Application) :
 
     // Page activator data
     var alliesExist: Boolean = false
-    var biomechsExist: Boolean = false
     val stationsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val enemyStationsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
@@ -335,27 +328,7 @@ class AgentViewModel(application: Application) :
     val destroyedStations: MutableStateFlow<List<String>> by lazy { MutableStateFlow(emptyList()) }
 
     // Biomech data
-    var biomechsEnabled: Boolean = true
-    val biomechs: MutableSharedFlow<List<BiomechEntry>> by lazy {
-        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    var biomechSorter = BiomechSorter()
-    val scannedBiomechs = CopyOnWriteArrayList<BiomechEntry>()
-    val unscannedBiomechs = ConcurrentHashMap<Int, ArtemisNpc>()
-
-    // Biomech rage data
-    private val biomechRageProperty = Property.IntProperty(Long.MIN_VALUE)
-    val biomechRage: MutableStateFlow<BiomechRageStatus> by lazy {
-        MutableStateFlow(BiomechRageStatus.NEUTRAL)
-    }
-
-    // Biomech notification data
-    val nextActiveBiomech: MutableSharedFlow<BiomechEntry> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val destroyedBiomechName: MutableSharedFlow<String> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
+    val biomechManager = BiomechManager()
 
     // Enemy ship data
     val enemiesManager = EnemiesManager()
@@ -403,7 +376,6 @@ class AgentViewModel(application: Application) :
 
     // Page flash variables
     var missionUpdate: Boolean = false
-    var biomechUpdate: Boolean = false
     private var miscUpdate: Boolean = false
 
     // Setup fragment page
@@ -427,11 +399,6 @@ class AgentViewModel(application: Application) :
         set(value) {
             field = value
             ifConnected { networkInterface.setTimeout(field.seconds.inWholeMilliseconds) }
-        }
-
-    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.seconds.inWholeMilliseconds
-        set(value) {
-            field = value.seconds.inWholeMilliseconds
         }
 
     var autoDismissCompletedMissions: Boolean = true
@@ -730,7 +697,6 @@ class AgentViewModel(application: Application) :
         }
         graph = null
         missionUpdate = false
-        biomechUpdate = false
         miscUpdate = false
         isBorderWarPossible = false
         isDeepStrikePossible = false
@@ -752,19 +718,15 @@ class AgentViewModel(application: Application) :
         livingStations.clear()
         livingEnemyStations.clear()
         stationsRemain.value = false
-        scannedBiomechs.clear()
-        unscannedBiomechs.clear()
         enemiesManager.reset()
+        biomechManager.reset()
         commsActionSet.clear()
         commsAudioSet.clear()
         miscActions.value = emptyList()
         miscAudio.value = emptyList()
-        biomechRageProperty.value = 0
-        biomechRage.value = BiomechRageStatus.NEUTRAL
         onPlayerShipDisposed()
         missionsExist = false
         alliesExist = false
-        biomechsExist = false
         stationsExist.value = false
         enemyStationsExist.value = false
         stationName.value = ""
@@ -858,11 +820,11 @@ class AgentViewModel(application: Application) :
         val enemyNavOptions = enemySorter.buildCategoryMap(scannedEnemies)
 
         val biomechList =
-            if (biomechsEnabled) {
-                scannedBiomechs.sortedWith(biomechSorter).onEach {
-                    if (it.onFreezeTimeExpired(startTime - biomechFreezeTime)) {
-                        nextActiveBiomech.tryEmit(it)
-                        biomechUpdate = true
+            if (biomechManager.enabled) {
+                biomechManager.scanned.sortedWith(biomechManager.sorter).onEach {
+                    if (it.onFreezeTimeExpired(startTime - biomechManager.freezeTime)) {
+                        biomechManager.nextActiveBiomech.tryEmit(it)
+                        biomechManager.hasUpdate = true
                     }
                 }
             } else {
@@ -876,7 +838,7 @@ class AgentViewModel(application: Application) :
         when (currentGamePage.value) {
             GameFragment.Page.MISSIONS -> missionUpdate = false
             GameFragment.Page.ENEMIES -> enemiesManager.hasUpdate = false
-            GameFragment.Page.BIOMECHS -> biomechUpdate = false
+            GameFragment.Page.BIOMECHS -> biomechManager.hasUpdate = false
             GameFragment.Page.MISC -> miscUpdate = false
             else -> {}
         }
@@ -890,7 +852,7 @@ class AgentViewModel(application: Application) :
                 enemyStationList.size.takeIf { enemyStationsExist.value },
                 allyShipList.size.takeIf { alliesExist },
                 missionList.size.takeIf { missionsExist },
-                biomechList.size.takeIf { biomechsExist },
+                biomechList.size.takeIf { biomechManager.confirmed },
                 hostile.size,
                 surrendered.size.takeIf { it > 0 },
             )
@@ -940,8 +902,7 @@ class AgentViewModel(application: Application) :
                             GameFragment.Page.MISSIONS ->
                                 missionUpdate.takeIf { missionsEnabled && missionsExist }
                             GameFragment.Page.ENEMIES -> enemiesManager.shouldFlash
-                            GameFragment.Page.BIOMECHS ->
-                                biomechUpdate.takeIf { biomechsEnabled && biomechsExist }
+                            GameFragment.Page.BIOMECHS -> biomechManager.shouldFlash
                             GameFragment.Page.ROUTE ->
                                 false.takeIf { stationsExist.value && routingEnabled }
                             GameFragment.Page.MISC ->
@@ -971,7 +932,7 @@ class AgentViewModel(application: Application) :
         enemyStations.tryEmit(enemyStationList)
         enemiesManager.displayedEnemies.tryEmit(scannedEnemies)
         enemiesManager.categories.tryEmit(enemyNavOptions)
-        biomechs.tryEmit(biomechList)
+        biomechManager.allBiomechs.tryEmit(biomechList)
 
         enemiesManager.refreshTaunts()
         enemiesManager.intel.value = selectedEnemyEntry?.intel
@@ -1186,22 +1147,6 @@ class AgentViewModel(application: Application) :
     }
 
     @Listener
-    fun onPacket(packet: BiomechRagePacket) {
-        val newRage = Property.IntProperty(packet.timestamp)
-        newRage.value = packet.rage
-        newRage updates biomechRageProperty
-        biomechRage.value =
-            BiomechRageStatus[biomechRageProperty.value].also {
-                if (
-                    biomechRage.value == BiomechRageStatus.NEUTRAL &&
-                        it == BiomechRageStatus.HOSTILE
-                ) {
-                    biomechUpdate = true
-                }
-            }
-    }
-
-    @Listener
     fun onPacket(packet: DockedPacket) {
         players[packet.objectId]?.docked = BoolState.True
     }
@@ -1316,15 +1261,7 @@ class AgentViewModel(application: Application) :
         showAllySelector = settings.showDestroyedAllies
         manuallyReturnFromCommands = settings.allyCommandManualReturn
 
-        biomechsEnabled = settings.biomechsEnabled
-        biomechSorter =
-            BiomechSorter(
-                sortByClassFirst = settings.biomechSortClassFirst,
-                sortByStatus = settings.biomechSortStatus,
-                sortByClassSecond = settings.biomechSortClassSecond,
-                sortByName = settings.biomechSortName,
-            )
-        biomechFreezeTime = settings.freezeDurationSeconds.toLong()
+        biomechManager.updateFromSettings(settings)
 
         routingEnabled = settings.routingEnabled
         routeIncludesMissions = settings.routeMissions
@@ -1394,12 +1331,7 @@ class AgentViewModel(application: Application) :
             showDestroyedAllies = showAllySelector
             allyCommandManualReturn = manuallyReturnFromCommands
 
-            biomechsEnabled = this@AgentViewModel.biomechsEnabled
-            biomechSortClassFirst = biomechSorter.sortByClassFirst
-            biomechSortStatus = biomechSorter.sortByStatus
-            biomechSortClassSecond = biomechSorter.sortByClassSecond
-            biomechSortName = biomechSorter.sortByName
-            freezeDurationSeconds = biomechFreezeTime.milliseconds.inWholeSeconds.toInt()
+            biomechManager.revertSettings(this)
 
             routingEnabled = this@AgentViewModel.routingEnabled
             routeMissions = routeIncludesMissions
@@ -1439,7 +1371,6 @@ class AgentViewModel(application: Application) :
         private const val DEFAULT_SCAN_TIMEOUT = 5
         private const val DEFAULT_CONNECT_TIMEOUT = 9
         private const val DEFAULT_HEARTBEAT_TIMEOUT = 15L
-        private const val DEFAULT_FREEZE_TIME = 220
         private const val DEFAULT_COMPLETED_DISMISSAL = 3
 
         private const val DEFAULT_BLACK_HOLE_CLEARANCE = 500f

@@ -264,11 +264,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupBiomechNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedBiomechName) {
+                val biomechManager = viewModel.biomechManager
+
+                service.collectLatestWhileStarted(biomechManager.destroyedBiomechName) {
                     notificationManager.dismissBiomechMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.nextActiveBiomech) { entry ->
+                service.collectLatestWhileStarted(biomechManager.nextActiveBiomech) { entry ->
                     buildNotification(
                         info =
                             NotificationInfo(

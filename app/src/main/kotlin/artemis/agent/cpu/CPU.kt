@@ -306,27 +306,28 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun updateUnscannedBiomech(update: ArtemisNpc): Boolean {
-        val biomech = viewModel.unscannedBiomechs[update.id] ?: return false
+        val biomechManager = viewModel.biomechManager
+        val biomech = biomechManager.unscanned[update.id] ?: return false
         update updates biomech
 
         if (viewModel.playerShip?.let { update.hasBeenScannedBy(it).booleanValue } == true) {
-            viewModel.unscannedBiomechs.remove(biomech.id)
-            viewModel.scannedBiomechs.add(BiomechEntry(biomech))
+            biomechManager.unscanned.remove(biomech.id)
+            biomechManager.scanned.add(BiomechEntry(biomech))
         }
 
         return true
     }
 
-    private fun updateScannedBiomech(update: ArtemisNpc): Boolean {
-        val biomechEntry = viewModel.scannedBiomechs.find { it.biomech == update } ?: return false
-        update updates biomechEntry.biomech
+    private fun updateScannedBiomech(update: ArtemisNpc): Boolean =
+        viewModel.biomechManager.scanned
+            .find { it.biomech == update }
+            ?.also { biomechEntry ->
+                update updates biomechEntry.biomech
 
-        if (update.x.hasValue || update.y.hasValue || update.z.hasValue) {
-            biomechEntry.onFreezeEnd()
-        }
-
-        return true
-    }
+                if (update.x.hasValue || update.y.hasValue || update.z.hasValue) {
+                    biomechEntry.onFreezeEnd()
+                }
+            } != null
 
     private fun updateEnemy(update: ArtemisNpc): Boolean {
         val enemiesManager = viewModel.enemiesManager
@@ -383,16 +384,17 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun deleteBiomech(id: Int): ArtemisNpc? {
-        val unscannedBiomech = viewModel.unscannedBiomechs.remove(id)
+        val biomechManager = viewModel.biomechManager
+        val unscannedBiomech = biomechManager.unscanned.remove(id)
         if (unscannedBiomech != null) return unscannedBiomech
 
-        val biomechIndex = viewModel.scannedBiomechs.indexOfFirst { it.biomech.id == id }
+        val biomechIndex = biomechManager.scanned.indexOfFirst { it.biomech.id == id }
         return if (biomechIndex >= 0) {
-            val scannedBiomech = viewModel.scannedBiomechs.removeAt(biomechIndex)
-            viewModel.destroyedBiomechName.tryEmit(scannedBiomech.getFullName(viewModel))
+            val scannedBiomech = biomechManager.scanned.removeAt(biomechIndex)
+            biomechManager.destroyedBiomechName.tryEmit(scannedBiomech.getFullName(viewModel))
 
-            if (viewModel.scannedBiomechs.isEmpty()) {
-                viewModel.biomechUpdate = false
+            if (biomechManager.scanned.isEmpty()) {
+                biomechManager.hasUpdate = false
             }
 
             scannedBiomech.biomech
@@ -469,11 +471,11 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                             sendToServer(CommsOutgoingPacket(npc, OtherMessage.Hail, vesselData))
                         }
                     faction[Faction.BIOMECH] -> {
-                        biomechsExist = true
+                        biomechManager.confirmed = true
                         if (playerShip?.let { npc.hasBeenScannedBy(it).booleanValue } == true) {
-                            scannedBiomechs.add(BiomechEntry(npc))
+                            biomechManager.scanned.add(BiomechEntry(npc))
                         } else {
-                            unscannedBiomechs[npc.id] = npc
+                            biomechManager.unscanned[npc.id] = npc
                         }
                     }
                     faction[Faction.ENEMY] ->

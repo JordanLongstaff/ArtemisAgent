@@ -7,8 +7,6 @@
     <ID>CyclomaticComplexMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
     <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>LargeClass:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
-    <ID>LongMethod:AgentViewModel.kt$AgentViewModel$fun revertSettings(settings: UserSettings): UserSettings</ID>
-    <ID>LongMethod:AgentViewModel.kt$AgentViewModel$fun updateFromSettings(settings: UserSettings)</ID>
     <ID>LongMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
     <ID>LongMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>LoopWithTooManyJumpStatements:RoutingGraph.kt$RoutingGraph$while</ID>

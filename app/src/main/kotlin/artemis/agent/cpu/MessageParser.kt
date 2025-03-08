@@ -73,7 +73,7 @@ sealed interface MessageParser {
             if (!message.endsWith(SCRAMBLED)) return false
 
             val sender = packet.sender
-            viewModel.scannedBiomechs.apply {
+            viewModel.biomechManager.scanned.apply {
                 find { it.biomech.name.value == sender }?.also { it.onFreezeResponse() }
             }
             return true

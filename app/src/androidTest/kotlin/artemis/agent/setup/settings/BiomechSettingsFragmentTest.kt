@@ -33,7 +33,8 @@ class BiomechSettingsFragmentTest {
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
-            val biomechSorter = viewModel.biomechSorter
+            val biomechManager = viewModel.biomechManager
+            val biomechSorter = biomechManager.sorter
 
             booleanArrayOf(
                     biomechSorter.sortByClassFirst,
@@ -43,7 +44,7 @@ class BiomechSettingsFragmentTest {
                 )
                 .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
 
-            biomechsEnabled.lazySet(viewModel.biomechsEnabled)
+            biomechsEnabled.lazySet(biomechManager.enabled)
         }
 
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
