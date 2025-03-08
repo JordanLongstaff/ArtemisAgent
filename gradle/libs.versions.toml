@@ -57,7 +57,7 @@ play-services-tasks = "18.2.0"
 process-phoenix = "3.0.0"
 protobuf = "4.30.0"
 protobuf-plugin = "0.9.4"
-task-tree = "4.0.0"
+task-tree = "4.0.1"
 
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
