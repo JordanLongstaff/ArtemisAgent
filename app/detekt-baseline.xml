@@ -16,6 +16,5 @@
     <ID>ReturnCount:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>TooManyFunctions:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
     <ID>TooManyFunctions:CPU.kt$CPU : CoroutineScope</ID>
-    <ID>TooManyFunctions:MainActivity.kt$MainActivity : AppCompatActivity</ID>
   </CurrentIssues>
 </SmellBaseline>
