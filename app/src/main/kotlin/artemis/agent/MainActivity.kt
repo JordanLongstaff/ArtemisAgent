@@ -229,10 +229,13 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_GAME_INFO,
-                        title = viewModel.connectedUrl.value,
-                        message = strings.joinToString(),
-                        ongoing = true,
+                        info =
+                            NotificationInfo(
+                                channelId = NotificationManager.CHANNEL_GAME_INFO,
+                                title = viewModel.connectedUrl.value,
+                                message = strings.joinToString(),
+                                ongoing = true,
+                            ),
                         onIntent = { putExtra(Section.GAME.name, GAME_PAGE_UNSPECIFIED) },
                     )
                 }
@@ -242,13 +245,16 @@ class MainActivity : AppCompatActivity() {
 
                     allies.firstOrNull()?.also { ally ->
                         buildNotification(
-                            channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
-                            title = ally.fullName,
-                            message =
-                                if (viewModel.torpedoesReady)
-                                    getString(R.string.manufacturing_torpedoes_ready)
-                                else viewModel.getManufacturingTimer(this@MainActivity),
-                            ongoing = true,
+                            info =
+                                NotificationInfo(
+                                    channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
+                                    title = ally.fullName,
+                                    message =
+                                        if (viewModel.torpedoesReady)
+                                            getString(R.string.manufacturing_torpedoes_ready)
+                                        else viewModel.getManufacturingTimer(this@MainActivity),
+                                    ongoing = true,
+                                ),
                             onIntent = {
                                 putExtra(Section.GAME.name, GameFragment.Page.ALLIES.ordinal)
                             },
@@ -264,9 +270,12 @@ class MainActivity : AppCompatActivity() {
 
                 service.collectLatestWhileStarted(viewModel.nextActiveBiomech) { entry ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_REANIMATE,
-                        title = entry.getFullName(viewModel),
-                        message = getString(R.string.biomech_notification),
+                        info =
+                            NotificationInfo(
+                                channelId = NotificationManager.CHANNEL_REANIMATE,
+                                title = entry.getFullName(viewModel),
+                                message = getString(R.string.biomech_notification),
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.BIOMECHS.ordinal)
                         },
@@ -303,9 +312,12 @@ class MainActivity : AppCompatActivity() {
 
                 service.collectLatestWhileStarted(viewModel.perfidiousEnemy) { entry ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_PERFIDY,
-                        title = entry.fullName,
-                        message = getString(R.string.enemy_perfidy_notification),
+                        info =
+                            NotificationInfo(
+                                channelId = NotificationManager.CHANNEL_PERFIDY,
+                                title = entry.fullName,
+                                message = getString(R.string.enemy_perfidy_notification),
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.ENEMIES.ordinal)
                         },
@@ -316,9 +328,12 @@ class MainActivity : AppCompatActivity() {
             private fun setupGameNotifications(service: NotificationService) {
                 service.collectLatestWhileStarted(viewModel.borderWarMessage) { packet ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_BORDER_WAR,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channelId = NotificationManager.CHANNEL_BORDER_WAR,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = { putExtra(Section.GAME.name, GAME_PAGE_UNSPECIFIED) },
                     )
                 }
@@ -326,9 +341,12 @@ class MainActivity : AppCompatActivity() {
                 service.collectLatestWhileStarted(viewModel.gameOverReason) { reason ->
                     if (viewModel.gameIsRunning.value) return@collectLatestWhileStarted
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_GAME_OVER,
-                        title = viewModel.connectedUrl.value,
-                        message = reason,
+                        info =
+                            NotificationInfo(
+                                channelId = NotificationManager.CHANNEL_GAME_OVER,
+                                title = viewModel.connectedUrl.value,
+                                message = reason,
+                            ),
                         setBuilder = { notificationManager.reset() },
                     )
                 }
@@ -349,9 +367,12 @@ class MainActivity : AppCompatActivity() {
                             else -> return@collectLatestWhileStarted
                         }
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_CONNECTION,
-                        title = viewModel.connectedUrl.value,
-                        message = message,
+                        info =
+                            NotificationInfo(
+                                channelId = NotificationManager.CHANNEL_CONNECTION,
+                                title = viewModel.connectedUrl.value,
+                                message = message,
+                            ),
                         onIntent = {
                             putExtra(Section.SETUP.name, SetupFragment.Page.CONNECT.ordinal)
                         },
@@ -369,9 +390,12 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_CONNECTION,
-                        title = viewModel.lastAttemptedHost,
-                        message = message,
+                        info =
+                            NotificationInfo(
+                                channelId = NotificationManager.CHANNEL_CONNECTION,
+                                title = viewModel.lastAttemptedHost,
+                                message = message,
+                            ),
                         onIntent = {
                             val openPage =
                                 if (status is ConnectionStatus.Connected) SetupFragment.Page.SHIPS
@@ -389,9 +413,12 @@ class MainActivity : AppCompatActivity() {
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
-                        channelId = channelId,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channelId = channelId,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.MISSIONS.ordinal)
                         },
@@ -407,9 +434,12 @@ class MainActivity : AppCompatActivity() {
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
-                        channelId = channelId,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channelId = channelId,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = {
                             putExtra(
                                 GameFragment.Page.STATIONS.name,
@@ -423,10 +453,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun buildNotification(
-        channelId: String,
-        title: String,
-        message: String,
-        ongoing: Boolean = false,
+        info: NotificationInfo,
         onIntent: Intent.() -> Unit = {},
         setBuilder: (NotificationCompat.Builder) -> Unit = {},
     ) {
@@ -442,21 +469,14 @@ class MainActivity : AppCompatActivity() {
             )
 
         val builder =
-            NotificationCompat.Builder(this, channelId)
+            NotificationCompat.Builder(this, info.channelId)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setLargeIcon(
                     BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
                 )
                 .setContentIntent(pendingIntent)
-                .setOngoing(ongoing)
                 .also(setBuilder)
-        notificationManager.createNotification(
-            builder,
-            channelId,
-            title,
-            message,
-            applicationContext,
-        )
+        notificationManager.createNotification(builder, info, applicationContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
