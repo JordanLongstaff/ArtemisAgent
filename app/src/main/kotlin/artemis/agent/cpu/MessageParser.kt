@@ -302,7 +302,8 @@ sealed interface MessageParser {
             rewardType: RewardType,
             viewModel: AgentViewModel,
         ) {
-            viewModel.newMissionPacket.tryEmit(packet)
+            val missionManager = viewModel.missionManager
+            missionManager.newMissionPacket.tryEmit(packet)
 
             val source =
                 if (isSourceStation) {
@@ -330,23 +331,23 @@ sealed interface MessageParser {
                     ?: return
 
             val existingMission =
-                viewModel.allMissions.find {
+                missionManager.allMissions.find {
                     it.destination == destination && !it.isStarted && it.source == source
                 }
             if (existingMission == null) {
-                viewModel.allMissions.add(
+                missionManager.allMissions.add(
                     SideMissionEntry(source, destination, rewardType, packet.timestamp)
                 )
-                viewModel.missionsExist = true
+                missionManager.confirmed = true
             } else {
                 existingMission.rewards[rewardType.ordinal]++
             }
-            if (viewModel.displayedRewards.contains(rewardType)) {
+            if (missionManager.displayedRewards.contains(rewardType)) {
                 source.missions++
                 destination.missions++
             }
 
-            viewModel.missionUpdate = true
+            missionManager.hasUpdate = true
         }
     }
 
@@ -381,7 +382,7 @@ sealed interface MessageParser {
                     NEXT_DESTINATION.find(it)?.run { it.substring(0, range.first) }
                 } ?: return false
 
-            viewModel.missionProgressPacket.tryEmit(packet)
+            viewModel.missionManager.missionProgressPacket.tryEmit(packet)
             processMissionProgress(packet.sender, destination, shipName, viewModel)
             return true
         }
@@ -394,7 +395,7 @@ sealed interface MessageParser {
         ): Boolean {
             if (postfix != PROGRESS_2) return false
 
-            viewModel.missionCompletionPacket.tryEmit(packet)
+            viewModel.missionManager.missionCompletionPacket.tryEmit(packet)
             processMissionCompletion(packet.sender, shipName, viewModel)
             return true
         }
@@ -417,7 +418,7 @@ sealed interface MessageParser {
                         ?.let { playerName to it }
                 } ?: return false
 
-            viewModel.missionProgressPacket.tryEmit(packet)
+            viewModel.missionManager.missionProgressPacket.tryEmit(packet)
             processMissionProgress(packet.sender, destination, shipName, viewModel)
             return true
         }
@@ -434,7 +435,7 @@ sealed interface MessageParser {
                     }
                     ?.let { substring -> getPlayerName(substring, viewModel) } ?: return false
 
-            viewModel.missionCompletionPacket.tryEmit(packet)
+            viewModel.missionManager.missionCompletionPacket.tryEmit(packet)
             processMissionCompletion(packet.sender, shipName, viewModel)
             return true
         }
@@ -448,7 +449,8 @@ sealed interface MessageParser {
             shipName: String,
             viewModel: AgentViewModel,
         ) {
-            viewModel.allMissions.forEach { mission ->
+            val missionManager = viewModel.missionManager
+            missionManager.allMissions.forEach { mission ->
                 if (
                     mission.isStarted ||
                         source != mission.source.fullName ||
@@ -457,7 +459,8 @@ sealed interface MessageParser {
                     return@forEach
                 }
 
-                val totalRewards = viewModel.displayedRewards.sumOf { mission.rewards[it.ordinal] }
+                val totalRewards =
+                    missionManager.displayedRewards.sumOf { mission.rewards[it.ordinal] }
                 mission.associatedShipName = shipName
                 mission.source.missions -= totalRewards
                 if (shipName != viewModel.playerName) {
@@ -465,7 +468,7 @@ sealed interface MessageParser {
                 }
             }
 
-            coalesceMissionRewards(shipName, viewModel)
+            coalesceMissionRewards(shipName, missionManager)
         }
 
         private fun processMissionCompletion(
@@ -473,8 +476,10 @@ sealed interface MessageParser {
             shipName: String,
             viewModel: AgentViewModel,
         ) {
-            val timestamp = System.currentTimeMillis() + viewModel.completedDismissalTime
-            viewModel.allMissions
+            val missionManager = viewModel.missionManager
+
+            val timestamp = System.currentTimeMillis() + missionManager.completedDismissalTime
+            missionManager.allMissions
                 .filterNot { mission ->
                     mission.associatedShipName != shipName ||
                         mission.isCompleted ||
@@ -482,29 +487,31 @@ sealed interface MessageParser {
                 }
                 .forEach { mission ->
                     mission.completionTimestamp = timestamp
-                    viewModel.displayedRewards.forEach {
-                        viewModel.payouts[it.ordinal] += mission.rewards[it.ordinal]
+                    missionManager.displayedRewards.forEach {
+                        missionManager.payouts[it.ordinal] += mission.rewards[it.ordinal]
                     }
 
                     mission.destination.apply {
-                        missions -= viewModel.displayedRewards.sumOf { mission.rewards[it.ordinal] }
+                        missions -=
+                            missionManager.displayedRewards.sumOf { mission.rewards[it.ordinal] }
                         if (this is ObjectEntry.Station) {
                             speedFactor += mission.rewards[RewardType.PRODUCTION.ordinal]
                         }
                     }
                 }
-            viewModel.updatePayouts()
+            missionManager.updatePayouts()
         }
 
-        private fun coalesceMissionRewards(shipName: String, viewModel: AgentViewModel) {
+        private fun coalesceMissionRewards(shipName: String, missionManager: MissionManager) {
             val allRewards = RewardType.entries
+
             var i = 0
-            while (i < viewModel.allMissions.size) {
-                val mission = viewModel.allMissions[i++]
+            while (i < missionManager.allMissions.size) {
+                val mission = missionManager.allMissions[i++]
                 if (mission.isCompleted || mission.associatedShipName != shipName) continue
 
-                for (j in viewModel.allMissions.lastIndex downTo i) {
-                    val otherMission = viewModel.allMissions[j]
+                for (j in missionManager.allMissions.lastIndex downTo i) {
+                    val otherMission = missionManager.allMissions[j]
                     if (
                         otherMission.isCompleted ||
                             otherMission.associatedShipName != shipName ||
@@ -516,7 +523,7 @@ sealed interface MessageParser {
                     allRewards.forEach {
                         mission.rewards[it.ordinal] += otherMission.rewards[it.ordinal]
                     }
-                    viewModel.allMissions.removeAt(j)
+                    missionManager.allMissions.removeAt(j)
                 }
             }
         }
@@ -573,8 +580,10 @@ sealed interface MessageParser {
 
             viewModel.allyShipIndex[packet.sender]?.let(viewModel.allyShips::get)?.status =
                 AllyStatus.NORMAL
-            viewModel.payouts[RewardType.SHIELD.ordinal]++
-            viewModel.updatePayouts()
+            viewModel.missionManager.apply {
+                payouts[RewardType.SHIELD.ordinal]++
+                updatePayouts()
+            }
 
             return true
         }

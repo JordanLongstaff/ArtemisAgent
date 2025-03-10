@@ -35,10 +35,12 @@ class MissionSettingsFragmentTest {
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
-            missionsEnabled.lazySet(viewModel.missionsEnabled)
-            autoDismissal.lazySet(viewModel.autoDismissCompletedMissions)
+            val missionManager = viewModel.missionManager
 
-            viewModel.displayedRewards.forEach { rewardsEnabled[it.ordinal].lazySet(true) }
+            missionsEnabled.lazySet(missionManager.enabled)
+            autoDismissal.lazySet(missionManager.autoDismissCompletedMissions)
+
+            missionManager.displayedRewards.forEach { rewardsEnabled[it.ordinal].lazySet(true) }
         }
 
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)

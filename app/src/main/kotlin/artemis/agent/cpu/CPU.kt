@@ -23,7 +23,6 @@ import com.walkertribe.ian.world.ArtemisMine
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
-import com.walkertribe.ian.world.BaseArtemisShielded
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 import kotlinx.coroutines.CoroutineScope
@@ -114,7 +113,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                                 livingStationFullNameIndex.remove(fullName)
                                 livingStationNameIndex.remove(name)
                             }
-                            purgeMissions(obj)
+                            missionManager.purgeMissions(obj)
                         }
                     }
                 }
@@ -438,23 +437,10 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             if (viewModel.focusedAlly.value == ally) {
                 viewModel.focusedAlly.value = null
             }
-            purgeMissions(npc)
+            viewModel.missionManager.purgeMissions(npc)
 
             npc
         }
-
-    private fun purgeMissions(obj: BaseArtemisShielded<*>) {
-        with(viewModel) {
-            allMissions.removeAll(
-                allMissions
-                    .filter {
-                        !it.isCompleted &&
-                            (it.destination.obj == obj || (!it.isStarted && it.source.obj == obj))
-                    }
-                    .toSet()
-            )
-        }
-    }
 
     private fun onNpcCreate(npc: ArtemisNpc): Boolean =
         viewModel.run {

@@ -184,19 +184,20 @@ class MainActivity : AppCompatActivity() {
                         false,
                     )
 
+                    val missionManager = viewModel.missionManager
                     createMissionPacketListener(
                         service,
-                        viewModel.newMissionPacket,
+                        missionManager.newMissionPacket,
                         NotificationManager.CHANNEL_NEW_MISSION,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionProgressPacket,
+                        missionManager.missionProgressPacket,
                         NotificationManager.CHANNEL_MISSION_PROGRESS,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionCompletionPacket,
+                        missionManager.missionCompletionPacket,
                         NotificationManager.CHANNEL_MISSION_COMPLETED,
                     )
 
