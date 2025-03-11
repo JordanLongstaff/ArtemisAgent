@@ -118,6 +118,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object BaseParser : ObjectParserTestConfig(true) {
+        @ConsistentCopyVisibility
         data class Data
         internal constructor(
             override val objectID: Int,
@@ -210,6 +211,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object BlackHoleParser : ObjectParserTestConfig(true) {
+        @ConsistentCopyVisibility
         data class Data
         internal constructor(override val objectID: Int, private val flags: PositionFlags) :
             ObjectParserData.Real<ArtemisBlackHole>(
@@ -241,6 +243,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
     sealed class CreatureParser(override val specName: String, versionArb: Arb<Version>) :
         ObjectParserTestConfig(true) {
+        @ConsistentCopyVisibility
         data class Data
         internal constructor(
             override val objectID: Int,
@@ -406,6 +409,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object MineParser : ObjectParserTestConfig(true) {
+        @ConsistentCopyVisibility
         data class Data
         internal constructor(override val objectID: Int, private val flags: PositionFlags) :
             ObjectParserData.Real<ArtemisMine>(ArtemisMine::class, ObjectType.MINE) {
@@ -550,6 +554,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V1 : NpcShipParser(before(VERSION_2_6_3)) {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -664,6 +669,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V2 : NpcShipParser(between(VERSION_2_6_3, VERSION_2_7_0)) {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -781,6 +787,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V3 : NpcShipParser(since(VERSION_2_7_0)) {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -1007,6 +1014,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
             internal abstract val nebulaTypeFlag: Flag<out Number>
 
+            @ConsistentCopyVisibility
             data class Old
             internal constructor(
                 override val objectID: Int,
@@ -1025,6 +1033,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
                 }
             }
 
+            @ConsistentCopyVisibility
             data class New
             internal constructor(
                 override val objectID: Int,
@@ -1316,6 +1325,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
     }
 
     data object UpgradesParser : ObjectParserTestConfig(true) {
+        @ConsistentCopyVisibility
         data class Data
         internal constructor(
             override val objectID: Int,
@@ -1518,6 +1528,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V1 : WeaponsParser(before(VERSION_2_6_3)) {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -1623,6 +1634,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object V2 : WeaponsParser(since(VERSION_2_6_3)) {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -1736,6 +1748,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
     sealed class Unobserved : ObjectParserTestConfig(false) {
         data object Engineering : Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -1800,6 +1813,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         sealed class Anomaly(override val specName: String, versionArb: Arb<Version>) :
             Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -1847,6 +1861,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         sealed class Nebula(override val specName: String, versionArb: Arb<Version>) :
             Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
@@ -1897,6 +1912,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object Torpedo : Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(override val objectID: Int, private val flags: TorpedoFlags) :
                 ObjectParserData.Unobserved(ObjectType.TORPEDO) {
@@ -1938,6 +1954,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object Asteroid : Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(override val objectID: Int, private val flags: AsteroidFlags) :
                 ObjectParserData.Unobserved(ObjectType.ASTEROID) {
@@ -1962,6 +1979,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
         sealed class GenericMesh(override val specName: String, versionArb: Arb<Version>) :
             Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,
