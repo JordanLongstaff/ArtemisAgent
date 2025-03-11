@@ -14,6 +14,7 @@ import io.kotest.matchers.floats.shouldBeWithinPercentageOf
 import io.kotest.matchers.floats.shouldNotBeNaN
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.enum
@@ -106,6 +107,30 @@ class ShipTest :
                         }
                         .checkAll { (vesselData, ship) ->
                             ship.getVessel(vesselData).shouldNotBeNull()
+                        }
+                }
+            }
+
+            describe("Full name") {
+                it("No vessel") {
+                    ships.forEach { it.getFullName(VesselData.Empty).shouldBeNull() }
+                }
+
+                it("Retrieved from vessel data if found") {
+                    TestVessel.arbitrary()
+                        .flatMap { vessel ->
+                            Arb.pair(
+                                Arb.vesselData(vessels = Arb.of(vessel), numVessels = 1..1),
+                                Arb.bind(Arb.string().orNull(), Arb.enum<DriveType>()) { name, drive
+                                    ->
+                                    Ship(name, shipType = vessel.id, drive)
+                                },
+                            )
+                        }
+                        .checkAll { (vesselData, ship) ->
+                            val vessel = ship.getVessel(vesselData).shouldNotBeNull()
+                            val faction = vessel.getFaction(vesselData).shouldNotBeNull()
+                            ship.getFullName(vesselData) shouldBe "${faction.name} ${vessel.name}"
                         }
                 }
             }

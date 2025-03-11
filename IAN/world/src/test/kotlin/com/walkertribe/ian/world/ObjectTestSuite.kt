@@ -27,6 +27,8 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldBeEmpty
 import io.kotest.property.Arb
 import io.kotest.property.Gen
 import io.kotest.property.PropertyTesting
@@ -244,6 +246,65 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     ) { (vesselData, hullId), obj ->
                         obj.hullId.value = hullId
                         obj.getVessel(vesselData).shouldNotBeNull()
+                    }
+                }
+            }
+        }
+
+        fun DescribeSpecContainerScope.describeFullNameTests(
+            arbObject: Gen<BaseArtemisShielded<*>>,
+            arbName: Gen<String>,
+        ) = launch {
+            describe("Full name") {
+                describe("Unnamed object") {
+                    it("No vessel") {
+                        arbObject.checkAll { it.getFullName(VesselData.Empty).shouldBeEmpty() }
+                    }
+
+                    it("Vessel found") {
+                        checkAll(
+                            TestVessel.arbitrary().flatMap { vessel ->
+                                Arb.pair(
+                                    Arb.vesselData(vessels = Arb.of(vessel), numVessels = 1..1),
+                                    Arb.of(vessel.id),
+                                )
+                            },
+                            arbObject,
+                        ) { (vesselData, hullId), obj ->
+                            obj.hullId.value = hullId
+                            val vessel = obj.getVessel(vesselData).shouldNotBeNull()
+                            val faction = vessel.getFaction(vesselData).shouldNotBeNull()
+                            obj.getFullName(vesselData) shouldBe "${faction.name} ${vessel.name}"
+                        }
+                    }
+                }
+
+                describe("Named object") {
+                    it("No vessel") {
+                        checkAll(arbName, arbObject) { name, obj ->
+                            obj.name.value = name
+                            obj.getFullName(VesselData.Empty) shouldBe name
+                        }
+                    }
+
+                    it("Vessel found") {
+                        checkAll(
+                            arbName,
+                            TestVessel.arbitrary().flatMap { vessel ->
+                                Arb.pair(
+                                    Arb.vesselData(vessels = Arb.of(vessel), numVessels = 1..1),
+                                    Arb.of(vessel.id),
+                                )
+                            },
+                            arbObject,
+                        ) { name, (vesselData, hullId), obj ->
+                            obj.hullId.value = hullId
+                            obj.name.value = name
+                            val vessel = obj.getVessel(vesselData).shouldNotBeNull()
+                            val faction = vessel.getFaction(vesselData).shouldNotBeNull()
+                            obj.getFullName(vesselData) shouldBe
+                                "$name ${faction.name} ${vessel.name}"
+                        }
                     }
                 }
             }
@@ -504,8 +565,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
         }
 
-        override fun DescribeSpecContainerScope.describeMore() =
+        override fun DescribeSpecContainerScope.describeMore() = launch {
             describeVesselDataTests(arbObject, HULL_ID)
+            describeFullNameTests(arbObject, NAME)
+        }
 
         private fun <V, P : Property<V, P>> partialUpdateTest(
             name: String,
@@ -1342,6 +1405,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             describeVesselDataTests(arbObject, HULL_ID)
+            describeFullNameTests(arbObject, NAME)
         }
 
         private fun <V, P : Property<V, P>> partialUpdateTest(
@@ -1994,6 +2058,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         override fun DescribeSpecContainerScope.describeMore() = launch {
             describeVesselDataTests(arbObject, HULL_ID)
+            describeFullNameTests(arbObject, NAME)
 
             describe("Invalid warp value throws") {
                 withData(
