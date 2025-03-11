@@ -11,28 +11,36 @@ plugins {
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kover)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
-val appName: String = "Artemis Agent"
+val appName = "Artemis Agent"
+val appId = "artemis.agent"
 val sdkVersion: Int by rootProject.extra
 val minimumSdkVersion: Int by rootProject.extra
 val javaVersion: JavaVersion by rootProject.extra
+val stringRes = "string"
 
+val release = "release"
 val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
+val kotlinMainPath: String by rootProject.extra
+val kotlinTestPath: String by rootProject.extra
+val kotlinAndroidTestPath = "src/androidTest/kotlin"
+
 android {
-    namespace = "artemis.agent"
+    namespace = appId
     compileSdk = sdkVersion
 
     defaultConfig {
-        applicationId = "artemis.agent"
+        applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 18
-        versionName = "1.0.8"
+        versionCode = 31
+        versionName = "1.1.0"
         multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -51,7 +59,7 @@ android {
     testOptions.unitTests.all { it.useJUnitPlatform() }
 
     signingConfigs {
-        create("release") {
+        create(release) {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
             storePassword = keystoreProperties["storePassword"] as String
@@ -61,11 +69,11 @@ android {
 
     buildTypes {
         configureEach {
-            resValue("string", "app_name", appName)
-            resValue("string", "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "app_name", appName)
+            resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
         }
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName(release)
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -100,6 +108,7 @@ dependencies {
     implementation(projects.ian.util)
     implementation(projects.ian.vesseldata)
     implementation(projects.ian.world)
+    testImplementation(projects.ian.testing)
 
     ksp(projects.ian.processor)
 
@@ -133,10 +142,9 @@ dependencies {
 ktfmt { kotlinLangStyle() }
 
 detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-    ignoredBuildTypes = listOf("release")
-    ignoredVariants = listOf("release")
+    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
+    ignoredBuildTypes = listOf(release)
+    ignoredVariants = listOf(release)
 }
 
 protobuf {

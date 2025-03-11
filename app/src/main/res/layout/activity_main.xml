@@ -14,6 +14,13 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/mainPageSelector"
         app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/updateButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/check_for_updates"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/mainPageSelector" />
     <RadioGroup
         android:id="@+id/mainPageSelector"
         android:layout_width="match_parent"

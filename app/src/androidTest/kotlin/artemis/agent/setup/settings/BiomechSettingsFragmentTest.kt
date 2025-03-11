@@ -29,19 +29,19 @@ class BiomechSettingsFragmentTest {
     fun biomechSettingsTest() {
         val biomechsEnabled = AtomicBoolean()
 
-        val sortByClassFirst = AtomicBoolean()
-        val sortByStatus = AtomicBoolean()
-        val sortByClassSecond = AtomicBoolean()
-        val sortByName = AtomicBoolean()
+        val sortSettings = Array(4) { AtomicBoolean() }
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             val biomechSorter = viewModel.biomechSorter
 
-            sortByClassFirst.lazySet(biomechSorter.sortByClassFirst)
-            sortByStatus.lazySet(biomechSorter.sortByStatus)
-            sortByClassSecond.lazySet(biomechSorter.sortByClassSecond)
-            sortByName.lazySet(biomechSorter.sortByName)
+            booleanArrayOf(
+                    biomechSorter.sortByClassFirst,
+                    biomechSorter.sortByStatus,
+                    biomechSorter.sortByClassSecond,
+                    biomechSorter.sortByName,
+                )
+                .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
 
             biomechsEnabled.lazySet(viewModel.biomechsEnabled)
         }
@@ -51,17 +51,11 @@ class BiomechSettingsFragmentTest {
         SettingsFragmentTest.openSettingsMenu()
 
         val enabled = biomechsEnabled.get()
-        val sortSettings =
-            booleanArrayOf(
-                sortByClassFirst.get(),
-                sortByStatus.get(),
-                sortByClassSecond.get(),
-                sortByName.get(),
-            )
+        val sortMethods = sortSettings.map { it.get() }.toBooleanArray()
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
-            testBiomechsSubMenuOpen(sortSettings, !usingToggle)
+            testBiomechsSubMenuOpen(sortMethods, !usingToggle)
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
             testBiomechsSubMenuClosed(usingToggle)
@@ -72,7 +66,7 @@ class BiomechSettingsFragmentTest {
                     usingToggle = false,
                     toggleDisplayed = true,
                 )
-                testBiomechsSubMenuOpen(sortSettings, false)
+                testBiomechsSubMenuOpen(sortMethods, false)
 
                 SettingsFragmentTest.backFromSubMenu()
                 testBiomechsSubMenuClosed(true)

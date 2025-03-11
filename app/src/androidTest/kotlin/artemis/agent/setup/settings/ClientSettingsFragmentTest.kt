@@ -35,7 +35,7 @@ class ClientSettingsFragmentTest {
             val viewModel = activity.viewModels<AgentViewModel>().value
             expectedPort.lazySet(viewModel.port)
             expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
-            externalVesselDataCount.lazySet(viewModel.storageDirectories.size)
+            externalVesselDataCount.lazySet(viewModel.vesselDataManager.externalCount)
             showingInfo.lazySet(viewModel.showingNetworkInfo)
         }
 
@@ -50,10 +50,10 @@ class ClientSettingsFragmentTest {
             .forEach { closeSubMenu ->
                 SettingsFragmentTest.openSettingsSubMenu(0)
                 testClientSubMenuOpen(
-                    externalVesselDataCount.get(),
-                    expectedPort.toString(),
-                    expectedUpdateInterval.toString(),
-                    showingInfo.get(),
+                    externalVesselDataCount = externalVesselDataCount.get(),
+                    expectedPort = expectedPort.toString(),
+                    expectedUpdateInterval = expectedUpdateInterval.toString(),
+                    showingInfo = showingInfo.get(),
                 )
 
                 closeSubMenu()
@@ -64,10 +64,10 @@ class ClientSettingsFragmentTest {
     private companion object {
         val showNetworkInfoToggleSetting =
             SingleToggleButtonSetting(
-                R.id.showNetworkInfoDivider,
-                R.id.showNetworkInfoTitle,
-                R.string.show_network_info,
-                R.id.showNetworkInfoButton,
+                divider = R.id.showNetworkInfoDivider,
+                label = R.id.showNetworkInfoTitle,
+                text = R.string.show_network_info,
+                button = R.id.showNetworkInfoButton,
             )
 
         fun testClientSubMenuOpen(
@@ -86,11 +86,8 @@ class ClientSettingsFragmentTest {
                     R.id.vesselDataExternalStorage to R.string.vessel_data_external,
                 )
                 .forEachIndexed { index, (id, label) ->
-                    if (index < externalVesselDataCount) {
-                        assertDisplayed(id, label)
-                    } else {
-                        assertNotDisplayed(id)
-                    }
+                    if (index < externalVesselDataCount) assertDisplayed(id, label)
+                    else assertNotDisplayed(id)
                 }
 
             showNetworkInfoToggleSetting.testSingleToggle(showingInfo)

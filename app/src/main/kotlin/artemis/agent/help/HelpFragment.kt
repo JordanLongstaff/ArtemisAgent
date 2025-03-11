@@ -87,7 +87,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     ) : ViewProvider {
         override val viewType: Int = MENU
 
-        var contents: List<HelpTopicContent> = listOf()
+        var contents: List<HelpTopicContent> = emptyList()
             private set
 
         fun initContents(res: Resources) {
@@ -123,11 +123,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         private val contents: List<ViewProvider>
             get() =
                 currentHelpTopicIndex.let {
-                    if (it == MENU) {
-                        helpTopics
-                    } else {
-                        helpTopics[it].contents
-                    }
+                    if (it == MENU) helpTopics else helpTopics[it].contents
                 }
 
         override fun getItemCount(): Int = contents.size
@@ -202,7 +198,10 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     addImages(1 to R.drawable.station_entry_preview)
                 },
                 HelpTopic(R.string.help_topics_allies, R.array.help_contents_allies) {
-                    addImages(1 to R.drawable.ally_entry_preview)
+                    addImages(
+                        INDEX_PREVIEW_ALLY to R.drawable.ally_entry_preview,
+                        INDEX_PREVIEW_RECAP to R.drawable.ally_recap_preview,
+                    )
                 },
                 HelpTopic(R.string.help_topics_missions, R.array.help_contents_missions) {
                     addImages(
@@ -239,8 +238,13 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         const val IMAGE = 0
         const val TEXT = 1
 
+        val ABOUT_TOPIC_INDEX = helpTopics.lastIndex
+
         private const val INDEX_PREVIEW_CONNECT = 4
         private const val INDEX_PREVIEW_SHIP = 6
+
+        private const val INDEX_PREVIEW_ALLY = 1
+        private const val INDEX_PREVIEW_RECAP = 3
 
         private const val INDEX_PREVIEW_COMMS_MESSAGE = 1
         private const val INDEX_PREVIEW_MISSION = 7

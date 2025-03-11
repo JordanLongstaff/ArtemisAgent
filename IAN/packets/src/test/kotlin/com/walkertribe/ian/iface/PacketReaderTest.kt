@@ -86,8 +86,8 @@ class PacketReaderTest :
 
                     Arb.int()
                         .filter { it != Packet.HEADER }
-                        .checkAll {
-                            coEvery { readChannel.readInt() } returns it.reverseByteOrder()
+                        .checkAll { header ->
+                            coEvery { readChannel.readInt() } returns header.reverseByteOrder()
 
                             shouldThrow<PacketException> { packetReader.readPacket() }
 
@@ -103,9 +103,9 @@ class PacketReaderTest :
                 it("Invalid length") {
                     var iterations = 0
 
-                    Arb.int(max = Packet.PREAMBLE_SIZE - 1).checkAll {
+                    Arb.int(max = Packet.PREAMBLE_SIZE - 1).checkAll { length ->
                         coEvery { readChannel.readInt() } returnsMany
-                            listOf(Packet.HEADER, it).map(Int::reverseByteOrder)
+                            listOf(Packet.HEADER, length).map(Int::reverseByteOrder)
 
                         shouldThrow<PacketException> { packetReader.readPacket() }
 
@@ -123,12 +123,12 @@ class PacketReaderTest :
 
                     Arb.int()
                         .filter { it !in 1..2 }
-                        .checkAll {
+                        .checkAll { origin ->
                             coEvery { readChannel.readInt() } returnsMany
                                 listOf(
                                         Packet.HEADER,
                                         Packet.PREAMBLE_SIZE,
-                                        it,
+                                        origin,
                                         0,
                                         Int.SIZE_BYTES,
                                         0,
@@ -175,13 +175,13 @@ class PacketReaderTest :
 
                     Arb.int()
                         .filter { it != 0 }
-                        .checkAll {
+                        .checkAll { padding ->
                             coEvery { readChannel.readInt() } returnsMany
                                 listOf(
                                         Packet.HEADER,
                                         Packet.PREAMBLE_SIZE,
                                         Origin.SERVER.value,
-                                        it,
+                                        padding,
                                         Int.SIZE_BYTES,
                                         0,
                                     )

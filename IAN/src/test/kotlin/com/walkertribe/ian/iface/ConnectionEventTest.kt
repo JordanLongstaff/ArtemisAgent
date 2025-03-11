@@ -4,8 +4,8 @@ import com.walkertribe.ian.protocol.PacketException
 import com.walkertribe.ian.util.Version
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.ranges.shouldBeIn
 import io.kotest.property.Arb
@@ -44,12 +44,12 @@ class ConnectionEventTest :
                 val events = mutableListOf<ConnectionEvent.Success>()
 
                 it("Constructor") {
-                    Arb.string().checkAll {
+                    Arb.string().checkAll { message ->
                         val startTime = Clock.System.now().toEpochMilliseconds()
-                        val event = ConnectionEvent.Success(it)
+                        val event = ConnectionEvent.Success(message)
                         val endTime = Clock.System.now().toEpochMilliseconds()
 
-                        event.message shouldBeEqual it
+                        event.message shouldBeEqual message
                         event.timestamp shouldBeIn startTime..endTime
 
                         events.add(event)
@@ -68,7 +68,7 @@ class ConnectionEventTest :
                         DisconnectCause.RemoteDisconnect,
                         DisconnectCause.IOError(IOException()),
                         DisconnectCause.PacketParseError(mockk<PacketException>()),
-                        DisconnectCause.UnsupportedVersion(Version.LATEST),
+                        DisconnectCause.UnsupportedVersion(Version.DEFAULT),
                     )
                     .forEach { cause ->
                         describe(cause::class.simpleName ?: cause.toString()) {
@@ -85,8 +85,7 @@ class ConnectionEventTest :
 
                             it("Can offer to listener modules") {
                                 event.offerTo(listenerModule)
-                                connectionEvents.size shouldBeEqual 1
-                                connectionEvents shouldContain event
+                                connectionEvents.shouldHaveSingleElement(event)
                             }
                         }
                     }
@@ -97,8 +96,7 @@ class ConnectionEventTest :
                 describe(event.toString()) {
                     it("Can offer to listener modules") {
                         event.offerTo(listenerModule)
-                        connectionEvents.size shouldBeEqual 1
-                        connectionEvents shouldContain event
+                        connectionEvents.shouldHaveSingleElement(event)
                     }
                 }
             }

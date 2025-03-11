@@ -10,6 +10,7 @@ import artemis.agent.UserSettingsOuterClass.UserSettings
 import artemis.agent.cpu.CPU
 import artemis.agent.cpu.RoutingGraph
 import artemis.agent.cpu.RoutingGraph.Companion.calculateRouteCost
+import artemis.agent.cpu.VesselDataManager
 import artemis.agent.cpu.listeners
 import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
@@ -31,10 +32,8 @@ import artemis.agent.game.route.RouteObjective
 import artemis.agent.game.route.RouteTaskIncentive
 import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
-import artemis.agent.setup.ConnectFragment.ConnectionStatus
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
-import artemis.agent.util.AssetsResolver
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
 import artemis.agent.util.TimerText.timerString
@@ -72,12 +71,9 @@ import com.walkertribe.ian.protocol.core.world.DockedPacket
 import com.walkertribe.ian.protocol.udp.Server
 import com.walkertribe.ian.protocol.udp.ServerDiscoveryRequester
 import com.walkertribe.ian.util.BoolState
-import com.walkertribe.ian.util.FilePathResolver
-import com.walkertribe.ian.util.Util.joinSpaceDelimited
 import com.walkertribe.ian.util.Version
 import com.walkertribe.ian.vesseldata.Taunt
 import com.walkertribe.ian.vesseldata.VesselData
-import com.walkertribe.ian.vesseldata.VesselDataObject
 import com.walkertribe.ian.world.Artemis
 import com.walkertribe.ian.world.ArtemisBlackHole
 import com.walkertribe.ian.world.ArtemisCreature
@@ -87,7 +83,6 @@ import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
 import com.walkertribe.ian.world.ArtemisShielded
 import com.walkertribe.ian.world.Property
-import java.io.File
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListMap
@@ -109,14 +104,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okio.Path.Companion.toOkioPath
 
 /** The view model containing all running client data and utility functions used by the UI. */
 class AgentViewModel(application: Application) :
     AndroidViewModel(application), ServerDiscoveryRequester.Listener {
     // Connection status
     val networkInterface: ArtemisNetworkInterface by lazy {
-        KtorArtemisNetworkInterface(debugMode = BuildConfig.DEBUG).also {
+        KtorArtemisNetworkInterface(maxVersion = if (BuildConfig.DEBUG) null else maxVersion).also {
             it.addListeners(listeners + cpu.listeners)
         }
     }
@@ -134,7 +128,7 @@ class AgentViewModel(application: Application) :
                 connectionStatus.value == ConnectionStatus.Failed
 
     // UDP discovered servers
-    val discoveredServers: MutableStateFlow<List<Server>> by lazy { MutableStateFlow(listOf()) }
+    val discoveredServers: MutableStateFlow<List<Server>> by lazy { MutableStateFlow(emptyList()) }
     val isScanningUDP: MutableSharedFlow<Boolean> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
@@ -152,9 +146,7 @@ class AgentViewModel(application: Application) :
 
     @StyleRes var themeRes: Int = R.style.Theme_ArtemisAgent
     var themeIndex: Int
-        get() {
-            return ALL_THEMES.indexOf(themeRes)
-        }
+        get() = ALL_THEMES.indexOf(themeRes)
         set(index) {
             themeRes = ALL_THEMES[index]
         }
@@ -162,8 +154,10 @@ class AgentViewModel(application: Application) :
     val rootOpacity: MutableStateFlow<Float> by lazy { MutableStateFlow(1f) }
     val jumping: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
+    private var damageVisJob: Job? = null
+
     // Ship settings from packet
-    val selectableShips: MutableStateFlow<List<Ship>> by lazy { MutableStateFlow(listOf()) }
+    val selectableShips: MutableStateFlow<List<Ship>> by lazy { MutableStateFlow(emptyList()) }
 
     // Game status
     val gameIsRunning: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
@@ -189,7 +183,7 @@ class AgentViewModel(application: Application) :
 
     // List of selectable game fragment pages, mapped to flashing status
     val gamePages: MutableStateFlow<Map<GameFragment.Page, Boolean>> by lazy {
-        MutableStateFlow(mapOf())
+        MutableStateFlow(emptyMap())
     }
     val currentGamePage: MutableStateFlow<GameFragment.Page?> by lazy { MutableStateFlow(null) }
 
@@ -204,8 +198,10 @@ class AgentViewModel(application: Application) :
     val miscAudioExists: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val commsActionSet = CopyOnWriteArraySet<CommsActionEntry>()
     val commsAudioSet = CopyOnWriteArraySet<AudioEntry>()
-    val miscActions: MutableStateFlow<List<CommsActionEntry>> by lazy { MutableStateFlow(listOf()) }
-    val miscAudio: MutableStateFlow<List<AudioEntry>> by lazy { MutableStateFlow(listOf()) }
+    val miscActions: MutableStateFlow<List<CommsActionEntry>> by lazy {
+        MutableStateFlow(emptyList())
+    }
+    val miscAudio: MutableStateFlow<List<AudioEntry>> by lazy { MutableStateFlow(emptyList()) }
     val showingAudio: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     // Current player ship data
@@ -243,9 +239,9 @@ class AgentViewModel(application: Application) :
 
     // Completed mission payout data
     val payouts = IntArray(RewardType.entries.size)
-    var displayedRewards: Array<RewardType> = arrayOf()
+    var displayedRewards: Array<RewardType> = emptyArray()
     val displayedPayouts: MutableStateFlow<List<Pair<RewardType, Int>>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val showingPayouts: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
@@ -299,13 +295,13 @@ class AgentViewModel(application: Application) :
     // Friendly station data
     val stationsRemain: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val livingStationNameIndex =
-        ConcurrentSkipListMap<String, Int>(Comparator(this::compareFriendlyStationNames))
+        ConcurrentSkipListMap<String, Int>(ObjectEntry.Station.FRIENDLY_COMPARATOR)
     val livingStationFullNameIndex = ConcurrentHashMap<String, Int>()
     val livingStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
 
     // Friendly station navigation data
     val flashingStations: MutableStateFlow<List<Pair<ObjectEntry.Station, Boolean>>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val stationName: MutableStateFlow<String> by lazy { MutableStateFlow("") }
     val currentStation: MutableSharedFlow<ObjectEntry.Station> by lazy {
@@ -315,7 +311,7 @@ class AgentViewModel(application: Application) :
 
     // Enemy station data
     val enemyStationNameIndex =
-        ConcurrentSkipListMap<String, Int>(Comparator(this::compareEnemyStationNames))
+        ConcurrentSkipListMap<String, Int>(ObjectEntry.Station.ENEMY_COMPARATOR)
     val livingEnemyStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
     val enemyStations: MutableSharedFlow<List<ObjectEntry.Station>> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -339,8 +335,8 @@ class AgentViewModel(application: Application) :
     }
 
     // Destroyed objects data
-    val destroyedAllies: MutableStateFlow<List<String>> by lazy { MutableStateFlow(listOf()) }
-    val destroyedStations: MutableStateFlow<List<String>> by lazy { MutableStateFlow(listOf()) }
+    val destroyedAllies: MutableStateFlow<List<String>> by lazy { MutableStateFlow(emptyList()) }
+    val destroyedStations: MutableStateFlow<List<String>> by lazy { MutableStateFlow(emptyList()) }
 
     // Biomech data
     var biomechsEnabled: Boolean = true
@@ -373,10 +369,10 @@ class AgentViewModel(application: Application) :
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
     val enemyCategories: MutableStateFlow<List<EnemySortCategory>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val enemyTaunts: MutableStateFlow<List<Pair<Taunt, TauntStatus>>> by lazy {
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
     }
     val enemyIntel: MutableStateFlow<String?> by lazy { MutableStateFlow(null) }
     val perfidiousEnemy: MutableSharedFlow<EnemyEntry> by lazy {
@@ -482,49 +478,17 @@ class AgentViewModel(application: Application) :
                 timeoutMs = scanTimeout.seconds.inWholeMilliseconds,
             )
 
-    // I/O resolver data
-    private val assetsResolver: AssetsResolver = AssetsResolver(application.assets)
-    val storageDirectories: Array<File> = application.applicationContext.getExternalFilesDirs(null)
-
     // Artemis version
-    var version: Version = Version.LATEST
+    var version: Version = Version.DEFAULT
         private set
+
+    var maxVersion: Version = Version.DEFAULT
 
     // Vessel data
-    private val defaultVesselData: VesselData by lazy { VesselData.load(assetsResolver) }
-    private val internalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.isEmpty()) {
-            null
-        } else {
-            setupFilePathResolver(storageDirectories[0])?.let(VesselData.Companion::load)
-        }
-    }
-    private val externalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.size <= 1) {
-            null
-        } else {
-            setupFilePathResolver(storageDirectories[1])?.let(VesselData.Companion::load)
-        }
-    }
+    val vesselDataManager = VesselDataManager(application)
 
-    var vesselDataIndex: Int = 0
-        set(index) {
-            if (field != index) {
-                field = index
-                vesselData =
-                    when (index) {
-                        1 -> internalStorageVesselData
-                        2 -> externalStorageVesselData
-                        else -> null
-                    } ?: defaultVesselData
-            }
-        }
-
-    var vesselData: VesselData = defaultVesselData
-        private set
-
-    private val allVesselData
-        get() = arrayOf(defaultVesselData, internalStorageVesselData, externalStorageVesselData)
+    val vesselData: VesselData
+        get() = vesselDataManager.vesselData
 
     // Sound effects players
     private val playSounds: Boolean
@@ -555,12 +519,7 @@ class AgentViewModel(application: Application) :
                                     stations.map {
                                         playerShip?.let { player ->
                                             withContext(cpu.coroutineContext) {
-                                                graph.calculateRouteCost(
-                                                    player.x.value,
-                                                    player.z.value,
-                                                    it.obj.x.value,
-                                                    it.obj.z.value,
-                                                )
+                                                graph.calculateRouteCost(player, it.obj)
                                             }
                                         } ?: Float.POSITIVE_INFINITY
                                     }
@@ -574,20 +533,14 @@ class AgentViewModel(application: Application) :
                             .let { stations ->
                                 stations.zip(
                                     stations.map {
-                                        if (it.ordnanceStock[objective.ordnanceType] == 0) {
+                                        if (it.ordnanceStock[objective.ordnanceType] == 0)
                                             Float.POSITIVE_INFINITY
-                                        } else {
+                                        else
                                             playerShip?.let { player ->
                                                 withContext(cpu.coroutineContext) {
-                                                    graph.calculateRouteCost(
-                                                        player.x.value,
-                                                        player.z.value,
-                                                        it.obj.x.value,
-                                                        it.obj.z.value,
-                                                    )
+                                                    graph.calculateRouteCost(player, it.obj)
                                                 }
                                             } ?: Float.POSITIVE_INFINITY
-                                        }
                                     }
                                 )
                             }
@@ -624,26 +577,13 @@ class AgentViewModel(application: Application) :
     private fun calculatePlayerRangeTo(obj: ArtemisObject<*>): Float =
         playerShip?.distanceTo(obj) ?: 0f
 
-    /** Returns the full name for the given object, including callsign, faction and vessel name. */
-    fun getFullNameForShip(obj: ArtemisShielded<*>?): String =
-        obj?.run { listOf(name.value, getFullNameForVessel(this)).joinSpaceDelimited() } ?: ""
-
-    /** Returns the faction and model name of the given object's vessel. */
-    fun getFullNameForVessel(obj: VesselDataObject?): String =
-        obj?.getVessel(vesselData)?.run {
-            listOfNotNull(getFaction(vesselData)?.name, name).joinSpaceDelimited()
-        } ?: ""
-
     /** Determines how many currently applicable missions involve the given object. */
     private fun calculateMissionsFor(entry: ObjectEntry<*>, reward: RewardType): Int =
         allMissions
             .filter {
                 val isDest = it.destination == entry
-                if (it.isStarted) {
-                    isDest && it.associatedShipName == playerName
-                } else {
-                    isDest || it.source == entry
-                }
+                if (it.isStarted) isDest && it.associatedShipName == playerName
+                else isDest || it.source == entry
             }
             .sumOf { it.rewards[reward.ordinal] }
 
@@ -691,29 +631,6 @@ class AgentViewModel(application: Application) :
         }
 
         updatePayouts()
-    }
-
-    /**
-     * Attempts to set up the default vessel data in a given file path if it does not exist, and
-     * return a file path resolver using that file if successful, or null if there was an error.
-     */
-    private fun setupFilePathResolver(storageDir: File): FilePathResolver? {
-        val datDir = File(storageDir, "dat")
-
-        return if (assetsResolver.copyVesselDataTo(datDir)) {
-            FilePathResolver(storageDir.toOkioPath())
-        } else {
-            null
-        }
-    }
-
-    fun reconcileVesselDataIndex(index: Int): Int = if (allVesselData[index] == null) 0 else index
-
-    fun checkContext(index: Int, ifError: (String) -> Unit) {
-        val vesselDataAtIndex = allVesselData[index]
-        if (vesselDataAtIndex is VesselData.Error) {
-            ifError(vesselDataAtIndex.message ?: "")
-        }
     }
 
     /** Selects a player ship by its index. */
@@ -802,7 +719,7 @@ class AgentViewModel(application: Application) :
     /** Begins scanning for servers via UDP. */
     fun scanForServers(broadcastAddress: String?) {
         isScanningUDP.tryEmit(true)
-        discoveredServers.value = listOf()
+        discoveredServers.value = emptyList()
         cpu.launch {
             try {
                 serverDiscoveryRequester.run(
@@ -858,8 +775,8 @@ class AgentViewModel(application: Application) :
         focusedAlly.value = null
         allyShipIndex.clear()
         allyShips.clear()
-        destroyedAllies.value = listOf()
-        destroyedStations.value = listOf()
+        destroyedAllies.value = emptyList()
+        destroyedStations.value = emptyList()
         livingStationNameIndex.clear()
         livingStationFullNameIndex.clear()
         enemyStationNameIndex.clear()
@@ -873,8 +790,8 @@ class AgentViewModel(application: Application) :
         selectedEnemy.value = null
         commsActionSet.clear()
         commsAudioSet.clear()
-        miscActions.value = listOf()
-        miscAudio.value = listOf()
+        miscActions.value = emptyList()
+        miscAudio.value = emptyList()
         biomechRageProperty.value = 0
         biomechRage.value = BiomechRageStatus.NEUTRAL
         onPlayerShipDisposed()
@@ -917,7 +834,7 @@ class AgentViewModel(application: Application) :
                         (!it.isStarted || it.associatedShipName == playerName)
                 }
             } else {
-                listOf()
+                emptyList()
             }
 
         val allyShipList =
@@ -927,7 +844,7 @@ class AgentViewModel(application: Application) :
                     it.range = calculatePlayerRangeTo(it.obj)
                 }
             } else {
-                listOf()
+                emptyList()
             }
 
         val focusedStation =
@@ -981,7 +898,7 @@ class AgentViewModel(application: Application) :
                     }
                 }
             } else {
-                listOf()
+                emptyList()
             }
 
         if (isDeepStrike && !torpedoesReady && torpedoFinishTime < startTime) {
@@ -1023,10 +940,7 @@ class AgentViewModel(application: Application) :
         val stationShieldPercents =
             livingStationNameIndex.mapNotNull {
                 livingStations[it.value]?.let { station ->
-                    Pair(
-                        station,
-                        station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value,
-                    )
+                    station to station.obj.shieldsFront.percentage
                 }
             }
         val stationMinimumShieldPercent =
@@ -1037,12 +951,7 @@ class AgentViewModel(application: Application) :
                 } ?: 1f
         val stationFlashOn = flashOn && stationMinimumShieldPercent < 1f
 
-        val currentFlashOn =
-            if (flashOn) {
-                focusedStation?.let { it.obj.shieldsFront < it.obj.shieldsFrontMax } == true
-            } else {
-                false
-            }
+        val currentFlashOn = flashOn && focusedStation?.run { obj.shieldsFront.isDamaged } == true
 
         val pagesWithFlash = sortedMapOf<GameFragment.Page, Boolean>()
 
@@ -1114,11 +1023,8 @@ class AgentViewModel(application: Application) :
 
         doubleAgentText.value =
             doubleAgentSecondsLeft.let {
-                if (it < 0) {
-                    "${playerShip?.doubleAgentCount?.value?.coerceAtLeast(0) ?: 0}"
-                } else {
-                    it.seconds.timerString(false)
-                }
+                if (it < 0) "${playerShip?.doubleAgentCount?.value?.coerceAtLeast(0) ?: 0}"
+                else it.seconds.timerString(false)
             }
 
         if (routingEnabled && gameIsRunning.value) {
@@ -1212,28 +1118,6 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    private fun compareFriendlyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
-        val firstName = firstNameOpt ?: ""
-        val secondName = secondNameOpt ?: ""
-        return if (STATION_CALLSIGN.matches(firstName) && STATION_CALLSIGN.matches(secondName)) {
-            firstName.substring(2).toInt() - secondName.substring(2).toInt()
-        } else {
-            firstName.compareTo(secondName)
-        }
-    }
-
-    private fun compareEnemyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
-        val firstName = firstNameOpt ?: ""
-        val secondName = secondNameOpt ?: ""
-        return if (ENEMY_STATION.matches(firstName) && ENEMY_STATION.matches(secondName)) {
-            val firstIndex = firstName.run { substring(lastIndexOf(" ") + 1).toInt() }
-            val secondIndex = secondName.run { substring(lastIndexOf(" ") + 1).toInt() }
-            firstIndex - secondIndex
-        } else {
-            firstName.compareTo(secondName)
-        }
-    }
-
     fun refreshEnemyTaunts() {
         val enemy = selectedEnemy.value
 
@@ -1295,8 +1179,6 @@ class AgentViewModel(application: Application) :
         selectableShips.value = packet.ships
     }
 
-    private var damageVisJob: Job? = null
-
     @Listener
     fun onPacket(packet: PlayerShipDamagePacket) {
         if (packet.shipIndex == shipIndex.value) {
@@ -1334,7 +1216,7 @@ class AgentViewModel(application: Application) :
                 miscUpdate = true
             }
             is CommsButtonPacket.Action.Remove -> {
-                if (!commsActionSet.remove(CommsActionEntry(action.label))) {
+                if (!commsActionSet.removeIf { it.label == action.label }) {
                     return
                 }
             }
@@ -1439,7 +1321,7 @@ class AgentViewModel(application: Application) :
     }
 
     fun updateFromSettings(settings: UserSettings) {
-        vesselDataIndex = settings.vesselDataLocationValue
+        vesselDataManager.index = settings.vesselDataLocationValue
         port = settings.serverPort
         updateObjectsInterval = settings.updateInterval
 
@@ -1531,7 +1413,7 @@ class AgentViewModel(application: Application) :
 
     fun revertSettings(settings: UserSettings): UserSettings =
         settings.copy {
-            vesselDataLocationValue = vesselDataIndex
+            vesselDataLocationValue = vesselDataManager.index
             serverPort = port
             updateInterval = updateObjectsInterval
 
@@ -1636,8 +1518,6 @@ class AgentViewModel(application: Application) :
         const val VOLUME_SCALE = 100f
         private const val PADDED_ZEROES = 3
 
-        private val STATION_CALLSIGN = Regex("DS\\d+")
-        private val ENEMY_STATION = Regex("^[A-Z][a-z]+ Base \\d+")
         private const val GAME_OVER_REASON_INDEX = 13
 
         val PLURALS_FOR_INVENTORY =

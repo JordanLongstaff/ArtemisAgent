@@ -23,9 +23,9 @@ class BaseMessageTest :
         }
 
         describe("Build ordnance message") {
-            withData(OrdnanceType.entries.toList()) {
-                val buildMessage = BaseMessage.Build(it)
-                buildMessage.ordnanceType shouldBeEqual it
+            withData(OrdnanceType.entries.toList()) { ordnance ->
+                val buildMessage = BaseMessage.Build(ordnance)
+                buildMessage.ordnanceType shouldBeEqual ordnance
             }
         }
     })

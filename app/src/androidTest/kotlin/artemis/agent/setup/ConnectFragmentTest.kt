@@ -11,12 +11,15 @@ import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.setup.settings.SettingsFragmentTest
+import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
+import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertEnabled
 import com.adevinta.android.barista.assertion.BaristaHintAssertions.assertHint
 import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
+import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.clearText
 import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.writeTo
@@ -26,6 +29,7 @@ import dev.tmapps.konnection.Konnection
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -84,20 +88,37 @@ class ConnectFragmentTest {
     }
 
     @Test
+    fun connectionSuccessTest() {
+        val connectTimeout = AtomicInteger()
+        activityScenarioManager.onActivity { activity ->
+            connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
+        }
+
+        connectToServer(FAKE_SERVER_IP)
+
+        if (!isEmulator) {
+            // Skip this check on CI since it always fails
+            assertDisplayed(R.id.connectLabel, R.string.connecting)
+            assertDisplayed(R.id.connectSpinner)
+        }
+
+        sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
+
+        assertUnchecked(R.id.connectPageButton)
+        assertNotExist(R.id.connectLabel)
+        assertNotExist(R.id.addressBar)
+        assertChecked(R.id.shipsPageButton)
+        assertDisplayed(R.id.shipsList)
+    }
+
+    @Test
     fun connectionFailedTest() {
         val connectTimeout = AtomicInteger()
         activityScenarioManager.onActivity { activity ->
             connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
         }
 
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
-
-        assertDisplayed(R.id.connectLabel, R.string.not_connected)
-        assertNotDisplayed(R.id.connectSpinner)
-
-        writeTo(R.id.addressBar, "127.0.0.1")
-        sleep(100L)
-        clickOn(R.id.connectButton)
+        connectToServer("127.0.0.1")
 
         if (!isEmulator) {
             // Skip this check on CI since it always fails
@@ -112,7 +133,7 @@ class ConnectFragmentTest {
     }
 
     @Test
-    fun showNetworkInfoTest() = runTest {
+    fun showNetworkInfoTest(): TestResult = runTest {
         val showingInfo = AtomicBoolean()
         activityScenarioManager.onActivity { activity ->
             showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
@@ -143,8 +164,21 @@ class ConnectFragmentTest {
     }
 
     companion object {
+        const val FAKE_SERVER_IP = "noseynick.net"
+
         private val EMULATOR_DEVICES = setOf("emu64x", "emulator64_x86_64", "generic_x86_64")
 
         private val isEmulator by lazy { Build.DEVICE in EMULATOR_DEVICES }
+
+        fun connectToServer(ip: String) {
+            PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+
+            assertDisplayed(R.id.connectLabel, R.string.not_connected)
+            assertNotDisplayed(R.id.connectSpinner)
+
+            writeTo(R.id.addressBar, ip)
+            sleep(100L)
+            clickOn(R.id.connectButton)
+        }
     }
 }

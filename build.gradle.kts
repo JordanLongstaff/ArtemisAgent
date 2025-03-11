@@ -39,6 +39,10 @@ val pitestMutators: Set<String> by
         )
     )
 
+val kotlinMainPath: String by extra("src/main/kotlin")
+val kotlinTestPath: String by extra("src/test/kotlin")
+val kotlinTestFixturesPath: String by extra("src/testFixtures/kotlin")
+
 plugins {
     base
     alias(libs.plugins.detekt)
@@ -61,11 +65,4 @@ detekt {
     parallel = true
 }
 
-gitHooks {
-    setHooks(
-        mapOf(
-            "pre-commit" to
-                "detektBaseline detektBaselineTest detektBaselineTestFixtures ktfmtFormat"
-        )
-    )
-}
+gitHooks { setHooks(mapOf("pre-push" to "detekt ktfmtCheck")) }

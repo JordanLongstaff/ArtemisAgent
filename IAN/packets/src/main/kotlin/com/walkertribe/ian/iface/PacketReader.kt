@@ -49,19 +49,28 @@ class PacketReader(
 ) : KoinComponent {
     private val koinApp = koinApplication { defaultModule() }
 
-    override fun getKoin(): Koin = koinApp.koin
-
     private val protocol: Protocol by inject()
 
     private val rejectedObjectIDs = mutableSetOf<Int>()
 
     /**
+     * Returns false if the current object's ID has been marked as one for which to reject updates,
+     * true otherwise.
+     */
+    val isAcceptingCurrentObject: Boolean
+        get() = !rejectedObjectIDs.contains(objectId)
+
+    /**
      * Returns the server [Version]. Defaults to the latest version, but subject to change if a
      * [VersionPacket] is received.
      */
-    var version = Version.LATEST
+    var version = Version.DEFAULT
 
     private lateinit var payload: Source
+
+    /** Returns true if the payload currently being read has more data; false otherwise. */
+    val hasMore: Boolean
+        get() = !payload.exhausted()
 
     /** Returns the ID of the current object being read from the payload. */
     var objectId = 0
@@ -83,57 +92,54 @@ class PacketReader(
         val (packetType, payloadPacket) = readPayload()
         val subtype =
             if (payloadPacket.exhausted()) 0x00 else payloadPacket.preview { it.readByte() }
-        val factory = protocol.getFactory(packetType, subtype) ?: return ParseResult.Skip
-        val factoryClass = factory.factoryClass
-        val payloadBytes = payloadPacket.preview { it.readByteArray() }
+        val factory = protocol.getFactory(packetType, subtype)
         val result: ParseResult = ParseResult.Processing()
-        val packet: Packet.Server
-
-        // Find out if any listeners are interested in this packet type
-        result.addListeners(listenerRegistry.listeningFor(factoryClass))
 
         // IAN wants certain packet types even if the code consuming IAN isn't
         // interested in them.
         payload = payloadPacket
-        if (
-            result.isInteresting ||
-                factoryClass.isSubclassOf(ObjectUpdatePacket::class) ||
-                factoryClass.isSubclassOf(VersionPacket::class)
-        ) {
+        return try {
             // We need this packet
-            try {
-                packet = factory.build(this)
-            } catch (ex: PacketException) {
-                // an exception occurred during payload parsing
-                ex.appendParsingDetails(packetType, payloadBytes)
-                return ParseResult.Fail(ex)
-            } catch (@Suppress("TooGenericExceptionCaught") ex: Exception) {
-                return ParseResult.Fail(PacketException(ex, packetType, payloadBytes))
-            } finally {
-                payload.close()
-            }
+            factory
+                ?.takeIf {
+                    val factoryClass = it.factoryClass
 
-            when (packet) {
-                is VersionPacket -> version = packet.version
-                is ObjectUpdatePacket -> {
-                    packet.objectClasses.forEach {
-                        result.addListeners(listenerRegistry.listeningFor(it))
-                    }
-                    if (!result.isInteresting) return ParseResult.Skip
+                    // Find out if any listeners are interested in this packet type
+                    result.addListeners(listenerRegistry.listeningFor(factoryClass))
+
+                    result.isInteresting ||
+                        factoryClass.isSubclassOf(ObjectUpdatePacket::class) ||
+                        factoryClass.isSubclassOf(VersionPacket::class)
                 }
-                else -> {}
-            }
-        } else {
-            // Nothing is interested in this packet
-            payload.close()
-            return ParseResult.Skip
-        }
-        return ParseResult.Success(packet, result)
-    }
+                ?.build(this)
+                ?.takeIf { packet ->
+                    when (packet) {
+                        is VersionPacket -> {
+                            version = packet.version
+                            true
+                        }
 
-    /** Returns true if the payload currently being read has more data; false otherwise. */
-    val hasMore: Boolean
-        get() = !payload.exhausted()
+                        is ObjectUpdatePacket -> {
+                            packet.objectClasses.forEach {
+                                result.addListeners(listenerRegistry.listeningFor(it))
+                            }
+                            result.isInteresting
+                        }
+
+                        else -> true
+                    }
+                }
+                ?.let { packet -> ParseResult.Success(packet, result) } ?: ParseResult.Skip
+        } catch (ex: PacketException) {
+            // an exception occurred during payload parsing
+            ex.appendParsingDetails(packetType, payload.readByteArray())
+            ParseResult.Fail(ex)
+        } catch (@Suppress("TooGenericExceptionCaught") ex: Exception) {
+            ParseResult.Fail(PacketException(ex, packetType, payload.readByteArray()))
+        } finally {
+            payload.close()
+        }
+    }
 
     /** Returns the next byte in the current packet's payload without moving the pointer. */
     fun peekByte(): Byte = payload.preview { it.readByte() }
@@ -271,13 +277,6 @@ class PacketReader(
         koinApp.close()
     }
 
-    /**
-     * Returns false if the current object's ID has been marked as one for which to reject updates,
-     * true otherwise.
-     */
-    val isAcceptingCurrentObject: Boolean
-        get() = !rejectedObjectIDs.contains(objectId)
-
     /** Removes the given object ID from the set of IDs for which to reject updates. */
     fun acceptObjectID(id: Int) {
         rejectedObjectIDs.remove(id)
@@ -337,4 +336,6 @@ class PacketReader(
 
         return packetType to payloadPacket
     }
+
+    override fun getKoin(): Koin = koinApp.koin
 }

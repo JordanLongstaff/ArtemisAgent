@@ -31,13 +31,10 @@ jobs:
     name: 'Wait for build to complete'
     runs-on: ubuntu-latest
     steps:
-      - uses: lewagon/wait-on-check-action@v1.3.4
+      - uses: ArcticLampyrid/action-wait-for-workflow@v1.2.0
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          check-name: 'build'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          allowed-conclusions: success
-          wait-interval: 10
+          workflow: gradle.yml
+          wait-interval: 5
 
   dependency-submission:
     name: 'Dependency submission'

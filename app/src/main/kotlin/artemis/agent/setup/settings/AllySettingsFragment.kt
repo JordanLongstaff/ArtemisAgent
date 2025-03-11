@@ -53,64 +53,38 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
     }
 
     private fun prepareAllySortMethodButtons(allySortMethodButtons: ToggleButtonMap) {
-        val context = binding.root.context
-
         allySortMethodButtons.keys.forEach { button ->
             button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
         }
 
-        binding.allySortingClassButton1.setOnCheckedChangeListener { _, isChecked ->
-            binding.allySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        allySortClassFirst = isChecked
-                        if (isChecked && allySortClassSecond) allySortClassSecond = false
-                    }
-                }
-            }
+        binding.allySortingClassButton1.bindSortButton { isChecked ->
+            allySortClassFirst = isChecked
+            if (isChecked && allySortClassSecond) allySortClassSecond = false
         }
 
-        binding.allySortingEnergyButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.allySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        allySortEnergyFirst = isChecked
-                        if (isChecked && !allySortStatus) allySortStatus = true
-                    }
-                }
-            }
+        binding.allySortingEnergyButton.bindSortButton { isChecked ->
+            allySortEnergyFirst = isChecked
+            if (isChecked && !allySortStatus) allySortStatus = true
         }
 
-        binding.allySortingStatusButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.allySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        allySortStatus = isChecked
-                        if (!isChecked && allySortEnergyFirst) allySortEnergyFirst = false
-                    }
-                }
-            }
+        binding.allySortingStatusButton.bindSortButton { isChecked ->
+            allySortStatus = isChecked
+            if (!isChecked && allySortEnergyFirst) allySortEnergyFirst = false
         }
 
-        binding.allySortingClassButton2.setOnCheckedChangeListener { _, isChecked ->
-            binding.allySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        allySortClassSecond = isChecked
-                        if (isChecked && allySortClassFirst) allySortClassFirst = false
-                    }
-                }
-            }
+        binding.allySortingClassButton2.bindSortButton { isChecked ->
+            allySortClassSecond = isChecked
+            if (isChecked && allySortClassFirst) allySortClassFirst = false
         }
 
-        binding.allySortingNameButton.setOnCheckedChangeListener { _, isChecked ->
+        binding.allySortingNameButton.bindSortButton { isChecked -> allySortName = isChecked }
+    }
+
+    private fun ToggleButton.bindSortButton(onChange: UserSettingsKt.Dsl.(Boolean) -> Unit = {}) {
+        setOnCheckedChangeListener { _, isChecked ->
             binding.allySortingDefaultOffButton.isChecked = isChecked
             viewModel.viewModelScope.launch {
-                context.userSettings.updateData { it.copy { allySortName = isChecked } }
+                binding.root.context.userSettings.updateData { it.copy { onChange(isChecked) } }
             }
         }
     }

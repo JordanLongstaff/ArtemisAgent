@@ -36,14 +36,14 @@ private constructor(
         val bays: List<Bay>,
     ) : PacketTestData.Server<BayStatusPacket> {
         override fun buildPayload(): Source = buildPacket {
-            bays.forEach {
-                writeIntLe(it.id)
+            bays.forEach { bay ->
+                writeIntLe(bay.id)
                 if (shouldWriteBayNumber) {
-                    writeIntLe(it.bayNumber)
+                    writeIntLe(bay.bayNumber)
                 }
-                writeString(it.name)
-                writeString(it.className)
-                writeIntLe(it.refitTime)
+                writeString(bay.name)
+                writeString(bay.className)
+                writeIntLe(bay.refitTime)
             }
             writeIntLe(0)
         }
@@ -58,11 +58,11 @@ private constructor(
             versionArb,
             Arb.list(
                 Arb.bind(
-                    Arb.int().filter { it != 0 },
-                    Arb.int(),
-                    Arb.string(),
-                    Arb.string(),
-                    Arb.int(),
+                    genA = Arb.int().filter { it != 0 },
+                    genB = Arb.int(),
+                    genC = Arb.string(),
+                    genD = Arb.string(),
+                    genE = Arb.int(),
                 ) { id, bayNumber, name, className, refitTime ->
                     Bay(id, bayNumber, name, className, refitTime)
                 }

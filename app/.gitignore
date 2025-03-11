@@ -1,5 +1,7 @@
 /build
 /release
-/artemis-agent-433913-9ee89b54a5c6.json
+/artemis-agent-fastlane.json
+/artemis-agent-firebase.json
 /artemis-agent-keystore.jks
 /google-services.json
+/remote-config.json

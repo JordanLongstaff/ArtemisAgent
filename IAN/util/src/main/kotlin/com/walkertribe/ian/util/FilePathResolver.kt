@@ -13,16 +13,16 @@ import okio.Path
  * @author rjwut
  */
 class FilePathResolver(private val directory: Path) : PathResolver {
-    @Throws(IOException::class)
-    override fun <T> invoke(path: Path, readerAction: BufferedSource.() -> T): T =
-        fileSystem.read(directory / path, readerAction)
-
     init {
         require(fileSystem.exists(directory)) { "Directory does not exist" }
         require(fileSystem.metadata(directory).isDirectory) { "Not a directory" }
     }
 
+    @Throws(IOException::class)
+    override fun <T> invoke(path: Path, readerAction: BufferedSource.() -> T): T =
+        fileSystem.read(directory / path, readerAction)
+
     private companion object {
-        private val fileSystem = FileSystem.SYSTEM
+        val fileSystem = FileSystem.SYSTEM
     }
 }

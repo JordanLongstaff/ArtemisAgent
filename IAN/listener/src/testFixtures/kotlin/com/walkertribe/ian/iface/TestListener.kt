@@ -4,6 +4,12 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
 object TestListener {
+    private val listeners by lazy {
+        listOf(ListenerFunction(ListenerArgument::class, this::listen))
+    }
+
+    val module: ListenerModule by lazy { TestListenerModule(listeners) }
+
     private val callsMap =
         mutableMapOf<KClass<out ListenerArgument>, MutableList<ListenerArgument>>()
 
@@ -20,10 +26,6 @@ object TestListener {
             .filterIsInstance(kClass.java)
 
     inline fun <reified T : ListenerArgument> calls(): List<T> = calls(T::class)
-
-    val module: ListenerModule by lazy { TestListenerModule(listeners) }
-
-    val listeners by lazy { listOf(ListenerFunction(ListenerArgument::class, this::listen)) }
 
     fun clear() {
         callsMap.clear()

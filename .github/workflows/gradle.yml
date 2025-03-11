@@ -19,8 +19,6 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
-      checks: write
-      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +44,7 @@ jobs:
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew build
+        run: ./gradlew build koverXmlReport
 
       # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
       # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
@@ -59,19 +57,126 @@ jobs:
       # - name: Build with Gradle 8.5
       #   run: gradle build
 
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
+      - name: Upload Unit Test Results
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          check_name: Unit Test Results
-          files: |
+          name: Unit Test Results
+          path: |
             ${{ github.workspace }}/**/build/test-results/**/*.xml
             !${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
+
+      - name: Upload Konsist Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Konsist Test Results
+          path: |
+            ${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
+
+      - name: Upload Code Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Code Coverage Reports
+          path: |
+            ${{ github.workspace }}/**/build/reports/kover/report.xml
+
+  test-results:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Download Unit Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: Unit Test Results
+          path: tests
+
+      - name: Download Konsist Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: Konsist Test Results
+          path: konsist
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
+        with:
+          check_name: Unit Test Results
+          files: tests/**/*.xml
 
       - name: Publish Konsist Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
         if: always()
         with:
           check_name: Konsist Test Results
-          files: |
-            ${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
+          files: konsist/**/*.xml
+
+  coverage:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+    strategy:
+      matrix:
+        module:
+          - app
+          - IAN
+          - IAN/enums
+          - IAN/listener
+          - IAN/packets
+          - IAN/udp
+          - IAN/util
+          - IAN/vesseldata
+          - IAN/world
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Download Code Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: Code Coverage Reports
+          path: coverage
+
+      - name: Code Coverage (${{ matrix.module }})
+        uses: mi-kas/kover-report@v1.9
+        with:
+          title: Code Coverage (${{ matrix.module }})
+          path: coverage/${{ matrix.module }}/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
+          min-coverage-overall: ${{ matrix.module == 'app' && 0 || 90 }}
+
+  total-coverage:
+    needs: coverage
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Download Code Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: Code Coverage Reports
+          path: coverage
+
+      - name: Total Code Coverage
+        uses: mi-kas/kover-report@v1.9
+        with:
+          title: Total Code Coverage
+          path: |
+            coverage/app/build/reports/kover/report.xml
+            coverage/IAN/build/reports/kover/report.xml
+            coverage/IAN/enums/build/reports/kover/report.xml
+            coverage/IAN/listener/build/reports/kover/report.xml
+            coverage/IAN/packets/build/reports/kover/report.xml
+            coverage/IAN/udp/build/reports/kover/report.xml
+            coverage/IAN/util/build/reports/kover/report.xml
+            coverage/IAN/vesseldata/build/reports/kover/report.xml
+            coverage/IAN/world/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true

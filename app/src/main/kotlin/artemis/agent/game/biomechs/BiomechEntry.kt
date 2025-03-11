@@ -21,6 +21,9 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     val canFreezeAgain: Boolean
         get() = timesFrozen < MAX_FREEZES
 
+    fun getFullName(viewModel: AgentViewModel): String =
+        biomech.getFullName(viewModel.vesselData) ?: ""
+
     fun getFrozenStatusText(viewModel: AgentViewModel, context: Context): String {
         val timer = TimerText.getTimeUntil(freezeStartTime + viewModel.biomechFreezeTime)
 

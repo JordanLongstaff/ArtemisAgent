@@ -75,7 +75,7 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
         RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: BiomechEntry, viewModel: AgentViewModel) {
             entryBinding.root.setOnClickListener { entry.freeze(viewModel) }
-            entryBinding.biomechNameLabel.text = viewModel.getFullNameForShip(entry.biomech)
+            entryBinding.biomechNameLabel.text = entry.getFullName(viewModel)
             entryBinding.biomechStatusLabel.text =
                 entry.getFrozenStatusText(viewModel, entryBinding.root.context)
         }

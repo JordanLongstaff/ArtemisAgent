@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     kotlin("android")
+    alias(libs.plugins.detekt)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -42,6 +43,7 @@ android {
 
 dependencies {
     testImplementation(projects.app)
+    testImplementation(projects.ian.testing)
 
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)

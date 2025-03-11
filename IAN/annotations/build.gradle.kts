@@ -27,9 +27,4 @@ tasks.assemble.dependsOn(":IAN:annotations:konsist:test")
 
 ktfmt { kotlinLangStyle() }
 
-detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-}
-
 dependencies { api(libs.kotlin.stdlib) }

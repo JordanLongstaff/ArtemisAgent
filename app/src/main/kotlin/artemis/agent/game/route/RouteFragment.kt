@@ -78,8 +78,8 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         prepareRouteListView()
-        bindRouteSelectorViews()
-        bindRouteObjectiveData()
+        setupRouteSelectionHandlers()
+        setupRouteObjectiveCollectors()
 
         suppliesSelectorPopup.isFocusable = true
 
@@ -118,61 +118,51 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             )
     }
 
-    private fun bindRouteSelectorViews() {
+    private fun setupRouteSelectionHandlers() {
         val routeTasksButton = binding.routeTasksButton
         val routeSuppliesButton = binding.routeSuppliesButton
         val routeSuppliesSelector = binding.routeSuppliesSelector
         val fighterSupplyIndex = ordnanceTypes.size
 
-        routeTasksButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        arrayOf(routeTasksButton, routeSuppliesButton).forEach {
+            it.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        }
 
         routeTasksButton.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                routeSuppliesSelector.apply {
-                    visibility = View.GONE / resources.configuration.orientation
-                }
-                if (viewModel.routeObjective.value != RouteObjective.Tasks) {
-                    viewModel.routeObjective.value = RouteObjective.Tasks
-                }
-            }
-        }
+            if (!isChecked) return@setOnCheckedChangeListener
 
-        routeSuppliesButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            routeSuppliesSelector.visibility =
+                View.GONE / routeSuppliesSelector.resources.configuration.orientation
+            viewModel.routeObjective.value = RouteObjective.Tasks
+        }
 
         routeSuppliesButton.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                routeSuppliesSelector.visibility = View.VISIBLE
+            if (!isChecked) return@setOnCheckedChangeListener
 
-                val position = viewModel.routeSuppliesIndex
-                val newObjective =
-                    if (position == fighterSupplyIndex) {
-                        RouteObjective.ReplacementFighters
-                    } else {
-                        RouteObjective.Ordnance(OrdnanceType.entries[position])
-                    }
-                if (viewModel.routeObjective.value != newObjective) {
-                    viewModel.routeObjective.value = newObjective
-                }
-            }
-        }
+            routeSuppliesSelector.visibility = View.VISIBLE
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.routeObjective) {
-            if (it is RouteObjective.Tasks) {
-                routeTasksButton.isChecked = true
-            } else {
-                routeSuppliesSelector.text =
-                    if (it is RouteObjective.Ordnance) {
-                        it.ordnanceType.getLabelFor(viewModel.version)
-                    } else {
-                        routeSuppliesSelector.context.getString(R.string.fighters)
-                    }
-                routeSuppliesButton.isChecked = true
-            }
-            binding.routeSuppliesData.text = it.getDataFrom(viewModel)
+            val position = viewModel.routeSuppliesIndex
+            val newObjective =
+                if (position == fighterSupplyIndex) RouteObjective.ReplacementFighters
+                else RouteObjective.Ordnance(OrdnanceType.entries[position])
+            viewModel.routeObjective.value = newObjective
         }
     }
 
-    private fun bindRouteObjectiveData() {
+    private fun setupRouteObjectiveCollectors() {
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.routeObjective) { objective ->
+            if (objective is RouteObjective.Tasks) {
+                binding.routeTasksButton.isChecked = true
+            } else {
+                binding.routeSuppliesSelector.text =
+                    if (objective is RouteObjective.Ordnance)
+                        objective.ordnanceType.getLabelFor(viewModel.version)
+                    else binding.routeSuppliesSelector.context.getString(R.string.fighters)
+                binding.routeSuppliesButton.isChecked = true
+            }
+            binding.routeSuppliesData.text = objective.getDataFrom(viewModel)
+        }
+
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.totalFighters) {
             val routeObjective = viewModel.routeObjective.value
             if (routeObjective is RouteObjective.ReplacementFighters) {
@@ -182,13 +172,13 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.ordnanceUpdated) {
-            if (it) {
-                val routeObjective = viewModel.routeObjective.value
-                if (routeObjective is RouteObjective.Ordnance) {
-                    binding.routeSuppliesData.text = routeObjective.getDataFrom(viewModel)
-                }
-                routeSuppliesAdapter.notifyItemRangeChanged(0, ordnanceTypes.size)
+            if (!it) return@collectLatestWhileStarted
+
+            val routeObjective = viewModel.routeObjective.value
+            if (routeObjective is RouteObjective.Ordnance) {
+                binding.routeSuppliesData.text = routeObjective.getDataFrom(viewModel)
             }
+            routeSuppliesAdapter.notifyItemRangeChanged(0, ordnanceTypes.size)
         }
     }
 
@@ -200,11 +190,8 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
 
         override fun getNewListSize(): Int = newRoute.size
 
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            val oldEntry = oldRoute[oldItemPosition]
-            val newEntry = newRoute[newItemPosition]
-            return oldEntry.pathKey == newEntry.pathKey
-        }
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldRoute[oldItemPosition].pathKey == newRoute[newItemPosition].pathKey
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = false
     }
@@ -221,13 +208,10 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             entryBinding.destRangeLabel.text = getString(R.string.range, objEntry.range)
 
             entryBinding.destReasonsLabel.text = entry.getReasonText(objective, context, viewModel)
-            entryBinding.destNameLabel.text = viewModel.getFullNameForShip(objEntry.obj)
+            entryBinding.destNameLabel.text = objEntry.fullName
 
-            if (objEntry is ObjectEntry.Station) {
-                bindStation(entry, objEntry)
-            } else if (objEntry is ObjectEntry.Ally) {
-                bindAlly(objEntry)
-            }
+            if (objEntry is ObjectEntry.Station) bindStation(entry, objEntry)
+            else if (objEntry is ObjectEntry.Ally) bindAlly(objEntry)
         }
 
         private fun bindStation(entry: RouteEntry, objEntry: ObjectEntry.Station) {

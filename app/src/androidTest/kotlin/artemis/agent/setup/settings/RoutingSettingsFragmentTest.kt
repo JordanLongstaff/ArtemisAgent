@@ -71,10 +71,10 @@ class RoutingSettingsFragmentTest {
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
             testRoutingSubMenuOpen(
-                incentivesEnabled,
-                avoidancesEnabled,
-                clearanceValues,
-                !usingToggle,
+                incentives = incentivesEnabled,
+                avoidances = avoidancesEnabled,
+                clearances = clearanceValues,
+                shouldTestSettings = !usingToggle,
             )
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
@@ -86,7 +86,12 @@ class RoutingSettingsFragmentTest {
                     usingToggle = false,
                     toggleDisplayed = true,
                 )
-                testRoutingSubMenuOpen(incentivesEnabled, avoidancesEnabled, clearanceValues, false)
+                testRoutingSubMenuOpen(
+                    incentives = incentivesEnabled,
+                    avoidances = avoidancesEnabled,
+                    clearances = clearanceValues,
+                    shouldTestSettings = false,
+                )
 
                 SettingsFragmentTest.backFromSubMenu()
                 testRoutingSubMenuClosed(true)
@@ -144,25 +149,25 @@ class RoutingSettingsFragmentTest {
         val routingAvoidanceSettings =
             arrayOf(
                 RoutingAvoidanceSetting(
-                    R.id.blackHolesButton,
-                    R.id.blackHolesTitle,
-                    R.string.avoidance_black_hole,
-                    R.id.blackHolesClearanceField,
-                    R.id.blackHolesClearanceKm,
+                    button = R.id.blackHolesButton,
+                    label = R.id.blackHolesTitle,
+                    text = R.string.avoidance_black_hole,
+                    input = R.id.blackHolesClearanceField,
+                    kmLabel = R.id.blackHolesClearanceKm,
                 ),
                 RoutingAvoidanceSetting(
-                    R.id.minesButton,
-                    R.id.minesTitle,
-                    R.string.avoidance_mine,
-                    R.id.minesClearanceField,
-                    R.id.minesClearanceKm,
+                    button = R.id.minesButton,
+                    label = R.id.minesTitle,
+                    text = R.string.avoidance_mine,
+                    input = R.id.minesClearanceField,
+                    kmLabel = R.id.minesClearanceKm,
                 ),
                 RoutingAvoidanceSetting(
-                    R.id.typhonsButton,
-                    R.id.typhonsTitle,
-                    R.string.avoidance_typhon,
-                    R.id.typhonsClearanceField,
-                    R.id.typhonsClearanceKm,
+                    button = R.id.typhonsButton,
+                    label = R.id.typhonsTitle,
+                    text = R.string.avoidance_typhon,
+                    input = R.id.typhonsClearanceField,
+                    kmLabel = R.id.typhonsClearanceKm,
                 ),
             )
 
@@ -185,12 +190,13 @@ class RoutingSettingsFragmentTest {
             routingIncentiveSettings.forEach { assertDisplayed(it.button, it.text) }
 
             SettingsFragmentTest.testSettingsWithAllAndNone(
-                R.id.incentivesAllButton,
-                R.id.incentivesNoneButton,
-                routingIncentiveSettings.mapIndexed { index, setting ->
-                    setting.button to incentives[index]
-                },
-                !shouldTest,
+                allButton = R.id.incentivesAllButton,
+                noneButton = R.id.incentivesNoneButton,
+                settingsButtons =
+                    routingIncentiveSettings.mapIndexed { index, setting ->
+                        setting.button to incentives[index]
+                    },
+                skipToggleTest = !shouldTest,
             )
         }
 
@@ -219,12 +225,13 @@ class RoutingSettingsFragmentTest {
             }
 
             SettingsFragmentTest.testSettingsWithAllAndNone(
-                R.id.avoidancesAllButton,
-                R.id.avoidancesNoneButton,
-                routingAvoidanceSettings.mapIndexed { index, setting ->
-                    setting.button to enabled[index]
-                },
-                !shouldTest,
+                allButton = R.id.avoidancesAllButton,
+                noneButton = R.id.avoidancesNoneButton,
+                settingsButtons =
+                    routingAvoidanceSettings.mapIndexed { index, setting ->
+                        setting.button to enabled[index]
+                    },
+                skipToggleTest = !shouldTest,
             ) { index, on ->
                 if (on) {
                     assertDisplayed(
@@ -267,11 +274,11 @@ class RoutingSettingsFragmentTest {
             assertNotExist(R.id.avoidancesDivider)
 
             routingIncentiveSettings.forEach { assertNotExist(it.button) }
-            routingAvoidanceSettings.forEach {
-                assertNotExist(it.button)
-                assertNotExist(it.label)
-                assertNotExist(it.input)
-                assertNotExist(it.kmLabel)
+            routingAvoidanceSettings.forEach { avoidanceSetting ->
+                assertNotExist(avoidanceSetting.button)
+                assertNotExist(avoidanceSetting.label)
+                assertNotExist(avoidanceSetting.input)
+                assertNotExist(avoidanceSetting.kmLabel)
             }
 
             SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)

@@ -232,11 +232,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
     private fun StationEntryBinding.bindStationSelector(entry: Station) {
         val context = root.context
-
-        val station = entry.obj
-        val shields = station.shieldsFront.value
-        val shieldsMax = station.shieldsFrontMax.value
-        val percent = shields / shieldsMax
+        val percent = entry.obj.shieldsFront.percentage
 
         val selectorBackground =
             ResourcesCompat.getDrawable(
@@ -253,28 +249,20 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             selectorBackground?.let { drawable ->
                 InsetDrawable(
                     drawable,
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_vertical_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_horizontal_material
-                    ),
-                    context.resources.getDimensionPixelSize(
-                        androidx.appcompat.R.dimen.abc_button_inset_vertical_material
-                    ),
+                    context.resources.getDimensionPixelSize(R.dimen.horizontalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.verticalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.horizontalInset),
+                    context.resources.getDimensionPixelSize(R.dimen.verticalInset),
                 )
             }
-        stationSelectorButton.text = viewModel.getFullNameForShip(station)
+        stationSelectorButton.text = entry.fullName
     }
 
     private fun StationEntryBinding.updateInfoLabels(entry: Station) {
         val context = root.context
 
-        val shields = entry.obj.shieldsFront.value
-        val shieldsMax = entry.obj.shieldsFrontMax.value
+        val shields = entry.obj.shieldsFront.strength.value
+        val shieldsMax = entry.obj.shieldsFront.maxStrength.value
 
         if (viewModel.version < RouteObjective.ReplacementFighters.REPORT_VERSION) {
             stationFightersLabel.visibility = View.GONE
@@ -353,7 +341,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
             label.text = entry.getOrdnanceText(viewModel, root.context, ordnanceType)
         }
 
-        for (i in (halfway + visibleOnRight) until ordnanceLabels.size) {
+        for (i in halfway + visibleOnRight until ordnanceLabels.size) {
             ordnanceLabels[i].visibility = View.GONE
         }
     }
@@ -375,7 +363,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
     private class StationEntryViewHolder(private val entryBinding: SelectorEntryBinding) :
         RecyclerView.ViewHolder(entryBinding.root) {
-        fun bind(station: Station, flashing: Boolean, viewModel: AgentViewModel) {
+        fun bind(station: Station, flashing: Boolean) {
             val context = itemView.context
             val orientation = context.resources.configuration.orientation
 
@@ -384,13 +372,13 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
                     textSize = PORTRAIT_SELECTOR_TEXT_SIZE
                 }
 
-                text = viewModel.getFullNameForShip(station.obj)
+                text = station.fullName
                 isAllCaps = true
             }
 
             entryBinding.flashBackground.visibility =
                 if (flashing) {
-                    val percent = station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value
+                    val percent = station.obj.shieldsFront.percentage
                     val flashColor =
                         SELECTOR_COLORS.find { percent >= it.first }
                             .let {
@@ -420,7 +408,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
         override fun onBindViewHolder(holder: StationEntryViewHolder, position: Int) {
             stations[position].also { (station, flashing) ->
-                holder.bind(station, flashing, viewModel)
+                holder.bind(station, flashing)
                 holder.itemView.setOnClickListener {
                     viewModel.playSound(SoundEffect.BEEP_2)
                     station.obj.name.value?.also { name -> viewModel.stationName.value = name }

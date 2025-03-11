@@ -3,6 +3,7 @@ package artemis.agent.setup
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.IdRes
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
@@ -39,11 +40,9 @@ class SetupFragment : Fragment(R.layout.setup_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.connectPageButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
-
-        binding.shipsPageButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
-
-        binding.settingsPageButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.setupPageSelector.children.forEach { button ->
+            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        }
 
         binding.setupPageSelector.setOnCheckedChangeListener { _, checkedId ->
             currentPage = Page.entries.find { it.buttonId == checkedId }

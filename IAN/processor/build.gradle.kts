@@ -24,11 +24,6 @@ tasks.compileKotlin {
 
 ktfmt { kotlinLangStyle() }
 
-detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-}
-
 dependencies {
     api(libs.kotlin.stdlib)
     api(libs.koin.annotations)

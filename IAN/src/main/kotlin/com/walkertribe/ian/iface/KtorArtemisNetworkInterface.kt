@@ -32,7 +32,7 @@ import kotlinx.io.IOException
  *   and object updates.
  * * The **sender coroutine**, which writes outgoing packets to the output stream.
  */
-class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
+class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
     ArtemisNetworkInterface, CoroutineScope {
     override val coroutineContext = Dispatchers.IO
 
@@ -54,12 +54,12 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
     private var disconnectCause: DisconnectCause? = DisconnectCause.LocalDisconnect
     private val heartbeatManager = HeartbeatManager(this)
     private val listeners = ListenerRegistry()
-    override var version: Version = Version.LATEST
+    override var version: Version = Version.DEFAULT
         private set(value) {
             if (field == value) return
             field = value
 
-            if (value < Version.MINIMUM || (!debugMode && value > Version.LATEST)) {
+            if (value < Version.MINIMUM || maxVersion?.takeIf { value > it } != null) {
                 disconnectCause = DisconnectCause.UnsupportedVersion(value)
                 stop()
             }
@@ -69,10 +69,9 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
         CoroutineExceptionHandler { _, throwable ->
             reader.close(throwable)
             disconnectCause =
-                when (throwable) {
-                    is PacketException -> DisconnectCause.PacketParseError(throwable)
-                    else -> DisconnectCause.RemoteDisconnect
-                }
+                if (throwable is PacketException) DisconnectCause.PacketParseError(throwable)
+                else DisconnectCause.RemoteDisconnect
+
             stop()
         }
     }
@@ -80,10 +79,9 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
     private val sendExceptionHandler by lazy {
         CoroutineExceptionHandler { _, throwable ->
             disconnectCause =
-                when (throwable) {
-                    is IOException -> DisconnectCause.IOError(throwable)
-                    else -> DisconnectCause.UnknownError(throwable)
-                }
+                if (throwable is IOException) DisconnectCause.IOError(throwable)
+                else DisconnectCause.UnknownError(throwable)
+
             stop()
         }
     }
@@ -96,6 +94,10 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
                 is DisconnectCause.UnknownError -> cause.throwable
                 else -> null
             }
+
+    override var isConnected: Boolean = false
+    private val isRunning: Boolean
+        get() = disconnectCause == null && startTime != null
 
     init {
         addListeners(
@@ -124,55 +126,44 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
     }
 
     override fun start() {
-        if (startTime == null && disconnectCause == null) {
-            startTime = Clock.System.now().toEpochMilliseconds()
+        if (startTime != null || disconnectCause != null) return
 
-            sendJob =
-                launch(sendExceptionHandler) {
-                    while (isRunning && isActive) {
-                        sendingChannel.tryReceive().onSuccess { packet ->
-                            packet.writeTo(writer)
-                            writer.flush()
-                        }
+        startTime = Clock.System.now().toEpochMilliseconds()
 
-                        heartbeatManager.sendHeartbeatIfNeeded()
-                    }
-                }
-
-            receiveJob =
-                launch(receiveExceptionHandler) {
-                    while (isRunning) {
-                        // read packet and process
-                        when (val result = reader.readPacket()) {
-                            is ParseResult.Success -> {
-                                parseResultsChannel.send(result)
-                                version = reader.version
-                            }
-                            is ParseResult.Fail -> throw result.exception
-                            else -> {}
-                        }
-                    }
-                }
-
-            connectionListenerJob = launch {
+        sendJob =
+            launch(sendExceptionHandler) {
                 while (isRunning && isActive) {
-                    connectionEventChannel.tryReceive().onSuccess(listeners::offer)
+                    sendingChannel.tryReceive().onSuccess { packet ->
+                        packet.writeTo(writer)
+                        writer.flush()
+                    }
 
-                    heartbeatManager.checkForHeartbeat()
+                    heartbeatManager.sendHeartbeatIfNeeded()
                 }
             }
 
-            parseResultDispatchJob = launch {
+        receiveJob =
+            launch(receiveExceptionHandler) {
                 while (isRunning) {
-                    parseResultsChannel.receive().fireListeners()
+                    // read packet and process
+                    onParseResult(reader.readPacket())
                 }
+            }
+
+        connectionListenerJob = launch {
+            while (isRunning && isActive) {
+                connectionEventChannel.tryReceive().onSuccess(listeners::offer)
+
+                heartbeatManager.checkForHeartbeat()
+            }
+        }
+
+        parseResultDispatchJob = launch {
+            while (isRunning) {
+                parseResultsChannel.receive().fireListeners()
             }
         }
     }
-
-    override var isConnected: Boolean = false
-    private val isRunning: Boolean
-        get() = disconnectCause == null && startTime != null
 
     override fun sendPacket(packet: Packet.Client) {
         sendingChannel.trySend(packet)
@@ -180,6 +171,17 @@ class KtorArtemisNetworkInterface(override val debugMode: Boolean) :
 
     override fun sendConnectionEvent(event: ConnectionEvent) {
         connectionEventChannel.trySend(event)
+    }
+
+    private suspend fun onParseResult(result: ParseResult) {
+        when (result) {
+            is ParseResult.Success -> {
+                parseResultsChannel.send(result)
+                version = reader.version
+            }
+            is ParseResult.Fail -> throw result.exception
+            else -> {}
+        }
     }
 
     override fun stop() {

@@ -118,20 +118,20 @@ class NotificationManager(context: Context) {
                 )
 
             createNotificationChannelGroupsCompat(
-                groupSetups.map {
-                    NotificationChannelGroupCompat.Builder(it.id)
-                        .setName(context.getString(it.nameID))
+                groupSetups.map { group ->
+                    NotificationChannelGroupCompat.Builder(group.id)
+                        .setName(context.getString(group.nameID))
                         .build()
                 }
             )
 
             createNotificationChannelsCompat(
                 groupSetups.flatMap { group ->
-                    group.channels.map {
-                        NotificationChannelCompat.Builder(it.id, it.importance)
+                    group.channels.map { channel ->
+                        NotificationChannelCompat.Builder(channel.id, channel.importance)
                             .setGroup(group.id)
-                            .setName(context.getString(it.nameID))
-                            .setShowBadge(it.shouldShowBadge)
+                            .setName(context.getString(channel.nameID))
+                            .setShowBadge(channel.shouldShowBadge)
                             .build()
                     }
                 }
@@ -140,9 +140,7 @@ class NotificationManager(context: Context) {
 
     fun createNotification(
         builder: NotificationCompat.Builder,
-        channelId: String,
-        title: String,
-        message: String,
+        info: NotificationInfo,
         context: Context,
     ) {
         if (
@@ -152,10 +150,12 @@ class NotificationManager(context: Context) {
             return
         }
 
+        val (channelId, title, message, ongoing) = info
         builder
             .setStyle(NotificationCompat.BigTextStyle().bigText(message).setBigContentTitle(title))
             .setContentTitle(title)
             .setContentText(message)
+            .setOngoing(ongoing)
 
         val index =
             when (channelId) {

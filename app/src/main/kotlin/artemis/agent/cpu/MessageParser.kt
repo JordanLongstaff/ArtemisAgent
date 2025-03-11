@@ -327,7 +327,7 @@ sealed interface MessageParser {
                     viewModel.livingStations[it]
                 }
                     ?: viewModel.allyShips.values.find {
-                        !it.isTrap && viewModel.getFullNameForShip(it.obj) == destinationName
+                        !it.isTrap && it.fullName == destinationName
                     }
                     ?: return
 
@@ -453,7 +453,7 @@ sealed interface MessageParser {
             viewModel.allMissions.forEach { mission ->
                 if (
                     mission.isStarted ||
-                        source != viewModel.getFullNameForShip(mission.source.obj) ||
+                        source != mission.source.fullName ||
                         destination != mission.destination.obj.name.value
                 ) {
                     return@forEach
@@ -480,7 +480,7 @@ sealed interface MessageParser {
                 .filterNot { mission ->
                     mission.associatedShipName != shipName ||
                         mission.isCompleted ||
-                        destination != viewModel.getFullNameForShip(mission.destination.obj)
+                        destination != mission.destination.fullName
                 }
                 .forEach { mission ->
                     mission.completionTimestamp = timestamp
@@ -675,6 +675,7 @@ sealed interface MessageParser {
                 destination = destName
                 isAttacking = false
                 isMovingToStation = viewModel.livingStationNameIndex.containsKey(destName)
+                latestHailMessage = message
             }
 
             return true
@@ -684,31 +685,24 @@ sealed interface MessageParser {
     data object HailResponse : MessageParser {
         override fun parseResult(packet: CommsIncomingPacket, viewModel: AgentViewModel): Boolean {
             val message = packet.message
-            val responseMatch = OUR_SHIELDS.find(message)
-            return when {
-                responseMatch == null -> false
-                responseMatch.value.length == message.length -> true
-                else -> {
-                    val response = message.substring(responseMatch.value.length + 1)
-                    val sender = packet.sender
-                    !sender.startsWith("DS") &&
-                        HailResponseEffect.entries.any {
-                            if (!it.appliesTo(response)) return@any false
-                            val splitPoint = sender.lastIndexOf(" ")
-                            val vesselName = sender.substring(0, splitPoint)
-                            val name = sender.substring(splitPoint + 1)
-                            viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also {
-                                ally ->
-                                if (ally.vesselName == vesselName) {
-                                    if (ally.status != AllyStatus.FLYING_BLIND)
-                                        ally.status = it.getAllyStatus(response)
-                                    ally.hasEnergy = response.endsWith(HAS_ENERGY)
-                                    ally.checkNebulaStatus()
-                                }
-                            }
-                            true
-                        }
+            val responseMatch = OUR_SHIELDS.find(message) ?: return false
+            val sender = packet.sender
+
+            val vesselName = sender.substringBeforeLast(' ')
+            val name = sender.substring(vesselName.length + 1)
+            val ally =
+                viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.takeIf {
+                    it.vesselName == vesselName
                 }
+
+            val responseMatchLength = responseMatch.value.length
+            return if (responseMatchLength == message.length) {
+                true
+            } else {
+                val response = message.substring(responseMatchLength + 1)
+                ally?.latestHailMessage = response
+
+                !sender.startsWith("DS") && HailResponseEffect.entries.any { it(response, ally) }
             }
         }
     }
@@ -720,7 +714,6 @@ sealed interface MessageParser {
 
         const val TSNCOM = "TSNCOM"
         val STAND_DOWN_SEARCH_RANGE = 25 until 28
-        const val HAS_ENERGY = "some."
         const val SCRAMBLED = "iGH \nERROR% w23jr20ruj!!!"
         const val STANDBY = "Docking crew is ready, "
         const val PRODUCED = "We've produced another "

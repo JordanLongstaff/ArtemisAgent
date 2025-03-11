@@ -36,6 +36,5 @@ class FragmentViewBindingDelegate<VB : ViewBinding>(private val viewBinder: View
     }
 }
 
-inline fun <reified VB : ViewBinding> fragmentViewBinding(): FragmentViewBindingDelegate<VB> {
-    return FragmentViewBindingDelegate(ViewBinder.defaultBinder())
-}
+inline fun <reified VB : ViewBinding> fragmentViewBinding(): FragmentViewBindingDelegate<VB> =
+    FragmentViewBindingDelegate(ViewBinder.defaultBinder())

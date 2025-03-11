@@ -32,21 +32,20 @@ class AllySettingsFragmentTest {
         val showingDestroyed = AtomicBoolean()
         val manuallyReturning = AtomicBoolean()
 
-        val sortByClassFirst = AtomicBoolean()
-        val sortByEnergy = AtomicBoolean()
-        val sortByStatus = AtomicBoolean()
-        val sortByClassSecond = AtomicBoolean()
-        val sortByName = AtomicBoolean()
+        val sortSettings = Array(5) { AtomicBoolean() }
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             val allySorter = viewModel.allySorter
 
-            sortByClassFirst.lazySet(allySorter.sortByClassFirst)
-            sortByEnergy.lazySet(allySorter.sortByEnergy)
-            sortByStatus.lazySet(allySorter.sortByStatus)
-            sortByClassSecond.lazySet(allySorter.sortByClassSecond)
-            sortByName.lazySet(allySorter.sortByName)
+            booleanArrayOf(
+                    allySorter.sortByClassFirst,
+                    allySorter.sortByEnergy,
+                    allySorter.sortByStatus,
+                    allySorter.sortByClassSecond,
+                    allySorter.sortByName,
+                )
+                .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
 
             alliesEnabled.lazySet(viewModel.alliesEnabled)
             showingDestroyed.lazySet(viewModel.showAllySelector)
@@ -61,18 +60,16 @@ class AllySettingsFragmentTest {
         val showDestroyed = showingDestroyed.get()
         val manualReturn = manuallyReturning.get()
 
-        val sortSettings =
-            booleanArrayOf(
-                sortByClassFirst.get(),
-                sortByEnergy.get(),
-                sortByStatus.get(),
-                sortByClassSecond.get(),
-                sortByName.get(),
-            )
+        val sortMethods = sortSettings.map { it.get() }.toBooleanArray()
 
         booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
-            testAlliesSubMenuOpen(sortSettings, !usingToggle, showDestroyed, manualReturn)
+            testAlliesSubMenuOpen(
+                sortMethods,
+                shouldTestSortMethods = !usingToggle,
+                showingDestroyed = showDestroyed,
+                manuallyReturning = manualReturn,
+            )
 
             SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
             testAlliesSubMenuClosed(usingToggle)
@@ -83,7 +80,12 @@ class AllySettingsFragmentTest {
                     usingToggle = false,
                     toggleDisplayed = true,
                 )
-                testAlliesSubMenuOpen(sortSettings, false, showDestroyed, manualReturn)
+                testAlliesSubMenuOpen(
+                    sortMethods,
+                    shouldTestSortMethods = false,
+                    showingDestroyed = showDestroyed,
+                    manuallyReturning = manualReturn,
+                )
 
                 SettingsFragmentTest.backFromSubMenu()
                 testAlliesSubMenuClosed(true)
@@ -106,16 +108,16 @@ class AllySettingsFragmentTest {
         val allySingleToggleSettings =
             arrayOf(
                 SingleToggleButtonSetting(
-                    R.id.showDestroyedAlliesDivider,
-                    R.id.showDestroyedAlliesTitle,
-                    R.string.show_destroyed_allies,
-                    R.id.showDestroyedAlliesButton,
+                    divider = R.id.showDestroyedAlliesDivider,
+                    label = R.id.showDestroyedAlliesTitle,
+                    text = R.string.show_destroyed_allies,
+                    button = R.id.showDestroyedAlliesButton,
                 ),
                 SingleToggleButtonSetting(
-                    R.id.manuallyReturnDivider,
-                    R.id.manuallyReturnTitle,
-                    R.string.manually_return_from_commands,
-                    R.id.manuallyReturnButton,
+                    divider = R.id.manuallyReturnDivider,
+                    label = R.id.manuallyReturnTitle,
+                    text = R.string.manually_return_from_commands,
+                    button = R.id.manuallyReturnButton,
                 ),
             )
 

@@ -49,15 +49,11 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
 
         override fun getNewListSize(): Int = newList.size
 
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldItemPosition == newItemPosition
-        }
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldItemPosition == newItemPosition
 
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            val oldShip = oldList[oldItemPosition]
-            val newShip = newList[newItemPosition]
-            return oldShip == newShip
-        }
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldList[oldItemPosition] == newList[newItemPosition]
     }
 
     private class ShipViewHolder(val entryBinding: ShipEntryBinding) :
@@ -65,7 +61,7 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
 
     private class ShipAdapter(private val viewModel: AgentViewModel) :
         RecyclerView.Adapter<ShipViewHolder>() {
-        private var shipsList: List<Ship> = listOf()
+        private var shipsList: List<Ship> = emptyList()
         private var selectedShipIndex: Int = -1
 
         override fun getItemCount(): Int = shipsList.size
@@ -78,6 +74,7 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
         override fun onBindViewHolder(holder: ShipViewHolder, position: Int) {
             val ship = shipsList[position]
             val entryBinding = holder.entryBinding
+            val vesselData = viewModel.vesselData
 
             entryBinding.driveTypeLabel.text = ship.drive.name.substring(0, 1)
             entryBinding.nameLabel.text =
@@ -86,25 +83,17 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
             val hue = ship.hue
             val root = entryBinding.root
             root.setBackgroundColor(
-                if (hue.isNaN()) {
-                    Color.TRANSPARENT
-                } else {
-                    Color.HSVToColor(floatArrayOf(hue, 1f, VALUE))
-                }
+                if (hue.isNaN()) Color.TRANSPARENT
+                else Color.HSVToColor(floatArrayOf(hue, 1f, VALUE))
             )
 
-            entryBinding.vesselLabel.text = viewModel.getFullNameForVessel(ship)
-            entryBinding.descriptionLabel.text =
-                ship.getVessel(viewModel.vesselData)?.description ?: ""
+            entryBinding.vesselLabel.text = ship.getFullName(vesselData)
+            entryBinding.descriptionLabel.text = ship.getVessel(vesselData)?.description ?: ""
 
             root.setOnClickListener { viewModel.selectShip(position) }
 
-            val selectedShipLabel = entryBinding.selectedShipLabel
-            if (selectedShipIndex == position) {
-                selectedShipLabel.setText(R.string.selected)
-            } else {
-                selectedShipLabel.text = ""
-            }
+            entryBinding.selectedShipLabel.visibility =
+                if (selectedShipIndex == position) View.VISIBLE else View.GONE
         }
 
         fun update(value: Int) {

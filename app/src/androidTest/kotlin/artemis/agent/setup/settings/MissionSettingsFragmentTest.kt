@@ -103,12 +103,13 @@ class MissionSettingsFragmentTest {
             rewardSettings.forEach { assertDisplayed(it.button, it.text) }
 
             SettingsFragmentTest.testSettingsWithAllAndNone(
-                R.id.rewardsAllButton,
-                R.id.rewardsNoneButton,
-                rewardSettings.mapIndexed { index, setting ->
-                    setting.button to rewardsEnabled[index]
-                },
-                !shouldTest,
+                allButton = R.id.rewardsAllButton,
+                noneButton = R.id.rewardsNoneButton,
+                settingsButtons =
+                    rewardSettings.mapIndexed { index, setting ->
+                        setting.button to rewardsEnabled[index]
+                    },
+                skipToggleTest = !shouldTest,
             )
         }
 
@@ -121,9 +122,9 @@ class MissionSettingsFragmentTest {
 
             if (!shouldTestToggle) return
 
-            booleanArrayOf(!autoDismissal, autoDismissal).forEach {
+            booleanArrayOf(!autoDismissal, autoDismissal).forEach { isChecked ->
                 clickOn(R.id.autoDismissalButton)
-                testMissionsSubMenuAutoDismissal(it)
+                testMissionsSubMenuAutoDismissal(isChecked)
             }
         }
 

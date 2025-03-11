@@ -31,11 +31,6 @@ tasks.test {
 
 ktfmt { kotlinLangStyle() }
 
-detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-}
-
 dependencies {
     implementation(libs.kotlinx.io)
     api(libs.bundles.ian.udp.api)
