@@ -1,0 +1,552 @@
+{
+  "entries": [
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "NORMAL",
+      "energy": false
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "HOSTAGE",
+      "energy": false
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "NORMAL",
+      "energy": false
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "HOSTAGE",
+      "energy": false
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "NORMAL",
+      "energy": true
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "NORMAL",
+      "energy": true
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "NORMAL",
+      "energy": false
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "HOSTAGE",
+      "energy": true
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "HOSTAGE",
+      "energy": false
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "HOSTAGE",
+      "energy": true
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "NORMAL",
+      "energy": true
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "HOSTAGE",
+      "energy": true
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "NORMAL",
+      "energy": true
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "HOSTAGE",
+      "energy": true
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "NORMAL",
+      "energy": false
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "HOSTAGE",
+      "energy": false
+    }
+  ],
+  "sortingTests": [
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": false,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": false,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        2,
+        3,
+        4,
+        6,
+        7,
+        8,
+        12,
+        13,
+        0,
+        1,
+        5,
+        9,
+        10,
+        11,
+        14,
+        15
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByEnergy": false,
+      "sortByStatus": false,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        0,
+        3,
+        4,
+        6,
+        9,
+        10,
+        13,
+        15,
+        1,
+        2,
+        5,
+        7,
+        8,
+        11,
+        12,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": false,
+      "sortByClassSecond": true,
+      "sortByName": false,
+      "sortedIndices": [
+        0,
+        3,
+        4,
+        6,
+        9,
+        10,
+        13,
+        15,
+        1,
+        2,
+        5,
+        7,
+        8,
+        11,
+        12,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        1,
+        3,
+        7,
+        8,
+        9,
+        11,
+        13,
+        15,
+        0,
+        2,
+        4,
+        5,
+        6,
+        10,
+        12,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": true,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        1,
+        3,
+        8,
+        15,
+        0,
+        2,
+        6,
+        14,
+        7,
+        9,
+        11,
+        13,
+        4,
+        5,
+        10,
+        12
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByEnergy": false,
+      "sortByStatus": false,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        4,
+        6,
+        13,
+        0,
+        9,
+        10,
+        15,
+        2,
+        7,
+        8,
+        12,
+        1,
+        5,
+        11,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": false,
+      "sortByClassSecond": true,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        4,
+        6,
+        13,
+        0,
+        9,
+        10,
+        15,
+        2,
+        7,
+        8,
+        12,
+        1,
+        5,
+        11,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        7,
+        8,
+        13,
+        1,
+        9,
+        11,
+        15,
+        2,
+        4,
+        6,
+        12,
+        0,
+        5,
+        10,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByEnergy": false,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        3,
+        9,
+        13,
+        15,
+        0,
+        4,
+        6,
+        10,
+        1,
+        7,
+        8,
+        11,
+        2,
+        5,
+        12,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": true,
+      "sortByClassSecond": true,
+      "sortByName": false,
+      "sortedIndices": [
+        3,
+        9,
+        13,
+        15,
+        1,
+        7,
+        8,
+        11,
+        0,
+        4,
+        6,
+        10,
+        2,
+        5,
+        12,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByEnergy": true,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        3,
+        15,
+        0,
+        6,
+        9,
+        13,
+        4,
+        10,
+        1,
+        8,
+        2,
+        14,
+        7,
+        11,
+        5,
+        12
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": true,
+      "sortByStatus": true,
+      "sortByClassSecond": true,
+      "sortByName": false,
+      "sortedIndices": [
+        3,
+        15,
+        1,
+        8,
+        0,
+        6,
+        2,
+        14,
+        9,
+        13,
+        7,
+        11,
+        4,
+        10,
+        5,
+        12
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": true,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        8,
+        1,
+        15,
+        2,
+        6,
+        0,
+        14,
+        7,
+        13,
+        9,
+        11,
+        4,
+        12,
+        5,
+        10
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByEnergy": false,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        13,
+        9,
+        15,
+        4,
+        6,
+        0,
+        10,
+        7,
+        8,
+        1,
+        11,
+        2,
+        12,
+        5,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": false,
+      "sortByStatus": true,
+      "sortByClassSecond": true,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        13,
+        9,
+        15,
+        7,
+        8,
+        1,
+        11,
+        4,
+        6,
+        0,
+        10,
+        2,
+        12,
+        5,
+        14
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByEnergy": true,
+      "sortByStatus": true,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        15,
+        6,
+        0,
+        13,
+        9,
+        4,
+        10,
+        8,
+        1,
+        2,
+        14,
+        7,
+        11,
+        12,
+        5
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByEnergy": true,
+      "sortByStatus": true,
+      "sortByClassSecond": true,
+      "sortByName": true,
+      "sortedIndices": [
+        3,
+        15,
+        8,
+        1,
+        6,
+        0,
+        2,
+        14,
+        13,
+        9,
+        7,
+        11,
+        4,
+        10,
+        12,
+        5
+      ]
+    }
+  ]
+}

@@ -218,6 +218,7 @@ app-test = [
     "kotest-assertions-shared",
     "kotest-framework-api",
     "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "kotest-property-arbs-jvm",
     "mockk",

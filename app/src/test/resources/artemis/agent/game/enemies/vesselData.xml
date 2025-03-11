@@ -1,0 +1,15 @@
+﻿<vessel_data version="2.6">
+  <hullRace ID="1" name="Terran" keys="friendly">
+    <taunt immunity="is proud of his laid back crew with lax discipline" text="Your crew is a sloppy bunch of disrespectful layabouts!"/>
+    <taunt immunity="has no living family" text="Your father is so stupid he thinks planets are tiny plans!"/>
+    <taunt immunity="is decorated for strategic thinking and is not interested in offering a challenge in battle" text="You chicken-hearted cowards! I've had more challenging battles with a space bug!"/>
+  </hullRace>
+  <hullRace ID="2" name="Kralien" keys="enemy standard">
+    <taunt immunity="does not practice the Kralien religion faithfully" text="Hey wormface! Can I borrow your Holy Scroll of Amborax? I need to wipe my stinky feet!"/>
+    <taunt immunity="complained to Kralien High Command that Kralien ships are too weak" text="You call that a warship? I could crush that toy with my bare hands."/>
+    <taunt immunity="is unmarried" text="You're so ugly that your wife will thank me for killing you!"/>
+  </hullRace>
+
+  <vessel    uniqueID="1"    side="1"       classname="Light Cruiser" broadType="player" />
+  <vessel    uniqueID="2"    side="2"       classname="Scout" broadType="player" />
+</vessel_data>
