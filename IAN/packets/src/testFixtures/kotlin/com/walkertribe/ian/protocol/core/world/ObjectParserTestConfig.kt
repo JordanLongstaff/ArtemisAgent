@@ -2075,6 +2075,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object Drone : Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,

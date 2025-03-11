@@ -337,6 +337,7 @@ ian-util = [
     "okio",
 ]
 ian-util-test = [
+    "kotlinx-coroutines",
     "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
@@ -385,6 +386,7 @@ ian-vesseldata-test-fixtures = [
 ]
 
 ian-world-test = [
+    "kotlinx-coroutines",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
