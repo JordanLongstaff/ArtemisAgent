@@ -117,6 +117,7 @@ dependencies {
 
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
+    testImplementation(testFixtures(projects.ian.vesseldata))
 
     androidTestImplementation(libs.bundles.app.androidTest)
     androidTestUtil(libs.test.orchestrator)
