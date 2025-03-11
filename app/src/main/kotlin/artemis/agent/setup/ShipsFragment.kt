@@ -92,12 +92,8 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
 
             root.setOnClickListener { viewModel.selectShip(position) }
 
-            val selectedShipLabel = entryBinding.selectedShipLabel
-            if (selectedShipIndex == position) {
-                selectedShipLabel.setText(R.string.selected)
-            } else {
-                selectedShipLabel.text = ""
-            }
+            entryBinding.selectedShipLabel.visibility =
+                if (selectedShipIndex == position) View.VISIBLE else View.GONE
         }
 
         fun update(value: Int) {
