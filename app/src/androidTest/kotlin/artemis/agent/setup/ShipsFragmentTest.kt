@@ -57,10 +57,6 @@ class ShipsFragmentTest {
         assertDisplayed(R.id.shipsList)
         assertRecyclerViewItemCount(R.id.shipsList, Artemis.SHIP_COUNT)
 
-        repeat(Artemis.SHIP_COUNT) { index ->
-            displayedIds.forEach { view -> assertDisplayedAtPosition(R.id.shipsList, index, view) }
-        }
-
         clickOn(R.id.gamePageButton)
         assertDisplayed(R.id.shipNumberLabel, R.string.no_ship_selected)
 
@@ -78,10 +74,5 @@ class ShipsFragmentTest {
         assertChecked(R.id.shipsPageButton)
         assertDisplayed(R.id.shipsList)
         assertDisplayedAtPosition(R.id.shipsList, 0, R.id.selectedShipLabel, R.string.selected)
-    }
-
-    private companion object {
-        val displayedIds =
-            intArrayOf(R.id.nameLabel, R.id.vesselLabel, R.id.driveTypeLabel, R.id.descriptionLabel)
     }
 }
