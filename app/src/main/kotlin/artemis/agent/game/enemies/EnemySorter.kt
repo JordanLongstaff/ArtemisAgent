@@ -47,17 +47,18 @@ data class EnemySorter(
             sortBySurrendered: Boolean,
             map: (EnemyEntry) -> String?,
         ): List<EnemySortCategory> {
+            val categorySet = mutableSetOf<String>()
             val categoryMap = mutableListOf<EnemySortCategory>()
-            var prevCategory = ""
 
             for (i in enemies.indices) {
                 val enemy = enemies[i]
-                val category = map(enemy)
+                val category = map(enemy)?.let { category ->
+                    if (categorySet.contains(category)) null
+                    else EnemySortCategory.Text(category, i)
+                }
                 if (category != null) {
-                    if (category != prevCategory) {
-                        categoryMap.add(EnemySortCategory.Text(category, i))
-                        prevCategory = category
-                    }
+                    categoryMap.add(category)
+                    categorySet.add(category.text)
                 } else if (sortBySurrendered && enemy.enemy.isSurrendered.value.booleanValue) {
                     if (categoryMap.isEmpty()) {
                         categoryMap.add(EnemySortCategory.Res(R.string.active, 0))
