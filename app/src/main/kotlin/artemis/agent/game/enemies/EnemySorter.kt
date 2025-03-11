@@ -52,10 +52,11 @@ data class EnemySorter(
 
             for (i in enemies.indices) {
                 val enemy = enemies[i]
-                val category = map(enemy)?.let { category ->
-                    if (categorySet.contains(category)) null
-                    else EnemySortCategory.Text(category, i)
-                }
+                val category =
+                    map(enemy)?.let { category ->
+                        if (categorySet.contains(category)) null
+                        else EnemySortCategory.Text(category, i)
+                    }
                 if (category != null) {
                     categoryMap.add(category)
                     categorySet.add(category.text)

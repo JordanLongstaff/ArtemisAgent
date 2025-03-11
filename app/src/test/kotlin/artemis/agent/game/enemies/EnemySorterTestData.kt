@@ -92,10 +92,7 @@ sealed interface TestSortCategory {
         override fun toSortCategory(): EnemySortCategory = EnemySortCategory.Res(resId, scrollIndex)
 
         private companion object {
-            val RES_MAP = mapOf(
-                "Active" to R.string.active,
-                "Surrendered" to R.string.surrendered,
-            )
+            val RES_MAP = mapOf("Active" to R.string.active, "Surrendered" to R.string.surrendered)
         }
     }
 

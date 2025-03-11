@@ -9,13 +9,13 @@ import com.walkertribe.ian.iface.Listener
 import com.walkertribe.ian.protocol.core.world.BiomechRagePacket
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.Property
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class BiomechManager {
     var enabled = true
@@ -72,8 +72,7 @@ class BiomechManager {
         rageStatus.value =
             BiomechRageStatus[rageProperty.value].also {
                 if (
-                    rageStatus.value == BiomechRageStatus.NEUTRAL &&
-                    it == BiomechRageStatus.HOSTILE
+                    rageStatus.value == BiomechRageStatus.NEUTRAL && it == BiomechRageStatus.HOSTILE
                 ) {
                     hasUpdate = true
                 }
@@ -82,12 +81,13 @@ class BiomechManager {
 
     fun updateFromSettings(settings: UserSettings) {
         enabled = settings.biomechsEnabled
-        sorter = BiomechSorter(
-            sortByClassFirst = settings.biomechSortClassFirst,
-            sortByStatus = settings.biomechSortStatus,
-            sortByClassSecond = settings.biomechSortClassSecond,
-            sortByName = settings.biomechSortName,
-        )
+        sorter =
+            BiomechSorter(
+                sortByClassFirst = settings.biomechSortClassFirst,
+                sortByStatus = settings.biomechSortStatus,
+                sortByClassSecond = settings.biomechSortClassSecond,
+                sortByName = settings.biomechSortName,
+            )
         freezeTime = settings.freezeDurationSeconds.toLong()
     }
 

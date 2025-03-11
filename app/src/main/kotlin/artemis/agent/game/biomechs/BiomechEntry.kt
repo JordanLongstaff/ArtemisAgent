@@ -22,8 +22,7 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     val canFreezeAgain: Boolean
         get() = timesFrozen < MAX_FREEZES
 
-    fun getFullName(viewModel: AgentViewModel): String =
-        biomech.getFullName(viewModel.vesselData) ?: ""
+    fun getFullName(viewModel: AgentViewModel): String = biomech.getFullName(viewModel.vesselData)
 
     fun getFrozenStatusText(biomechManager: BiomechManager, context: Context): String {
         val timer = TimerText.getTimeUntil(freezeStartTime + biomechManager.freezeTime)
@@ -37,13 +36,8 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     }
 
     fun freeze(viewModel: AgentViewModel) {
-        if (!canFreezeAgain) {
-            return
-        }
-
-        if (isFrozen && !isReadyToReanimate) {
-            return
-        }
+        if (!canFreezeAgain) return
+        if (isFrozen && !isReadyToReanimate) return
 
         freezeSent = true
         viewModel.playSound(SoundEffect.BEEP_1)
@@ -53,26 +47,24 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     }
 
     fun onFreezeResponse() {
-        if (freezeSent) {
-            freezeSent = false
-            isFrozen = true
-            isReadyToReanimate = false
-            freezeStartTime = System.currentTimeMillis()
-        }
+        if (!freezeSent) return
+
+        freezeSent = false
+        isFrozen = true
+        isReadyToReanimate = false
+        freezeStartTime = System.currentTimeMillis()
     }
 
     fun onFreezeTimeExpired(elapsedTime: Long): Boolean {
-        if (!isFrozen || isReadyToReanimate || elapsedTime < freezeStartTime) {
-            return false
-        }
+        if (!isFrozen || isReadyToReanimate || elapsedTime < freezeStartTime) return false
+
         isReadyToReanimate = true
         return true
     }
 
     fun onFreezeEnd() {
-        if (!isReadyToReanimate) {
-            return
-        }
+        if (!isReadyToReanimate) return
+
         isFrozen = false
         isReadyToReanimate = false
     }

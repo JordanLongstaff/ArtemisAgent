@@ -9,8 +9,7 @@ sealed interface EnemySortCategory {
 
         override fun hashCode(): Int = resId
 
-        override fun equals(other: Any?): Boolean =
-            other is Res && resId == other.resId
+        override fun equals(other: Any?): Boolean = other is Res && resId == other.resId
     }
 
     data class Text(val text: String, override val scrollIndex: Int) : EnemySortCategory {
@@ -18,8 +17,7 @@ sealed interface EnemySortCategory {
 
         override fun hashCode(): Int = text.hashCode()
 
-        override fun equals(other: Any?): Boolean =
-            other is Text && text == other.text
+        override fun equals(other: Any?): Boolean = other is Text && text == other.text
     }
 
     val scrollIndex: Int
