@@ -4,16 +4,14 @@ import artemis.agent.AgentViewModel
 import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
 import artemis.agent.game.biomechs.BiomechEntry
-import artemis.agent.game.enemies.EnemyCaptainStatus
 import artemis.agent.game.enemies.EnemyEntry
-import artemis.agent.game.enemies.TauntStatus
 import com.walkertribe.ian.enums.BaseMessage
-import com.walkertribe.ian.enums.IntelType
+import com.walkertribe.ian.enums.ObjectType
 import com.walkertribe.ian.enums.OtherMessage
 import com.walkertribe.ian.iface.Listener
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
-import com.walkertribe.ian.protocol.core.world.IntelPacket
+import com.walkertribe.ian.protocol.core.world.DeleteObjectPacket
 import com.walkertribe.ian.util.isKnown
 import com.walkertribe.ian.vesseldata.Faction
 import com.walkertribe.ian.world.ArtemisBase
@@ -27,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 
 class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
@@ -75,7 +74,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             MessageParser.HailResponse,
         )
 
-    fun onStationDelete(id: Int) {
+    private fun onStationDelete(id: Int) {
         with(viewModel) {
             livingEnemyStations.also { enemyStations ->
                 val enemyStation = enemyStations.remove(id)
@@ -191,7 +190,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         }
     }
 
-    fun onPlayerDelete(id: Int) {
+    private fun onPlayerDelete(id: Int) {
         with(viewModel) {
             players.remove(id)?.also {
                 val index = it.shipIndex.value.toInt()
@@ -347,38 +346,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         return true
     }
 
-    @Listener
-    fun onIntel(packet: IntelPacket) {
-        if (packet.intelType != IntelType.LEVEL_2_SCAN) return
-
-        val enemy = viewModel.enemiesManager.allEnemies[packet.id] ?: return
-        val taunts = enemy.faction.taunts
-
-        val intel = packet.intel
-        enemy.intel = intel
-
-        val description = intel.substring(INTEL_PREFIX_LENGTH)
-        val tauntIndex = taunts.indexOfFirst { taunt -> description.startsWith(taunt.immunity) }
-        val immunityEnd =
-            if (tauntIndex < 0) description.indexOf(',') else taunts[tauntIndex].immunity.length
-
-        val rest = description.substring(immunityEnd)
-        val captainStatus =
-            if (rest.startsWith(CAPTAIN_STATUS_PREFIX)) {
-                val status = rest.substring(CAPTAIN_STATUS_PREFIX.length)
-                EnemyCaptainStatus.entries.find {
-                    status.startsWith(it.name.lowercase().replace('_', ' '))
-                }
-            } else {
-                null
-            }
-        enemy.captainStatus = captainStatus ?: EnemyCaptainStatus.NORMAL
-        if (tauntIndex >= 0 && captainStatus != EnemyCaptainStatus.EASILY_OFFENDED) {
-            enemy.tauntStatuses[tauntIndex] = TauntStatus.INEFFECTIVE
-        }
-    }
-
-    fun onNpcDelete(id: Int) {
+    private fun onNpcDelete(id: Int) {
         npcDeleteFunctions.firstNotNullOfOrNull { it(id) }
     }
 
@@ -512,6 +480,21 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     @Listener
+    fun onPacket(packet: DeleteObjectPacket) {
+        val id = packet.target
+
+        when (packet.targetType) {
+            ObjectType.NPC_SHIP -> onNpcDelete(id)
+            ObjectType.BASE -> onStationDelete(id)
+            ObjectType.PLAYER_SHIP -> onPlayerDelete(id)
+            ObjectType.MINE -> launch { viewModel.onDeleteObstacle(id, viewModel.mines) }
+            ObjectType.BLACK_HOLE -> launch { viewModel.onDeleteObstacle(id, viewModel.blackHoles) }
+            ObjectType.CREATURE -> launch { viewModel.onDeleteObstacle(id, viewModel.typhons) }
+            else -> {}
+        }
+    }
+
+    @Listener
     fun onCommsPacket(packet: CommsIncomingPacket) {
         for (parser in messageParsers) {
             if (parser.parseResult(packet, viewModel)) break
@@ -526,8 +509,5 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
     private companion object {
         const val NUM_THREADS = 20
-
-        const val INTEL_PREFIX_LENGTH = 19
-        const val CAPTAIN_STATUS_PREFIX = ", and is "
     }
 }

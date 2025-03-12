@@ -2,10 +2,14 @@ package artemis.agent.cpu
 
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsOuterClass.UserSettings
+import artemis.agent.game.enemies.EnemyCaptainStatus
 import artemis.agent.game.enemies.EnemyEntry
 import artemis.agent.game.enemies.EnemySortCategory
 import artemis.agent.game.enemies.EnemySorter
 import artemis.agent.game.enemies.TauntStatus
+import com.walkertribe.ian.enums.IntelType
+import com.walkertribe.ian.iface.Listener
+import com.walkertribe.ian.protocol.core.world.IntelPacket
 import com.walkertribe.ian.vesseldata.Taunt
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.channels.BufferOverflow
@@ -57,6 +61,37 @@ class EnemiesManager {
 
     fun getEnemyByName(name: String): EnemyEntry? = nameIndex[name]?.let(allEnemies::get)
 
+    @Listener
+    fun onIntel(packet: IntelPacket) {
+        if (packet.intelType != IntelType.LEVEL_2_SCAN) return
+
+        val enemy = allEnemies[packet.id] ?: return
+        val taunts = enemy.faction.taunts
+
+        val intel = packet.intel
+        enemy.intel = intel
+
+        val description = intel.substring(INTEL_PREFIX_LENGTH)
+        val tauntIndex = taunts.indexOfFirst { taunt -> description.startsWith(taunt.immunity) }
+        val immunityEnd =
+            if (tauntIndex < 0) description.indexOf(',') else taunts[tauntIndex].immunity.length
+
+        val rest = description.substring(immunityEnd)
+        val captainStatus =
+            if (rest.startsWith(CAPTAIN_STATUS_PREFIX)) {
+                val status = rest.substring(CAPTAIN_STATUS_PREFIX.length)
+                EnemyCaptainStatus.entries.find {
+                    status.startsWith(it.name.lowercase().replace('_', ' '))
+                }
+            } else {
+                null
+            }
+        enemy.captainStatus = captainStatus ?: EnemyCaptainStatus.NORMAL
+        if (tauntIndex >= 0 && captainStatus != EnemyCaptainStatus.EASILY_OFFENDED) {
+            enemy.tauntStatuses[tauntIndex] = TauntStatus.INEFFECTIVE
+        }
+    }
+
     fun reset() {
         hasUpdate = false
         allEnemies.clear()
@@ -98,5 +133,10 @@ class EnemiesManager {
         settings.showTauntStatuses = showTauntStatuses
         settings.showEnemyIntel = showIntel
         settings.disableIneffectiveTaunts = disableIneffectiveTaunts
+    }
+
+    private companion object {
+        const val INTEL_PREFIX_LENGTH = 19
+        const val CAPTAIN_STATUS_PREFIX = ", and is "
     }
 }

@@ -33,7 +33,6 @@ import artemis.agent.util.TimerText.timerString
 import com.walkertribe.ian.enums.AlertStatus
 import com.walkertribe.ian.enums.Console
 import com.walkertribe.ian.enums.GameType
-import com.walkertribe.ian.enums.ObjectType
 import com.walkertribe.ian.iface.ArtemisNetworkInterface
 import com.walkertribe.ian.iface.ConnectionEvent
 import com.walkertribe.ian.iface.DisconnectCause
@@ -55,7 +54,6 @@ import com.walkertribe.ian.protocol.core.setup.SetConsolePacket
 import com.walkertribe.ian.protocol.core.setup.SetShipPacket
 import com.walkertribe.ian.protocol.core.setup.Ship
 import com.walkertribe.ian.protocol.core.setup.VersionPacket
-import com.walkertribe.ian.protocol.core.world.DeleteObjectPacket
 import com.walkertribe.ian.protocol.core.world.DockedPacket
 import com.walkertribe.ian.protocol.udp.Server
 import com.walkertribe.ian.protocol.udp.ServerDiscoveryRequester
@@ -97,6 +95,7 @@ class AgentViewModel(application: Application) :
             it.addListeners(
                 listeners +
                     cpu.listeners +
+                    enemiesManager.listeners +
                     missionManager.listeners +
                     biomechManager.listeners +
                     miscManager.listeners
@@ -1040,21 +1039,11 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    @Listener
-    fun onPacket(packet: DeleteObjectPacket) {
-        val id = packet.target
-
-        when (packet.targetType) {
-            ObjectType.NPC_SHIP -> cpu.onNpcDelete(id)
-            ObjectType.BASE -> cpu.onStationDelete(id)
-            ObjectType.PLAYER_SHIP -> cpu.onPlayerDelete(id)
-            ObjectType.MINE -> cpu.launch { mines.remove(id)?.also { graph?.removeObstacle(it) } }
-            ObjectType.BLACK_HOLE ->
-                cpu.launch { blackHoles.remove(id)?.also { graph?.removeObstacle(it) } }
-            ObjectType.CREATURE ->
-                cpu.launch { typhons.remove(id)?.also { graph?.removeObstacle(it) } }
-            else -> {}
-        }
+    internal fun <Obj : ArtemisObject<Obj>> onDeleteObstacle(
+        id: Int,
+        map: ConcurrentHashMap<Int, Obj>,
+    ) {
+        map.remove(id)?.also { graph?.removeObstacle(it) }
     }
 
     internal inline fun <R> ifConnected(block: () -> R): R? =
