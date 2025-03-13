@@ -170,17 +170,17 @@ class MainActivity : AppCompatActivity() {
                     createStationPacketListener(
                         service,
                         viewModel.stationProductionPacket,
-                        NotificationManager.CHANNEL_PRODUCTION,
+                        NotificationChannelTag.PRODUCTION,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationAttackedPacket,
-                        NotificationManager.CHANNEL_ATTACK,
+                        NotificationChannelTag.ATTACK,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationDestroyedPacket,
-                        NotificationManager.CHANNEL_DESTROYED,
+                        NotificationChannelTag.DESTROYED,
                         false,
                     )
 
@@ -188,17 +188,17 @@ class MainActivity : AppCompatActivity() {
                     createMissionPacketListener(
                         service,
                         missionManager.newMissionPacket,
-                        NotificationManager.CHANNEL_NEW_MISSION,
+                        NotificationChannelTag.NEW_MISSION,
                     )
                     createMissionPacketListener(
                         service,
                         missionManager.missionProgressPacket,
-                        NotificationManager.CHANNEL_MISSION_PROGRESS,
+                        NotificationChannelTag.MISSION_PROGRESS,
                     )
                     createMissionPacketListener(
                         service,
                         missionManager.missionCompletionPacket,
-                        NotificationManager.CHANNEL_MISSION_COMPLETED,
+                        NotificationChannelTag.MISSION_COMPLETED,
                     )
 
                     setupOngoingNotifications(service)
@@ -232,7 +232,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_GAME_INFO,
+                                channel = NotificationChannelTag.GAME_INFO,
                                 title = viewModel.connectedUrl.value,
                                 message = strings.joinToString(),
                                 ongoing = true,
@@ -248,7 +248,7 @@ class MainActivity : AppCompatActivity() {
                         buildNotification(
                             info =
                                 NotificationInfo(
-                                    channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
+                                    channel = NotificationChannelTag.DEEP_STRIKE,
                                     title = ally.fullName,
                                     message =
                                         if (viewModel.torpedoesReady)
@@ -275,7 +275,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_REANIMATE,
+                                channel = NotificationChannelTag.REANIMATE,
                                 title = entry.getFullName(viewModel),
                                 message = getString(R.string.biomech_notification),
                             ),
@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_PERFIDY,
+                                channel = NotificationChannelTag.PERFIDY,
                                 title = entry.fullName,
                                 message = getString(R.string.enemy_perfidy_notification),
                             ),
@@ -335,7 +335,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_BORDER_WAR,
+                                channel = NotificationChannelTag.BORDER_WAR,
                                 title = packet.sender,
                                 message = packet.message,
                             ),
@@ -348,7 +348,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_GAME_OVER,
+                                channel = NotificationChannelTag.GAME_OVER,
                                 title = viewModel.connectedUrl.value,
                                 message = reason,
                             ),
@@ -374,7 +374,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_CONNECTION,
+                                channel = NotificationChannelTag.CONNECTION,
                                 title = viewModel.connectedUrl.value,
                                 message = message,
                             ),
@@ -397,7 +397,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_CONNECTION,
+                                channel = NotificationChannelTag.CONNECTION,
                                 title = viewModel.lastAttemptedHost,
                                 message = message,
                             ),
@@ -414,13 +414,13 @@ class MainActivity : AppCompatActivity() {
             private fun createMissionPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = channelId,
+                                channel = channel,
                                 title = packet.sender,
                                 message = packet.message,
                             ),
@@ -434,14 +434,14 @@ class MainActivity : AppCompatActivity() {
             private fun createStationPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
                 includeSenderName: Boolean = true,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = channelId,
+                                channel = channel,
                                 title = packet.sender,
                                 message = packet.message,
                             ),
@@ -474,7 +474,7 @@ class MainActivity : AppCompatActivity() {
             )
 
         val builder =
-            NotificationCompat.Builder(this, info.channelId)
+            NotificationCompat.Builder(this, info.channel.tag)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setLargeIcon(
                     BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
