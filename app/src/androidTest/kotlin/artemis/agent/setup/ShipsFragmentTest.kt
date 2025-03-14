@@ -60,6 +60,8 @@ class ShipsFragmentTest {
         clickOn(R.id.gamePageButton)
         assertDisplayed(R.id.shipNumberLabel, R.string.no_ship_selected)
 
+        sleep(100L)
+
         clickOn(R.id.setupPageButton)
         assertChecked(R.id.shipsPageButton)
         assertDisplayed(R.id.shipsList)
@@ -69,6 +71,8 @@ class ShipsFragmentTest {
         assertNotExist(R.id.setupPageSelector)
         assertChecked(R.id.gamePageButton)
         assertDisplayed(R.id.shipNumberLabel, "Ship 1")
+
+        sleep(100L)
 
         clickOn(R.id.setupPageButton)
         assertChecked(R.id.shipsPageButton)
