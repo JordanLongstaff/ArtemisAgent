@@ -18,33 +18,40 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 class EnemiesManager {
     var enabled: Boolean = true
+
     val selection: MutableStateFlow<EnemyEntry?> by lazy { MutableStateFlow(null) }
     val selectionIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(-1) }
+
     val displayedEnemies: MutableSharedFlow<List<EnemyEntry>> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
     val categories: MutableStateFlow<List<EnemySortCategory>> by lazy {
         MutableStateFlow(emptyList())
     }
+
     val taunts: MutableStateFlow<List<Pair<Taunt, TauntStatus>>> by lazy {
         MutableStateFlow(emptyList())
     }
     val intel: MutableStateFlow<String?> by lazy { MutableStateFlow(null) }
+
     val destroyedEnemyName: MutableSharedFlow<String> by lazy {
         MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
+
     val perfidy: MutableSharedFlow<EnemyEntry> by lazy {
         MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
 
     var sorter = EnemySorter()
+        private set
+
     val nameIndex = ConcurrentHashMap<String, Int>()
     val allEnemies = ConcurrentHashMap<Int, EnemyEntry>()
 
     var showTauntStatuses = true
     var showIntel = true
     var disableIneffectiveTaunts = true
-    var maxSurrenderDistance: Float? = Float.MAX_VALUE
+    var maxSurrenderDistance: Float? = DEFAULT_SURRENDER_DISTANCE
     var hasUpdate = false
 
     val shouldFlash: Boolean?
@@ -136,6 +143,7 @@ class EnemiesManager {
     }
 
     private companion object {
+        const val DEFAULT_SURRENDER_DISTANCE = 5000f
         const val INTEL_PREFIX_LENGTH = 19
         const val CAPTAIN_STATUS_PREFIX = ", and is "
     }
