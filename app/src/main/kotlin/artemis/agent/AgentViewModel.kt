@@ -712,7 +712,7 @@ class AgentViewModel(application: Application) :
                 biomechManager.scanned.sortedWith(biomechManager.sorter).onEach {
                     if (it.onFreezeTimeExpired(startTime - biomechManager.freezeTime)) {
                         biomechManager.nextActiveBiomech.tryEmit(it)
-                        biomechManager.hasUpdate = true
+                        biomechManager.notifyUpdate()
                     }
                 }
             } else {
@@ -726,7 +726,7 @@ class AgentViewModel(application: Application) :
         when (currentGamePage.value) {
             GameFragment.Page.MISSIONS -> missionManager.hasUpdate = false
             GameFragment.Page.ENEMIES -> enemiesManager.hasUpdate = false
-            GameFragment.Page.BIOMECHS -> biomechManager.hasUpdate = false
+            GameFragment.Page.BIOMECHS -> biomechManager.resetUpdate()
             GameFragment.Page.MISC -> miscManager.resetUpdate()
             else -> {}
         }

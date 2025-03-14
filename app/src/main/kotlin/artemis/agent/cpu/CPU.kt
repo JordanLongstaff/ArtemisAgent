@@ -361,7 +361,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             biomechManager.destroyedBiomechName.tryEmit(scannedBiomech.getFullName(viewModel))
 
             if (biomechManager.scanned.isEmpty()) {
-                biomechManager.hasUpdate = false
+                biomechManager.resetUpdate()
             }
 
             scannedBiomech.biomech

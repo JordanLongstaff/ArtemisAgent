@@ -16,10 +16,12 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class BiomechManager {
     var enabled = true
-    var confirmed = true
+    var confirmed = false
 
     val allBiomechs: MutableSharedFlow<List<BiomechEntry>> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -27,10 +29,12 @@ class BiomechManager {
     val scanned = CopyOnWriteArrayList<BiomechEntry>()
     val unscanned = ConcurrentHashMap<Int, ArtemisNpc>()
 
-    val rageProperty = Property.IntProperty(Long.MIN_VALUE)
-    val rageStatus: MutableStateFlow<BiomechRageStatus> by lazy {
+    private val rageProperty = Property.IntProperty(Long.MIN_VALUE)
+    private val mutStatus: MutableStateFlow<BiomechRageStatus> by lazy {
         MutableStateFlow(BiomechRageStatus.NEUTRAL)
     }
+    val rageStatus: StateFlow<BiomechRageStatus>
+        get() = mutStatus.asStateFlow()
 
     val nextActiveBiomech: MutableSharedFlow<BiomechEntry> by lazy {
         MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -40,13 +44,15 @@ class BiomechManager {
     }
 
     var sorter = BiomechSorter()
+        private set
 
     var freezeTime: Long = DEFAULT_FREEZE_TIME.seconds.inWholeMilliseconds
-        set(value) {
+        private set(value) {
             field = value.seconds.inWholeMilliseconds
         }
 
     var hasUpdate = false
+        private set
 
     val shouldFlash: Boolean?
         get() = hasUpdate.takeIf { hasData }
@@ -58,10 +64,18 @@ class BiomechManager {
         confirmed = false
         hasUpdate = false
         rageProperty.value = 0
-        rageStatus.value = BiomechRageStatus.NEUTRAL
+        mutStatus.value = BiomechRageStatus.NEUTRAL
         allBiomechs.tryEmit(emptyList())
         scanned.clear()
         unscanned.clear()
+    }
+
+    fun notifyUpdate() {
+        hasUpdate = true
+    }
+
+    fun resetUpdate() {
+        hasUpdate = false
     }
 
     @Listener
@@ -69,10 +83,10 @@ class BiomechManager {
         val newRage = Property.IntProperty(packet.timestamp)
         newRage.value = packet.rage
         newRage updates rageProperty
-        rageStatus.value =
+        mutStatus.value =
             BiomechRageStatus[rageProperty.value].also {
                 if (
-                    rageStatus.value == BiomechRageStatus.NEUTRAL && it == BiomechRageStatus.HOSTILE
+                    mutStatus.value == BiomechRageStatus.NEUTRAL && it == BiomechRageStatus.HOSTILE
                 ) {
                     hasUpdate = true
                 }
