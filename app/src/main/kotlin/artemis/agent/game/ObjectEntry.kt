@@ -246,7 +246,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     var heading: String = ""
     var range: Float = 0f
 
-    val fullName: String by lazy { obj.getFullName(vesselData) ?: "" }
+    val fullName: String by lazy { obj.getFullName(vesselData) }
 
     abstract val missionStatus: SideMissionStatus
 
