@@ -727,7 +727,7 @@ class AgentViewModel(application: Application) :
             GameFragment.Page.MISSIONS -> missionManager.hasUpdate = false
             GameFragment.Page.ENEMIES -> enemiesManager.hasUpdate = false
             GameFragment.Page.BIOMECHS -> biomechManager.hasUpdate = false
-            GameFragment.Page.MISC -> miscManager.hasUpdate = false
+            GameFragment.Page.MISC -> miscManager.resetUpdate()
             else -> {}
         }
 

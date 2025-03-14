@@ -108,16 +108,18 @@ dependencies {
     implementation(projects.ian.util)
     implementation(projects.ian.vesseldata)
     implementation(projects.ian.world)
-    testImplementation(projects.ian.testing)
 
     ksp(projects.ian.processor)
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
 
+    testImplementation(projects.ian.testing)
+    testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.vesseldata))
+
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
-    testImplementation(testFixtures(projects.ian.vesseldata))
 
     androidTestImplementation(libs.bundles.app.androidTest)
     androidTestUtil(libs.test.orchestrator)

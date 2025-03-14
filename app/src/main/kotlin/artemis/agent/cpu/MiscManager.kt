@@ -8,35 +8,58 @@ import com.walkertribe.ian.protocol.core.comm.CommsButtonPacket
 import com.walkertribe.ian.protocol.core.comm.IncomingAudioPacket
 import java.util.concurrent.CopyOnWriteArraySet
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class MiscManager {
-    val actionsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-    val audioExists: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
+    private val mutActionsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
+    private val mutAudioExists: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
-    val actionSet = CopyOnWriteArraySet<CommsActionEntry>()
-    val audioSet = CopyOnWriteArraySet<AudioEntry>()
+    val actionsExist: StateFlow<Boolean>
+        get() = mutActionsExist.asStateFlow()
 
-    val actions: MutableStateFlow<List<CommsActionEntry>> by lazy { MutableStateFlow(emptyList()) }
-    val audio: MutableStateFlow<List<AudioEntry>> by lazy { MutableStateFlow(emptyList()) }
+    val audioExists: StateFlow<Boolean>
+        get() = mutAudioExists.asStateFlow()
+
+    private val actionSet = CopyOnWriteArraySet<CommsActionEntry>()
+    private val audioSet = CopyOnWriteArraySet<AudioEntry>()
+
+    private val mutActions: MutableStateFlow<List<CommsActionEntry>> by lazy {
+        MutableStateFlow(emptyList())
+    }
+    private val mutAudio: MutableStateFlow<List<AudioEntry>> by lazy {
+        MutableStateFlow(emptyList())
+    }
+
+    val actions: StateFlow<List<CommsActionEntry>>
+        get() = mutActions.asStateFlow()
+
+    val audio: StateFlow<List<AudioEntry>>
+        get() = mutAudio.asStateFlow()
 
     val showingAudio: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     var hasUpdate = false
+        private set
 
     val shouldFlash: Boolean?
         get() = hasUpdate.takeIf { hasData }
 
-    val hasData: Boolean
-        get() = actionsExist.value || audioExists.value
+    private val hasData: Boolean
+        get() = mutActionsExist.value || mutAudioExists.value
 
     fun reset() {
         hasUpdate = false
-        actionsExist.value = false
-        audioExists.value = false
+        mutActionsExist.value = false
+        mutAudioExists.value = false
         actionSet.clear()
         audioSet.clear()
-        actions.value = emptyList()
-        audio.value = emptyList()
+        mutActions.value = emptyList()
+        mutAudio.value = emptyList()
+    }
+
+    fun resetUpdate() {
+        hasUpdate = false
     }
 
     @Listener
@@ -44,10 +67,11 @@ class MiscManager {
         when (val action = packet.action) {
             is CommsButtonPacket.Action.RemoveAll -> {
                 actionSet.clear()
+                hasUpdate = false
             }
             is CommsButtonPacket.Action.Create -> {
                 actionSet.add(CommsActionEntry(action.label))
-                actionsExist.value = true
+                mutActionsExist.value = true
                 hasUpdate = true
             }
             is CommsButtonPacket.Action.Remove -> {
@@ -56,23 +80,22 @@ class MiscManager {
                 }
             }
         }
-        actions.value = actionSet.toList()
+        mutActions.value = actionSet.toList()
     }
 
     @Listener
     fun onPacket(packet: IncomingAudioPacket) {
-        val audioMode = packet.audioMode
-        if (audioMode is AudioMode.Incoming) {
-            audioSet.add(AudioEntry(packet.audioId, audioMode.title))
-            audio.value = audioSet.toList()
-            audioExists.value = true
-            hasUpdate = true
-        }
+        val audioMode = packet.audioMode as? AudioMode.Incoming ?: return
+
+        audioSet.add(AudioEntry(packet.audioId, audioMode.title))
+        mutAudio.value = audioSet.toList()
+        mutAudioExists.value = true
+        hasUpdate = true
     }
 
     fun dismissAudio(entry: AudioEntry) {
         if (audioSet.remove(entry)) {
-            audio.value = audioSet.toList()
+            mutAudio.value = audioSet.toList()
         }
     }
 }
