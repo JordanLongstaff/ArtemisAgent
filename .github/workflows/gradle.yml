@@ -148,7 +148,7 @@ jobs:
           path: coverage/${{ matrix.module }}/build/reports/kover/report.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
-          min-coverage-overall: ${{ matrix.module == 'app' && 0 || 95 }}
+          min-coverage-overall: ${{ matrix.module == 'app' && 0 || 99 }}
 
   total-coverage:
     needs: coverage
