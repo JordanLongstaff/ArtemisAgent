@@ -11,6 +11,7 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaDialogInteractions.clickDialogNegativeButton
 import com.adevinta.android.barista.interaction.BaristaDialogInteractions.clickDialogPositiveButton
+import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
 import com.adevinta.android.barista.interaction.PermissionGranter
 import org.junit.Assert
 import org.junit.Assume
@@ -94,6 +95,7 @@ class MainActivityTest {
             )
 
             PermissionGranter.denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
+            sleep(300L)
             assertDisplayed(android.R.id.message, R.string.permission_rationale)
         }
     }
