@@ -9,9 +9,9 @@
   "packageRules": [
     {
       "groupName": "kotlin and ksp",
-      "extends": [
-        "group:kotlinMonorepo",
-        "group:kspMonorepo"
+      "matchSourceUrls": [
+        "https://github.com/JetBrains/kotlin",
+        "https://github.com/google/ksp"
       ]
     },
     {
