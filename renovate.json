@@ -9,9 +9,9 @@
   "packageRules": [
     {
       "groupName": "kotlin and ksp",
-      "matchPackageNames": [
-        "kotlin",
-        "ksp"
+      "extends": [
+        "group:kotlin",
+        "group:ksp"
       ]
     },
     {
