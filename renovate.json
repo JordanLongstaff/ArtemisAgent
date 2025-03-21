@@ -10,8 +10,8 @@
     {
       "groupName": "kotlin and ksp",
       "extends": [
-        "group:kotlin",
-        "group:ksp"
+        "group:kotlinMonorepo",
+        "group:kspMonorepo"
       ]
     },
     {
