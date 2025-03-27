@@ -61,11 +61,12 @@ class ShipsFragmentTest {
         assertDisplayed(R.id.shipNumberLabel, R.string.no_ship_selected)
 
         clickOn(R.id.setupPageButton)
-        sleep(100L)
+        sleep(DELAY)
 
         assertChecked(R.id.shipsPageButton)
         assertDisplayed(R.id.shipsList)
         clickListItem(R.id.shipsList, 0)
+        sleep(DELAY)
 
         assertUnchecked(R.id.setupPageButton)
         assertNotExist(R.id.setupPageSelector)
@@ -73,10 +74,14 @@ class ShipsFragmentTest {
         assertDisplayed(R.id.shipNumberLabel, "Ship 1")
 
         clickOn(R.id.setupPageButton)
-        sleep(100L)
+        sleep(DELAY)
 
         assertChecked(R.id.shipsPageButton)
         assertDisplayed(R.id.shipsList)
         assertDisplayedAtPosition(R.id.shipsList, 0, R.id.selectedShipLabel, R.string.selected)
+    }
+
+    private companion object {
+        const val DELAY = 100L
     }
 }
