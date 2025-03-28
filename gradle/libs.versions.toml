@@ -214,6 +214,7 @@ app-debug = [
     "konnection-android-debug",
 ]
 app-test = [
+    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-framework-api",
@@ -223,8 +224,10 @@ app-test = [
     "kotest-property-arbs-jvm",
     "mockk",
     "mockk-dsl",
+    "kotlinx-io",
     "kotlinx-serialization-core",
     "kotlinx-serialization-json",
+    "ktor-io",
 ]
 app-test-runtime = [
     "kotest-runner-junit5-jvm",
