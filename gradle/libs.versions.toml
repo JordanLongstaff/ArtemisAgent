@@ -169,7 +169,7 @@ bouncycastle = { module = "org.bouncycastle:bcpkix-jdk18on", version = "latest.r
 commons-compress = { module = "org.apache.commons:commons-compress", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
-netty = { module = "io.netty:netty-codec-http2", version = "4.1.+" }
+netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 
 [bundles]
 classpath = [
