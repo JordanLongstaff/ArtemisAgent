@@ -22,6 +22,10 @@ on:
         description: Version required for security
         type: boolean
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   wait-for-prerequisites:
     name: 'Wait for prerequisite actions'
