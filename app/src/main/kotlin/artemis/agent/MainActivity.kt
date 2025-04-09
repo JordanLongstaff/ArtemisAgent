@@ -654,7 +654,12 @@ class MainActivity : AppCompatActivity() {
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
         }
-        Firebase.remoteConfig.setConfigSettingsAsync(configSettings)
+        Firebase.remoteConfig.apply {
+            setConfigSettingsAsync(configSettings)
+            setDefaultsAsync(
+                mapOf(RemoteConfigKey.artemisLatestVersion to Version.DEFAULT.toString())
+            )
+        }
     }
 
     private fun setupBackPressedCallbacks() {
