@@ -85,9 +85,7 @@ class BiomechManager {
         newRage updates rageProperty
         mutStatus.value =
             BiomechRageStatus[rageProperty.value].also {
-                if (
-                    mutStatus.value == BiomechRageStatus.NEUTRAL && it == BiomechRageStatus.HOSTILE
-                ) {
+                if (mutStatus.value < it) {
                     hasUpdate = true
                 }
             }
