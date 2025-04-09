@@ -167,7 +167,7 @@ konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 accessibility-test-framework = { module = "com.google.android.apps.common.testing.accessibility.framework:accessibility-test-framework", version = "latest.release" }
 bouncycastle = { module = "org.bouncycastle:bcpkix-jdk18on", version = "latest.release" }
 commons-compress = { module = "org.apache.commons:commons-compress", version = "latest.release" }
-guava = { module = "com.google.guava:guava", version = "latest.release" }
+guava = { module = "com.google.guava:guava", version = "33.4.6-android" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
 netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 
