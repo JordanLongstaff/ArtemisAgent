@@ -119,7 +119,7 @@ class VesselDataTest :
                             test.test(loadedData.getFaction(test.ordinal))
                         }
 
-                        loadedData.vessels.keys shouldBeSameSizeAs distinctVessels
+                        loadedData.vesselKeys shouldBeSameSizeAs distinctVessels
                         distinctVessels.forEach { test ->
                             test.test(loadedData[test.id], loadedData)
                         }
