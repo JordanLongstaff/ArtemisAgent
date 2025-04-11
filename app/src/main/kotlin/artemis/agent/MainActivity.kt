@@ -12,7 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
-import androidx.activity.addCallback
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -128,6 +128,34 @@ class MainActivity : AppCompatActivity() {
 
     private var isUpdateReady: Boolean = false
     @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
+
+    private val completeUpdateCallback =
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                updateManager.completeUpdate()
+            }
+        }
+
+    private val exitConfirmationCallback =
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                isEnabled = false
+                viewModel.playSound(SoundEffect.BEEP_2)
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(R.string.exit_message)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_1)
+                        isEnabled = true
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.CONFIRMATION)
+                        viewModel.networkInterface.stop()
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                    .show()
+            }
+        }
 
     private var notificationRequests = STOP_NOTIFICATIONS
 
@@ -663,39 +691,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBackPressedCallbacks() {
-        val finishCallback =
-            onBackPressedDispatcher.addCallback(this) {
-                if (isUpdateReady) {
-                    updateManager.completeUpdate()
-                } else {
-                    supportFinishAfterTransition()
-                }
-            }
-
-        onBackPressedDispatcher.addCallback(this) {
-            val dialog =
-                viewModel.ifConnected {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setMessage(R.string.exit_message)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            viewModel.playSound(SoundEffect.BEEP_1)
-                            isEnabled = true
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            viewModel.playSound(SoundEffect.CONFIRMATION)
-                            viewModel.networkInterface.stop()
-                            finishCallback.handleOnBackPressed()
-                        }
-                }
-            if (dialog != null) {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                dialog.show()
-                isEnabled = false
-            } else {
-                finishCallback.handleOnBackPressed()
-            }
-        }
+        onBackPressedDispatcher.addCallback(this, completeUpdateCallback)
+        onBackPressedDispatcher.addCallback(this, exitConfirmationCallback)
     }
 
     private fun setupTheme() {
@@ -718,7 +715,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupConnectionObservers() {
         collectLatestWhileStarted(viewModel.connectionStatus) {
-            if (viewModel.isIdle) {
+            val isConnected = viewModel.isConnected
+            exitConfirmationCallback.isEnabled = isConnected
+            if (!isConnected) {
                 viewModel.selectableShips.value = emptyList()
             }
         }
@@ -947,6 +946,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onUpdateReady() {
         isUpdateReady = true
+        completeUpdateCallback.isEnabled = true
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.update_ready_title)
             .setMessage(R.string.update_ready_message)

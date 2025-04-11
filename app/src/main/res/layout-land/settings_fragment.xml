@@ -64,4 +64,13 @@
             android:layout_width="match_parent"
             android:layout_height="0dp" />
     </ScrollView>
+    <View
+        android:id="@+id/backPressAlpha"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:alpha="0.375"
+        android:background="?attr/colorPrimaryDark"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/settingsScroll"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
