@@ -59,6 +59,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                 }
 
                 override fun handleOnBackPressed() {
+                    viewModel.helpTopicIndex.value = MENU
                     isEnabled = false
                     onBackEnded()
                 }

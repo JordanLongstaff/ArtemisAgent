@@ -242,6 +242,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                 }
 
                 override fun handleOnBackPressed() {
+                    viewModel.settingsPage.value = null
                     isEnabled = false
                     onBackEnded()
                 }
