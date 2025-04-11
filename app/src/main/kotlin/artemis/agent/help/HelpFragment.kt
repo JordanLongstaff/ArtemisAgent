@@ -9,7 +9,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.addCallback
+import androidx.activity.BackEventCompat
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.ArrayRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -36,7 +37,42 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         viewModel.settingsPage.value = null
 
         val onBackPressedCallback =
-            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) { onBack() }
+            object : OnBackPressedCallback(false) {
+                private var currentTopicIndex: Int = MENU
+
+                override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                    currentTopicIndex = viewModel.helpTopicIndex.value
+                }
+
+                override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                    if (backEvent.progress > 0f) {
+                        viewModel.helpTopicIndex.value = MENU
+                        binding.backPressAlpha.visibility = View.VISIBLE
+                    } else {
+                        viewModel.helpTopicIndex.value = currentTopicIndex
+                        binding.backPressAlpha.visibility = View.GONE
+                    }
+                }
+
+                override fun handleOnBackCancelled() {
+                    onBackEnded()
+                }
+
+                override fun handleOnBackPressed() {
+                    viewModel.helpTopicIndex.value = MENU
+                    isEnabled = false
+                    onBackEnded()
+                }
+
+                private fun onBackEnded() {
+                    viewModel.playSound(SoundEffect.BEEP_1)
+                    binding.backPressAlpha.visibility = View.GONE
+                }
+            }
+
+        requireActivity()
+            .onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, onBackPressedCallback)
 
         val helpTopicContent = binding.helpTopicContent
 
@@ -50,7 +86,6 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
             val headerVisibility =
                 if (index == MENU) {
                     layoutManager.spanCount = 2
-                    onBackPressedCallback.isEnabled = false
                     View.GONE
                 } else {
                     helpTopics[index].initContents(resources)

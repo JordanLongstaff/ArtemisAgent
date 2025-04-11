@@ -115,6 +115,9 @@ class AgentViewModel(application: Application) :
             connectionStatus.value == ConnectionStatus.NotConnected ||
                 connectionStatus.value == ConnectionStatus.Failed
 
+    val isConnected: Boolean
+        get() = !isIdle && connectionStatus.value != ConnectionStatus.Connecting
+
     // UDP discovered servers
     val discoveredServers: MutableStateFlow<List<Server>> by lazy { MutableStateFlow(emptyList()) }
     val isScanningUDP: MutableSharedFlow<Boolean> by lazy {
@@ -360,7 +363,9 @@ class AgentViewModel(application: Application) :
     var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT
         set(value) {
             field = value
-            ifConnected { networkInterface.setTimeout(field.seconds.inWholeMilliseconds) }
+            if (isConnected) {
+                networkInterface.setTimeout(field.seconds.inWholeMilliseconds)
+            }
         }
 
     var autoDismissCompletedMissions: Boolean = true
@@ -537,12 +542,16 @@ class AgentViewModel(application: Application) :
             connectedUrl.value = ""
             shipIndex.value = -1
         }
-        ifConnected { networkInterface.stop() }
+        if (isConnected) {
+            networkInterface.stop()
+        }
     }
 
     /** Sends one or more packets to the server. */
     fun sendToServer(vararg packets: Packet.Client) {
-        ifConnected { cpu.launch { packets.forEach(networkInterface::sendPacket) } }
+        if (isConnected) {
+            cpu.launch { packets.forEach(networkInterface::sendPacket) }
+        }
     }
 
     /** Plays a sound effect if sound effects are enabled. */
@@ -1045,13 +1054,6 @@ class AgentViewModel(application: Application) :
     ) {
         map.remove(id)?.also { graph?.removeObstacle(it) }
     }
-
-    internal inline fun <R> ifConnected(block: () -> R): R? =
-        when (connectionStatus.value) {
-            is ConnectionStatus.Connected,
-            is ConnectionStatus.HeartbeatLost -> block()
-            else -> null
-        }
 
     override fun onCleared() {
         disconnectFromServer(resetUrl = false)
