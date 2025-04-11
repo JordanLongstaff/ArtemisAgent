@@ -59,6 +59,15 @@ tasks.detekt { jvmTarget = javaVersion.toString() }
 
 tasks.detektBaseline { jvmTarget = javaVersion.toString() }
 
+dependencyAnalysis {
+    usage {
+        analysis {
+            checkSuperClasses(true)
+        }
+    }
+    useTypesafeProjectAccessors(true)
+}
+
 detekt {
     toolVersion = libs.versions.detekt.get()
     basePath = projectDir.toString()
