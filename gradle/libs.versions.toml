@@ -51,6 +51,7 @@ ktor = "3.1.2"
 leakcanary = "2.14"
 mockk = "1.14.0"
 okio = "3.11.0"
+perf-plugin = "1.4.2"
 pitest = "1.16.1"
 pitest-junit5 = "1.2.1"
 play-services-tasks = "18.2.1"
@@ -121,6 +122,7 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-config = { module = "com.google.firebase:firebase-config" }
+firebase-perf = { module = "com.google.firebase:firebase-perf" }
 
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
@@ -432,6 +434,7 @@ firebase = [
     "firebase-analytics",
     "firebase-crashlytics",
     "firebase-config",
+    "firebase-perf",
 ]
 
 arcmutate = [
@@ -443,6 +446,7 @@ arcmutate = [
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "perf-plugin" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

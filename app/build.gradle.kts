@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.serialization")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
+    alias(libs.plugins.firebase.perf)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
@@ -125,7 +126,9 @@ dependencies {
     androidTestUtil(libs.test.orchestrator)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
+    implementation(libs.bundles.firebase) {
+        exclude(group = "com.google.firebase", module = "protolite-well-known-types")
+    }
 
     constraints {
         implementation(libs.guava) {
