@@ -15,8 +15,8 @@ class FragmentViewBindingDelegate<VB : ViewBinding>(private val viewBinder: View
     private val lifecycleObserver =
         object : DefaultLifecycleObserver {
             @MainThread
-            override fun onDestroy(owner: LifecycleOwner) {
-                super.onDestroy(owner)
+            override fun onStop(owner: LifecycleOwner) {
+                super.onStop(owner)
                 owner.lifecycle.removeObserver(this)
                 viewBinding = null
             }

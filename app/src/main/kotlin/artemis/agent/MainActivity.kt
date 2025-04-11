@@ -547,8 +547,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onStop() {
+        super.onStop()
         unbindService(connection)
 
         openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
