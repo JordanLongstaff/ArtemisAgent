@@ -130,14 +130,15 @@ class MainActivity : AppCompatActivity() {
     private var isUpdateReady: Boolean = false
     @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
 
-    private val completeUpdateCallback =
+    private val completeUpdateCallback by lazy {
         object : OnBackPressedCallback(false) {
             override fun handleOnBackPressed() {
                 updateManager.completeUpdate()
             }
         }
+    }
 
-    private val exitConfirmationCallback =
+    private val exitConfirmationCallback by lazy {
         object : OnBackPressedCallback(false) {
             override fun handleOnBackPressed() {
                 isEnabled = false
@@ -157,6 +158,7 @@ class MainActivity : AppCompatActivity() {
                     .show()
             }
         }
+    }
 
     private var notificationRequests = STOP_NOTIFICATIONS
 
