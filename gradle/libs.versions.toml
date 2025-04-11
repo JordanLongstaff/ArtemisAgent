@@ -28,6 +28,7 @@ git-hooks = "0.0.2"
 google-services = "4.4.2"
 gradle = "8.9.1"
 gradle-pitest = "1.15.0"
+jspecify = "1.0.0"
 junit4 = "4.13.2"
 koin = "4.0.4"
 koin-annotations = "2.0.0"
@@ -111,6 +112,8 @@ lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.r
 lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidx-recyclerview" }
+
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
@@ -210,6 +213,7 @@ app = [
     "app-update",
     "play-services-tasks",
     "process-phoenix",
+    "jspecify",
 ]
 app-debug = [
     "leakcanary",
