@@ -549,7 +549,7 @@ class MainActivity : AppCompatActivity() {
     /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
     override fun onStop() {
         super.onStop()
-        unbindService(connection)
+        destroyServiceConnection()
 
         openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
             it.write(byteArrayOf(viewModel.themeIndex.toByte()))
@@ -565,9 +565,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         if (notificationRequests != STOP_NOTIFICATIONS) {
-            unbindService(connection)
-            notificationRequests = STOP_NOTIFICATIONS
-            notificationManager.reset()
+            destroyServiceConnection()
         }
 
         updateManager.appUpdateInfo.addOnSuccessListener { updateInfo ->
@@ -990,6 +988,12 @@ class MainActivity : AppCompatActivity() {
             .setMessage(getString(R.string.review_error_message, errorCode))
             .setCancelable(true)
             .show()
+    }
+
+    private fun destroyServiceConnection() {
+        unbindService(connection)
+        notificationRequests = STOP_NOTIFICATIONS
+        notificationManager.reset()
     }
 
     private companion object {
