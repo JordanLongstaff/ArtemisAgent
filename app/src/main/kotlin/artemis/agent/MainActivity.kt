@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.View
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -691,6 +692,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBackPressedCallbacks() {
+        // Some Android 10 devices leak memory if this is not called, so we need to register this
+        // callback to address it
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+            onBackPressedDispatcher.addCallback(this) { supportFinishAfterTransition() }
+        }
+
         onBackPressedDispatcher.addCallback(this, completeUpdateCallback)
         onBackPressedDispatcher.addCallback(this, exitConfirmationCallback)
     }
