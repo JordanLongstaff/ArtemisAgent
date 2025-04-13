@@ -43,15 +43,13 @@ jobs:
 
     # Sets up the detekt cli
     - name: Setup Detekt
-      uses: ConorMacBride/install-package@v1.1.0
-      with:
-        brew: detekt
+      uses: peter-murray/setup-detekt@v3
 
     # Performs static analysis using Detekt
     - name: Run Detekt
       continue-on-error: true
       run: |
-        detekt -i ${{ github.workspace }} -c ${{ github.workspace }}/config/detekt/detekt.yml -r sarif:${{ github.workspace }}/detekt.sarif.json
+        detekt-cli -i ${{ github.workspace }} -c ${{ github.workspace }}/config/detekt/detekt.yml -r sarif:${{ github.workspace }}/detekt.sarif.json
 
     # Uploads results to GitHub repository using the upload-sarif action
     - uses: github/codeql-action/upload-sarif@v3
