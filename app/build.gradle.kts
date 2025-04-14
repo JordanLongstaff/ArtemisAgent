@@ -132,10 +132,7 @@ dependencies {
 
     constraints {
         implementation(libs.guava) {
-            because(
-                "Version 32.0.0-android patches a moderate security vulnerability, but " +
-                    "version 33.4.7-android is incompatible with Android API 21"
-            )
+            because("Version 32.0.0-android patches a moderate security vulnerability")
         }
         androidTestImplementation(libs.jsoup) {
             because("Version 1.14.2 patches a high-level security vulnerability")
