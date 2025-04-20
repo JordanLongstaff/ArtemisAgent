@@ -64,13 +64,17 @@ class HelpFragmentTest {
             clickOn(R.id.helpPageButton)
             assertHelpMenuDisplayed()
 
-            helpTopics.forEach { (stringRes, itemCount) ->
+            helpTopics.forEachIndexed { index, (stringRes, itemCount) ->
                 clickOn(stringRes)
 
                 assertDisplayed(R.id.helpTopicTitle, stringRes)
                 assertDisplayed(R.id.backButton)
                 assertDisplayed(R.id.helpTopicContent)
                 assertRecyclerViewItemCount(R.id.helpTopicContent, itemCount)
+
+                if (index == helpTopics.lastIndex)
+                    assertDisplayed(R.id.updateButton, R.string.check_for_updates)
+                else assertNotDisplayed(R.id.updateButton)
 
                 goBack()
                 assertHelpMenuDisplayed()
