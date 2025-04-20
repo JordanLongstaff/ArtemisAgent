@@ -99,16 +99,11 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
             @Suppress("NotifyDataSetChanged") adapter.notifyDataSetChanged()
         }
 
-        binding.backButton.setOnClickListener { onBack() }
+        binding.backButton.setOnClickListener { onBackPressedCallback.handleOnBackPressed() }
 
         helpTopicContent.itemAnimator = null
         helpTopicContent.adapter = adapter
         helpTopicContent.layoutManager = layoutManager
-    }
-
-    private fun onBack() {
-        viewModel.playSound(SoundEffect.BEEP_1)
-        viewModel.helpTopicIndex.value = MENU
     }
 
     private interface ViewProvider {

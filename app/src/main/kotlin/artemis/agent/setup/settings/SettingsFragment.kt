@@ -216,42 +216,43 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             }
         }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private val onBackPressedCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            private var openedPage: Page? = null
 
-        val onBackPressedCallback =
-            object : OnBackPressedCallback(false) {
-                private var openedPage: Page? = null
+            override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                openedPage = currentPage
+            }
 
-                override fun handleOnBackStarted(backEvent: BackEventCompat) {
-                    openedPage = currentPage
-                }
-
-                override fun handleOnBackProgressed(backEvent: BackEventCompat) {
-                    if (backEvent.progress > 0f) {
-                        viewModel.settingsPage.value = null
-                        binding.backPressAlpha.visibility = View.VISIBLE
-                    } else {
-                        viewModel.settingsPage.value = openedPage
-                        binding.backPressAlpha.visibility = View.GONE
-                    }
-                }
-
-                override fun handleOnBackCancelled() {
-                    onBackEnded()
-                }
-
-                override fun handleOnBackPressed() {
+            override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                if (backEvent.progress > 0f) {
                     viewModel.settingsPage.value = null
-                    isEnabled = false
-                    onBackEnded()
-                }
-
-                private fun onBackEnded() {
-                    viewModel.playSound(SoundEffect.BEEP_1)
+                    binding.backPressAlpha.visibility = View.VISIBLE
+                } else {
+                    viewModel.settingsPage.value = openedPage
                     binding.backPressAlpha.visibility = View.GONE
                 }
             }
+
+            override fun handleOnBackCancelled() {
+                onBackEnded()
+            }
+
+            override fun handleOnBackPressed() {
+                viewModel.settingsPage.value = null
+                isEnabled = false
+                onBackEnded()
+            }
+
+            private fun onBackEnded() {
+                viewModel.playSound(SoundEffect.BEEP_1)
+                binding.backPressAlpha.visibility = View.GONE
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         requireActivity()
             .onBackPressedDispatcher
@@ -282,7 +283,6 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
     }
 
     private fun goBackToMenu() {
-        viewModel.playSound(SoundEffect.BEEP_1)
-        viewModel.settingsPage.value = null
+        onBackPressedCallback.handleOnBackPressed()
     }
 }
