@@ -1,24 +1,21 @@
 package artemis.agent.setup.settings
 
-import android.Manifest
 import androidx.activity.viewModels
+import androidx.test.espresso.NoMatchingViewException
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
-import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
-import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
-import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
-import com.adevinta.android.barista.interaction.PermissionGranter
-import com.adevinta.android.barista.internal.failurehandler.BaristaException
+import artemis.agent.isCheckedIf
+import artemis.agent.isDisplayedWithText
+import artemis.agent.scenario.SettingsMenuScenario
+import artemis.agent.scenario.SettingsSubmenuOpenScenario
+import artemis.agent.screens.MainScreen.mainScreenTest
+import artemis.agent.screens.SettingsPageScreen
+import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
@@ -27,169 +24,173 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class ClientSettingsFragmentTest {
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+class ClientSettingsFragmentTest : TestCase() {
+    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun clientSettingsMutableTest() {
-        testWithSettings(true) { SettingsFragmentTest.closeSettingsSubMenu() }
-    }
+    fun clientSettingsMutableTest() = testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
 
     @Test
-    fun clientSettingsBackButtonTest() {
-        testWithSettings(false) { SettingsFragmentTest.backFromSubMenu() }
-    }
+    fun clientSettingsBackButtonTest() =
+        testWithSettings(false) { SettingsPageScreen.backFromSubmenu() }
 
-    private fun testWithSettings(shouldTestSettings: Boolean, closeSubMenu: () -> Unit) {
-        val expectedPort = AtomicInteger()
-        val expectedUpdateInterval = AtomicInteger()
-        val vesselDataCount = AtomicInteger()
-        val vesselDataIndex = AtomicInteger()
-        val showingInfo = AtomicBoolean()
+    private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) = run {
+        mainScreenTest {
+            val expectedPort = AtomicInteger()
+            val expectedUpdateInterval = AtomicInteger()
+            val vesselDataCount = AtomicInteger()
+            val vesselDataIndex = AtomicInteger()
+            val showingInfo = AtomicBoolean()
 
-        activityScenarioManager.onActivity { activity ->
-            val viewModel = activity.viewModels<AgentViewModel>().value
-            expectedPort.lazySet(viewModel.port)
-            expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
-            vesselDataCount.lazySet(viewModel.vesselDataManager.count)
-            vesselDataIndex.lazySet(viewModel.vesselDataManager.index)
-            showingInfo.lazySet(viewModel.showingNetworkInfo)
-        }
-
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
-
-        SettingsFragmentTest.openSettingsMenu()
-        SettingsFragmentTest.openSettingsSubMenu(0)
-
-        testClientSubMenuOpen(
-            data =
-                Data(
-                    port = expectedPort.toString(),
-                    updateInterval = expectedUpdateInterval.get(),
-                    vesselDataIndex = vesselDataIndex.get(),
-                    vesselDataCount = vesselDataCount.get(),
-                    showingInfo = showingInfo.get(),
-                ),
-            shouldTestSettings = shouldTestSettings,
-        )
-
-        closeSubMenu()
-        testClientSubMenuClosed()
-
-        assertThatBackButtonClosesTheApp()
-    }
-
-    private data class Data(
-        val port: String,
-        val updateInterval: Int,
-        val vesselDataIndex: Int,
-        val vesselDataCount: Int,
-        val showingInfo: Boolean,
-    )
-
-    private companion object {
-        val showNetworkInfoToggleSetting =
-            SingleToggleButtonSetting(
-                divider = R.id.showNetworkInfoDivider,
-                label = R.id.showNetworkInfoTitle,
-                text = R.string.show_network_info,
-                button = R.id.showNetworkInfoButton,
-            )
-
-        val vesselDataButtons by lazy {
-            listOf(
-                R.id.vesselDataDefault to R.string.default_setting,
-                R.id.vesselDataInternalStorage to R.string.vessel_data_internal,
-                R.id.vesselDataExternalStorage to R.string.vessel_data_external,
-            )
-        }
-
-        fun testClientSubMenuOpen(data: Data, shouldTestSettings: Boolean) {
-            scrollTo(R.id.vesselDataDivider)
-            assertDisplayed(R.id.vesselDataTitle, R.string.vessel_data_xml_location)
-            assertDisplayed(R.id.vesselDataOptions)
-            assertDisplayed(R.id.vesselDataDefault, R.string.default_setting)
-
-            testClientSubMenuVesselDataButtons(
-                data.vesselDataIndex,
-                data.vesselDataCount,
-                shouldTestSettings,
-            )
-
-            showNetworkInfoToggleSetting.testSingleToggle(data.showingInfo)
-
-            scrollTo(R.id.serverPortDivider)
-            assertDisplayed(R.id.serverPortTitle, R.string.server_port)
-            assertDisplayed(R.id.serverPortField, data.port)
-
-            testClientSubMenuAddressLimit(shouldTestSettings)
-
-            scrollTo(R.id.updateIntervalDivider)
-            assertDisplayed(R.id.updateIntervalTitle, R.string.update_interval)
-            assertDisplayed(R.id.updateIntervalField, data.updateInterval.toString())
-            assertDisplayed(R.id.updateIntervalMilliseconds, R.string.milliseconds)
-        }
-
-        fun testClientSubMenuClosed() {
-            assertNotExist(R.id.vesselDataTitle)
-            assertNotExist(R.id.vesselDataOptions)
-            vesselDataButtons.forEach { (button) -> assertNotExist(button) }
-            assertNotExist(R.id.vesselDataDivider)
-            assertNotExist(R.id.serverPortTitle)
-            assertNotExist(R.id.serverPortField)
-            assertNotExist(R.id.serverPortDivider)
-            showNetworkInfoToggleSetting.testNotExist()
-            assertNotExist(R.id.addressLimitTitle)
-            assertNotExist(R.id.addressLimitEnableButton)
-            assertNotExist(R.id.addressLimitInfinity)
-            assertNotExist(R.id.addressLimitField)
-            assertNotExist(R.id.addressLimitDivider)
-            assertNotExist(R.id.updateIntervalTitle)
-            assertNotExist(R.id.updateIntervalField)
-            assertNotExist(R.id.updateIntervalMilliseconds)
-            assertNotExist(R.id.updateIntervalDivider)
-        }
-
-        fun testClientSubMenuVesselDataButtons(index: Int, count: Int, shouldTest: Boolean) {
-            vesselDataButtons.forEachIndexed { i, (id, label) ->
-                if (i < count) assertDisplayed(id, label) else assertNotDisplayed(id)
-
-                ArtemisAgentTestHelpers.assertChecked(id, i == index)
-            }
-
-            if (!shouldTest) return
-
-            vesselDataButtons.take(count).forEachIndexed { i, (button) ->
-                clickOn(button)
-                vesselDataButtons.forEachIndexed { j, (otherButton) ->
-                    ArtemisAgentTestHelpers.assertChecked(otherButton, i == j)
+            step("Fetch settings") {
+                activityScenarioRule.scenario.onActivity { activity ->
+                    val viewModel = activity.viewModels<AgentViewModel>().value
+                    expectedPort.lazySet(viewModel.port)
+                    expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
+                    vesselDataCount.lazySet(viewModel.vesselDataManager.count)
+                    vesselDataIndex.lazySet(viewModel.vesselDataManager.index)
+                    showingInfo.lazySet(viewModel.showingNetworkInfo)
                 }
             }
 
-            clickOn(vesselDataButtons[index].first)
+            scenario(SettingsMenuScenario)
+            scenario(SettingsSubmenuOpenScenario.Client)
+
+            testVesselDataSetting(
+                count = vesselDataCount.get(),
+                index = vesselDataIndex.get(),
+                shouldTest = shouldTestSettings,
+            )
+            testAddressFieldSetting(shouldTestSettings)
+
+            SettingsPageScreen.Client {
+                step("Test showing info setting") {
+                    showNetworkInfoToggleSetting.testSingleToggle(showingInfo.get())
+                }
+
+                step("Test server port setting") {
+                    serverPortDivider.scrollTo()
+                    serverPortTitle.isDisplayedWithText(R.string.server_port)
+                    serverPortField.isDisplayedWithText(expectedPort.get().toString())
+                }
+
+                step("Test update interval setting") {
+                    updateIntervalDivider.scrollTo()
+                    updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
+                    updateIntervalField.isDisplayedWithText(expectedUpdateInterval.get().toString())
+                    updateIntervalField.isDisplayedWithText(R.string.milliseconds)
+                }
+
+                step("Close submenu") {
+                    closeSubmenu()
+                    testScreenClosed()
+                }
+            }
+        }
+    }
+
+    private companion object {
+        val vesselDataButtons by lazy {
+            listOf(
+                SettingsPageScreen.Client.vesselDataDefaultButton to R.string.default_setting,
+                SettingsPageScreen.Client.vesselDataInternalButton to R.string.vessel_data_internal,
+                SettingsPageScreen.Client.vesselDataExternalButton to R.string.vessel_data_external,
+            )
         }
 
-        fun testClientSubMenuAddressLimit(shouldTest: Boolean) {
-            scrollTo(R.id.addressLimitDivider)
-            assertDisplayed(R.id.addressLimitTitle, R.string.recent_address_limit)
-            assertDisplayed(R.id.addressLimitEnableButton)
+        fun TestContext<*>.testVesselDataSetting(count: Int, index: Int, shouldTest: Boolean) {
+            SettingsPageScreen.Client {
+                step("Vessel data settings") {
+                    step("Title displayed") {
+                        vesselDataDivider.scrollTo()
+                        vesselDataTitle.isDisplayedWithText(R.string.vessel_data_xml_location)
+                    }
 
-            repeat(if (shouldTest) 3 else 1) {
-                if (it > 0) clickOn(R.id.addressLimitEnableButton)
-                testClientSubMenuAddressLimitField()
+                    step("Correct number of options displayed") {
+                        vesselDataButtons.forEachIndexed { i, (button, label) ->
+                            if (i < count) button.isDisplayedWithText(label)
+                            else button.doesNotExist()
+                        }
+                    }
+
+                    step("Correct option is selected") {
+                        vesselDataButtons.forEachIndexed { i, (button) ->
+                            button.isCheckedIf(i == index)
+                        }
+                    }
+
+                    if (shouldTest) {
+                        step("Select different options") {
+                            vesselDataButtons.take(count).forEachIndexed { i, (button) ->
+                                button.click()
+                                vesselDataButtons.forEachIndexed { j, (otherButton) ->
+                                    otherButton.isCheckedIf(i == j)
+                                }
+                            }
+                        }
+
+                        step("Revert setting") { vesselDataButtons[index].first.click() }
+                    }
+                }
             }
         }
 
-        fun testClientSubMenuAddressLimitField() {
-            try {
-                assertChecked(R.id.addressLimitEnableButton)
-                assertNotDisplayed(R.id.addressLimitInfinity)
-                assertDisplayed(R.id.addressLimitField)
-            } catch (_: BaristaException) {
-                assertUnchecked(R.id.addressLimitEnableButton)
-                assertDisplayed(R.id.addressLimitInfinity, R.string.infinity)
-                assertNotDisplayed(R.id.addressLimitField)
+        fun TestContext<*>.testAddressFieldSetting(shouldTest: Boolean) {
+            step("Recent address limit setting") {
+                SettingsPageScreen.Client {
+                    step("Title displayed") {
+                        addressLimitDivider.scrollTo()
+                        addressLimitTitle.isDisplayedWithText(R.string.recent_address_limit)
+                        addressLimitEnableButton.isDisplayed()
+                    }
+
+                    step("UI state") {
+                        repeat(if (shouldTest) 3 else 1) { i ->
+                            if (i > 0) addressLimitEnableButton.click()
+
+                            testAddressLimitFieldDisplayState()
+                        }
+                    }
+                }
             }
+        }
+
+        fun SettingsPageScreen.Client.testAddressLimitFieldDisplayState() {
+            val isChecked =
+                try {
+                    addressLimitEnableButton.isChecked()
+                    true
+                } catch (_: NoMatchingViewException) {
+                    addressLimitEnableButton.isNotChecked()
+                    false
+                }
+
+            if (isChecked) {
+                addressLimitField.isDisplayed()
+                addressLimitInfinity.isNotDisplayed()
+            } else {
+                addressLimitField.isNotDisplayed()
+                addressLimitInfinity.isDisplayedWithText(R.string.infinity)
+            }
+        }
+
+        fun SettingsPageScreen.Client.testScreenClosed() {
+            vesselDataTitle.doesNotExist()
+            vesselDataButtons.forEach { (button) -> button.doesNotExist() }
+            vesselDataDivider.doesNotExist()
+            serverPortTitle.doesNotExist()
+            serverPortField.doesNotExist()
+            serverPortDivider.doesNotExist()
+            showNetworkInfoToggleSetting.testNotExist()
+            addressLimitTitle.doesNotExist()
+            addressLimitEnableButton.doesNotExist()
+            addressLimitInfinity.doesNotExist()
+            addressLimitField.doesNotExist()
+            addressLimitDivider.doesNotExist()
+            updateIntervalTitle.doesNotExist()
+            updateIntervalField.doesNotExist()
+            updateIntervalMilliseconds.doesNotExist()
+            updateIntervalDivider.doesNotExist()
         }
     }
 }

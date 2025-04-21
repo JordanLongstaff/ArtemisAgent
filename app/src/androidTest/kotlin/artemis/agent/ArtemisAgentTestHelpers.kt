@@ -1,32 +1,39 @@
 package artemis.agent
 
-import androidx.annotation.IdRes
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions
-import com.adevinta.android.barista.assertion.BaristaEnabledAssertions
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions
+import androidx.annotation.StringRes
+import io.github.kakaocup.kakao.check.CheckableAssertions
+import io.github.kakaocup.kakao.common.assertions.BaseAssertions
+import io.github.kakaocup.kakao.recycler.RecyclerAdapterAssertions
+import io.github.kakaocup.kakao.text.TextViewAssertions
 
-object ArtemisAgentTestHelpers {
-    fun assertEnabled(@IdRes resId: Int, enabled: Boolean) {
-        if (enabled) {
-            BaristaEnabledAssertions.assertEnabled(resId)
-        } else {
-            BaristaEnabledAssertions.assertDisabled(resId)
-        }
-    }
+fun CheckableAssertions.isCheckedIf(checked: Boolean) {
+    if (checked) isChecked() else isNotChecked()
+}
 
-    fun assertChecked(@IdRes resId: Int, checked: Boolean) {
-        if (checked) {
-            BaristaCheckedAssertions.assertChecked(resId)
-        } else {
-            BaristaCheckedAssertions.assertUnchecked(resId)
-        }
-    }
+fun BaseAssertions.isDisplayedIf(displayed: Boolean) {
+    if (displayed) isDisplayed() else isNotDisplayed()
+}
 
-    fun assertDisplayed(@IdRes resId: Int, displayed: Boolean) {
-        if (displayed) {
-            BaristaVisibilityAssertions.assertDisplayed(resId)
-        } else {
-            BaristaVisibilityAssertions.assertNotDisplayed(resId)
-        }
-    }
+fun BaseAssertions.isEnabledIf(enabled: Boolean) {
+    if (enabled) isEnabled() else isDisabled()
+}
+
+fun BaseAssertions.isHidden() {
+    isGone()
+    isNotDisplayed()
+}
+
+fun TextViewAssertions.isDisplayedWithText(text: String) {
+    isDisplayed()
+    hasText(text)
+}
+
+fun TextViewAssertions.isDisplayedWithText(@StringRes text: Int) {
+    isDisplayed()
+    hasText(text)
+}
+
+fun <A> A.isDisplayedWithSize(size: Int) where A : RecyclerAdapterAssertions, A : BaseAssertions {
+    isDisplayed()
+    hasSize(size)
 }
