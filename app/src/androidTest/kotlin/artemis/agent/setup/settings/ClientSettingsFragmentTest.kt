@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
+import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import com.adevinta.android.barista.assertion.BaristaAssertions.assertAny
@@ -34,13 +35,15 @@ class ClientSettingsFragmentTest {
         val expectedPort = AtomicInteger()
         val expectedUpdateInterval = AtomicInteger()
         val externalVesselDataCount = AtomicInteger()
+        val vesselDataIndex = AtomicInteger()
         val showingInfo = AtomicBoolean()
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             expectedPort.lazySet(viewModel.port)
             expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
-            externalVesselDataCount.lazySet(viewModel.vesselDataManager.externalCount)
+            externalVesselDataCount.lazySet(viewModel.vesselDataManager.count)
+            vesselDataIndex.lazySet(viewModel.vesselDataManager.index)
             showingInfo.lazySet(viewModel.showingNetworkInfo)
         }
 
@@ -55,7 +58,7 @@ class ClientSettingsFragmentTest {
             .forEachIndexed { index, closeSubMenu ->
                 SettingsFragmentTest.openSettingsSubMenu(0)
                 testClientSubMenuOpen(
-                    externalVesselDataCount = externalVesselDataCount.get(),
+                    vesselData = vesselDataIndex.get() to externalVesselDataCount.get(),
                     expectedPort = expectedPort.toString(),
                     expectedUpdateInterval = expectedUpdateInterval.toString(),
                     showingInfo = showingInfo.get(),
@@ -76,8 +79,16 @@ class ClientSettingsFragmentTest {
                 button = R.id.showNetworkInfoButton,
             )
 
+        val vesselDataButtons by lazy {
+            listOf(
+                R.id.vesselDataDefault to R.string.default_setting,
+                R.id.vesselDataInternalStorage to R.string.vessel_data_internal,
+                R.id.vesselDataExternalStorage to R.string.vessel_data_external,
+            )
+        }
+
         fun testClientSubMenuOpen(
-            externalVesselDataCount: Int,
+            vesselData: Pair<Int, Int>,
             expectedPort: String,
             expectedUpdateInterval: String,
             showingInfo: Boolean,
@@ -88,14 +99,8 @@ class ClientSettingsFragmentTest {
             assertDisplayed(R.id.vesselDataOptions)
             assertDisplayed(R.id.vesselDataDefault, R.string.default_setting)
 
-            listOf(
-                    R.id.vesselDataInternalStorage to R.string.vessel_data_internal,
-                    R.id.vesselDataExternalStorage to R.string.vessel_data_external,
-                )
-                .forEachIndexed { index, (id, label) ->
-                    if (index < externalVesselDataCount) assertDisplayed(id, label)
-                    else assertNotDisplayed(id)
-                }
+            val (vesselDataIndex, vesselDataCount) = vesselData
+            testClientSubMenuVesselDataButtons(vesselDataIndex, vesselDataCount)
 
             showNetworkInfoToggleSetting.testSingleToggle(showingInfo)
 
@@ -114,9 +119,7 @@ class ClientSettingsFragmentTest {
         fun testClientSubMenuClosed() {
             assertNotExist(R.id.vesselDataTitle)
             assertNotExist(R.id.vesselDataOptions)
-            assertNotExist(R.id.vesselDataDefault)
-            assertNotExist(R.id.vesselDataInternalStorage)
-            assertNotExist(R.id.vesselDataExternalStorage)
+            vesselDataButtons.forEach { (button) -> assertNotExist(button) }
             assertNotExist(R.id.vesselDataDivider)
             assertNotExist(R.id.serverPortTitle)
             assertNotExist(R.id.serverPortField)
@@ -131,6 +134,25 @@ class ClientSettingsFragmentTest {
             assertNotExist(R.id.updateIntervalField)
             assertNotExist(R.id.updateIntervalMilliseconds)
             assertNotExist(R.id.updateIntervalDivider)
+        }
+
+        fun testClientSubMenuVesselDataButtons(index: Int, count: Int) {
+            vesselDataButtons
+                .forEachIndexed { i, (id, label) ->
+                    if (i < count) assertDisplayed(id, label)
+                    else assertNotDisplayed(id)
+
+                    ArtemisAgentTestHelpers.assertChecked(id, i == index)
+                }
+
+            vesselDataButtons.forEachIndexed { i, (button) ->
+                clickOn(button)
+                vesselDataButtons.forEachIndexed { j, (otherButton) ->
+                    ArtemisAgentTestHelpers.assertChecked(otherButton, i == j)
+                }
+            }
+
+            clickOn(vesselDataButtons[index].first)
         }
 
         fun testClientSubMenuAddressLimit(shouldTest: Boolean) {
