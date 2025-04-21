@@ -11,6 +11,7 @@ import com.walkertribe.ian.protocol.core.GameStartPacket
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.world.BaseArtemisShielded
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,10 +34,7 @@ class MissionManager(private val viewModel: AgentViewModel) {
     val showingPayouts: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     var autoDismissCompletedMissions: Boolean = true
-    var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.seconds.inWholeMilliseconds
-        set(value) {
-            field = value.seconds.inWholeMilliseconds
-        }
+    var completedDismissalSeconds: Duration = DEFAULT_COMPLETED_DISMISSAL.seconds
 
     val newMissionPacket: MutableSharedFlow<CommsIncomingPacket> by lazy {
         MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -90,13 +88,13 @@ class MissionManager(private val viewModel: AgentViewModel) {
         )
 
         autoDismissCompletedMissions = settings.completedMissionDismissalEnabled
-        completedDismissalTime = settings.completedMissionDismissalSeconds.toLong()
+        completedDismissalSeconds = settings.completedMissionDismissalSeconds.seconds
     }
 
     fun revertSettings(settings: UserSettingsKt.Dsl) {
         settings.missionsEnabled = enabled
         settings.completedMissionDismissalEnabled = autoDismissCompletedMissions
-        settings.completedMissionDismissalSeconds = completedDismissalTime.toInt()
+        settings.completedMissionDismissalSeconds = completedDismissalSeconds.inWholeSeconds.toInt()
 
         val rewardSettings =
             mapOf(

@@ -478,7 +478,9 @@ sealed interface MessageParser {
         ) {
             val missionManager = viewModel.missionManager
 
-            val timestamp = System.currentTimeMillis() + missionManager.completedDismissalTime
+            val timestamp =
+                System.currentTimeMillis() +
+                    missionManager.completedDismissalSeconds.inWholeMilliseconds
             missionManager.allMissions
                 .filterNot { mission ->
                     mission.associatedShipName != shipName ||

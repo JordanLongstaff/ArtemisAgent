@@ -18,6 +18,7 @@ import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.PermissionGranter
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -60,6 +61,7 @@ class MissionSettingsFragmentTest {
     private fun testWithSettings(test: (Data) -> Unit) {
         val missionsEnabled = AtomicBoolean()
         val autoDismissal = AtomicBoolean()
+        val autoDismissalTime = AtomicLong()
         val rewardsEnabled = Array(RewardType.entries.size) { AtomicBoolean() }
 
         activityScenarioManager.onActivity { activity ->
@@ -67,6 +69,7 @@ class MissionSettingsFragmentTest {
             val missionManager = viewModel.missionManager
 
             missionsEnabled.lazySet(missionManager.enabled)
+            autoDismissalTime.lazySet(missionManager.completedDismissalSeconds.inWholeSeconds)
             autoDismissal.lazySet(missionManager.autoDismissCompletedMissions)
 
             missionManager.displayedRewards.forEach { rewardsEnabled[it.ordinal].lazySet(true) }
@@ -78,6 +81,7 @@ class MissionSettingsFragmentTest {
 
         val enabled = missionsEnabled.get()
         val autoDismissalOn = autoDismissal.get()
+        val autoDismissalSeconds = autoDismissalTime.toInt()
 
         val rewardSettings =
             RewardSettings(
@@ -88,12 +92,13 @@ class MissionSettingsFragmentTest {
                 shield = rewardsEnabled[RewardType.SHIELD.ordinal].get(),
             )
 
-        test(Data(enabled, autoDismissalOn, rewardSettings))
+        test(Data(enabled, autoDismissalOn, autoDismissalSeconds, rewardSettings))
     }
 
     private data class Data(
         val enabled: Boolean,
         val autoDismissal: Boolean,
+        val autoDismissalSeconds: Int,
         val rewards: RewardSettings,
     ) {
         fun testMenu(
@@ -103,7 +108,12 @@ class MissionSettingsFragmentTest {
             closeWithBack: Boolean,
         ) {
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, openWithToggle, true)
-            testMissionsSubMenuOpen(autoDismissal, rewards.toArray(), testSettings)
+            testMissionsSubMenuOpen(
+                autoDismissal,
+                autoDismissalSeconds,
+                rewards.toArray(),
+                testSettings,
+            )
 
             val isToggleOn =
                 if (closeWithBack) {
@@ -146,11 +156,16 @@ class MissionSettingsFragmentTest {
 
         fun testMissionsSubMenuOpen(
             autoDismissal: Boolean,
+            autoDismissalSeconds: Int,
             rewardsEnabled: BooleanArray,
             shouldTestSettings: Boolean,
         ) {
             testMissionsSubMenuRewards(rewardsEnabled, shouldTestSettings)
-            testMissionsSubMenuAutoDismissal(autoDismissal, shouldTestSettings)
+            testMissionsSubMenuAutoDismissal(
+                autoDismissal,
+                autoDismissalSeconds,
+                shouldTestSettings,
+            )
         }
 
         fun testMissionsSubMenuRewards(rewardsEnabled: BooleanArray, shouldTest: Boolean) {
@@ -172,26 +187,34 @@ class MissionSettingsFragmentTest {
             )
         }
 
-        fun testMissionsSubMenuAutoDismissal(isOn: Boolean, shouldTest: Boolean) {
+        fun testMissionsSubMenuAutoDismissal(isOn: Boolean, seconds: Int, shouldTest: Boolean) {
             scrollTo(R.id.autoDismissalDivider)
             assertDisplayed(R.id.autoDismissalTitle, R.string.auto_dismissal)
             assertDisplayed(R.id.autoDismissalButton)
 
-            testMissionsSubMenuAutoDismissalButtons(isOn)
+            testMissionsSubMenuAutoDismissalButtons(seconds, isOn, shouldTest)
 
             if (!shouldTest) return
 
             booleanArrayOf(!isOn, isOn).forEach { isChecked ->
                 clickOn(R.id.autoDismissalButton)
-                testMissionsSubMenuAutoDismissalButtons(isChecked)
+                testMissionsSubMenuAutoDismissalButtons(seconds, isChecked, !isOn)
             }
         }
 
-        fun testMissionsSubMenuAutoDismissalButtons(isOn: Boolean) {
+        fun testMissionsSubMenuAutoDismissalButtons(
+            seconds: Int,
+            isOn: Boolean,
+            shouldTestTime: Boolean,
+        ) {
             if (isOn) {
                 assertChecked(R.id.autoDismissalButton)
                 assertDisplayed(R.id.autoDismissalSecondsLabel, R.string.seconds)
                 assertDisplayed(R.id.autoDismissalTimeInput)
+
+                if (shouldTestTime) {
+                    TimeInputTestHelper(R.id.autoDismissalTimeInput, seconds, false).testFully()
+                }
             } else {
                 assertUnchecked(R.id.autoDismissalButton)
                 assertNotDisplayed(R.id.autoDismissalSecondsLabel)

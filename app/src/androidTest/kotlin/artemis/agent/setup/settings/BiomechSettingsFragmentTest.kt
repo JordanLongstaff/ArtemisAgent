@@ -16,6 +16,8 @@ import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.PermissionGranter
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.milliseconds
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,6 +59,7 @@ class BiomechSettingsFragmentTest {
 
     private fun testWithSettings(test: (Data) -> Unit) {
         val biomechsEnabled = AtomicBoolean()
+        val freezeTime = AtomicLong()
 
         val sortByClassFirst = AtomicBoolean()
         val sortByStatus = AtomicBoolean()
@@ -74,6 +77,7 @@ class BiomechSettingsFragmentTest {
             sortByName.lazySet(biomechSorter.sortByName)
 
             biomechsEnabled.lazySet(biomechManager.enabled)
+            freezeTime.lazySet(biomechManager.freezeTime)
         }
 
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
@@ -81,6 +85,7 @@ class BiomechSettingsFragmentTest {
         SettingsFragmentTest.openSettingsMenu()
 
         val enabled = biomechsEnabled.get()
+        val freezeSeconds = freezeTime.get().milliseconds.inWholeSeconds.toInt()
         val sortMethods =
             SortMethods(
                 classFirst = sortByClassFirst.get(),
@@ -89,10 +94,14 @@ class BiomechSettingsFragmentTest {
                 name = sortByName.get(),
             )
 
-        test(Data(enabled, sortMethods))
+        test(Data(enabled, freezeSeconds, sortMethods))
     }
 
-    private data class Data(val enabled: Boolean, val sortMethods: SortMethods) {
+    private data class Data(
+        val enabled: Boolean,
+        val freezeSeconds: Int,
+        val sortMethods: SortMethods,
+    ) {
         fun testMenu(
             openWithToggle: Boolean,
             testSettings: Boolean,
@@ -100,7 +109,7 @@ class BiomechSettingsFragmentTest {
             closeWithBack: Boolean,
         ) {
             SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, openWithToggle, true)
-            testBiomechsSubMenuOpen(sortMethods, testSettings)
+            testBiomechsSubMenuOpen(sortMethods, freezeSeconds, testSettings)
 
             val isToggleOn =
                 if (closeWithBack) {
@@ -140,12 +149,20 @@ class BiomechSettingsFragmentTest {
             )
         }
 
-        fun testBiomechsSubMenuOpen(sortMethods: SortMethods, shouldTestSettings: Boolean) {
+        fun testBiomechsSubMenuOpen(
+            sortMethods: SortMethods,
+            freezeSeconds: Int,
+            shouldTestSettings: Boolean,
+        ) {
             testBiomechSubMenuSortMethods(sortMethods, shouldTestSettings)
 
             scrollTo(R.id.freezeDurationDivider)
             assertDisplayed(R.id.freezeDurationTitle, R.string.freeze_duration)
             assertDisplayed(R.id.freezeDurationTimeInput)
+
+            if (shouldTestSettings) {
+                TimeInputTestHelper(R.id.freezeDurationTimeInput, freezeSeconds, true).testFully()
+            }
         }
 
         fun testBiomechsSubMenuClosed(isToggleOn: Boolean) {

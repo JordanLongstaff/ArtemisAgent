@@ -15,6 +15,7 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.PermissionGranter
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,21 +26,27 @@ class ConnectionSettingsFragmentTest {
     @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
-    fun connectionSettingsTitleBackTest() {
-        testWithSettings { SettingsFragmentTest.closeSettingsSubMenu() }
+    fun connectionSettingsTimeInputTest() {
+        testWithSettings(true) { SettingsFragmentTest.closeSettingsSubMenu() }
     }
 
     @Test
     fun connectionSettingsBackButtonTest() {
-        testWithSettings { SettingsFragmentTest.backFromSubMenu() }
+        testWithSettings(false) { SettingsFragmentTest.backFromSubMenu() }
     }
 
-    private fun testWithSettings(closeSubMenu: () -> Unit) {
+    private fun testWithSettings(testTime: Boolean, closeSubMenu: () -> Unit) {
         val alwaysPublic = AtomicBoolean()
+        val connectTimeout = AtomicInteger()
+        val scanTimeout = AtomicInteger()
+        val heartbeatTimeout = AtomicInteger()
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             alwaysPublic.lazySet(viewModel.alwaysScanPublicBroadcasts)
+            connectTimeout.lazySet(viewModel.connectTimeout)
+            scanTimeout.lazySet(viewModel.scanTimeout)
+            heartbeatTimeout.lazySet(viewModel.heartbeatTimeout)
         }
 
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
@@ -55,6 +62,7 @@ class ConnectionSettingsFragmentTest {
                     text = R.string.connection_timeout,
                     timeInput = R.id.connectionTimeoutTimeInput,
                     secondsLabel = R.id.connectionTimeoutSecondsLabel,
+                    initialSeconds = connectTimeout.get(),
                 ),
                 TimeInputSetting(
                     divider = R.id.heartbeatTimeoutDivider,
@@ -62,6 +70,7 @@ class ConnectionSettingsFragmentTest {
                     text = R.string.heartbeat_timeout,
                     timeInput = R.id.heartbeatTimeoutTimeInput,
                     secondsLabel = R.id.heartbeatTimeoutSecondsLabel,
+                    initialSeconds = heartbeatTimeout.get(),
                 ),
                 TimeInputSetting(
                     divider = R.id.scanTimeoutDivider,
@@ -69,10 +78,14 @@ class ConnectionSettingsFragmentTest {
                     text = R.string.scan_timeout,
                     timeInput = R.id.scanTimeoutTimeInput,
                     secondsLabel = R.id.scanTimeoutSecondsLabel,
+                    initialSeconds = scanTimeout.get(),
                 ),
             )
 
-        timeInputSettings.forEach { it.testDisplayed() }
+        timeInputSettings.forEach {
+            it.testDisplayed()
+            if (testTime) it.testTime()
+        }
 
         alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
 
@@ -87,12 +100,17 @@ class ConnectionSettingsFragmentTest {
         @StringRes val text: Int,
         @IdRes val timeInput: Int,
         @IdRes val secondsLabel: Int,
+        val initialSeconds: Int,
     ) {
         fun testDisplayed() {
             scrollTo(divider)
             assertDisplayed(title, text)
             assertDisplayed(timeInput)
             assertDisplayed(secondsLabel, R.string.seconds)
+        }
+
+        fun testTime() {
+            TimeInputTestHelper(timeInput, initialSeconds, false).testFully()
         }
 
         fun testNotExist() {

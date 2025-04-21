@@ -360,7 +360,7 @@ class AgentViewModel(application: Application) :
     var updateObjectsInterval: Int = DEFAULT_UPDATE_INTERVAL
     var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT
     var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT
-    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT
+    var heartbeatTimeout: Int = DEFAULT_HEARTBEAT_TIMEOUT
         set(value) {
             field = value
             if (isConnected) {
@@ -1073,7 +1073,7 @@ class AgentViewModel(application: Application) :
 
         connectTimeout = settings.connectionTimeoutSeconds
         scanTimeout = settings.scanTimeoutSeconds
-        heartbeatTimeout = settings.serverTimeoutSeconds.toLong()
+        heartbeatTimeout = settings.serverTimeoutSeconds
         showingNetworkInfo = settings.showNetworkInfo
         alwaysScanPublicBroadcasts = settings.alwaysScanPublic
 
@@ -1134,7 +1134,7 @@ class AgentViewModel(application: Application) :
 
             connectionTimeoutSeconds = connectTimeout
             scanTimeoutSeconds = scanTimeout
-            serverTimeoutSeconds = heartbeatTimeout.toInt()
+            serverTimeoutSeconds = heartbeatTimeout
 
             missionManager.revertSettings(this)
 
@@ -1186,7 +1186,7 @@ class AgentViewModel(application: Application) :
         private const val DEFAULT_PORT = 2010
         private const val DEFAULT_SCAN_TIMEOUT = 5
         private const val DEFAULT_CONNECT_TIMEOUT = 9
-        private const val DEFAULT_HEARTBEAT_TIMEOUT = 15L
+        private const val DEFAULT_HEARTBEAT_TIMEOUT = 15
 
         private const val DEFAULT_BLACK_HOLE_CLEARANCE = 500f
         private const val DEFAULT_MINE_CLEARANCE = 1000f
