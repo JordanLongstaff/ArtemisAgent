@@ -10,6 +10,7 @@ import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
@@ -92,6 +93,8 @@ class ConnectionSettingsFragmentTest {
         closeSubMenu()
         timeInputSettings.forEach { it.testNotExist() }
         alwaysScanPublicToggleSetting.testNotExist()
+
+        assertThatBackButtonClosesTheApp()
     }
 
     private data class TimeInputSetting(

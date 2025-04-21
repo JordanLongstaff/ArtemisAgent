@@ -9,6 +9,7 @@ import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers.assertChecked
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaProgressBarAssertions.assertProgress
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
@@ -55,6 +56,8 @@ class PersonalSettingsFragmentTest {
 
         closeSubMenu()
         testPersonalSubMenuClosed()
+
+        assertThatBackButtonClosesTheApp()
     }
 
     private companion object {

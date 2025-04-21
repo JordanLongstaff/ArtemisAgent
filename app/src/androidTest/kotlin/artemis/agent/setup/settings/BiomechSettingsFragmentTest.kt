@@ -9,6 +9,7 @@ import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
@@ -95,6 +96,7 @@ class BiomechSettingsFragmentTest {
             )
 
         test(Data(enabled, freezeSeconds, sortMethods))
+        assertThatBackButtonClosesTheApp()
     }
 
     private data class Data(

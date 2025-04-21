@@ -11,6 +11,7 @@ import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.game.route.RouteTaskIncentive
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
@@ -123,6 +124,7 @@ class RoutingSettingsFragmentTest {
             )
 
         test(Data(enabled, incentivesData, avoidanceData))
+        assertThatBackButtonClosesTheApp()
     }
 
     private data class Data(

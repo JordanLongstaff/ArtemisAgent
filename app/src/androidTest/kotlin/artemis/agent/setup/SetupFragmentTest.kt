@@ -6,6 +6,7 @@ import androidx.test.filters.LargeTest
 import artemis.agent.ActivityScenarioManager
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
@@ -69,5 +70,7 @@ class SetupFragmentTest {
 
         assertUnchecked(R.id.settingsPageButton)
         assertNotExist(R.id.settingsFragmentContainer)
+
+        assertThatBackButtonClosesTheApp()
     }
 }

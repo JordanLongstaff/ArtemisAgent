@@ -11,6 +11,7 @@ import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.setup.settings.SettingsFragmentTest
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
@@ -70,6 +71,8 @@ class ConnectFragmentTest {
         assertNotDisplayed(R.id.scanSpinner)
         assertDisplayed(R.id.noServersLabel, R.string.no_servers_found)
         assertRecyclerViewItemCount(R.id.serverList, 0)
+
+        assertThatBackButtonClosesTheApp()
     }
 
     @Test
@@ -85,6 +88,8 @@ class ConnectFragmentTest {
 
         writeTo(R.id.addressBar, "127.0.0.1")
         assertEnabled(R.id.connectButton)
+
+        assertThatBackButtonClosesTheApp()
     }
 
     @Test
@@ -130,6 +135,8 @@ class ConnectFragmentTest {
 
         assertDisplayed(R.id.connectLabel, R.string.failed_to_connect)
         assertNotDisplayed(R.id.connectSpinner)
+
+        assertThatBackButtonClosesTheApp()
     }
 
     @Test

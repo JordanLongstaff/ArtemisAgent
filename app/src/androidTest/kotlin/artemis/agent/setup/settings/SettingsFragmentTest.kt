@@ -8,6 +8,7 @@ import artemis.agent.ActivityScenarioManager
 import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
@@ -37,6 +38,8 @@ class SettingsFragmentTest {
 
         openSettingsMenu()
         assertDisplayed(R.id.settingsReset)
+
+        assertThatBackButtonClosesTheApp()
     }
 
     companion object {

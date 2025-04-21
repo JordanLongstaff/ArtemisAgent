@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
@@ -69,6 +70,8 @@ class MainActivityTest {
 
         assertUnchecked(R.id.helpPageButton)
         assertNotExist(R.id.helpTopicContent)
+
+        assertThatBackButtonClosesTheApp()
     }
 
     @Test

@@ -8,6 +8,7 @@ import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaListAssertions.assertDisplayedAtPosition
@@ -40,6 +41,8 @@ class ShipsFragmentTest {
         assertDisplayed(R.id.noShipsLabel, R.string.no_ships)
         assertDisplayed(R.id.shipsList)
         assertRecyclerViewItemCount(R.id.shipsList, 0)
+
+        assertThatBackButtonClosesTheApp()
     }
 
     @Test
