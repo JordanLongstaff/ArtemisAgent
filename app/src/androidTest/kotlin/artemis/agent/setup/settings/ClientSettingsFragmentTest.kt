@@ -1,6 +1,7 @@
 package artemis.agent.setup.settings
 
 import android.Manifest
+import android.widget.ToggleButton
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -8,9 +9,13 @@ import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
+import com.adevinta.android.barista.assertion.BaristaAssertions.assertAny
+import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
+import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
+import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.PermissionGranter
 import java.util.concurrent.atomic.AtomicBoolean
@@ -47,13 +52,14 @@ class ClientSettingsFragmentTest {
                 { SettingsFragmentTest.closeSettingsSubMenu() },
                 { SettingsFragmentTest.backFromSubMenu() },
             )
-            .forEach { closeSubMenu ->
+            .forEachIndexed { index, closeSubMenu ->
                 SettingsFragmentTest.openSettingsSubMenu(0)
                 testClientSubMenuOpen(
                     externalVesselDataCount = externalVesselDataCount.get(),
                     expectedPort = expectedPort.toString(),
                     expectedUpdateInterval = expectedUpdateInterval.toString(),
                     showingInfo = showingInfo.get(),
+                    shouldTestAddressLimitButton = index == 0,
                 )
 
                 closeSubMenu()
@@ -75,6 +81,7 @@ class ClientSettingsFragmentTest {
             expectedPort: String,
             expectedUpdateInterval: String,
             showingInfo: Boolean,
+            shouldTestAddressLimitButton: Boolean,
         ) {
             scrollTo(R.id.vesselDataDivider)
             assertDisplayed(R.id.vesselDataTitle, R.string.vessel_data_xml_location)
@@ -96,9 +103,7 @@ class ClientSettingsFragmentTest {
             assertDisplayed(R.id.serverPortTitle, R.string.server_port)
             assertDisplayed(R.id.serverPortField, expectedPort)
 
-            scrollTo(R.id.addressLimitDivider)
-            assertDisplayed(R.id.addressLimitTitle, R.string.recent_address_limit)
-            assertDisplayed(R.id.addressLimitEnableButton)
+            testClientSubMenuAddressLimit(shouldTestAddressLimitButton)
 
             scrollTo(R.id.updateIntervalDivider)
             assertDisplayed(R.id.updateIntervalTitle, R.string.update_interval)
@@ -126,6 +131,37 @@ class ClientSettingsFragmentTest {
             assertNotExist(R.id.updateIntervalField)
             assertNotExist(R.id.updateIntervalMilliseconds)
             assertNotExist(R.id.updateIntervalDivider)
+        }
+
+        fun testClientSubMenuAddressLimit(shouldTest: Boolean) {
+            scrollTo(R.id.addressLimitDivider)
+            assertDisplayed(R.id.addressLimitTitle, R.string.recent_address_limit)
+            assertDisplayed(R.id.addressLimitEnableButton)
+
+            assertAny<ToggleButton>(R.id.addressLimitEnableButton) { button ->
+                testClientSubMenuAddressLimitField(button.isChecked)
+
+                if (shouldTest) {
+                    booleanArrayOf(false, true).forEach { shouldBeEnabled ->
+                        clickOn(R.id.addressLimitEnableButton)
+                        testClientSubMenuAddressLimitField(button.isChecked == shouldBeEnabled)
+                    }
+                }
+
+                true
+            }
+        }
+
+        fun testClientSubMenuAddressLimitField(isEnabled: Boolean) {
+            if (isEnabled) {
+                assertChecked(R.id.addressLimitEnableButton)
+                assertNotDisplayed(R.id.addressLimitInfinity)
+                assertDisplayed(R.id.addressLimitField)
+            } else {
+                assertUnchecked(R.id.addressLimitEnableButton)
+                assertDisplayed(R.id.addressLimitInfinity, R.string.infinity)
+                assertNotDisplayed(R.id.addressLimitField)
+            }
         }
     }
 }
