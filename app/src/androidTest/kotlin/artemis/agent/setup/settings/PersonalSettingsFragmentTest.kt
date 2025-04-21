@@ -28,7 +28,16 @@ class PersonalSettingsFragmentTest {
     @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
-    fun personalSettingsTest() {
+    fun personalSettingsVolumeTest() {
+        testWithSettings(true) { SettingsFragmentTest.closeSettingsSubMenu() }
+    }
+
+    @Test
+    fun personalSettingsBackButtonTest() {
+        testWithSettings(false) { SettingsFragmentTest.backFromSubMenu() }
+    }
+
+    private fun testWithSettings(shouldTestVolumeBar: Boolean, closeSubMenu: () -> Unit) {
         val threeDigits = AtomicBoolean()
         val soundVolume = AtomicInteger()
         activityScenarioManager.onActivity { activity ->
@@ -41,21 +50,15 @@ class PersonalSettingsFragmentTest {
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         SettingsFragmentTest.openSettingsMenu()
+        SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX)
+        testPersonalSubMenuOpen(threeDigits.get(), soundVolume.get(), shouldTestVolumeBar)
 
-        listOf(
-                { SettingsFragmentTest.closeSettingsSubMenu() },
-                { SettingsFragmentTest.backFromSubMenu() },
-            )
-            .forEachIndexed { index, closeSubMenu ->
-                SettingsFragmentTest.openSettingsSubMenu(7)
-                testPersonalSubMenuOpen(threeDigits.get(), soundVolume.get(), index == 0)
-
-                closeSubMenu()
-                testPersonalSubMenuClosed()
-            }
+        closeSubMenu()
+        testPersonalSubMenuClosed()
     }
 
     private companion object {
+        const val ENTRY_INDEX = 7
         const val VOLUME_TEST_COUNT = 20
         const val MAX_VOLUME = 101
 

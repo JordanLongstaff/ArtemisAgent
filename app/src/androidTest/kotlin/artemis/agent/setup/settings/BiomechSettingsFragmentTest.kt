@@ -26,23 +26,52 @@ class BiomechSettingsFragmentTest {
     @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
-    fun biomechSettingsTest() {
+    fun biomechSettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSettings ->
+                data.testMenu(
+                    openWithToggle = data.enabled != testSettings,
+                    testSettings = testSettings,
+                    closeWithToggle = data.enabled == testSettings,
+                    closeWithBack = false,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun biomechSettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testBiomechsSubMenuDisableFromMenu()
+
+            data.testMenu(
+                openWithToggle = true,
+                testSettings = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
+
+            if (!data.enabled) testBiomechsSubMenuDisableFromMenu()
+        }
+    }
+
+    private fun testWithSettings(test: (Data) -> Unit) {
         val biomechsEnabled = AtomicBoolean()
 
-        val sortSettings = Array(4) { AtomicBoolean() }
+        val sortByClassFirst = AtomicBoolean()
+        val sortByStatus = AtomicBoolean()
+        val sortByClassSecond = AtomicBoolean()
+        val sortByName = AtomicBoolean()
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             val biomechManager = viewModel.biomechManager
             val biomechSorter = biomechManager.sorter
 
-            booleanArrayOf(
-                    biomechSorter.sortByClassFirst,
-                    biomechSorter.sortByStatus,
-                    biomechSorter.sortByClassSecond,
-                    biomechSorter.sortByName,
-                )
-                .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
+            sortByClassFirst.lazySet(biomechSorter.sortByClassFirst)
+            sortByStatus.lazySet(biomechSorter.sortByStatus)
+            sortByClassSecond.lazySet(biomechSorter.sortByClassSecond)
+            sortByName.lazySet(biomechSorter.sortByName)
 
             biomechsEnabled.lazySet(biomechManager.enabled)
         }
@@ -52,33 +81,54 @@ class BiomechSettingsFragmentTest {
         SettingsFragmentTest.openSettingsMenu()
 
         val enabled = biomechsEnabled.get()
-        val sortMethods = sortSettings.map { it.get() }.toBooleanArray()
+        val sortMethods =
+            SortMethods(
+                classFirst = sortByClassFirst.get(),
+                status = sortByStatus.get(),
+                classSecond = sortByClassSecond.get(),
+                name = sortByName.get(),
+            )
 
-        booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
-            testBiomechsSubMenuOpen(sortMethods, !usingToggle)
+        test(Data(enabled, sortMethods))
+    }
 
-            SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testBiomechsSubMenuClosed(usingToggle)
+    private data class Data(val enabled: Boolean, val sortMethods: SortMethods) {
+        fun testMenu(
+            openWithToggle: Boolean,
+            testSettings: Boolean,
+            closeWithToggle: Boolean,
+            closeWithBack: Boolean,
+        ) {
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, openWithToggle, true)
+            testBiomechsSubMenuOpen(sortMethods, testSettings)
 
-            if (usingToggle) {
-                SettingsFragmentTest.openSettingsSubMenu(
-                    index = ENTRY_INDEX,
-                    usingToggle = false,
-                    toggleDisplayed = true,
-                )
-                testBiomechsSubMenuOpen(sortMethods, false)
-
-                SettingsFragmentTest.backFromSubMenu()
-                testBiomechsSubMenuClosed(true)
-            }
+            val isToggleOn =
+                if (closeWithBack) {
+                    SettingsFragmentTest.backFromSubMenu()
+                    true
+                } else {
+                    SettingsFragmentTest.closeSettingsSubMenu(closeWithToggle)
+                    !closeWithToggle
+                }
+            testBiomechsSubMenuClosed(isToggleOn)
         }
+    }
+
+    private data class SortMethods(
+        val classFirst: Boolean,
+        val status: Boolean,
+        val classSecond: Boolean,
+        val name: Boolean,
+    ) {
+        private val array by lazy { booleanArrayOf(classFirst, status, classSecond, name) }
+
+        fun toArray(): BooleanArray = array
     }
 
     private companion object {
         const val ENTRY_INDEX = 5
 
-        val biomechSortMethodSettings =
+        val biomechSortMethodSettings by lazy {
             arrayOf(
                 GroupedToggleButtonSetting(R.id.biomechSortingClassButton1, R.string.sort_by_class),
                 GroupedToggleButtonSetting(
@@ -88,9 +138,10 @@ class BiomechSettingsFragmentTest {
                 GroupedToggleButtonSetting(R.id.biomechSortingClassButton2, R.string.sort_by_class),
                 GroupedToggleButtonSetting(R.id.biomechSortingNameButton, R.string.sort_by_name),
             )
+        }
 
-        fun testBiomechsSubMenuOpen(sortMethods: BooleanArray, shouldTestSortMethods: Boolean) {
-            testBiomechSubMenuSortMethods(sortMethods, shouldTestSortMethods)
+        fun testBiomechsSubMenuOpen(sortMethods: SortMethods, shouldTestSettings: Boolean) {
+            testBiomechSubMenuSortMethods(sortMethods, shouldTestSettings)
 
             scrollTo(R.id.freezeDurationDivider)
             assertDisplayed(R.id.freezeDurationTitle, R.string.freeze_duration)
@@ -109,19 +160,26 @@ class BiomechSettingsFragmentTest {
             SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
 
-        fun testBiomechSubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {
+        fun testBiomechsSubMenuDisableFromMenu() {
+            SettingsFragmentTest.toggleSettingsSubMenu(ENTRY_INDEX)
+            testBiomechsSubMenuClosed(false)
+        }
+
+        fun testBiomechSubMenuSortMethods(sortMethods: SortMethods, shouldTest: Boolean) {
             scrollTo(R.id.biomechSortingDivider)
             assertDisplayed(R.id.biomechSortingTitle, R.string.sort_methods)
             assertDisplayed(R.id.biomechSortingDefaultButton, R.string.default_setting)
 
+            val sortMethodArray = sortMethods.toArray()
+
             biomechSortMethodSettings.forEachIndexed { index, setting ->
                 assertDisplayed(setting.button, setting.text)
-                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethods[index])
+                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethodArray[index])
             }
 
             ArtemisAgentTestHelpers.assertChecked(
                 R.id.biomechSortingDefaultButton,
-                sortMethods.none { it },
+                sortMethodArray.none { it },
             )
 
             if (!shouldTest) return
@@ -135,7 +193,7 @@ class BiomechSettingsFragmentTest {
             testBiomechsSubMenuSortPermutations()
 
             biomechSortMethodSettings.forEachIndexed { index, setting ->
-                if (sortMethods[index]) {
+                if (sortMethodArray[index]) {
                     clickOn(setting.button)
                 }
             }

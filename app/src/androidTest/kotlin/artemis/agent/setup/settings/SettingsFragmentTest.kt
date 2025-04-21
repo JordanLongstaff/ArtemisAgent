@@ -83,6 +83,11 @@ class SettingsFragmentTest {
             assertSettingsMainMenuDisplayed()
         }
 
+        fun toggleSettingsSubMenu(index: Int) {
+            clickListItemChild(R.id.settingsPageMenu, index, R.id.settingsEntryToggle)
+            assertSettingsMainMenuDisplayed()
+        }
+
         fun backFromSubMenu() {
             clickBack()
             assertSettingsMainMenuDisplayed()

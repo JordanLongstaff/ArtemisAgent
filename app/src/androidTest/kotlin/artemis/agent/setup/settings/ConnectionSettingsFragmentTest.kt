@@ -2,6 +2,8 @@ package artemis.agent.setup.settings
 
 import android.Manifest
 import androidx.activity.viewModels
+import androidx.annotation.IdRes
+import androidx.annotation.StringRes
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.ActivityScenarioManager
@@ -23,7 +25,16 @@ class ConnectionSettingsFragmentTest {
     @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
-    fun connectionSettingsTest() {
+    fun connectionSettingsTitleBackTest() {
+        testWithSettings { SettingsFragmentTest.closeSettingsSubMenu() }
+    }
+
+    @Test
+    fun connectionSettingsBackButtonTest() {
+        testWithSettings { SettingsFragmentTest.backFromSubMenu() }
+    }
+
+    private fun testWithSettings(closeSubMenu: () -> Unit) {
         val alwaysPublic = AtomicBoolean()
 
         activityScenarioManager.onActivity { activity ->
@@ -34,46 +45,62 @@ class ConnectionSettingsFragmentTest {
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         SettingsFragmentTest.openSettingsMenu()
+        SettingsFragmentTest.openSettingsSubMenu(1)
 
-        listOf(
-                { SettingsFragmentTest.closeSettingsSubMenu() },
-                { SettingsFragmentTest.backFromSubMenu() },
+        val timeInputSettings =
+            listOf(
+                TimeInputSetting(
+                    divider = R.id.connectionTimeoutDivider,
+                    title = R.id.connectionTimeoutTitle,
+                    text = R.string.connection_timeout,
+                    timeInput = R.id.connectionTimeoutTimeInput,
+                    secondsLabel = R.id.connectionTimeoutSecondsLabel,
+                ),
+                TimeInputSetting(
+                    divider = R.id.heartbeatTimeoutDivider,
+                    title = R.id.heartbeatTimeoutTitle,
+                    text = R.string.heartbeat_timeout,
+                    timeInput = R.id.heartbeatTimeoutTimeInput,
+                    secondsLabel = R.id.heartbeatTimeoutSecondsLabel,
+                ),
+                TimeInputSetting(
+                    divider = R.id.scanTimeoutDivider,
+                    title = R.id.scanTimeoutTitle,
+                    text = R.string.scan_timeout,
+                    timeInput = R.id.scanTimeoutTimeInput,
+                    secondsLabel = R.id.scanTimeoutSecondsLabel,
+                ),
             )
-            .forEach { closeSubMenu ->
-                SettingsFragmentTest.openSettingsSubMenu(1)
 
-                scrollTo(R.id.connectionTimeoutDivider)
-                assertDisplayed(R.id.connectionTimeoutTitle, R.string.connection_timeout)
-                assertDisplayed(R.id.connectionTimeoutTimeInput)
-                assertDisplayed(R.id.connectionTimeoutSecondsLabel, R.string.seconds)
+        timeInputSettings.forEach { it.testDisplayed() }
 
-                scrollTo(R.id.heartbeatTimeoutDivider)
-                assertDisplayed(R.id.heartbeatTimeoutTitle, R.string.heartbeat_timeout)
-                assertDisplayed(R.id.heartbeatTimeoutTimeInput)
-                assertDisplayed(R.id.heartbeatTimeoutSecondsLabel, R.string.seconds)
+        alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
 
-                scrollTo(R.id.scanTimeoutDivider)
-                assertDisplayed(R.id.scanTimeoutTitle, R.string.scan_timeout)
-                assertDisplayed(R.id.scanTimeoutTimeInput)
-                assertDisplayed(R.id.scanTimeoutSecondsLabel, R.string.seconds)
+        closeSubMenu()
+        timeInputSettings.forEach { it.testNotExist() }
+        alwaysScanPublicToggleSetting.testNotExist()
+    }
 
-                alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
+    private data class TimeInputSetting(
+        @IdRes val divider: Int,
+        @IdRes val title: Int,
+        @StringRes val text: Int,
+        @IdRes val timeInput: Int,
+        @IdRes val secondsLabel: Int,
+    ) {
+        fun testDisplayed() {
+            scrollTo(divider)
+            assertDisplayed(title, text)
+            assertDisplayed(timeInput)
+            assertDisplayed(secondsLabel, R.string.seconds)
+        }
 
-                closeSubMenu()
-                assertNotExist(R.id.connectionTimeoutTitle)
-                assertNotExist(R.id.connectionTimeoutTimeInput)
-                assertNotExist(R.id.connectionTimeoutSecondsLabel)
-                assertNotExist(R.id.connectionTimeoutDivider)
-                assertNotExist(R.id.heartbeatTimeoutTitle)
-                assertNotExist(R.id.heartbeatTimeoutTimeInput)
-                assertNotExist(R.id.heartbeatTimeoutSecondsLabel)
-                assertNotExist(R.id.heartbeatTimeoutDivider)
-                assertNotExist(R.id.scanTimeoutTitle)
-                assertNotExist(R.id.scanTimeoutTimeInput)
-                assertNotExist(R.id.scanTimeoutSecondsLabel)
-                assertNotExist(R.id.scanTimeoutDivider)
-                alwaysScanPublicToggleSetting.testNotExist()
-            }
+        fun testNotExist() {
+            assertNotExist(title)
+            assertNotExist(timeInput)
+            assertNotExist(secondsLabel)
+            assertNotExist(divider)
+        }
     }
 
     private companion object {

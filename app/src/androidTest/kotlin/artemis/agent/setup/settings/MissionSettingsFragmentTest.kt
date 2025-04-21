@@ -28,7 +28,36 @@ class MissionSettingsFragmentTest {
     @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
-    fun missionSettingsTest() {
+    fun missionSettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSettings ->
+                data.testMenu(
+                    openWithToggle = data.enabled != testSettings,
+                    testSettings = testSettings,
+                    closeWithToggle = data.enabled == testSettings,
+                    closeWithBack = false,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun missionSettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testMissionsSubMenuDisableFromMenu()
+
+            data.testMenu(
+                openWithToggle = true,
+                testSettings = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
+
+            if (!data.enabled) testMissionsSubMenuDisableFromMenu()
+        }
+    }
+
+    private fun testWithSettings(test: (Data) -> Unit) {
         val missionsEnabled = AtomicBoolean()
         val autoDismissal = AtomicBoolean()
         val rewardsEnabled = Array(RewardType.entries.size) { AtomicBoolean() }
@@ -49,27 +78,55 @@ class MissionSettingsFragmentTest {
 
         val enabled = missionsEnabled.get()
         val autoDismissalOn = autoDismissal.get()
-        val rewardValues = rewardsEnabled.map { it.get() }.toBooleanArray()
 
-        booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
-            testMissionsSubMenuOpen(autoDismissalOn, rewardValues, !usingToggle)
+        val rewardSettings =
+            RewardSettings(
+                battery = rewardsEnabled[RewardType.BATTERY.ordinal].get(),
+                coolant = rewardsEnabled[RewardType.COOLANT.ordinal].get(),
+                nuke = rewardsEnabled[RewardType.NUKE.ordinal].get(),
+                production = rewardsEnabled[RewardType.PRODUCTION.ordinal].get(),
+                shield = rewardsEnabled[RewardType.SHIELD.ordinal].get(),
+            )
 
-            SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testMissionsSubMenuClosed(usingToggle)
+        test(Data(enabled, autoDismissalOn, rewardSettings))
+    }
 
-            if (usingToggle) {
-                SettingsFragmentTest.openSettingsSubMenu(
-                    index = ENTRY_INDEX,
-                    usingToggle = false,
-                    toggleDisplayed = true,
-                )
-                testMissionsSubMenuOpen(autoDismissalOn, rewardValues, false)
+    private data class Data(
+        val enabled: Boolean,
+        val autoDismissal: Boolean,
+        val rewards: RewardSettings,
+    ) {
+        fun testMenu(
+            openWithToggle: Boolean,
+            testSettings: Boolean,
+            closeWithToggle: Boolean,
+            closeWithBack: Boolean,
+        ) {
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, openWithToggle, true)
+            testMissionsSubMenuOpen(autoDismissal, rewards.toArray(), testSettings)
 
-                SettingsFragmentTest.backFromSubMenu()
-                testMissionsSubMenuClosed(true)
-            }
+            val isToggleOn =
+                if (closeWithBack) {
+                    SettingsFragmentTest.backFromSubMenu()
+                    true
+                } else {
+                    SettingsFragmentTest.closeSettingsSubMenu(closeWithToggle)
+                    !closeWithToggle
+                }
+            testMissionsSubMenuClosed(isToggleOn)
         }
+    }
+
+    private data class RewardSettings(
+        val battery: Boolean,
+        val coolant: Boolean,
+        val nuke: Boolean,
+        val production: Boolean,
+        val shield: Boolean,
+    ) {
+        private val array by lazy { booleanArrayOf(battery, coolant, nuke, production, shield) }
+
+        fun toArray(): BooleanArray = array
     }
 
     private companion object {
@@ -115,23 +172,23 @@ class MissionSettingsFragmentTest {
             )
         }
 
-        fun testMissionsSubMenuAutoDismissal(autoDismissal: Boolean, shouldTestToggle: Boolean) {
+        fun testMissionsSubMenuAutoDismissal(isOn: Boolean, shouldTest: Boolean) {
             scrollTo(R.id.autoDismissalDivider)
             assertDisplayed(R.id.autoDismissalTitle, R.string.auto_dismissal)
             assertDisplayed(R.id.autoDismissalButton)
 
-            testMissionsSubMenuAutoDismissal(autoDismissal)
+            testMissionsSubMenuAutoDismissalButtons(isOn)
 
-            if (!shouldTestToggle) return
+            if (!shouldTest) return
 
-            booleanArrayOf(!autoDismissal, autoDismissal).forEach { isChecked ->
+            booleanArrayOf(!isOn, isOn).forEach { isChecked ->
                 clickOn(R.id.autoDismissalButton)
-                testMissionsSubMenuAutoDismissal(isChecked)
+                testMissionsSubMenuAutoDismissalButtons(isChecked)
             }
         }
 
-        fun testMissionsSubMenuAutoDismissal(autoDismissal: Boolean) {
-            if (autoDismissal) {
+        fun testMissionsSubMenuAutoDismissalButtons(isOn: Boolean) {
+            if (isOn) {
                 assertChecked(R.id.autoDismissalButton)
                 assertDisplayed(R.id.autoDismissalSecondsLabel, R.string.seconds)
                 assertDisplayed(R.id.autoDismissalTimeInput)
@@ -155,6 +212,11 @@ class MissionSettingsFragmentTest {
             assertNotExist(R.id.autoDismissalDivider)
 
             SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
+        }
+
+        fun testMissionsSubMenuDisableFromMenu() {
+            SettingsFragmentTest.toggleSettingsSubMenu(ENTRY_INDEX)
+            testMissionsSubMenuClosed(false)
         }
     }
 }

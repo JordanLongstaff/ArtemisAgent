@@ -27,25 +27,55 @@ class AllySettingsFragmentTest {
     @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
-    fun allySettingsTest() {
+    fun allySettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSortMethods ->
+                data.testMenu(
+                    openWithToggle = data.enabled != testSortMethods,
+                    testSortMethods = testSortMethods,
+                    closeWithToggle = data.enabled == testSortMethods,
+                    closeWithBack = false,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun allySettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testAlliesSubMenuDisableFromMenu()
+
+            data.testMenu(
+                openWithToggle = true,
+                testSortMethods = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
+
+            if (!data.enabled) testAlliesSubMenuDisableFromMenu()
+        }
+    }
+
+    private fun testWithSettings(test: (Data) -> Unit) {
         val alliesEnabled = AtomicBoolean()
         val showingDestroyed = AtomicBoolean()
         val manuallyReturning = AtomicBoolean()
 
-        val sortSettings = Array(5) { AtomicBoolean() }
+        val sortByClassFirst = AtomicBoolean()
+        val sortByEnergy = AtomicBoolean()
+        val sortByStatus = AtomicBoolean()
+        val sortByClassSecond = AtomicBoolean()
+        val sortByName = AtomicBoolean()
 
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
             val allySorter = viewModel.allySorter
 
-            booleanArrayOf(
-                    allySorter.sortByClassFirst,
-                    allySorter.sortByEnergy,
-                    allySorter.sortByStatus,
-                    allySorter.sortByClassSecond,
-                    allySorter.sortByName,
-                )
-                .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
+            sortByClassFirst.lazySet(allySorter.sortByClassFirst)
+            sortByEnergy.lazySet(allySorter.sortByEnergy)
+            sortByStatus.lazySet(allySorter.sortByStatus)
+            sortByClassSecond.lazySet(allySorter.sortByClassSecond)
+            sortByName.lazySet(allySorter.sortByName)
 
             alliesEnabled.lazySet(viewModel.alliesEnabled)
             showingDestroyed.lazySet(viewModel.showAllySelector)
@@ -60,43 +90,61 @@ class AllySettingsFragmentTest {
         val showDestroyed = showingDestroyed.get()
         val manualReturn = manuallyReturning.get()
 
-        val sortMethods = sortSettings.map { it.get() }.toBooleanArray()
-
-        booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
-            testAlliesSubMenuOpen(
-                sortMethods,
-                shouldTestSortMethods = !usingToggle,
-                showingDestroyed = showDestroyed,
-                manuallyReturning = manualReturn,
+        val sortMethods =
+            SortMethods(
+                classFirst = sortByClassFirst.get(),
+                energy = sortByEnergy.get(),
+                status = sortByStatus.get(),
+                classSecond = sortByClassSecond.get(),
+                name = sortByName.get(),
             )
 
-            SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testAlliesSubMenuClosed(usingToggle)
+        test(Data(enabled, showDestroyed, manualReturn, sortMethods))
+    }
 
-            if (usingToggle) {
-                SettingsFragmentTest.openSettingsSubMenu(
-                    index = ENTRY_INDEX,
-                    usingToggle = false,
-                    toggleDisplayed = true,
-                )
-                testAlliesSubMenuOpen(
-                    sortMethods,
-                    shouldTestSortMethods = false,
-                    showingDestroyed = showDestroyed,
-                    manuallyReturning = manualReturn,
-                )
+    private data class Data(
+        val enabled: Boolean,
+        val showingDestroyed: Boolean,
+        val manuallyReturning: Boolean,
+        val sortMethods: SortMethods,
+    ) {
+        fun testMenu(
+            openWithToggle: Boolean,
+            testSortMethods: Boolean,
+            closeWithToggle: Boolean,
+            closeWithBack: Boolean,
+        ) {
+            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, openWithToggle, true)
+            testAlliesSubMenuOpen(sortMethods, testSortMethods, showingDestroyed, manuallyReturning)
 
-                SettingsFragmentTest.backFromSubMenu()
-                testAlliesSubMenuClosed(true)
-            }
+            val isToggleOn =
+                if (closeWithBack) {
+                    SettingsFragmentTest.backFromSubMenu()
+                    true
+                } else {
+                    SettingsFragmentTest.closeSettingsSubMenu(closeWithToggle)
+                    !closeWithToggle
+                }
+            testAlliesSubMenuClosed(isToggleOn)
         }
+    }
+
+    private data class SortMethods(
+        val classFirst: Boolean,
+        val energy: Boolean,
+        val status: Boolean,
+        val classSecond: Boolean,
+        val name: Boolean,
+    ) {
+        private val array by lazy { booleanArrayOf(classFirst, energy, status, classSecond, name) }
+
+        fun toArray(): BooleanArray = array
     }
 
     private companion object {
         const val ENTRY_INDEX = 3
 
-        val allySortMethodSettings =
+        val allySortMethodSettings by lazy {
             arrayOf(
                 GroupedToggleButtonSetting(R.id.allySortingClassButton1, R.string.sort_by_class),
                 GroupedToggleButtonSetting(R.id.allySortingEnergyButton, R.string.sort_by_energy),
@@ -104,8 +152,9 @@ class AllySettingsFragmentTest {
                 GroupedToggleButtonSetting(R.id.allySortingClassButton2, R.string.sort_by_class),
                 GroupedToggleButtonSetting(R.id.allySortingStatusButton, R.string.sort_by_status),
             )
+        }
 
-        val allySingleToggleSettings =
+        val allySingleToggleSettings by lazy {
             arrayOf(
                 SingleToggleButtonSetting(
                     divider = R.id.showDestroyedAlliesDivider,
@@ -120,9 +169,10 @@ class AllySettingsFragmentTest {
                     button = R.id.manuallyReturnButton,
                 ),
             )
+        }
 
         fun testAlliesSubMenuOpen(
-            sortMethods: BooleanArray,
+            sortMethods: SortMethods,
             shouldTestSortMethods: Boolean,
             showingDestroyed: Boolean,
             manuallyReturning: Boolean,
@@ -145,19 +195,26 @@ class AllySettingsFragmentTest {
             SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
         }
 
-        fun testAllySubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {
+        fun testAlliesSubMenuDisableFromMenu() {
+            SettingsFragmentTest.toggleSettingsSubMenu(ENTRY_INDEX)
+            testAlliesSubMenuClosed(false)
+        }
+
+        fun testAllySubMenuSortMethods(sortMethods: SortMethods, shouldTest: Boolean) {
             scrollTo(R.id.allySortingDivider)
             assertDisplayed(R.id.allySortingTitle, R.string.sort_methods)
             assertDisplayed(R.id.allySortingDefaultButton, R.string.default_setting)
 
+            val sortMethodArray = sortMethods.toArray()
+
             allySortMethodSettings.forEachIndexed { index, setting ->
                 assertDisplayed(setting.button, setting.text)
-                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethods[index])
+                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethodArray[index])
             }
 
             ArtemisAgentTestHelpers.assertChecked(
                 R.id.allySortingDefaultButton,
-                sortMethods.none { it },
+                sortMethodArray.none { it },
             )
 
             if (!shouldTest) return
@@ -171,7 +228,7 @@ class AllySettingsFragmentTest {
             testAllySubMenuSortPermutations()
 
             for (index in allySortMethodSettings.indices.reversed()) {
-                if (sortMethods[index]) {
+                if (sortMethodArray[index]) {
                     clickOn(allySortMethodSettings[index].button)
                 }
             }

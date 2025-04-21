@@ -31,10 +31,19 @@ class ClientSettingsFragmentTest {
     @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
 
     @Test
-    fun clientSettingsTest() {
+    fun clientSettingsMutableTest() {
+        testWithSettings(true) { SettingsFragmentTest.closeSettingsSubMenu() }
+    }
+
+    @Test
+    fun clientSettingsBackButtonTest() {
+        testWithSettings(false) { SettingsFragmentTest.backFromSubMenu() }
+    }
+
+    private fun testWithSettings(shouldTestSettings: Boolean, closeSubMenu: () -> Unit) {
         val expectedPort = AtomicInteger()
         val expectedUpdateInterval = AtomicInteger()
-        val externalVesselDataCount = AtomicInteger()
+        val vesselDataCount = AtomicInteger()
         val vesselDataIndex = AtomicInteger()
         val showingInfo = AtomicBoolean()
 
@@ -42,7 +51,7 @@ class ClientSettingsFragmentTest {
             val viewModel = activity.viewModels<AgentViewModel>().value
             expectedPort.lazySet(viewModel.port)
             expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
-            externalVesselDataCount.lazySet(viewModel.vesselDataManager.count)
+            vesselDataCount.lazySet(viewModel.vesselDataManager.count)
             vesselDataIndex.lazySet(viewModel.vesselDataManager.index)
             showingInfo.lazySet(viewModel.showingNetworkInfo)
         }
@@ -50,25 +59,31 @@ class ClientSettingsFragmentTest {
         PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
 
         SettingsFragmentTest.openSettingsMenu()
+        SettingsFragmentTest.openSettingsSubMenu(0)
 
-        listOf(
-                { SettingsFragmentTest.closeSettingsSubMenu() },
-                { SettingsFragmentTest.backFromSubMenu() },
-            )
-            .forEachIndexed { index, closeSubMenu ->
-                SettingsFragmentTest.openSettingsSubMenu(0)
-                testClientSubMenuOpen(
-                    vesselData = vesselDataIndex.get() to externalVesselDataCount.get(),
-                    expectedPort = expectedPort.toString(),
-                    expectedUpdateInterval = expectedUpdateInterval.toString(),
+        testClientSubMenuOpen(
+            data =
+                Data(
+                    port = expectedPort.toString(),
+                    updateInterval = expectedUpdateInterval.get(),
+                    vesselDataIndex = vesselDataIndex.get(),
+                    vesselDataCount = vesselDataCount.get(),
                     showingInfo = showingInfo.get(),
-                    shouldTestAddressLimitButton = index == 0,
-                )
+                ),
+            shouldTestSettings = shouldTestSettings,
+        )
 
-                closeSubMenu()
-                testClientSubMenuClosed()
-            }
+        closeSubMenu()
+        testClientSubMenuClosed()
     }
+
+    private data class Data(
+        val port: String,
+        val updateInterval: Int,
+        val vesselDataIndex: Int,
+        val vesselDataCount: Int,
+        val showingInfo: Boolean,
+    )
 
     private companion object {
         val showNetworkInfoToggleSetting =
@@ -87,32 +102,29 @@ class ClientSettingsFragmentTest {
             )
         }
 
-        fun testClientSubMenuOpen(
-            vesselData: Pair<Int, Int>,
-            expectedPort: String,
-            expectedUpdateInterval: String,
-            showingInfo: Boolean,
-            shouldTestAddressLimitButton: Boolean,
-        ) {
+        fun testClientSubMenuOpen(data: Data, shouldTestSettings: Boolean) {
             scrollTo(R.id.vesselDataDivider)
             assertDisplayed(R.id.vesselDataTitle, R.string.vessel_data_xml_location)
             assertDisplayed(R.id.vesselDataOptions)
             assertDisplayed(R.id.vesselDataDefault, R.string.default_setting)
 
-            val (vesselDataIndex, vesselDataCount) = vesselData
-            testClientSubMenuVesselDataButtons(vesselDataIndex, vesselDataCount)
+            testClientSubMenuVesselDataButtons(
+                data.vesselDataIndex,
+                data.vesselDataCount,
+                shouldTestSettings,
+            )
 
-            showNetworkInfoToggleSetting.testSingleToggle(showingInfo)
+            showNetworkInfoToggleSetting.testSingleToggle(data.showingInfo)
 
             scrollTo(R.id.serverPortDivider)
             assertDisplayed(R.id.serverPortTitle, R.string.server_port)
-            assertDisplayed(R.id.serverPortField, expectedPort)
+            assertDisplayed(R.id.serverPortField, data.port)
 
-            testClientSubMenuAddressLimit(shouldTestAddressLimitButton)
+            testClientSubMenuAddressLimit(shouldTestSettings)
 
             scrollTo(R.id.updateIntervalDivider)
             assertDisplayed(R.id.updateIntervalTitle, R.string.update_interval)
-            assertDisplayed(R.id.updateIntervalField, expectedUpdateInterval)
+            assertDisplayed(R.id.updateIntervalField, data.updateInterval)
             assertDisplayed(R.id.updateIntervalMilliseconds, R.string.milliseconds)
         }
 
@@ -136,14 +148,14 @@ class ClientSettingsFragmentTest {
             assertNotExist(R.id.updateIntervalDivider)
         }
 
-        fun testClientSubMenuVesselDataButtons(index: Int, count: Int) {
-            vesselDataButtons
-                .forEachIndexed { i, (id, label) ->
-                    if (i < count) assertDisplayed(id, label)
-                    else assertNotDisplayed(id)
+        fun testClientSubMenuVesselDataButtons(index: Int, count: Int, shouldTest: Boolean) {
+            vesselDataButtons.forEachIndexed { i, (id, label) ->
+                if (i < count) assertDisplayed(id, label) else assertNotDisplayed(id)
 
-                    ArtemisAgentTestHelpers.assertChecked(id, i == index)
-                }
+                ArtemisAgentTestHelpers.assertChecked(id, i == index)
+            }
+
+            if (!shouldTest) return
 
             vesselDataButtons.forEachIndexed { i, (button) ->
                 clickOn(button)
