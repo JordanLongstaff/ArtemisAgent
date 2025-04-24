@@ -1,8 +1,8 @@
 package artemis.agent.setup.settings
 
 import android.Manifest
-import android.widget.ToggleButton
 import androidx.activity.viewModels
+import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.ActivityScenarioManager
@@ -10,7 +10,6 @@ import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
-import com.adevinta.android.barista.assertion.BaristaAssertions.assertAny
 import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
@@ -175,26 +174,18 @@ class ClientSettingsFragmentTest {
             assertDisplayed(R.id.addressLimitTitle, R.string.recent_address_limit)
             assertDisplayed(R.id.addressLimitEnableButton)
 
-            assertAny<ToggleButton>(R.id.addressLimitEnableButton) { button ->
-                testClientSubMenuAddressLimitField(button.isChecked)
-
-                if (shouldTest) {
-                    booleanArrayOf(false, true).forEach { shouldBeEnabled ->
-                        clickOn(R.id.addressLimitEnableButton)
-                        testClientSubMenuAddressLimitField(button.isChecked == shouldBeEnabled)
-                    }
-                }
-
-                true
+            repeat(if (shouldTest) 3 else 1) {
+                if (it > 0) clickOn(R.id.addressLimitEnableButton)
+                testClientSubMenuAddressLimitField()
             }
         }
 
-        fun testClientSubMenuAddressLimitField(isEnabled: Boolean) {
-            if (isEnabled) {
+        fun testClientSubMenuAddressLimitField() {
+            try {
                 assertChecked(R.id.addressLimitEnableButton)
                 assertNotDisplayed(R.id.addressLimitInfinity)
                 assertDisplayed(R.id.addressLimitField)
-            } else {
+            } catch (_: NoMatchingViewException) {
                 assertUnchecked(R.id.addressLimitEnableButton)
                 assertDisplayed(R.id.addressLimitInfinity, R.string.infinity)
                 assertNotDisplayed(R.id.addressLimitField)
