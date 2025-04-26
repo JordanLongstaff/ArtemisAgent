@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Generate API version matrix
         id: generate
-        run: echo matrix=[$(sed s/,$//g <<< $(seq -s ", " 21 36))] >> $GITHUB_OUTPUT
+        run: echo matrix=[$(sed s/,$//g <<< $(seq -s ", " 21 35))] >> $GITHUB_OUTPUT
 
   test:
     runs-on: ubuntu-latest
