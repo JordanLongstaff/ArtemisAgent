@@ -8,7 +8,7 @@ import java.io.File
 import okio.Path.Companion.toOkioPath
 
 class VesselDataManager(context: Context) {
-    private val storageDirectories: List<File> = context.getExternalFilesDirs(null).toList()
+    private val storageDirectories: List<File> = context.getExternalFilesDirs(null).filterNotNull()
 
     val externalCount by lazy { storageDirectories.size }
 

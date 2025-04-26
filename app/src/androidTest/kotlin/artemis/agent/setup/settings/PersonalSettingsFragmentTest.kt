@@ -94,7 +94,7 @@ class PersonalSettingsFragmentTest {
             themeIndex: Int,
             isThreeDigitsOn: Boolean,
             soundVolume: Int,
-            shouldTestVolumeBar: Boolean,
+            shouldTestSettings: Boolean,
         ) {
             scrollTo(R.id.themeDivider)
             assertDisplayed(R.id.themeTitle, R.string.theme)
@@ -106,23 +106,7 @@ class PersonalSettingsFragmentTest {
                 assertChecked(button, index == themeIndex)
             }
 
-            scrollTo(R.id.threeDigitDirectionsDivider)
-            assertDisplayed(R.id.threeDigitDirectionsButton)
-            assertDisplayed(R.id.threeDigitDirectionsLabel)
-
-            booleanArrayOf(isThreeDigitsOn, !isThreeDigitsOn, isThreeDigitsOn).forEachIndexed {
-                index,
-                threeDigits ->
-                if (index == 0) clickOn(R.id.threeDigitDirectionsButton)
-                assertChecked(R.id.threeDigitDirectionsButton, threeDigits)
-
-                val threeDigitsText =
-                    context.getString(
-                        R.string.three_digit_directions,
-                        "0".repeat(if (threeDigits) 3 else 1),
-                    )
-                assertDisplayed(R.id.threeDigitDirectionsTitle, threeDigitsText)
-            }
+            testPersonalSubMenuThreeDigits(isThreeDigitsOn, shouldTestSettings)
 
             scrollTo(R.id.soundVolumeDivider)
             assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
@@ -130,7 +114,7 @@ class PersonalSettingsFragmentTest {
             assertProgress(R.id.soundVolumeBar, soundVolume)
             assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
 
-            if (shouldTestVolumeBar) {
+            if (shouldTestSettings) {
                 val volumeTests =
                     List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume
                 volumeTests.forEach { volume ->
@@ -138,6 +122,29 @@ class PersonalSettingsFragmentTest {
                     assertDisplayed(R.id.soundVolumeLabel, volume.toString())
                 }
             }
+        }
+
+        fun testPersonalSubMenuThreeDigits(threeDigits: Boolean, shouldTest: Boolean) {
+            scrollTo(R.id.threeDigitDirectionsDivider)
+            assertDisplayed(R.id.threeDigitDirectionsButton)
+            assertDisplayed(R.id.threeDigitDirectionsLabel)
+
+            testPersonalSubMenuThreeDigitsState(threeDigits)
+
+            if (!shouldTest) return
+
+            booleanArrayOf(!threeDigits, threeDigits).forEach { isOn ->
+                clickOn(R.id.threeDigitDirectionsButton)
+                testPersonalSubMenuThreeDigitsState(isOn)
+            }
+        }
+
+        fun testPersonalSubMenuThreeDigitsState(isOn: Boolean) {
+            assertChecked(R.id.threeDigitDirectionsButton, isOn)
+
+            val threeDigitsText =
+                context.getString(R.string.three_digit_directions, "0".repeat(if (isOn) 3 else 1))
+            assertDisplayed(R.id.threeDigitDirectionsTitle, threeDigitsText)
         }
 
         fun testPersonalSubMenuClosed() {

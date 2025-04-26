@@ -126,7 +126,7 @@ class ClientSettingsFragmentTest {
 
             scrollTo(R.id.updateIntervalDivider)
             assertDisplayed(R.id.updateIntervalTitle, R.string.update_interval)
-            assertDisplayed(R.id.updateIntervalField, data.updateInterval)
+            assertDisplayed(R.id.updateIntervalField, data.updateInterval.toString())
             assertDisplayed(R.id.updateIntervalMilliseconds, R.string.milliseconds)
         }
 
