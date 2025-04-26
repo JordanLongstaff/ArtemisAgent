@@ -39,11 +39,13 @@ class PersonalSettingsFragmentTest {
     }
 
     private fun testWithSettings(shouldTestVolumeBar: Boolean, closeSubMenu: () -> Unit) {
+        val themeIndex = AtomicInteger()
         val threeDigits = AtomicBoolean()
         val soundVolume = AtomicInteger()
         activityScenarioManager.onActivity { activity ->
             val viewModel = activity.viewModels<AgentViewModel>().value
 
+            themeIndex.lazySet(viewModel.themeIndex)
             threeDigits.lazySet(viewModel.threeDigitDirections)
             soundVolume.lazySet((viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt())
         }
@@ -52,7 +54,12 @@ class PersonalSettingsFragmentTest {
 
         SettingsFragmentTest.openSettingsMenu()
         SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX)
-        testPersonalSubMenuOpen(threeDigits.get(), soundVolume.get(), shouldTestVolumeBar)
+        testPersonalSubMenuOpen(
+            themeIndex.get(),
+            threeDigits.get(),
+            soundVolume.get(),
+            shouldTestVolumeBar,
+        )
 
         closeSubMenu()
         testPersonalSubMenuClosed()
@@ -65,7 +72,18 @@ class PersonalSettingsFragmentTest {
         const val VOLUME_TEST_COUNT = 20
         const val MAX_VOLUME = 101
 
+        val themeButtonIds =
+            intArrayOf(
+                R.id.themeDefaultButton,
+                R.id.themeRedButton,
+                R.id.themeGreenButton,
+                R.id.themeYellowButton,
+                R.id.themeBlueButton,
+                R.id.themePurpleButton,
+            )
+
         fun testPersonalSubMenuOpen(
+            themeIndex: Int,
             isThreeDigitsOn: Boolean,
             soundVolume: Int,
             shouldTestVolumeBar: Boolean,
@@ -74,11 +92,11 @@ class PersonalSettingsFragmentTest {
             assertDisplayed(R.id.themeTitle, R.string.theme)
             assertDisplayed(R.id.themeSelector)
             assertDisplayed(R.id.themeDefaultButton, R.string.default_setting)
-            assertDisplayed(R.id.themeRedButton)
-            assertDisplayed(R.id.themeGreenButton)
-            assertDisplayed(R.id.themeYellowButton)
-            assertDisplayed(R.id.themeBlueButton)
-            assertDisplayed(R.id.themePurpleButton)
+
+            themeButtonIds.forEachIndexed { index, button ->
+                if (index > 0) assertDisplayed(button)
+                assertChecked(button, index == themeIndex)
+            }
 
             scrollTo(R.id.threeDigitDirectionsDivider)
             assertDisplayed(R.id.threeDigitDirectionsTitle, R.string.three_digit_directions)
@@ -105,12 +123,7 @@ class PersonalSettingsFragmentTest {
         fun testPersonalSubMenuClosed() {
             assertNotExist(R.id.themeTitle)
             assertNotExist(R.id.themeSelector)
-            assertNotExist(R.id.themeDefaultButton)
-            assertNotExist(R.id.themeRedButton)
-            assertNotExist(R.id.themeGreenButton)
-            assertNotExist(R.id.themeYellowButton)
-            assertNotExist(R.id.themeBlueButton)
-            assertNotExist(R.id.themePurpleButton)
+            themeButtonIds.forEach { assertNotExist(it) }
             assertNotExist(R.id.themeDivider)
             assertNotExist(R.id.threeDigitDirectionsTitle)
             assertNotExist(R.id.threeDigitDirectionsButton)
