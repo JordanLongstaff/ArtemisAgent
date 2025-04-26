@@ -20,7 +20,7 @@ buildscript {
     }
 }
 
-val sdkVersion: Int by extra(35)
+val sdkVersion: Int by extra(36)
 val minimumSdkVersion: Int by extra(21)
 val javaVersion: JavaVersion by extra(JavaVersion.VERSION_21)
 
