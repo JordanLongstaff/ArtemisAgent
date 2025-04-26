@@ -114,6 +114,10 @@ class ConnectFragmentTest {
         assertNotExist(R.id.addressBar)
         assertChecked(R.id.shipsPageButton)
         assertDisplayed(R.id.shipsList)
+
+        clickOn(R.id.connectPageButton)
+        assertDisplayed(R.id.connectLabel, R.string.connected)
+        assertNotDisplayed(R.id.connectSpinner)
     }
 
     @Test
