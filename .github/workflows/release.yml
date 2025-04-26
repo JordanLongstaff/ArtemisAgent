@@ -3,11 +3,8 @@ name: Upload Release
 on:
   workflow_dispatch:
     inputs:
-      versionName:
-        description: Version name (remember to update changelog)
-        required: true
       versionBump:
-        description: Version bump
+        description: Version bump (remember to update changelog)
         type: choice
         options:
           - patch
@@ -74,15 +71,22 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Get app version code
+      - name: Get app version code and name
         id: version
         uses: ltDino/android-get-version-action@v1.0
         with:
           gradlePath: app/build.gradle.kts
 
       - name: Increment app version code
-        id: nextVersion
+        id: nextVersionCode
         run: echo "versionCode=$((${{ steps.version.outputs.versionCode }}+1))" >> "$GITHUB_OUTPUT"
+
+      - name: Bump app version name
+        id: nextVersionName
+        uses: cbrgm/semver-bump-action@v1
+        with:
+          current-version: ${{ steps.version.outputs.versionName }}
+          bump-level: ${{ inputs.versionBump }}
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -135,7 +139,7 @@ jobs:
         with:
           file: app/remote-config.json
           field: parameterGroups.required_versions.parameters.required_version_artemis.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.nextVersion.outputs.versionCode }}
+          value: ${{ steps.nextVersionCode.outputs.versionCode }}
 
       - name: Update Version Code for Security Parameter
         if: ${{ inputs.securityRequiredUpdate }}
@@ -143,7 +147,7 @@ jobs:
         with:
           file: app/remote-config.json
           field: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.nextVersion.outputs.versionCode }}
+          value: ${{ steps.nextVersionCode.outputs.versionCode }}
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
@@ -152,17 +156,17 @@ jobs:
           args: deploy --only remoteconfig
 
       - name: Bundle and Upload
-        run: bundle exec fastlane android deploy version:${{ inputs.versionName }}
+        run: bundle exec fastlane android deploy version:${{ steps.nextVersionName.outputs.new_version }}
 
       - name: Update README
         run: |
-          var="${{ inputs.versionName }}"
+          var="${{ steps.nextVersionName.outputs.new_version }}"
           sed -i "1s/.*/# Artemis Agent $var/" ${{ github.workspace }}/README.md
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Release version ${{ inputs.versionName }}
+          commit_message: Release version ${{ steps.nextVersionName.outputs.new_version }}
           commit_options: "--no-verify --signoff"
           commit_user_name: ${{ github.triggering_actor }}
           commit_user_email: ${{ github.triggering_actor }}@users.noreply.github.com
