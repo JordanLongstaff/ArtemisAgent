@@ -107,13 +107,13 @@ jobs:
           path: konsist
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2.19.0
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2
         with:
           check_name: Unit Test Results
           files: tests/**/*.xml
 
       - name: Publish Konsist Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2.19.0
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: always()
         with:
           check_name: Konsist Test Results

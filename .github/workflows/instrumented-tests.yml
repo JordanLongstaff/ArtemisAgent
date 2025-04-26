@@ -90,7 +90,7 @@ jobs:
           path: tests
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2.19.0
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2
         with:
           check_name: Instrumented Test Results
           files: tests/**/*.xml
