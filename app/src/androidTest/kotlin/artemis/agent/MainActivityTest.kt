@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.filters.SdkSuppress
 import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
 import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
@@ -15,7 +16,6 @@ import com.adevinta.android.barista.interaction.BaristaDialogInteractions.clickD
 import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
 import com.adevinta.android.barista.interaction.PermissionGranter
 import org.junit.Assert
-import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,6 +74,7 @@ class MainActivityTest {
         assertThatBackButtonClosesTheApp()
     }
 
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.TIRAMISU)
     @Test
     fun permissionRationaleDialogPositiveTest() {
         testPermissionDialog()
@@ -81,6 +82,7 @@ class MainActivityTest {
         assertDisplayed(R.id.mainPageSelector)
     }
 
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.TIRAMISU)
     @Test
     fun permissionRationaleDialogNegativeTest() {
         testPermissionDialog()
@@ -91,12 +93,8 @@ class MainActivityTest {
     }
 
     private companion object {
+        @SdkSuppress(minSdkVersion = Build.VERSION_CODES.TIRAMISU)
         fun testPermissionDialog() {
-            Assume.assumeTrue(
-                "Requires API 33 or higher",
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
-            )
-
             PermissionGranter.denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
             sleep(300L)
             assertDisplayed(android.R.id.message, R.string.permission_rationale)
