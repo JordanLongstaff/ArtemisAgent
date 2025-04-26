@@ -311,10 +311,10 @@ class RoutingSettingsFragmentTest {
 
                 if (!shouldTest) return@forEachIndexed
 
-                clickOn(setting.button)
-                testRoutingSubMenuAvoidance(setting, !enabled[index], clearances[index])
-                clickOn(setting.button)
-                testRoutingSubMenuAvoidance(setting, enabled[index], clearances[index])
+                booleanArrayOf(false, true).forEach {
+                    clickOn(setting.button)
+                    testRoutingSubMenuAvoidance(setting, enabled[index] == it, clearances[index])
+                }
             }
 
             SettingsFragmentTest.testSettingsWithAllAndNone(

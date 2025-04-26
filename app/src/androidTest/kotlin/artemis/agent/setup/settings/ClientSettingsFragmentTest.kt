@@ -2,7 +2,6 @@ package artemis.agent.setup.settings
 
 import android.Manifest
 import androidx.activity.viewModels
-import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.ActivityScenarioManager
@@ -19,6 +18,7 @@ import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assert
 import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.PermissionGranter
+import com.adevinta.android.barista.internal.failurehandler.BaristaException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
@@ -185,7 +185,7 @@ class ClientSettingsFragmentTest {
                 assertChecked(R.id.addressLimitEnableButton)
                 assertNotDisplayed(R.id.addressLimitInfinity)
                 assertDisplayed(R.id.addressLimitField)
-            } catch (_: NoMatchingViewException) {
+            } catch (_: BaristaException) {
                 assertUnchecked(R.id.addressLimitEnableButton)
                 assertDisplayed(R.id.addressLimitInfinity, R.string.infinity)
                 assertNotDisplayed(R.id.addressLimitField)

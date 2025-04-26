@@ -113,7 +113,7 @@ class ConnectionSettingsFragmentTest {
         }
 
         fun testTime() {
-            TimeInputTestHelper(timeInput, initialSeconds, false).testFully()
+            TimeInputTestHelper(timeInput, initialSeconds, false, 1).testFully()
         }
 
         fun testNotExist() {

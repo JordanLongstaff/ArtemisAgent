@@ -15,17 +15,19 @@ data class TimeInputTestHelper(
     @IdRes val parentId: Int,
     var seconds: Int,
     val includeMinutes: Boolean,
+    val minimumSeconds: Int = 0,
 ) {
     private val parentMatcher by lazy { withParent(withId(parentId)) }
+    private val tenSecondIterations by lazy { if (includeMinutes) 5 else 1 }
 
     fun testFully() {
         testTime()
         if (seconds > 0) {
-            testDecreaseToZero()
+            testDecreaseToMinimum()
             testIncreaseToMax()
         } else {
             testIncreaseToMax()
-            testDecreaseToZero()
+            testDecreaseToMinimum()
         }
     }
 
@@ -47,8 +49,8 @@ data class TimeInputTestHelper(
         testSeconds(remainingSeconds)
     }
 
-    private fun testDecreaseToZero() {
-        while (seconds > 0) {
+    private fun testDecreaseToMinimum() {
+        while (seconds > minimumSeconds) {
             seconds -=
                 if (includeMinutes) {
                     subtractOneMinute()
@@ -58,17 +60,17 @@ data class TimeInputTestHelper(
                     TEN
                 }
 
-            seconds = seconds.coerceAtLeast(0)
+            seconds = seconds.coerceAtLeast(minimumSeconds)
             testTime()
         }
 
-        repeat(TEN) {
+        repeat(TEN - minimumSeconds) {
             addOneSecond()
             seconds++
             testTime()
         }
 
-        repeat(if (includeMinutes) 1 else 5) {
+        repeat(tenSecondIterations) {
             addTenSeconds()
             seconds += TEN
             testTime()
@@ -103,7 +105,7 @@ data class TimeInputTestHelper(
             testTime()
         }
 
-        repeat(if (includeMinutes) 1 else 5) {
+        repeat(tenSecondIterations) {
             subtractTenSeconds()
             seconds -= TEN
             testTime()
