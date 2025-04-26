@@ -52,7 +52,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Android SDK Tools
-        uses: android-actions/setup-android@v3.2.2
+        uses: android-actions/setup-android@v3
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
@@ -60,7 +60,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run tests on API ${{ matrix.api-level }}
-        uses: reactivecircus/android-emulator-runner@v2.34.0
+        uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
