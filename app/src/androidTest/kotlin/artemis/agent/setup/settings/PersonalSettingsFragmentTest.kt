@@ -4,6 +4,7 @@ import android.Manifest
 import androidx.activity.viewModels
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
 import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
 import artemis.agent.ArtemisAgentTestHelpers.assertChecked
@@ -13,6 +14,7 @@ import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackBu
 import com.adevinta.android.barista.assertion.BaristaProgressBarAssertions.assertProgress
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
 import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
+import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
 import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
 import com.adevinta.android.barista.interaction.BaristaSeekBarInteractions.setProgressTo
 import com.adevinta.android.barista.interaction.PermissionGranter
@@ -72,6 +74,12 @@ class PersonalSettingsFragmentTest {
         const val VOLUME_TEST_COUNT = 20
         const val MAX_VOLUME = 101
 
+        val context by lazy {
+            checkNotNull(InstrumentationRegistry.getInstrumentation().targetContext) {
+                "Failed to get context"
+            }
+        }
+
         val themeButtonIds =
             intArrayOf(
                 R.id.themeDefaultButton,
@@ -99,10 +107,22 @@ class PersonalSettingsFragmentTest {
             }
 
             scrollTo(R.id.threeDigitDirectionsDivider)
-            assertDisplayed(R.id.threeDigitDirectionsTitle, R.string.three_digit_directions)
             assertDisplayed(R.id.threeDigitDirectionsButton)
             assertDisplayed(R.id.threeDigitDirectionsLabel)
-            assertChecked(R.id.threeDigitDirectionsButton, isThreeDigitsOn)
+
+            booleanArrayOf(isThreeDigitsOn, !isThreeDigitsOn, isThreeDigitsOn).forEachIndexed {
+                index,
+                threeDigits ->
+                if (index == 0) clickOn(R.id.threeDigitDirectionsButton)
+                assertChecked(R.id.threeDigitDirectionsButton, threeDigits)
+
+                val threeDigitsText =
+                    context.getString(
+                        R.string.three_digit_directions,
+                        "0".repeat(if (threeDigits) 3 else 1),
+                    )
+                assertDisplayed(R.id.threeDigitDirectionsTitle, threeDigitsText)
+            }
 
             scrollTo(R.id.soundVolumeDivider)
             assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
