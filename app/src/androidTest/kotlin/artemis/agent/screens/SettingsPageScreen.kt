@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import artemis.agent.R
 import artemis.agent.isDisplayedWithSize
 import artemis.agent.isDisplayedWithText
+import artemis.agent.isHidden
 import artemis.agent.setup.settings.AllySettingsFragment
 import artemis.agent.setup.settings.BiomechSettingsFragment
 import artemis.agent.setup.settings.ClientSettingsFragment
@@ -54,7 +55,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
 
     fun assertMainMenuDisplayed() {
         settingsPageTitle.isDisplayedWithText(R.string.settings)
-        settingsBack.isNotDisplayed()
+        settingsBack.isHidden()
         Menu.settingsPageMenu {
             isDisplayedWithSize(this@SettingsPageScreen.pageTitles.size)
             this@SettingsPageScreen.pageTitles.forEachIndexed { index, title ->
@@ -66,7 +67,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
     fun assertSubmenuDisplayed(index: Int) {
         settingsPageTitle.isDisplayedWithText(pageTitles[index])
         settingsBack.isDisplayed()
-        Menu.settingsPageMenu.isNotDisplayed()
+        Menu.settingsPageMenu.doesNotExist()
     }
 
     fun closeSubmenu(usingToggle: Boolean = false) {
