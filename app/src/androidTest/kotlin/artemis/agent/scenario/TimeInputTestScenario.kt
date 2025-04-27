@@ -1,5 +1,8 @@
 package artemis.agent.scenario
 
+import artemis.agent.R
+import artemis.agent.isDisplayedWithText
+import artemis.agent.isHidden
 import artemis.agent.setup.settings.KTimeInputBinder
 import com.kaspersky.kaspresso.testcases.api.scenario.Scenario
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
@@ -8,17 +11,18 @@ class TimeInputTestScenario(
     private val timeInput: KTimeInputBinder,
     private var seconds: Int,
     private val includeMinutes: Boolean,
+    private val minimumSeconds: Int = 0,
 ) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
         step("Test current time") { testCurrentTime() }
 
         val initialSeconds = seconds
-        if (seconds > 0) {
-            testDecreaseToZero()
+        if (seconds > minimumSeconds) {
+            testDecreaseToMin()
             testIncreaseToMax()
         } else {
             testIncreaseToMax()
-            testDecreaseToZero()
+            testDecreaseToMin()
         }
 
         step("Revert to initial time") { revertToTime(initialSeconds) }
@@ -51,9 +55,9 @@ class TimeInputTestScenario(
         }
     }
 
-    private fun TestContext<*>.testDecreaseToZero() {
-        step("Decrease to zero") {
-            while (seconds > 0) {
+    private fun TestContext<*>.testDecreaseToMin() {
+        step("Decrease to minimum") {
+            while (seconds > minimumSeconds) {
                 seconds -=
                     if (includeMinutes) {
                         subtractOneMinute()
@@ -63,7 +67,7 @@ class TimeInputTestScenario(
                         TEN
                     }
 
-                seconds = seconds.coerceAtLeast(0)
+                seconds = seconds.coerceAtLeast(minimumSeconds)
                 testCurrentTime()
             }
         }
@@ -82,17 +86,14 @@ class TimeInputTestScenario(
             if (includeMinutes) {
                 val minutes = seconds / SIXTY
                 timeInput {
-                    minutesDisplay {
-                        isDisplayed()
-                        hasText(minutes.toString())
-                    }
-                    colon.isDisplayed()
+                    minutesDisplay.isDisplayedWithText(minutes.toString())
+                    colon.isDisplayedWithText(R.string.colon)
                 }
                 seconds % SIXTY
             } else {
                 timeInput {
-                    minutesDisplay.isNotDisplayed()
-                    colon.isNotDisplayed()
+                    minutesDisplay.isHidden()
+                    colon.isHidden()
                 }
                 seconds
             }
@@ -105,14 +106,8 @@ class TimeInputTestScenario(
         val ones = seconds % TEN
 
         timeInput {
-            secondsTenDisplay {
-                isDisplayed()
-                hasText(tens.toString())
-            }
-            secondsOneDisplay {
-                isDisplayed()
-                hasText(ones.toString())
-            }
+            secondsTenDisplay.isDisplayedWithText(tens.toString())
+            secondsOneDisplay.isDisplayedWithText(ones.toString())
         }
     }
 
@@ -173,25 +168,27 @@ class TimeInputTestScenario(
     }
 
     private fun testChangingTens(change: () -> Unit) {
-        repeat(if (includeMinutes) 1 else 5) {
+        repeat(if (includeMinutes) 5 else 1) {
             change()
             testCurrentTime()
         }
     }
 
     private fun testChangingOnes(change: () -> Unit) {
-        repeat(TEN) {
+        repeat(TEN - minimumSeconds) {
             change()
             testCurrentTime()
         }
     }
 
     private fun revertToTime(initialSeconds: Int) {
-        while (initialSeconds - seconds >= SIXTY) {
-            addOneMinute()
-        }
-        while (seconds - initialSeconds >= SIXTY) {
-            subtractOneMinute()
+        if (includeMinutes) {
+            while (initialSeconds - seconds >= SIXTY) {
+                addOneMinute()
+            }
+            while (seconds - initialSeconds >= SIXTY) {
+                subtractOneMinute()
+            }
         }
         while (initialSeconds - seconds >= TEN) {
             addTenSeconds()

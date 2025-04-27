@@ -11,7 +11,7 @@ fun CheckableAssertions.isCheckedIf(checked: Boolean) {
 }
 
 fun BaseAssertions.isDisplayedIf(displayed: Boolean) {
-    if (displayed) isDisplayed() else isNotDisplayed()
+    if (displayed) isDisplayed() else isHidden()
 }
 
 fun BaseAssertions.isEnabledIf(enabled: Boolean) {

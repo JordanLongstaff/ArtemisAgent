@@ -59,7 +59,7 @@ class AllAndNoneSettingsScenario(
                             }
 
                             step("All button should now be ${if (on) "en" else "dis"}abled") {
-                                allButton.isEnabledIf(on)
+                                clickedButton.isEnabledIf(on)
                             }
                         }
                     }

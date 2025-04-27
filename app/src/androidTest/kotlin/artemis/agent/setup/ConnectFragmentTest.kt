@@ -48,8 +48,7 @@ class ConnectFragmentTest : TestCase() {
             ConnectPageScreen {
                 step("Initial state") {
                     scanButton {
-                        isDisplayed()
-                        hasText(R.string.scan)
+                        isDisplayedWithText(R.string.scan)
                         isEnabled()
                     }
                     scanSpinner.isHidden()

@@ -26,6 +26,8 @@ object MainScreen : KScreen<MainScreen>() {
 
     val permissionRationaleDialog = KAlertDialog()
 
+    private val isTiramisu by lazy { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
+
     fun TestContext<*>.mainScreenTest(
         backButtonShouldCloseApp: Boolean = true,
         test: MainScreen.() -> Unit,
@@ -46,20 +48,17 @@ object MainScreen : KScreen<MainScreen>() {
     }
 
     private fun acceptPermissions(device: Device) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        if (!isTiramisu) return
         device.permissions.allowViaDialog()
     }
 
     fun denyPermissions(device: Device) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        if (!isTiramisu) return
         device.permissions.denyViaDialog()
     }
 
     fun assertPermissionsDialogOpen(device: Device) {
-        Assert.assertEquals(
-            device.permissions.isDialogVisible(),
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU,
-        )
+        Assert.assertEquals(device.permissions.isDialogVisible(), isTiramisu)
     }
 
     fun assertPermissionRationaleDialogOpen() {

@@ -73,9 +73,10 @@ class ConnectionSettingsFragmentTest : TestCase() {
                             step("Test changing time") {
                                 scenario(
                                     TimeInputTestScenario(
-                                        setting.timeInput,
-                                        setting.initialSeconds,
-                                        false,
+                                        timeInput = setting.timeInput,
+                                        seconds = setting.initialSeconds,
+                                        includeMinutes = false,
+                                        minimumSeconds = 1,
                                     )
                                 )
                             }
