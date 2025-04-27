@@ -16,7 +16,8 @@
     },
     {
       "groupName": "firebase",
-      "matchPackageNames": ["/^com\\.google\\.firebase/"]
+      "matchPackageNames": ["/^com\\.google\\.firebase/"],
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android"
     }
   ]
 }
