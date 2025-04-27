@@ -15,7 +15,7 @@ private constructor(
     toggleDisplayed: Boolean = usingToggle,
 ) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
-        val name = device.context.getString(title)
+        val name = device.targetContext.getString(title)
         step("Open $name submenu") {
             SettingsPageScreen {
                 Menu.settingsPageMenu.childAt<Menu.Entry>(index) {

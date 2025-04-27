@@ -286,7 +286,7 @@ class RoutingSettingsFragmentTest : TestCase() {
             clearance: Int,
             shouldTest: Boolean,
         ) {
-            val title = device.context.getString(setting.text)
+            val title = device.targetContext.getString(setting.text)
             step(title) {
                 step("Base components displayed") {
                     setting.label.isDisplayedWithText(title)

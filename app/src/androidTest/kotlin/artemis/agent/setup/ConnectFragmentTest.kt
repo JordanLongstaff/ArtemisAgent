@@ -99,7 +99,7 @@ class ConnectFragmentTest : TestCase() {
                 }
 
                 step("Write in address") {
-                    addressBar.typeText("127.0.0.1")
+                    addressBar.replaceText("127.0.0.1")
                     connectButton.isEnabled()
                 }
             }

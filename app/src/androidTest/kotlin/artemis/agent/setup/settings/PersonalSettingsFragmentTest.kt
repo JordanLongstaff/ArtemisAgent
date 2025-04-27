@@ -107,7 +107,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                                     isCheckedIf(showingThree)
                                 }
                                 threeDigitDirectionsLabel.isDisplayedWithText(
-                                    device.context.getString(
+                                    device.targetContext.getString(
                                         R.string.direction,
                                         "0".repeat(if (showingThree) 3 else 1),
                                     )

@@ -191,7 +191,7 @@ class AllySettingsFragmentTest : TestCase() {
                 val sortMethodArray = sortMethods.toArray()
                 step("Initial state of sort method settings") {
                     sortMethodSettings.forEachIndexed { index, setting ->
-                        val name = device.context.getString(setting.text)
+                        val name = device.targetContext.getString(setting.text)
                         step(name) {
                             setting.button {
                                 isDisplayedWithText(setting.text)

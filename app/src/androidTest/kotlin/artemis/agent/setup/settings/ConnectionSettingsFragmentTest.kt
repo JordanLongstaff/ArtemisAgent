@@ -65,7 +65,7 @@ class ConnectionSettingsFragmentTest : TestCase() {
                     )
 
                 timeInputSettings.forEach { setting ->
-                    val settingName = device.context.getString(setting.text)
+                    val settingName = device.targetContext.getString(setting.text)
                     step(settingName) {
                         step("Components should be displayed") { setting.testDisplayed() }
 
