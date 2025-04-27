@@ -159,7 +159,7 @@ class ClientSettingsFragmentTest {
 
             if (!shouldTest) return
 
-            vesselDataButtons.forEachIndexed { i, (button) ->
+            vesselDataButtons.take(count).forEachIndexed { i, (button) ->
                 clickOn(button)
                 vesselDataButtons.forEachIndexed { j, (otherButton) ->
                     ArtemisAgentTestHelpers.assertChecked(otherButton, i == j)
