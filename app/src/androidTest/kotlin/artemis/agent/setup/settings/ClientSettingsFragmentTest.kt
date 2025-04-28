@@ -1,7 +1,6 @@
 package artemis.agent.setup.settings
 
 import androidx.activity.viewModels
-import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -19,6 +18,7 @@ import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import junit.framework.AssertionFailedError
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -79,7 +79,7 @@ class ClientSettingsFragmentTest : TestCase() {
                     updateIntervalDivider.scrollTo()
                     updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
                     updateIntervalField.isDisplayedWithText(expectedUpdateInterval.get().toString())
-                    updateIntervalField.isDisplayedWithText(R.string.milliseconds)
+                    updateIntervalMilliseconds.isDisplayedWithText(R.string.milliseconds)
                 }
 
                 step("Close submenu") {
@@ -160,16 +160,16 @@ class ClientSettingsFragmentTest : TestCase() {
                 try {
                     addressLimitEnableButton.isChecked()
                     true
-                } catch (_: NoMatchingViewException) {
+                } catch (_: AssertionFailedError) {
                     addressLimitEnableButton.isNotChecked()
                     false
                 }
 
             if (isChecked) {
                 addressLimitField.isDisplayed()
-                addressLimitInfinity.isNotDisplayed()
+                addressLimitInfinity.isHidden()
             } else {
-                addressLimitField.isNotDisplayed()
+                addressLimitField.isHidden()
                 addressLimitInfinity.isDisplayedWithText(R.string.infinity)
             }
         }

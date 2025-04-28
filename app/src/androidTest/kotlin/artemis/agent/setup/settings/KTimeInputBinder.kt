@@ -4,6 +4,7 @@ import androidx.annotation.IdRes
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import artemis.agent.R
 import artemis.agent.isDisplayedIf
+import artemis.agent.isHidden
 import io.github.kakaocup.kakao.common.views.KView
 import io.github.kakaocup.kakao.image.KImageView
 import io.github.kakaocup.kakao.text.KTextView
@@ -43,17 +44,20 @@ class KTimeInputBinder(@IdRes parentId: Int) {
     }
 
     fun isNotDisplayed() {
-        root.isNotDisplayed()
-        minutesUpButton.doesNotExist()
-        minutesDownButton.doesNotExist()
-        minutesDisplay.doesNotExist()
-        colon.doesNotExist()
-        secondsTenUpButton.doesNotExist()
-        secondsTenDownButton.doesNotExist()
-        secondsTenDisplay.doesNotExist()
-        secondsOneUpButton.doesNotExist()
-        secondsOneDownButton.doesNotExist()
-        secondsOneDisplay.doesNotExist()
+        root {
+            isNotDisplayed()
+            isInvisible()
+        }
+        minutesUpButton.isHidden()
+        minutesDownButton.isHidden()
+        minutesDisplay.isHidden()
+        colon.isHidden()
+        secondsTenUpButton.isHidden()
+        secondsTenDownButton.isHidden()
+        secondsTenDisplay.isHidden()
+        secondsOneUpButton.isHidden()
+        secondsOneDownButton.isHidden()
+        secondsOneDisplay.isHidden()
     }
 
     fun doesNotExist() {

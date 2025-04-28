@@ -149,9 +149,9 @@ test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "andr
 test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 
 espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+uiautomator = "androidx.test.uiautomator:uiautomator:2.3.0"
 
-hamcrest-core = { module = "org.hamcrest:hamcrest-core", version.ref = "hamcrest" }
-hamcrest-library = { module = "org.hamcrest:hamcrest-library", version.ref = "hamcrest" }
+hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
 
 kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref = "kaspresso" }
 kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
@@ -254,9 +254,9 @@ app-test-runtime = [
 app-androidTest = [
     "kotlinx-coroutines-test",
     "espresso",
+    "uiautomator",
     "junit4",
-    "hamcrest-core",
-    "hamcrest-library",
+    "hamcrest",
     "kaspresso",
     "kakao",
     "test-core",

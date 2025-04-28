@@ -9,7 +9,6 @@ import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.game.missions.RewardType
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
 import artemis.agent.scenario.AllAndNoneSettingsScenario
 import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
@@ -223,7 +222,10 @@ class MissionSettingsFragmentTest : TestCase() {
                 } else {
                     step("$stepNameBase not displayed") {
                         autoDismissalButton.isNotChecked()
-                        autoDismissalSecondsLabel.isHidden()
+                        autoDismissalSecondsLabel {
+                            isNotDisplayed()
+                            isInvisible()
+                        }
                         autoDismissalTimeInput.isNotDisplayed()
                     }
                 }

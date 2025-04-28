@@ -1,13 +1,18 @@
 package artemis.agent
 
 import android.os.Build
+import androidx.test.espresso.NoMatchingRootException
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.filters.SdkSuppress
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiSelector
 import artemis.agent.screens.MainScreen
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,11 +43,28 @@ class PermissionRationaleTest : TestCase() {
                 screen.assertPermissionsDialogOpen(device)
             }
 
-            step("Deny permissions again") { screen.denyPermissions(device) }
+            step("Deny permissions again") {
+                /*
+                 * In the second instance of the permissions dialog, the deny button has a different
+                 * resource ID that Kaspresso doesn't know about, so unfortunately we have to bypass
+                 * Kaspresso's methods and go through UiAutomator ourselves.
+                 */
+                val denyAndDontAskAgain =
+                    UiSelector()
+                        .clickable(true)
+                        .checkable(false)
+                        .resourceId(DENY_AND_DONT_ASK_BUTTON)
+                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+                    .findObject(denyAndDontAskAgain)
+                    .click()
+            }
         }
     }
 
     private companion object {
+        const val DENY_AND_DONT_ASK_BUTTON =
+            "com.android.permissioncontroller:id/permission_deny_and_dont_ask_again_button"
+
         fun TestContext<*>.testPermissionDialog(withDialog: TestContext<*>.(MainScreen) -> Unit) {
             MainScreen {
                 step("Check for permissions dialog") { assertPermissionsDialogOpen(device) }
@@ -55,8 +77,14 @@ class PermissionRationaleTest : TestCase() {
 
                 withDialog(this)
 
-                step("No permission rationale dialog afterwards") {
-                    permissionRationaleDialog.isNotDisplayed()
+                step("No dialogs of any kind afterwards") {
+                    try {
+                        permissionRationaleDialog.isDisplayed()
+                        Assert.fail("Expected permission rationale dialog to be gone")
+                    } catch (_: NoMatchingRootException) {
+                        // Success, but must still check that permission request dialog is gone
+                        Assert.assertFalse(device.permissions.isDialogVisible())
+                    }
                 }
             }
         }
