@@ -5,7 +5,7 @@ import androidx.test.espresso.NoActivityResumedException
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import com.kaspersky.kaspresso.device.Device
 import com.kaspersky.kaspresso.screens.KScreen
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
@@ -64,11 +64,11 @@ object MainScreen : KScreen<MainScreen>() {
     fun assertPermissionRationaleDialogOpen() {
         permissionRationaleDialog {
             isDisplayed()
-            title.isHidden()
+            title.isRemoved()
             message.isDisplayedWithText(R.string.permission_rationale)
             positiveButton.isDisplayedWithText(R.string.yes)
             negativeButton.isDisplayedWithText(R.string.no)
-            neutralButton.isHidden()
+            neutralButton.isRemoved()
         }
     }
 }

@@ -3,7 +3,7 @@ package artemis.agent.setup.settings
 import androidx.annotation.StringRes
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import io.github.kakaocup.kakao.check.KCheckBox
 import io.github.kakaocup.kakao.common.views.KView
 import io.github.kakaocup.kakao.text.KTextView
@@ -24,8 +24,8 @@ data class SingleToggleButtonSetting(
     }
 
     fun testHidden() {
-        label.isHidden()
-        button.isHidden()
+        label.isRemoved()
+        button.isRemoved()
     }
 
     fun testNotExist() {

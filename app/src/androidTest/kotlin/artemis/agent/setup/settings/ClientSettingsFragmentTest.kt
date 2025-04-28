@@ -9,7 +9,7 @@ import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
@@ -109,7 +109,7 @@ class ClientSettingsFragmentTest : TestCase() {
 
                     step("Correct number of options displayed") {
                         vesselDataButtons.forEachIndexed { i, (button, label) ->
-                            if (i < count) button.isDisplayedWithText(label) else button.isHidden()
+                            if (i < count) button.isDisplayedWithText(label) else button.isRemoved()
                         }
                     }
 
@@ -167,9 +167,9 @@ class ClientSettingsFragmentTest : TestCase() {
 
             if (isChecked) {
                 addressLimitField.isDisplayed()
-                addressLimitInfinity.isHidden()
+                addressLimitInfinity.isRemoved()
             } else {
-                addressLimitField.isHidden()
+                addressLimitField.isRemoved()
                 addressLimitInfinity.isDisplayedWithText(R.string.infinity)
             }
         }

@@ -9,7 +9,7 @@ import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.scenario.SortMethodPairScenario
@@ -329,7 +329,7 @@ class EnemySettingsFragmentTest : TestCase() {
                 SettingsPageScreen.Enemies {
                     if (isEnabled) {
                         surrenderRangeEnableButton.isChecked()
-                        surrenderRangeInfinity.isHidden()
+                        surrenderRangeInfinity.isRemoved()
                         surrenderRangeKm.isDisplayedWithText(R.string.kilometres)
                         surrenderRangeField.isDisplayed()
                         if (surrenderRange != null) {
@@ -338,8 +338,8 @@ class EnemySettingsFragmentTest : TestCase() {
                     } else {
                         surrenderRangeEnableButton.isNotChecked()
                         surrenderRangeInfinity.isDisplayedWithText(R.string.infinity)
-                        surrenderRangeKm.isHidden()
-                        surrenderRangeField.isHidden()
+                        surrenderRangeKm.isRemoved()
+                        surrenderRangeField.isRemoved()
                     }
                 }
             }

@@ -7,7 +7,7 @@ import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isDisplayedWithSize
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import artemis.agent.scenario.ConnectScenario
 import artemis.agent.screens.GamePageScreen
 import artemis.agent.screens.MainScreen.mainScreenTest
@@ -49,11 +49,11 @@ class ShipsFragmentTest : TestCase() {
 
             ShipsPageScreen {
                 step("Ships list populated") {
-                    noShipsLabel.isHidden()
+                    noShipsLabel.isRemoved()
                     shipsList {
                         isDisplayedWithSize(Artemis.SHIP_COUNT)
                         children<ShipsPageScreen.ShipItem> {
-                            selectedShipLabel.isHidden()
+                            selectedShipLabel.isRemoved()
                             nameLabel.isDisplayed()
                             vesselLabel.isDisplayed()
                             driveTypeLabel.isDisplayed()

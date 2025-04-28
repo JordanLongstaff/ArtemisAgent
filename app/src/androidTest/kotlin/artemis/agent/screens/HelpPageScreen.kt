@@ -8,7 +8,7 @@ import artemis.agent.R
 import artemis.agent.help.HelpFragment
 import artemis.agent.isDisplayedWithSize
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import com.kaspersky.kaspresso.screens.KScreen
 import io.github.kakaocup.kakao.common.actions.BaseActions
 import io.github.kakaocup.kakao.common.assertions.BaseAssertions
@@ -55,8 +55,8 @@ object HelpPageScreen : KScreen<HelpPageScreen>() {
     val aboutHelpTopicIndex by lazy { helpTopics.lastIndex }
 
     fun assertMainMenuDisplayed() {
-        helpTopicTitle.isHidden()
-        backButton.isHidden()
+        helpTopicTitle.isRemoved()
+        backButton.isRemoved()
         helpTopicContent.isDisplayedWithSize(helpTopics.size)
 
         helpTopics.forEachIndexed { index, (res, _) ->

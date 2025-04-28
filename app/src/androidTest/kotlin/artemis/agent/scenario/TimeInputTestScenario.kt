@@ -2,7 +2,7 @@ package artemis.agent.scenario
 
 import artemis.agent.R
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import artemis.agent.setup.settings.KTimeInputBinder
 import com.kaspersky.kaspresso.testcases.api.scenario.Scenario
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
@@ -92,8 +92,8 @@ class TimeInputTestScenario(
                 seconds % SIXTY
             } else {
                 timeInput {
-                    minutesDisplay.isHidden()
-                    colon.isHidden()
+                    minutesDisplay.isRemoved()
+                    colon.isRemoved()
                 }
                 seconds
             }

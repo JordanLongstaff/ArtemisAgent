@@ -5,7 +5,7 @@ import androidx.annotation.StringRes
 import artemis.agent.R
 import artemis.agent.isDisplayedWithSize
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import artemis.agent.setup.settings.AllySettingsFragment
 import artemis.agent.setup.settings.BiomechSettingsFragment
 import artemis.agent.setup.settings.ClientSettingsFragment
@@ -55,7 +55,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
 
     fun assertMainMenuDisplayed() {
         settingsPageTitle.isDisplayedWithText(R.string.settings)
-        settingsBack.isHidden()
+        settingsBack.isRemoved()
         Menu.settingsPageMenu {
             isDisplayedWithSize(this@SettingsPageScreen.pageTitles.size)
             this@SettingsPageScreen.pageTitles.forEachIndexed { index, title ->

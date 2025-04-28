@@ -6,7 +6,7 @@ import androidx.test.filters.LargeTest
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isDisplayedWithText
-import artemis.agent.isHidden
+import artemis.agent.isRemoved
 import artemis.agent.screens.HelpPageScreen
 import artemis.agent.screens.MainScreen.mainScreenTest
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
@@ -39,7 +39,7 @@ class HelpFragmentTest : TestCase() {
                             if (index == this@HelpPageScreen.aboutHelpTopicIndex) {
                                 isDisplayedWithText(R.string.check_for_updates)
                             } else {
-                                isHidden()
+                                isRemoved()
                             }
                         }
                     }

@@ -10,7 +10,7 @@ import io.github.kakaocup.kakao.image.KImageView
 import io.github.kakaocup.kakao.text.KTextView
 
 class KTimeInputBinder(@IdRes parentId: Int) {
-    private val parentMatcher by lazy { withId(parentId) }
+    private val parentMatcher = withId(parentId)
     private val root = KView { withMatcher(parentMatcher) }
 
     val minutesUpButton = KImageView(parentMatcher) { withId(R.id.minutesUpButton) }
@@ -27,50 +27,38 @@ class KTimeInputBinder(@IdRes parentId: Int) {
     val secondsOneDownButton = KImageView(parentMatcher) { withId(R.id.secondsOneDownButton) }
     val secondsOneDisplay = KTextView(parentMatcher) { withId(R.id.secondsOne) }
 
+    private val minutesChildren by lazy {
+        listOf(minutesUpButton, minutesDownButton, minutesDisplay, colon)
+    }
+
+    private val secondsChildren by lazy {
+        listOf(
+            secondsTenUpButton,
+            secondsTenDownButton,
+            secondsTenDisplay,
+            secondsOneUpButton,
+            secondsOneDownButton,
+            secondsOneDisplay,
+        )
+    }
+
+    private val allChildren by lazy { minutesChildren + secondsChildren }
+
     operator fun invoke(function: KTimeInputBinder.() -> Unit) = function(this)
 
     fun isDisplayed(withMinutes: Boolean) {
         root.isDisplayed()
-        minutesUpButton.isDisplayedIf(withMinutes)
-        minutesDownButton.isDisplayedIf(withMinutes)
-        minutesDisplay.isDisplayedIf(withMinutes)
-        colon.isDisplayedIf(withMinutes)
-        secondsTenUpButton.isDisplayed()
-        secondsTenDownButton.isDisplayed()
-        secondsTenDisplay.isDisplayed()
-        secondsOneUpButton.isDisplayed()
-        secondsOneDownButton.isDisplayed()
-        secondsOneDisplay.isDisplayed()
+        minutesChildren.forEach { it.isDisplayedIf(withMinutes) }
+        secondsChildren.forEach { it.isDisplayed() }
     }
 
-    fun isNotDisplayed() {
-        root {
-            isNotDisplayed()
-            isInvisible()
-        }
-        minutesUpButton.isHidden()
-        minutesDownButton.isHidden()
-        minutesDisplay.isHidden()
-        colon.isHidden()
-        secondsTenUpButton.isHidden()
-        secondsTenDownButton.isHidden()
-        secondsTenDisplay.isHidden()
-        secondsOneUpButton.isHidden()
-        secondsOneDownButton.isHidden()
-        secondsOneDisplay.isHidden()
+    fun isHidden() {
+        root.isHidden()
+        allChildren.forEach { it.isHidden() }
     }
 
     fun doesNotExist() {
         root.doesNotExist()
-        minutesUpButton.doesNotExist()
-        minutesDownButton.doesNotExist()
-        minutesDisplay.doesNotExist()
-        colon.doesNotExist()
-        secondsTenUpButton.doesNotExist()
-        secondsTenDownButton.doesNotExist()
-        secondsTenDisplay.doesNotExist()
-        secondsOneUpButton.doesNotExist()
-        secondsOneDownButton.doesNotExist()
-        secondsOneDisplay.doesNotExist()
+        allChildren.forEach { it.doesNotExist() }
     }
 }
