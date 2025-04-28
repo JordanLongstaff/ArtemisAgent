@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices"
   ],
   "autoApprove": true,
   "automerge": true,
@@ -16,7 +16,12 @@
     },
     {
       "groupName": "firebase",
-      "matchPackageNames": ["/^com\\.google\\.firebase/"]
+      "matchPackageNames": ["/^com\\.google\\.firebase/"],
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.datastore:datastore/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/datastore"
     }
   ]
 }
