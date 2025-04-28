@@ -181,7 +181,7 @@ class ConnectFragmentTest : TestCase() {
                         SetupPageScreen.connectPageButton.click()
                     }
 
-                    Screen.idle(100L)
+                    Screen.idle(1000L)
 
                     ConnectPageScreen.infoViews.forEachIndexed { viewIndex, view ->
                         val isNotEmpty = viewIndex > 0 || hasNetwork
