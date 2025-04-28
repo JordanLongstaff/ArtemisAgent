@@ -111,13 +111,13 @@ jobs:
 
       - name: Set Firebase Project
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@012bae54f58db1bea44038169293e106e4d53d6e # v14.2.0
+        uses: w9jds/firebase-action@c5fd7686e5a146f4034c0f74c480319273f396b7 # v14.2.1
         with:
           args: use ${{ secrets.FIREBASE_SA_PROJECT }}
 
       - name: Get Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@012bae54f58db1bea44038169293e106e4d53d6e # v14.2.0
+        uses: w9jds/firebase-action@c5fd7686e5a146f4034c0f74c480319273f396b7 # v14.2.1
         with:
           args: remoteconfig:get -o app/remote-config.json
 
@@ -151,7 +151,7 @@ jobs:
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@012bae54f58db1bea44038169293e106e4d53d6e # v14.2.0
+        uses: w9jds/firebase-action@c5fd7686e5a146f4034c0f74c480319273f396b7 # v14.2.1
         with:
           args: deploy --only remoteconfig
 
