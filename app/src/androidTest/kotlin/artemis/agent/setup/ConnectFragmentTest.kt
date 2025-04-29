@@ -23,6 +23,7 @@ import artemis.agent.screens.ShipsPageScreen
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import dev.tmapps.konnection.Konnection
 import io.github.kakaocup.kakao.screen.Screen
+import kotlinx.coroutines.delay
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.seconds
@@ -181,7 +182,7 @@ class ConnectFragmentTest : TestCase() {
                         SetupPageScreen.connectPageButton.click()
                     }
 
-                    Screen.idle(500L)
+                    delay(300L)
 
                     ConnectPageScreen.infoViews.forEachIndexed { viewIndex, view ->
                         val isNotEmpty = viewIndex > 0 || hasNetwork
