@@ -31,90 +31,96 @@ class EnemySettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun enemySettingsMutableTest() = testWithSettings { data ->
-        booleanArrayOf(true, false).forEach { testSettings ->
-            testData(
-                data = data,
-                openWithToggle = data.enabled != testSettings,
-                testSettings = testSettings,
-                closeWithToggle = data.enabled == testSettings,
-                closeWithBack = false,
-            )
+    fun enemySettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSettings ->
+                testData(
+                    data = data,
+                    openWithToggle = data.enabled != testSettings,
+                    testSettings = testSettings,
+                    closeWithToggle = data.enabled == testSettings,
+                    closeWithBack = false,
+                )
+            }
         }
     }
 
     @Test
-    fun enemySettingsBackButtonTest() = testWithSettings { data ->
-        if (data.enabled) testEnemySubMenuDisableFromMenu()
+    fun enemySettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testEnemySubMenuDisableFromMenu()
 
-        testData(
-            data = data,
-            openWithToggle = true,
-            testSettings = false,
-            closeWithToggle = false,
-            closeWithBack = true,
-        )
+            testData(
+                data = data,
+                openWithToggle = true,
+                testSettings = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
 
-        if (!data.enabled) testEnemySubMenuDisableFromMenu()
+            if (!data.enabled) testEnemySubMenuDisableFromMenu()
+        }
     }
 
-    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) = run {
-        mainScreenTest {
-            val enemiesEnabled = AtomicBoolean()
-            val maxSurrenderRange = AtomicInteger(-1)
-            val showIntel = AtomicBoolean()
-            val showTauntStatuses = AtomicBoolean()
-            val disableIneffectiveTaunts = AtomicBoolean()
+    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
+        run {
+            mainScreenTest {
+                val enemiesEnabled = AtomicBoolean()
+                val maxSurrenderRange = AtomicInteger(-1)
+                val showIntel = AtomicBoolean()
+                val showTauntStatuses = AtomicBoolean()
+                val disableIneffectiveTaunts = AtomicBoolean()
 
-            val sortBySurrendered = AtomicBoolean()
-            val sortByFaction = AtomicBoolean()
-            val sortByFactionReversed = AtomicBoolean()
-            val sortByName = AtomicBoolean()
-            val sortByDistance = AtomicBoolean()
+                val sortBySurrendered = AtomicBoolean()
+                val sortByFaction = AtomicBoolean()
+                val sortByFactionReversed = AtomicBoolean()
+                val sortByName = AtomicBoolean()
+                val sortByDistance = AtomicBoolean()
 
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    val enemiesManager = viewModel.enemiesManager
-                    val enemySorter = enemiesManager.sorter
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        val enemiesManager = viewModel.enemiesManager
+                        val enemySorter = enemiesManager.sorter
 
-                    enemiesEnabled.lazySet(enemiesManager.enabled)
-                    enemiesManager.maxSurrenderDistance?.also {
-                        maxSurrenderRange.lazySet(it.toInt())
+                        enemiesEnabled.lazySet(enemiesManager.enabled)
+                        enemiesManager.maxSurrenderDistance?.also {
+                            maxSurrenderRange.lazySet(it.toInt())
+                        }
+                        showIntel.lazySet(enemiesManager.showIntel)
+                        showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
+                        disableIneffectiveTaunts.lazySet(enemiesManager.disableIneffectiveTaunts)
+
+                        sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
+                        sortByFaction.lazySet(enemySorter.sortByFaction)
+                        sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
+                        sortByName.lazySet(enemySorter.sortByName)
+                        sortByDistance.lazySet(enemySorter.sortByDistance)
                     }
-                    showIntel.lazySet(enemiesManager.showIntel)
-                    showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
-                    disableIneffectiveTaunts.lazySet(enemiesManager.disableIneffectiveTaunts)
-
-                    sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
-                    sortByFaction.lazySet(enemySorter.sortByFaction)
-                    sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
-                    sortByName.lazySet(enemySorter.sortByName)
-                    sortByDistance.lazySet(enemySorter.sortByDistance)
                 }
+
+                scenario(SettingsMenuScenario)
+
+                val sortMethods =
+                    SortMethods(
+                        surrender = sortBySurrendered.get(),
+                        faction = sortByFaction.get(),
+                        factionReversed = sortByFactionReversed.get(),
+                        name = sortByName.get(),
+                        distance = sortByDistance.get(),
+                    )
+
+                val data =
+                    Data(
+                        enabled = enemiesEnabled.get(),
+                        surrenderRange = maxSurrenderRange.get().takeIf { it >= 0 },
+                        showIntel = showIntel.get(),
+                        showTauntStatuses = showTauntStatuses.get(),
+                        disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
+                        sortMethods = sortMethods,
+                    )
+                test(data)
             }
-
-            scenario(SettingsMenuScenario)
-
-            val sortMethods =
-                SortMethods(
-                    surrender = sortBySurrendered.get(),
-                    faction = sortByFaction.get(),
-                    factionReversed = sortByFactionReversed.get(),
-                    name = sortByName.get(),
-                    distance = sortByDistance.get(),
-                )
-
-            val data =
-                Data(
-                    enabled = enemiesEnabled.get(),
-                    surrenderRange = maxSurrenderRange.get().takeIf { it >= 0 },
-                    showIntel = showIntel.get(),
-                    showTauntStatuses = showTauntStatuses.get(),
-                    disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
-                    sortMethods = sortMethods,
-                )
-            test(data)
         }
     }
 
@@ -141,6 +147,9 @@ class EnemySettingsFragmentTest : TestCase() {
         private val array by lazy {
             booleanArrayOf(surrender, faction, factionReversed, name, distance)
         }
+
+        val isDefault: Boolean
+            get() = array.none { it }
 
         fun toArray(): BooleanArray = array
     }
@@ -211,7 +220,7 @@ class EnemySettingsFragmentTest : TestCase() {
                         }
                     }
 
-                    step("Default") { sortDefaultButton.isCheckedIf(sortMethodArray.none { it }) }
+                    step("Default") { sortDefaultButton.isCheckedIf(sortMethods.isDefault) }
                 }
             }
 
@@ -220,7 +229,7 @@ class EnemySettingsFragmentTest : TestCase() {
             SettingsPageScreen.Enemies {
                 step("Default sort method should deactivate all others") {
                     sortDefaultButton.click()
-                    sortMethodSettings.forEach { it.button.isNotChecked() }
+                    sortMethodSettings.forEach { setting -> setting.button.isNotChecked() }
                 }
 
                 scenario(SortMethodSingleScenario(sortSurrenderButton, sortDefaultButton))

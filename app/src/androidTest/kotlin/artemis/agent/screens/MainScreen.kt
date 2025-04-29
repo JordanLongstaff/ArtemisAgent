@@ -31,11 +31,13 @@ object MainScreen : KScreen<MainScreen>() {
     fun TestContext<*>.mainScreenTest(
         backButtonShouldCloseApp: Boolean = true,
         test: MainScreen.() -> Unit,
-    ) = this@MainScreen {
-        step("Accept permissions") { acceptPermissions(device) }
-        test()
-        if (backButtonShouldCloseApp)
-            step("Back button should close the app") { assertCloseOnBackButton() }
+    ) {
+        this@MainScreen {
+            step("Accept permissions") { acceptPermissions(device) }
+            test()
+            if (backButtonShouldCloseApp)
+                step("Back button should close the app") { assertCloseOnBackButton() }
+        }
     }
 
     private fun assertCloseOnBackButton() {

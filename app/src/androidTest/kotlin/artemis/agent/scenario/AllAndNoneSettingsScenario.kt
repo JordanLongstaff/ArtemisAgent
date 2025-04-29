@@ -67,7 +67,7 @@ class AllAndNoneSettingsScenario(
 
             if (anyEnabled && !allEnabled) {
                 step("Revert all settings") {
-                    settingsButtons.filter { it.second }.forEach { (button) -> button.click() }
+                    settingsButtons.forEach { (button, isOn) -> if (isOn) button.click() }
                 }
 
                 step("All button should still be enabled") { allButton.isEnabled() }

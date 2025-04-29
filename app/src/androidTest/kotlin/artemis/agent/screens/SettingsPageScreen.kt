@@ -253,16 +253,16 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val singleToggleSettings by lazy {
             listOf(
                 SingleToggleButtonSetting(
-                    showDestroyedDivider,
-                    showDestroyedTitle,
-                    R.string.show_destroyed_allies,
-                    showDestroyedButton,
+                    divider = showDestroyedDivider,
+                    label = showDestroyedTitle,
+                    text = R.string.show_destroyed_allies,
+                    button = showDestroyedButton,
                 ),
                 SingleToggleButtonSetting(
-                    manuallyReturnDivider,
-                    manuallyReturnTitle,
-                    R.string.manually_return_from_commands,
-                    manuallyReturnButton,
+                    divider = manuallyReturnDivider,
+                    label = manuallyReturnTitle,
+                    text = R.string.manually_return_from_commands,
+                    button = manuallyReturnButton,
                 ),
             )
         }
@@ -314,32 +314,32 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val singleToggleSettings by lazy {
             listOf(
                 SingleToggleButtonSetting(
-                    showIntelDivider,
-                    showIntelTitle,
-                    R.string.show_intel,
-                    showIntelButton,
+                    divider = showIntelDivider,
+                    label = showIntelTitle,
+                    text = R.string.show_intel,
+                    button = showIntelButton,
                 ),
                 SingleToggleButtonSetting(
-                    showTauntStatusDivider,
-                    showTauntStatusTitle,
-                    R.string.show_taunt_status,
-                    showTauntStatusButton,
+                    divider = showTauntStatusDivider,
+                    label = showTauntStatusTitle,
+                    text = R.string.show_taunt_status,
+                    button = showTauntStatusButton,
                 ),
                 SingleToggleButtonSetting(
-                    disableIneffectiveDivider,
-                    disableIneffectiveTitle,
-                    R.string.disable_ineffective_taunts,
-                    disableIneffectiveButton,
+                    divider = disableIneffectiveDivider,
+                    label = disableIneffectiveTitle,
+                    text = R.string.disable_ineffective_taunts,
+                    button = disableIneffectiveButton,
                 ),
             )
         }
 
         val reverseRaceSortSingleToggle by lazy {
             SingleToggleButtonSetting(
-                sortDivider,
-                reverseRaceSortTitle,
-                R.string.reverse_sorting_by_race,
-                reverseRaceSortButton,
+                divider = sortDivider,
+                label = reverseRaceSortTitle,
+                text = R.string.reverse_sorting_by_race,
+                button = reverseRaceSortButton,
             )
         }
     }
@@ -447,25 +447,25 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val avoidanceSettings by lazy {
             listOf(
                 AvoidanceSetting(
-                    blackHolesTitle,
-                    R.string.avoidance_black_hole,
-                    blackHolesClearanceField,
-                    blackHolesClearanceKm,
-                    blackHolesButton,
+                    label = blackHolesTitle,
+                    text = R.string.avoidance_black_hole,
+                    input = blackHolesClearanceField,
+                    kmLabel = blackHolesClearanceKm,
+                    button = blackHolesButton,
                 ),
                 AvoidanceSetting(
-                    minesTitle,
-                    R.string.avoidance_mine,
-                    minesClearanceField,
-                    minesClearanceKm,
-                    minesButton,
+                    label = minesTitle,
+                    text = R.string.avoidance_mine,
+                    input = minesClearanceField,
+                    kmLabel = minesClearanceKm,
+                    button = minesButton,
                 ),
                 AvoidanceSetting(
-                    typhonsTitle,
-                    R.string.avoidance_typhon,
-                    typhonsClearanceField,
-                    typhonsClearanceKm,
-                    typhonsButton,
+                    label = typhonsTitle,
+                    text = R.string.avoidance_typhon,
+                    input = typhonsClearanceField,
+                    kmLabel = typhonsClearanceKm,
+                    button = typhonsButton,
                 ),
             )
         }

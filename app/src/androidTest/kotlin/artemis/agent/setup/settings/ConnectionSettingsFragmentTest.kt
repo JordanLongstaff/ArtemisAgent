@@ -29,70 +29,74 @@ class ConnectionSettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun connectionSettingsTimeInputTest() =
+    fun connectionSettingsTimeInputTest() {
         testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
+    }
 
     @Test
-    fun connectionSettingsBackButtonTest() =
+    fun connectionSettingsBackButtonTest() {
         testWithSettings(false) { SettingsPageScreen.backFromSubmenu() }
+    }
 
-    private fun testWithSettings(shouldTestTimeInputs: Boolean, closeSubmenu: () -> Unit) = run {
-        mainScreenTest {
-            val alwaysPublic = AtomicBoolean()
-            val connectTimeout = AtomicInteger()
-            val scanTimeout = AtomicInteger()
-            val heartbeatTimeout = AtomicInteger()
+    private fun testWithSettings(shouldTestTimeInputs: Boolean, closeSubmenu: () -> Unit) {
+        run {
+            mainScreenTest {
+                val alwaysPublic = AtomicBoolean()
+                val connectTimeout = AtomicInteger()
+                val scanTimeout = AtomicInteger()
+                val heartbeatTimeout = AtomicInteger()
 
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    alwaysPublic.lazySet(viewModel.alwaysScanPublicBroadcasts)
-                    connectTimeout.lazySet(viewModel.connectTimeout)
-                    scanTimeout.lazySet(viewModel.scanTimeout)
-                    heartbeatTimeout.lazySet(viewModel.heartbeatTimeout)
-                }
-            }
-
-            scenario(SettingsMenuScenario)
-            scenario(SettingsSubmenuOpenScenario.Connection)
-
-            SettingsPageScreen.Connection {
-                val timeInputSettings =
-                    buildTimeInputSettings(
-                        connectTimeout = connectTimeout.get(),
-                        heartbeatTimeout = heartbeatTimeout.get(),
-                        scanTimeout = scanTimeout.get(),
-                    )
-
-                timeInputSettings.forEach { setting ->
-                    val settingName = device.targetContext.getString(setting.text)
-                    step(settingName) {
-                        step("Components should be displayed") { setting.testDisplayed() }
-
-                        if (shouldTestTimeInputs) {
-                            step("Test changing time") {
-                                scenario(
-                                    TimeInputTestScenario(
-                                        timeInput = setting.timeInput,
-                                        seconds = setting.initialSeconds,
-                                        includeMinutes = false,
-                                        minimumSeconds = 1,
-                                    )
-                                )
-                            }
-                        }
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        alwaysPublic.lazySet(viewModel.alwaysScanPublicBroadcasts)
+                        connectTimeout.lazySet(viewModel.connectTimeout)
+                        scanTimeout.lazySet(viewModel.scanTimeout)
+                        heartbeatTimeout.lazySet(viewModel.heartbeatTimeout)
                     }
                 }
 
-                step("Check public scan setting components") {
-                    alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
-                }
+                scenario(SettingsMenuScenario)
+                scenario(SettingsSubmenuOpenScenario.Connection)
 
-                step("Close submenu") { closeSubmenu() }
+                SettingsPageScreen.Connection {
+                    val timeInputSettings =
+                        buildTimeInputSettings(
+                            connectTimeout = connectTimeout.get(),
+                            heartbeatTimeout = heartbeatTimeout.get(),
+                            scanTimeout = scanTimeout.get(),
+                        )
 
-                step("All settings should be gone") {
-                    timeInputSettings.forEach { it.testNotExist() }
-                    alwaysScanPublicToggleSetting.testNotExist()
+                    timeInputSettings.forEach { setting ->
+                        val settingName = device.targetContext.getString(setting.text)
+                        step(settingName) {
+                            step("Components should be displayed") { setting.testDisplayed() }
+
+                            if (shouldTestTimeInputs) {
+                                step("Test changing time") {
+                                    scenario(
+                                        TimeInputTestScenario(
+                                            timeInput = setting.timeInput,
+                                            seconds = setting.initialSeconds,
+                                            includeMinutes = false,
+                                            minimumSeconds = 1,
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    step("Check public scan setting components") {
+                        alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
+                    }
+
+                    step("Close submenu") { closeSubmenu() }
+
+                    step("All settings should be gone") {
+                        timeInputSettings.forEach { setting -> setting.testNotExist() }
+                        alwaysScanPublicToggleSetting.testNotExist()
+                    }
                 }
             }
         }

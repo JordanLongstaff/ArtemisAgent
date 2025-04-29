@@ -28,37 +28,44 @@ class PersonalSettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun personalSettingsVolumeTest() = testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
+    fun personalSettingsVolumeTest() {
+        testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
+    }
 
     @Test
-    fun personalSettingsBackButtonTest() =
+    fun personalSettingsBackButtonTest() {
         testWithSettings(false) { SettingsPageScreen.backFromSubmenu() }
+    }
 
-    private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) = run {
-        mainScreenTest {
-            val themeIndex = AtomicInteger()
-            val threeDigits = AtomicBoolean()
-            val soundVolume = AtomicInteger()
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    themeIndex.lazySet(viewModel.themeIndex)
-                    threeDigits.lazySet(viewModel.threeDigitDirections)
-                    soundVolume.lazySet((viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt())
+    private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) {
+        run {
+            mainScreenTest {
+                val themeIndex = AtomicInteger()
+                val threeDigits = AtomicBoolean()
+                val soundVolume = AtomicInteger()
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        themeIndex.lazySet(viewModel.themeIndex)
+                        threeDigits.lazySet(viewModel.threeDigitDirections)
+                        soundVolume.lazySet(
+                            (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
+                        )
+                    }
                 }
-            }
 
-            scenario(SettingsMenuScenario)
-            scenario(SettingsSubmenuOpenScenario.Personal)
+                scenario(SettingsMenuScenario)
+                scenario(SettingsSubmenuOpenScenario.Personal)
 
-            testThemeSetting(themeIndex.get())
-            testThreeDigitsSetting(shouldTestSettings, threeDigits.get())
-            testSoundVolume(shouldTestSettings, soundVolume.get())
+                testThemeSetting(themeIndex.get())
+                testThreeDigitsSetting(shouldTestSettings, threeDigits.get())
+                testSoundVolume(shouldTestSettings, soundVolume.get())
 
-            step("Close submenu") { closeSubmenu() }
+                step("Close submenu") { closeSubmenu() }
 
-            SettingsPageScreen.Personal {
-                step("All settings should be gone") { testScreenClosed() }
+                SettingsPageScreen.Personal {
+                    step("All settings should be gone") { testScreenClosed() }
+                }
             }
         }
     }

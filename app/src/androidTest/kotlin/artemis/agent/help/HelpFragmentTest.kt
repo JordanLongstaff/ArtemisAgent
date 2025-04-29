@@ -19,34 +19,42 @@ import org.junit.runner.RunWith
 class HelpFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
-    @Test fun menuOptionsTest() = testHelpFragment { backButton.click() }
+    @Test
+    fun menuOptionsTest() {
+        testHelpFragment { backButton.click() }
+    }
 
-    @Test fun backButtonTest() = testHelpFragment { pressBack() }
+    @Test
+    fun backButtonTest() {
+        testHelpFragment { pressBack() }
+    }
 
-    private fun testHelpFragment(goBack: HelpPageScreen.() -> Unit) = run {
-        mainScreenTest {
-            step("Navigate to Help page") { helpPageButton.click() }
+    private fun testHelpFragment(goBack: HelpPageScreen.() -> Unit) {
+        run {
+            mainScreenTest {
+                step("Navigate to Help page") { helpPageButton.click() }
 
-            step("Initial state: menu") { HelpPageScreen.assertMainMenuDisplayed() }
+                step("Initial state: menu") { HelpPageScreen.assertMainMenuDisplayed() }
 
-            HelpPageScreen {
-                helpTopics.forEachIndexed { index, (stringRes, _) ->
-                    val pageName = device.targetContext.getString(stringRes)
-                    step("Open topic: $pageName") {
-                        openTopicAtIndex(index)
+                HelpPageScreen {
+                    helpTopics.forEachIndexed { index, (stringRes, _) ->
+                        val pageName = device.targetContext.getString(stringRes)
+                        step("Open topic: $pageName") {
+                            openTopicAtIndex(index)
 
-                        this@mainScreenTest.updateButton {
-                            if (index == this@HelpPageScreen.aboutHelpTopicIndex) {
-                                isDisplayedWithText(R.string.check_for_updates)
-                            } else {
-                                isRemoved()
+                            this@mainScreenTest.updateButton {
+                                if (index == this@HelpPageScreen.aboutHelpTopicIndex) {
+                                    isDisplayedWithText(R.string.check_for_updates)
+                                } else {
+                                    isRemoved()
+                                }
                             }
                         }
-                    }
 
-                    step("Close topic: $pageName") {
-                        goBack()
-                        assertMainMenuDisplayed()
+                        step("Close topic: $pageName") {
+                            goBack()
+                            assertMainMenuDisplayed()
+                        }
                     }
                 }
             }

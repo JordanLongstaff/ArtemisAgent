@@ -22,22 +22,24 @@ class SetupFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun radioButtonsTest() = run {
-        mainScreenTest {
-            SetupPageScreen {
-                testRadioButtons(
-                    RadioButtonsTestCase(
-                        "Connect",
-                        connectPageButton,
-                        ConnectPageScreen.addressBar,
-                    ),
-                    RadioButtonsTestCase("Ships", shipsPageButton, ShipsPageScreen.shipsList),
-                    RadioButtonsTestCase(
-                        "Settings",
-                        settingsPageButton,
-                        SettingsPageScreen.settingsReset,
-                    ),
-                )
+    fun radioButtonsTest() {
+        run {
+            mainScreenTest {
+                SetupPageScreen {
+                    testRadioButtons(
+                        RadioButtonsTestCase(
+                            "Connect",
+                            connectPageButton,
+                            ConnectPageScreen.addressBar,
+                        ),
+                        RadioButtonsTestCase("Ships", shipsPageButton, ShipsPageScreen.shipsList),
+                        RadioButtonsTestCase(
+                            "Settings",
+                            settingsPageButton,
+                            SettingsPageScreen.settingsReset,
+                        ),
+                    )
+                }
             }
         }
     }

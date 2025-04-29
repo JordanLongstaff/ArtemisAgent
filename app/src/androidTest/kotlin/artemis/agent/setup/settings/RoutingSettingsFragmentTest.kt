@@ -28,97 +28,103 @@ class RoutingSettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun routingSettingsMutableTest() = testWithSettings { data ->
-        booleanArrayOf(true, false).forEach { testSettings ->
-            testData(
-                data = data,
-                openWithToggle = data.enabled != testSettings,
-                testSettings = testSettings,
-                closeWithToggle = data.enabled == testSettings,
-                closeWithBack = false,
-            )
+    fun routingSettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSettings ->
+                testData(
+                    data = data,
+                    openWithToggle = data.enabled != testSettings,
+                    testSettings = testSettings,
+                    closeWithToggle = data.enabled == testSettings,
+                    closeWithBack = false,
+                )
+            }
         }
     }
 
     @Test
-    fun routingSettingsBackButtonTest() = testWithSettings { data ->
-        if (data.enabled) testRoutingSubMenuDisableFromMenu()
+    fun routingSettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testRoutingSubMenuDisableFromMenu()
 
-        testData(
-            data = data,
-            openWithToggle = true,
-            testSettings = false,
-            closeWithToggle = false,
-            closeWithBack = true,
-        )
+            testData(
+                data = data,
+                openWithToggle = true,
+                testSettings = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
 
-        if (!data.enabled) testRoutingSubMenuDisableFromMenu()
+            if (!data.enabled) testRoutingSubMenuDisableFromMenu()
+        }
     }
 
-    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) = run {
-        mainScreenTest {
-            val routingEnabled = AtomicBoolean()
+    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
+        run {
+            mainScreenTest {
+                val routingEnabled = AtomicBoolean()
 
-            val blackHoleAvoidance = AtomicBoolean()
-            val mineAvoidance = AtomicBoolean()
-            val typhonAvoidance = AtomicBoolean()
+                val blackHoleAvoidance = AtomicBoolean()
+                val mineAvoidance = AtomicBoolean()
+                val typhonAvoidance = AtomicBoolean()
 
-            val blackHoleClearance = AtomicInteger()
-            val mineClearance = AtomicInteger()
-            val typhonClearance = AtomicInteger()
+                val blackHoleClearance = AtomicInteger()
+                val mineClearance = AtomicInteger()
+                val typhonClearance = AtomicInteger()
 
-            val incentives = Array(RouteTaskIncentive.entries.size + 1) { AtomicBoolean() }
+                val incentives = Array(RouteTaskIncentive.entries.size + 1) { AtomicBoolean() }
 
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    routingEnabled.lazySet(viewModel.routingEnabled)
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        routingEnabled.lazySet(viewModel.routingEnabled)
 
-                    blackHoleAvoidance.lazySet(viewModel.avoidBlackHoles)
-                    mineAvoidance.lazySet(viewModel.avoidMines)
-                    typhonAvoidance.lazySet(viewModel.avoidTyphons)
+                        blackHoleAvoidance.lazySet(viewModel.avoidBlackHoles)
+                        mineAvoidance.lazySet(viewModel.avoidMines)
+                        typhonAvoidance.lazySet(viewModel.avoidTyphons)
 
-                    arrayOf(
-                            blackHoleClearance to viewModel.blackHoleClearance,
-                            mineClearance to viewModel.mineClearance,
-                            typhonClearance to viewModel.typhonClearance,
-                        )
-                        .forEach { (holder, value) -> holder.lazySet(value.toInt()) }
+                        arrayOf(
+                                blackHoleClearance to viewModel.blackHoleClearance,
+                                mineClearance to viewModel.mineClearance,
+                                typhonClearance to viewModel.typhonClearance,
+                            )
+                            .forEach { (holder, value) -> holder.lazySet(value.toInt()) }
 
-                    viewModel.routeIncentives.forEach { incentive ->
-                        incentives[incentive.ordinal].lazySet(true)
+                        viewModel.routeIncentives.forEach { incentive ->
+                            incentives[incentive.ordinal].lazySet(true)
+                        }
+                        incentives.last().lazySet(viewModel.routeIncludesMissions)
                     }
-                    incentives.last().lazySet(viewModel.routeIncludesMissions)
                 }
+
+                scenario(SettingsMenuScenario)
+
+                val enabled = routingEnabled.get()
+
+                val incentivesData =
+                    IncentivesData(
+                        needsEnergy = incentives[RouteTaskIncentive.NEEDS_ENERGY.ordinal].get(),
+                        needsDamCon = incentives[RouteTaskIncentive.NEEDS_DAMCON.ordinal].get(),
+                        malfunction = incentives[RouteTaskIncentive.RESET_COMPUTER.ordinal].get(),
+                        ambassador = incentives[RouteTaskIncentive.AMBASSADOR_PICKUP.ordinal].get(),
+                        hostage = incentives[RouteTaskIncentive.HOSTAGE.ordinal].get(),
+                        commandeered = incentives[RouteTaskIncentive.COMMANDEERED.ordinal].get(),
+                        hasEnergy = incentives[RouteTaskIncentive.HAS_ENERGY.ordinal].get(),
+                        hasMissions = incentives.last().get(),
+                    )
+
+                val avoidanceData =
+                    AvoidanceData(
+                        blackHolesEnabled = blackHoleAvoidance.get(),
+                        blackHolesClearance = blackHoleClearance.get(),
+                        minesEnabled = mineAvoidance.get(),
+                        minesClearance = mineClearance.get(),
+                        typhonsEnabled = typhonAvoidance.get(),
+                        typhonsClearance = typhonClearance.get(),
+                    )
+
+                test(Data(enabled, incentivesData, avoidanceData))
             }
-
-            scenario(SettingsMenuScenario)
-
-            val enabled = routingEnabled.get()
-
-            val incentivesData =
-                IncentivesData(
-                    needsEnergy = incentives[RouteTaskIncentive.NEEDS_ENERGY.ordinal].get(),
-                    needsDamCon = incentives[RouteTaskIncentive.NEEDS_DAMCON.ordinal].get(),
-                    malfunction = incentives[RouteTaskIncentive.RESET_COMPUTER.ordinal].get(),
-                    ambassador = incentives[RouteTaskIncentive.AMBASSADOR_PICKUP.ordinal].get(),
-                    hostage = incentives[RouteTaskIncentive.HOSTAGE.ordinal].get(),
-                    commandeered = incentives[RouteTaskIncentive.COMMANDEERED.ordinal].get(),
-                    hasEnergy = incentives[RouteTaskIncentive.HAS_ENERGY.ordinal].get(),
-                    hasMissions = incentives.last().get(),
-                )
-
-            val avoidanceData =
-                AvoidanceData(
-                    blackHolesEnabled = blackHoleAvoidance.get(),
-                    blackHolesClearance = blackHoleClearance.get(),
-                    minesEnabled = mineAvoidance.get(),
-                    minesClearance = mineClearance.get(),
-                    typhonsEnabled = typhonAvoidance.get(),
-                    typhonsClearance = typhonClearance.get(),
-                )
-
-            test(Data(enabled, incentivesData, avoidanceData))
         }
     }
 
@@ -177,7 +183,11 @@ class RoutingSettingsFragmentTest : TestCase() {
             closeWithBack: Boolean,
         ) {
             scenario(SettingsSubmenuOpenScenario.Routing(openWithToggle))
-            testRoutingSubMenuOpen(data.incentives, data.avoidances, testSettings)
+            testRoutingSubMenuOpen(
+                incentives = data.incentives,
+                avoidances = data.avoidances,
+                shouldTestSettings = testSettings,
+            )
 
             step("Close submenu") {
                 if (closeWithBack) SettingsPageScreen.backFromSubmenu()
@@ -211,17 +221,20 @@ class RoutingSettingsFragmentTest : TestCase() {
                         incentivesTitle.isDisplayedWithText(R.string.included_incentives)
                         incentivesAllButton.isDisplayedWithText(R.string.all)
                         incentivesNoneButton.isDisplayedWithText(R.string.none)
-                        incentiveSettings.forEach { it.button.isDisplayedWithText(it.text) }
+                        incentiveSettings.forEach { setting ->
+                            setting.button.isDisplayedWithText(setting.text)
+                        }
                     }
 
                     scenario(
                         AllAndNoneSettingsScenario(
-                            incentivesAllButton,
-                            incentivesNoneButton,
-                            incentiveSettings.mapIndexed { index, setting ->
-                                setting.button to incentivesArray[index]
-                            },
-                            shouldTest,
+                            allButton = incentivesAllButton,
+                            noneButton = incentivesNoneButton,
+                            settingsButtons =
+                                incentiveSettings.mapIndexed { index, setting ->
+                                    setting.button to incentivesArray[index]
+                                },
+                            shouldTest = shouldTest,
                         )
                     )
                 }
@@ -246,21 +259,22 @@ class RoutingSettingsFragmentTest : TestCase() {
 
                     avoidanceSettings.forEachIndexed { index, setting ->
                         testRoutingSubMenuAvoidanceSetting(
-                            setting,
-                            enabled[index],
-                            clearances[index],
-                            shouldTest,
+                            setting = setting,
+                            isEnabled = enabled[index],
+                            clearance = clearances[index],
+                            shouldTest = shouldTest,
                         )
                     }
 
                     scenario(
                         AllAndNoneSettingsScenario(
-                            avoidancesAllButton,
-                            avoidancesNoneButton,
-                            avoidanceSettings.mapIndexed { index, setting ->
-                                setting.button to enabled[index]
-                            },
-                            shouldTest,
+                            allButton = avoidancesAllButton,
+                            noneButton = avoidancesNoneButton,
+                            settingsButtons =
+                                avoidanceSettings.mapIndexed { index, setting ->
+                                    setting.button to enabled[index]
+                                },
+                            shouldTest = shouldTest,
                         ) { index, on ->
                             val setting = avoidanceSettings[index]
                             step(

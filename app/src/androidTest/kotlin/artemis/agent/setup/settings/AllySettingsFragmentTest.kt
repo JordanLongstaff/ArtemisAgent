@@ -30,78 +30,91 @@ class AllySettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun allySettingsMutableTest() = testWithSettings { data ->
-        booleanArrayOf(true, false).forEach { testSortMethods ->
-            testData(
-                data = data,
-                openWithToggle = data.enabled != testSortMethods,
-                testSortMethods = testSortMethods,
-                closeWithToggle = data.enabled == testSortMethods,
-                closeWithBack = false,
-            )
+    fun allySettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSortMethods ->
+                testData(
+                    data = data,
+                    openWithToggle = data.enabled != testSortMethods,
+                    testSortMethods = testSortMethods,
+                    closeWithToggle = data.enabled == testSortMethods,
+                    closeWithBack = false,
+                )
+            }
         }
     }
 
     @Test
-    fun allySettingsBackButtonTest() = testWithSettings { data ->
-        if (data.enabled) testAlliesSubMenuDisableFromMenu()
+    fun allySettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testAlliesSubMenuDisableFromMenu()
 
-        testData(
-            data = data,
-            openWithToggle = true,
-            testSortMethods = false,
-            closeWithToggle = false,
-            closeWithBack = true,
-        )
+            testData(
+                data = data,
+                openWithToggle = true,
+                testSortMethods = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
 
-        if (!data.enabled) testAlliesSubMenuDisableFromMenu()
+            if (!data.enabled) testAlliesSubMenuDisableFromMenu()
+        }
     }
 
-    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) = run {
-        mainScreenTest {
-            val alliesEnabled = AtomicBoolean()
-            val showingDestroyed = AtomicBoolean()
-            val manuallyReturning = AtomicBoolean()
+    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
+        run {
+            mainScreenTest {
+                val alliesEnabled = AtomicBoolean()
+                val showingDestroyed = AtomicBoolean()
+                val manuallyReturning = AtomicBoolean()
 
-            val sortByClassFirst = AtomicBoolean()
-            val sortByEnergy = AtomicBoolean()
-            val sortByStatus = AtomicBoolean()
-            val sortByClassSecond = AtomicBoolean()
-            val sortByName = AtomicBoolean()
+                val sortByClassFirst = AtomicBoolean()
+                val sortByEnergy = AtomicBoolean()
+                val sortByStatus = AtomicBoolean()
+                val sortByClassSecond = AtomicBoolean()
+                val sortByName = AtomicBoolean()
 
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    val allySorter = viewModel.allySorter
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        val allySorter = viewModel.allySorter
 
-                    sortByClassFirst.lazySet(allySorter.sortByClassFirst)
-                    sortByEnergy.lazySet(allySorter.sortByEnergy)
-                    sortByStatus.lazySet(allySorter.sortByStatus)
-                    sortByClassSecond.lazySet(allySorter.sortByClassSecond)
-                    sortByName.lazySet(allySorter.sortByName)
+                        sortByClassFirst.lazySet(allySorter.sortByClassFirst)
+                        sortByEnergy.lazySet(allySorter.sortByEnergy)
+                        sortByStatus.lazySet(allySorter.sortByStatus)
+                        sortByClassSecond.lazySet(allySorter.sortByClassSecond)
+                        sortByName.lazySet(allySorter.sortByName)
 
-                    alliesEnabled.lazySet(viewModel.alliesEnabled)
-                    showingDestroyed.lazySet(viewModel.showAllySelector)
-                    manuallyReturning.lazySet(viewModel.manuallyReturnFromCommands)
+                        alliesEnabled.lazySet(viewModel.alliesEnabled)
+                        showingDestroyed.lazySet(viewModel.showAllySelector)
+                        manuallyReturning.lazySet(viewModel.manuallyReturnFromCommands)
+                    }
                 }
-            }
 
-            scenario(SettingsMenuScenario)
+                scenario(SettingsMenuScenario)
 
-            val enabled = alliesEnabled.get()
-            val showDestroyed = showingDestroyed.get()
-            val manualReturn = manuallyReturning.get()
+                val enabled = alliesEnabled.get()
+                val showDestroyed = showingDestroyed.get()
+                val manualReturn = manuallyReturning.get()
 
-            val sortMethods =
-                SortMethods(
-                    classFirst = sortByClassFirst.get(),
-                    energy = sortByEnergy.get(),
-                    status = sortByStatus.get(),
-                    classSecond = sortByClassSecond.get(),
-                    name = sortByName.get(),
+                val sortMethods =
+                    SortMethods(
+                        classFirst = sortByClassFirst.get(),
+                        energy = sortByEnergy.get(),
+                        status = sortByStatus.get(),
+                        classSecond = sortByClassSecond.get(),
+                        name = sortByName.get(),
+                    )
+
+                test(
+                    Data(
+                        enabled = enabled,
+                        showingDestroyed = showDestroyed,
+                        manuallyReturning = manualReturn,
+                        sortMethods = sortMethods,
+                    )
                 )
-
-            test(Data(enabled, showDestroyed, manualReturn, sortMethods))
+            }
         }
     }
 
@@ -121,6 +134,9 @@ class AllySettingsFragmentTest : TestCase() {
     ) {
         private val array by lazy { booleanArrayOf(classFirst, energy, status, classSecond, name) }
 
+        val isDefault: Boolean
+            get() = array.none { it }
+
         fun toArray(): BooleanArray = array
     }
 
@@ -136,10 +152,10 @@ class AllySettingsFragmentTest : TestCase() {
         ) {
             scenario(SettingsSubmenuOpenScenario.Allies(openWithToggle))
             testAlliesSubMenuOpen(
-                data.sortMethods,
-                testSortMethods,
-                data.showingDestroyed,
-                data.manuallyReturning,
+                sortMethods = data.sortMethods,
+                shouldTestSortMethods = testSortMethods,
+                showingDestroyed = data.showingDestroyed,
+                manuallyReturning = data.manuallyReturning,
             )
 
             step("Close submenu") {
@@ -200,14 +216,14 @@ class AllySettingsFragmentTest : TestCase() {
                         }
                     }
 
-                    step("Default") { sortDefaultButton.isCheckedIf(sortMethodArray.none { it }) }
+                    step("Default") { sortDefaultButton.isCheckedIf(sortMethods.isDefault) }
                 }
 
                 if (!shouldTest) return@Allies
 
                 step("Default sort method should deactivate all others") {
                     sortDefaultButton.click()
-                    sortMethodSettings.forEach { it.button.isNotChecked() }
+                    sortMethodSettings.forEach { setting -> setting.button.isNotChecked() }
                 }
 
                 scenario(

@@ -32,72 +32,78 @@ class BiomechSettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun biomechSettingsMutableTest() = testWithSettings { data ->
-        booleanArrayOf(true, false).forEach { testSettings ->
-            testData(
-                data = data,
-                openWithToggle = data.enabled != testSettings,
-                testSettings = testSettings,
-                closeWithToggle = data.enabled == testSettings,
-                closeWithBack = false,
-            )
+    fun biomechSettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSettings ->
+                testData(
+                    data = data,
+                    openWithToggle = data.enabled != testSettings,
+                    testSettings = testSettings,
+                    closeWithToggle = data.enabled == testSettings,
+                    closeWithBack = false,
+                )
+            }
         }
     }
 
     @Test
-    fun biomechSettingsBackButtonTest() = testWithSettings { data ->
-        if (data.enabled) testBiomechsSubMenuDisableFromMenu()
+    fun biomechSettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testBiomechsSubMenuDisableFromMenu()
 
-        testData(
-            data = data,
-            openWithToggle = true,
-            testSettings = false,
-            closeWithToggle = false,
-            closeWithBack = true,
-        )
+            testData(
+                data = data,
+                openWithToggle = true,
+                testSettings = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
 
-        if (!data.enabled) testBiomechsSubMenuDisableFromMenu()
+            if (!data.enabled) testBiomechsSubMenuDisableFromMenu()
+        }
     }
 
-    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) = run {
-        mainScreenTest {
-            val biomechsEnabled = AtomicBoolean()
-            val freezeTime = AtomicLong()
+    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
+        run {
+            mainScreenTest {
+                val biomechsEnabled = AtomicBoolean()
+                val freezeTime = AtomicLong()
 
-            val sortByClassFirst = AtomicBoolean()
-            val sortByStatus = AtomicBoolean()
-            val sortByClassSecond = AtomicBoolean()
-            val sortByName = AtomicBoolean()
+                val sortByClassFirst = AtomicBoolean()
+                val sortByStatus = AtomicBoolean()
+                val sortByClassSecond = AtomicBoolean()
+                val sortByName = AtomicBoolean()
 
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    val biomechManager = viewModel.biomechManager
-                    val biomechSorter = biomechManager.sorter
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        val biomechManager = viewModel.biomechManager
+                        val biomechSorter = biomechManager.sorter
 
-                    sortByClassFirst.lazySet(biomechSorter.sortByClassFirst)
-                    sortByStatus.lazySet(biomechSorter.sortByStatus)
-                    sortByClassSecond.lazySet(biomechSorter.sortByClassSecond)
-                    sortByName.lazySet(biomechSorter.sortByName)
+                        sortByClassFirst.lazySet(biomechSorter.sortByClassFirst)
+                        sortByStatus.lazySet(biomechSorter.sortByStatus)
+                        sortByClassSecond.lazySet(biomechSorter.sortByClassSecond)
+                        sortByName.lazySet(biomechSorter.sortByName)
 
-                    biomechsEnabled.lazySet(biomechManager.enabled)
-                    freezeTime.lazySet(biomechManager.freezeTime)
+                        biomechsEnabled.lazySet(biomechManager.enabled)
+                        freezeTime.lazySet(biomechManager.freezeTime)
+                    }
                 }
+
+                scenario(SettingsMenuScenario)
+
+                val enabled = biomechsEnabled.get()
+                val freezeSeconds = freezeTime.get().milliseconds.inWholeSeconds.toInt()
+                val sortMethods =
+                    SortMethods(
+                        classFirst = sortByClassFirst.get(),
+                        status = sortByStatus.get(),
+                        classSecond = sortByClassSecond.get(),
+                        name = sortByName.get(),
+                    )
+
+                test(Data(enabled, freezeSeconds, sortMethods))
             }
-
-            scenario(SettingsMenuScenario)
-
-            val enabled = biomechsEnabled.get()
-            val freezeSeconds = freezeTime.get().milliseconds.inWholeSeconds.toInt()
-            val sortMethods =
-                SortMethods(
-                    classFirst = sortByClassFirst.get(),
-                    status = sortByStatus.get(),
-                    classSecond = sortByClassSecond.get(),
-                    name = sortByName.get(),
-                )
-
-            test(Data(enabled, freezeSeconds, sortMethods))
         }
     }
 
@@ -114,6 +120,9 @@ class BiomechSettingsFragmentTest : TestCase() {
         val name: Boolean,
     ) {
         private val array by lazy { booleanArrayOf(classFirst, status, classSecond, name) }
+
+        val isDefault: Boolean
+            get() = array.none { it }
 
         fun toArray(): BooleanArray = array
     }
@@ -198,14 +207,14 @@ class BiomechSettingsFragmentTest : TestCase() {
                         }
                     }
 
-                    step("Default") { sortDefaultButton.isCheckedIf(sortMethodArray.none { it }) }
+                    step("Default") { sortDefaultButton.isCheckedIf(sortMethods.isDefault) }
                 }
 
                 if (!shouldTest) return@Biomechs
 
                 step("Default sort method should deactivate all others") {
                     sortDefaultButton.click()
-                    sortMethodSettings.forEach { it.button.isNotChecked() }
+                    sortMethodSettings.forEach { setting -> setting.button.isNotChecked() }
                 }
 
                 scenario(

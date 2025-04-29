@@ -44,7 +44,9 @@ class KTimeInputBinder(@IdRes parentId: Int) {
 
     private val allChildren by lazy { minutesChildren + secondsChildren }
 
-    operator fun invoke(function: KTimeInputBinder.() -> Unit) = function(this)
+    operator fun invoke(function: KTimeInputBinder.() -> Unit) {
+        function(this)
+    }
 
     fun isDisplayed(withMinutes: Boolean) {
         root.isDisplayed()

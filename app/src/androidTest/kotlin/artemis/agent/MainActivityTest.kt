@@ -18,13 +18,19 @@ class MainActivityTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun radioButtonsTest() = run {
-        mainScreenTest {
-            testRadioButtons(
-                RadioButtonsTestCase("Setup", setupPageButton, SetupPageScreen.connectPageButton),
-                RadioButtonsTestCase("Game", gamePageButton, GamePageScreen.shipNumberLabel),
-                RadioButtonsTestCase("Help", helpPageButton, HelpPageScreen.helpTopicContent),
-            )
+    fun radioButtonsTest() {
+        run {
+            mainScreenTest {
+                testRadioButtons(
+                    RadioButtonsTestCase(
+                        "Setup",
+                        setupPageButton,
+                        SetupPageScreen.connectPageButton,
+                    ),
+                    RadioButtonsTestCase("Game", gamePageButton, GamePageScreen.shipNumberLabel),
+                    RadioButtonsTestCase("Help", helpPageButton, HelpPageScreen.helpTopicContent),
+                )
+            }
         }
     }
 }

@@ -30,73 +30,86 @@ class MissionSettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun missionSettingsMutableTest() = testWithSettings { data ->
-        booleanArrayOf(true, false).forEach { testSettings ->
-            testData(
-                data = data,
-                openWithToggle = data.enabled != testSettings,
-                testSettings = testSettings,
-                closeWithToggle = data.enabled == testSettings,
-                closeWithBack = false,
-            )
+    fun missionSettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSettings ->
+                testData(
+                    data = data,
+                    openWithToggle = data.enabled != testSettings,
+                    testSettings = testSettings,
+                    closeWithToggle = data.enabled == testSettings,
+                    closeWithBack = false,
+                )
+            }
         }
     }
 
     @Test
-    fun missionSettingsBackButtonTest() = testWithSettings { data ->
-        if (data.enabled) testMissionsSubMenuDisableFromMenu()
+    fun missionSettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testMissionsSubMenuDisableFromMenu()
 
-        testData(
-            data = data,
-            openWithToggle = true,
-            testSettings = false,
-            closeWithToggle = false,
-            closeWithBack = true,
-        )
+            testData(
+                data = data,
+                openWithToggle = true,
+                testSettings = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
 
-        if (!data.enabled) testMissionsSubMenuDisableFromMenu()
+            if (!data.enabled) testMissionsSubMenuDisableFromMenu()
+        }
     }
 
-    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) = run {
-        mainScreenTest {
-            val missionsEnabled = AtomicBoolean()
-            val autoDismissal = AtomicBoolean()
-            val autoDismissalTime = AtomicLong()
-            val rewardsEnabled = Array(RewardType.entries.size) { AtomicBoolean() }
+    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
+        run {
+            mainScreenTest {
+                val missionsEnabled = AtomicBoolean()
+                val autoDismissal = AtomicBoolean()
+                val autoDismissalTime = AtomicLong()
+                val rewardsEnabled = Array(RewardType.entries.size) { AtomicBoolean() }
 
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    val missionManager = viewModel.missionManager
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        val missionManager = viewModel.missionManager
 
-                    missionsEnabled.lazySet(missionManager.enabled)
-                    autoDismissalTime.lazySet(
-                        missionManager.completedDismissalSeconds.inWholeSeconds
-                    )
-                    autoDismissal.lazySet(missionManager.autoDismissCompletedMissions)
+                        missionsEnabled.lazySet(missionManager.enabled)
+                        autoDismissalTime.lazySet(
+                            missionManager.completedDismissalSeconds.inWholeSeconds
+                        )
+                        autoDismissal.lazySet(missionManager.autoDismissCompletedMissions)
 
-                    missionManager.displayedRewards.forEach {
-                        rewardsEnabled[it.ordinal].lazySet(true)
+                        missionManager.displayedRewards.forEach {
+                            rewardsEnabled[it.ordinal].lazySet(true)
+                        }
                     }
                 }
-            }
 
-            scenario(SettingsMenuScenario)
+                scenario(SettingsMenuScenario)
 
-            val enabled = missionsEnabled.get()
-            val autoDismissalOn = autoDismissal.get()
-            val autoDismissalSeconds = autoDismissalTime.toInt()
+                val enabled = missionsEnabled.get()
+                val autoDismissalOn = autoDismissal.get()
+                val autoDismissalSeconds = autoDismissalTime.toInt()
 
-            val rewardSettings =
-                RewardSettings(
-                    battery = rewardsEnabled[RewardType.BATTERY.ordinal].get(),
-                    coolant = rewardsEnabled[RewardType.COOLANT.ordinal].get(),
-                    nuke = rewardsEnabled[RewardType.NUKE.ordinal].get(),
-                    production = rewardsEnabled[RewardType.PRODUCTION.ordinal].get(),
-                    shield = rewardsEnabled[RewardType.SHIELD.ordinal].get(),
+                val rewardSettings =
+                    RewardSettings(
+                        battery = rewardsEnabled[RewardType.BATTERY.ordinal].get(),
+                        coolant = rewardsEnabled[RewardType.COOLANT.ordinal].get(),
+                        nuke = rewardsEnabled[RewardType.NUKE.ordinal].get(),
+                        production = rewardsEnabled[RewardType.PRODUCTION.ordinal].get(),
+                        shield = rewardsEnabled[RewardType.SHIELD.ordinal].get(),
+                    )
+
+                test(
+                    Data(
+                        enabled = enabled,
+                        autoDismissal = autoDismissalOn,
+                        autoDismissalSeconds = autoDismissalSeconds,
+                        rewards = rewardSettings,
+                    )
                 )
-
-            test(Data(enabled, autoDismissalOn, autoDismissalSeconds, rewardSettings))
+            }
         }
     }
 
@@ -131,10 +144,10 @@ class MissionSettingsFragmentTest : TestCase() {
         ) {
             scenario(SettingsSubmenuOpenScenario.Missions(openWithToggle))
             testMissionsSubMenuOpen(
-                data.autoDismissal,
-                data.autoDismissalSeconds,
-                data.rewards.toArray(),
-                testSettings,
+                autoDismissal = data.autoDismissal,
+                autoDismissalSeconds = data.autoDismissalSeconds,
+                rewardsEnabled = data.rewards.toArray(),
+                shouldTestSettings = testSettings,
             )
 
             step("Close submenu") {
@@ -187,17 +200,20 @@ class MissionSettingsFragmentTest : TestCase() {
                     rewardsTitle.isDisplayedWithText(R.string.displayed_rewards)
                     rewardsAllButton.isDisplayedWithText(R.string.all)
                     rewardsNoneButton.isDisplayedWithText(R.string.none)
-                    rewardSettings.forEach { it.button.isDisplayedWithText(it.text) }
+                    rewardSettings.forEach { setting ->
+                        setting.button.isDisplayedWithText(setting.text)
+                    }
                 }
 
                 scenario(
                     AllAndNoneSettingsScenario(
-                        rewardsAllButton,
-                        rewardsNoneButton,
-                        rewardSettings.mapIndexed { index, setting ->
-                            setting.button to rewardsEnabled[index]
-                        },
-                        shouldTest,
+                        allButton = rewardsAllButton,
+                        noneButton = rewardsNoneButton,
+                        settingsButtons =
+                            rewardSettings.mapIndexed { index, setting ->
+                                setting.button to rewardsEnabled[index]
+                            },
+                        shouldTest = shouldTest,
                     )
                 )
             }

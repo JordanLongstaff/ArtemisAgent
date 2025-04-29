@@ -29,62 +29,69 @@ class ClientSettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun clientSettingsMutableTest() = testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
+    fun clientSettingsMutableTest() {
+        testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
+    }
 
     @Test
-    fun clientSettingsBackButtonTest() =
+    fun clientSettingsBackButtonTest() {
         testWithSettings(false) { SettingsPageScreen.backFromSubmenu() }
+    }
 
-    private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) = run {
-        mainScreenTest {
-            val expectedPort = AtomicInteger()
-            val expectedUpdateInterval = AtomicInteger()
-            val vesselDataCount = AtomicInteger()
-            val vesselDataIndex = AtomicInteger()
-            val showingInfo = AtomicBoolean()
+    private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) {
+        run {
+            mainScreenTest {
+                val expectedPort = AtomicInteger()
+                val expectedUpdateInterval = AtomicInteger()
+                val vesselDataCount = AtomicInteger()
+                val vesselDataIndex = AtomicInteger()
+                val showingInfo = AtomicBoolean()
 
-            step("Fetch settings") {
-                activityScenarioRule.scenario.onActivity { activity ->
-                    val viewModel = activity.viewModels<AgentViewModel>().value
-                    expectedPort.lazySet(viewModel.port)
-                    expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
-                    vesselDataCount.lazySet(viewModel.vesselDataManager.count)
-                    vesselDataIndex.lazySet(viewModel.vesselDataManager.index)
-                    showingInfo.lazySet(viewModel.showingNetworkInfo)
-                }
-            }
-
-            scenario(SettingsMenuScenario)
-            scenario(SettingsSubmenuOpenScenario.Client)
-
-            testVesselDataSetting(
-                count = vesselDataCount.get(),
-                index = vesselDataIndex.get(),
-                shouldTest = shouldTestSettings,
-            )
-            testAddressFieldSetting(shouldTestSettings)
-
-            SettingsPageScreen.Client {
-                step("Test showing info setting") {
-                    showNetworkInfoToggleSetting.testSingleToggle(showingInfo.get())
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        expectedPort.lazySet(viewModel.port)
+                        expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
+                        vesselDataCount.lazySet(viewModel.vesselDataManager.count)
+                        vesselDataIndex.lazySet(viewModel.vesselDataManager.index)
+                        showingInfo.lazySet(viewModel.showingNetworkInfo)
+                    }
                 }
 
-                step("Test server port setting") {
-                    serverPortDivider.scrollTo()
-                    serverPortTitle.isDisplayedWithText(R.string.server_port)
-                    serverPortField.isDisplayedWithText(expectedPort.get().toString())
-                }
+                scenario(SettingsMenuScenario)
+                scenario(SettingsSubmenuOpenScenario.Client)
 
-                step("Test update interval setting") {
-                    updateIntervalDivider.scrollTo()
-                    updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
-                    updateIntervalField.isDisplayedWithText(expectedUpdateInterval.get().toString())
-                    updateIntervalMilliseconds.isDisplayedWithText(R.string.milliseconds)
-                }
+                testVesselDataSetting(
+                    count = vesselDataCount.get(),
+                    index = vesselDataIndex.get(),
+                    shouldTest = shouldTestSettings,
+                )
+                testAddressFieldSetting(shouldTestSettings)
 
-                step("Close submenu") {
-                    closeSubmenu()
-                    testScreenClosed()
+                SettingsPageScreen.Client {
+                    step("Test showing info setting") {
+                        showNetworkInfoToggleSetting.testSingleToggle(showingInfo.get())
+                    }
+
+                    step("Test server port setting") {
+                        serverPortDivider.scrollTo()
+                        serverPortTitle.isDisplayedWithText(R.string.server_port)
+                        serverPortField.isDisplayedWithText(expectedPort.get().toString())
+                    }
+
+                    step("Test update interval setting") {
+                        updateIntervalDivider.scrollTo()
+                        updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
+                        updateIntervalField.isDisplayedWithText(
+                            expectedUpdateInterval.get().toString()
+                        )
+                        updateIntervalMilliseconds.isDisplayedWithText(R.string.milliseconds)
+                    }
+
+                    step("Close submenu") {
+                        closeSubmenu()
+                        testScreenClosed()
+                    }
                 }
             }
         }

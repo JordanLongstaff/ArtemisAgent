@@ -24,39 +24,43 @@ class PermissionRationaleTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun permissionRationaleDialogPositiveTest() = run {
-        testPermissionDialog { screen ->
-            step("Click positive button") {
-                screen.permissionRationaleDialog { positiveButton.click() }
+    fun permissionRationaleDialogPositiveTest() {
+        run {
+            testPermissionDialog { screen ->
+                step("Click positive button") {
+                    screen.permissionRationaleDialog { positiveButton.click() }
+                }
             }
         }
     }
 
     @Test
-    fun permissionRationaleDialogNegativeTest() = run {
-        testPermissionDialog { screen ->
-            step("Click negative button") {
-                screen.permissionRationaleDialog { negativeButton.click() }
-            }
+    fun permissionRationaleDialogNegativeTest() {
+        run {
+            testPermissionDialog { screen ->
+                step("Click negative button") {
+                    screen.permissionRationaleDialog { negativeButton.click() }
+                }
 
-            step("Check for permissions dialog again") {
-                screen.assertPermissionsDialogOpen(device)
-            }
+                step("Check for permissions dialog again") {
+                    screen.assertPermissionsDialogOpen(device)
+                }
 
-            step("Deny permissions again") {
-                /*
-                 * In the second instance of the permissions dialog, the deny button has a different
-                 * resource ID that Kaspresso doesn't know about, so unfortunately we have to bypass
-                 * Kaspresso's methods and go through UiAutomator ourselves.
-                 */
-                val denyAndDontAskAgain =
-                    UiSelector()
-                        .clickable(true)
-                        .checkable(false)
-                        .resourceId(DENY_AND_DONT_ASK_BUTTON)
-                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-                    .findObject(denyAndDontAskAgain)
-                    .click()
+                step("Deny permissions again") {
+                    /*
+                     * In the second instance of the permissions dialog, the deny button has a different
+                     * resource ID that Kaspresso doesn't know about, so unfortunately we have to bypass
+                     * Kaspresso's methods and go through UiAutomator ourselves.
+                     */
+                    val denyAndDontAskAgain =
+                        UiSelector()
+                            .clickable(true)
+                            .checkable(false)
+                            .resourceId(DENY_AND_DONT_ASK_BUTTON)
+                    UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+                        .findObject(denyAndDontAskAgain)
+                        .click()
+                }
             }
         }
     }

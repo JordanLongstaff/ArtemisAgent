@@ -16,5 +16,8 @@ import org.junit.runner.RunWith
 class SettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
-    @Test fun settingsMenuTest() = run { mainScreenTest { scenario(SettingsMenuScenario) } }
+    @Test
+    fun settingsMenuTest() {
+        run { mainScreenTest { scenario(SettingsMenuScenario) } }
+    }
 }
