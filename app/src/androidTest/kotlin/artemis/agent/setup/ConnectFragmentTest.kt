@@ -175,11 +175,9 @@ class ConnectFragmentTest : TestCase() {
                         )
                     }
                 }
+                val settingValue = showingInfo.get()
 
                 runTest {
-                    val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
-                    val settingValue = showingInfo.get()
-
                     booleanArrayOf(settingValue, !settingValue, settingValue).forEachIndexed {
                         index,
                         showing ->
@@ -190,11 +188,11 @@ class ConnectFragmentTest : TestCase() {
                             SetupPageScreen.connectPageButton.click()
                         }
 
+                        val hasNetwork =
+                            showing && !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
+
                         ConnectPageScreen.infoViews.forEachIndexed { viewIndex, view ->
-                            flakySafely {
-                                val isNotEmpty = viewIndex > 0 || hasNetwork
-                                view.isDisplayedIf(showing && isNotEmpty)
-                            }
+                            view.isDisplayedIf(showing && (viewIndex > 0 || hasNetwork))
                         }
                     }
                 }
