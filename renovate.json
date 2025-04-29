@@ -20,8 +20,44 @@
       "changelogUrl": "https://firebase.google.com/support/release-notes/android"
     },
     {
+      "matchPackageNames": ["/^androidx\\.activity:activity/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/activity"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.annotation:annotation/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/annotation"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.appcompat:appcompat/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/appcompat"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.constraintlayout:constraintlayout/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/constraintlayout"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.core:core/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/core"
+    },
+    {
       "matchPackageNames": ["/^androidx\\.datastore:datastore/"],
       "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/datastore"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.fragment:fragment/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/fragment"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.lifecycle:lifecycle/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.multidex:multidex/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/multidex"
+    },
+    {
+      "matchPackageNames": ["/^androidx\\.recyclerview:recyclerview/"],
+      "changelogUrl": "https://developer.android.com/jetpack/androidx/releases/recyclerview"
     }
   ]
 }
