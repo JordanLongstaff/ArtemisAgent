@@ -26,7 +26,6 @@ import io.github.kakaocup.kakao.screen.Screen
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -191,11 +190,11 @@ class ConnectFragmentTest : TestCase() {
                             SetupPageScreen.connectPageButton.click()
                         }
 
-                        delay(300L)
-
                         ConnectPageScreen.infoViews.forEachIndexed { viewIndex, view ->
-                            val isNotEmpty = viewIndex > 0 || hasNetwork
-                            view.isDisplayedIf(showing && isNotEmpty)
+                            flakySafely {
+                                val isNotEmpty = viewIndex > 0 || hasNetwork
+                                view.isDisplayedIf(showing && isNotEmpty)
+                            }
                         }
                     }
                 }
