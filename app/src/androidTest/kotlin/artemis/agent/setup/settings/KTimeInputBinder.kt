@@ -3,7 +3,6 @@ package artemis.agent.setup.settings
 import androidx.annotation.IdRes
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import artemis.agent.R
-import artemis.agent.isDisplayedIf
 import artemis.agent.isHidden
 import io.github.kakaocup.kakao.common.views.KView
 import io.github.kakaocup.kakao.image.KImageView
@@ -50,7 +49,7 @@ class KTimeInputBinder(@IdRes parentId: Int) {
 
     fun isDisplayed(withMinutes: Boolean) {
         root.isDisplayed()
-        minutesChildren.forEach { it.isDisplayedIf(withMinutes) }
+        minutesChildren.forEach { if (withMinutes) it.isDisplayed() else it.isHidden() }
         secondsChildren.forEach { it.isDisplayed() }
     }
 

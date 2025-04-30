@@ -8,7 +8,6 @@ import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
-import artemis.agent.isDisplayedIf
 import artemis.agent.isDisplayedWithSize
 import artemis.agent.isDisplayedWithText
 import artemis.agent.isRemoved
@@ -21,6 +20,7 @@ import artemis.agent.screens.SettingsPageScreen
 import artemis.agent.screens.SetupPageScreen
 import artemis.agent.screens.ShipsPageScreen
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import dev.tmapps.konnection.Konnection
 import io.github.kakaocup.kakao.screen.Screen
 import java.util.concurrent.atomic.AtomicBoolean
@@ -178,22 +178,12 @@ class ConnectFragmentTest : TestCase() {
                 val settingValue = showingInfo.get()
 
                 runTest {
+                    val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
+
                     booleanArrayOf(settingValue, !settingValue, settingValue).forEachIndexed {
                         index,
                         showing ->
-                        if (index != 0) {
-                            scenario(SettingsMenuScenario)
-                            scenario(SettingsSubmenuOpenScenario.Client)
-                            SettingsPageScreen.Client.showNetworkInfoButton.click()
-                            SetupPageScreen.connectPageButton.click()
-                        }
-
-                        val hasNetwork =
-                            showing && !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
-
-                        ConnectPageScreen.infoViews.forEachIndexed { viewIndex, view ->
-                            view.isDisplayedIf(showing && (viewIndex > 0 || hasNetwork))
-                        }
+                        testShowingInfo(showing, index != 0, hasNetwork)
                     }
                 }
             }
@@ -206,5 +196,29 @@ class ConnectFragmentTest : TestCase() {
         private val EMULATOR_DEVICES = setOf("emu64x", "emulator64_x86_64", "generic_x86_64")
 
         private val isEmulator by lazy { Build.DEVICE in EMULATOR_DEVICES }
+
+        private fun TestContext<Unit>.testShowingInfo(
+            isShowing: Boolean,
+            isToggling: Boolean,
+            hasNetwork: Boolean,
+        ) {
+            if (isToggling) {
+                scenario(SettingsMenuScenario)
+                scenario(SettingsSubmenuOpenScenario.Client)
+
+                step("Toggle network info setting") {
+                    SettingsPageScreen.Client.showNetworkInfoButton.click()
+                }
+
+                step("Return to Connect page") { SetupPageScreen.connectPageButton.click() }
+            }
+
+            step("Network info views should ${if (isShowing) "" else "not "}be displayed") {
+                ConnectPageScreen.infoViews.forEachIndexed { index, view ->
+                    if (isShowing && (index > 0 || hasNetwork)) view.isDisplayed()
+                    else view.isNotDisplayed()
+                }
+            }
+        }
     }
 }
