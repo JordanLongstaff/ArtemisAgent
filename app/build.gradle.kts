@@ -44,7 +44,7 @@ android {
         versionName = "1.1.1"
         multiDexEnabled = true
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
@@ -122,7 +122,10 @@ dependencies {
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
 
-    androidTestImplementation(libs.bundles.app.androidTest)
+    androidTestImplementation(libs.bundles.app.androidTest) {
+        exclude(group = "org.hamcrest", module = "hamcrest-core")
+        exclude(group = "org.hamcrest", module = "hamcrest-library")
+    }
     androidTestUtil(libs.test.orchestrator)
 
     implementation(platform(libs.firebase.bom))

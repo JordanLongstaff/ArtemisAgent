@@ -1,23 +1,24 @@
 package artemis.agent.setup.settings
 
-import android.Manifest
 import androidx.activity.viewModels
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
-import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
-import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
-import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
-import com.adevinta.android.barista.interaction.PermissionGranter
+import artemis.agent.isCheckedIf
+import artemis.agent.isDisplayedWithText
+import artemis.agent.isRemoved
+import artemis.agent.scenario.SettingsMenuScenario
+import artemis.agent.scenario.SettingsSubmenuOpenScenario
+import artemis.agent.scenario.SortMethodPairScenario
+import artemis.agent.scenario.SortMethodPermutationsScenario
+import artemis.agent.scenario.SortMethodSingleScenario
+import artemis.agent.screens.MainScreen.mainScreenTest
+import artemis.agent.screens.SettingsPageScreen
+import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
@@ -26,14 +27,15 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class EnemySettingsFragmentTest {
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+class EnemySettingsFragmentTest : TestCase() {
+    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
     fun enemySettingsMutableTest() {
         testWithSettings { data ->
             booleanArrayOf(true, false).forEach { testSettings ->
-                data.testMenu(
+                testData(
+                    data = data,
                     openWithToggle = data.enabled != testSettings,
                     testSettings = testSettings,
                     closeWithToggle = data.enabled == testSettings,
@@ -48,7 +50,8 @@ class EnemySettingsFragmentTest {
         testWithSettings { data ->
             if (data.enabled) testEnemySubMenuDisableFromMenu()
 
-            data.testMenu(
+            testData(
+                data = data,
                 openWithToggle = true,
                 testSettings = false,
                 closeWithToggle = false,
@@ -59,61 +62,66 @@ class EnemySettingsFragmentTest {
         }
     }
 
-    private fun testWithSettings(test: (Data) -> Unit) {
-        val enemiesEnabled = AtomicBoolean()
-        val maxSurrenderRange = AtomicInteger(-1)
-        val showIntel = AtomicBoolean()
-        val showTauntStatuses = AtomicBoolean()
-        val disableIneffectiveTaunts = AtomicBoolean()
+    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
+        run {
+            mainScreenTest {
+                val enemiesEnabled = AtomicBoolean()
+                val maxSurrenderRange = AtomicInteger(-1)
+                val showIntel = AtomicBoolean()
+                val showTauntStatuses = AtomicBoolean()
+                val disableIneffectiveTaunts = AtomicBoolean()
 
-        val sortBySurrendered = AtomicBoolean()
-        val sortByFaction = AtomicBoolean()
-        val sortByFactionReversed = AtomicBoolean()
-        val sortByName = AtomicBoolean()
-        val sortByDistance = AtomicBoolean()
+                val sortBySurrendered = AtomicBoolean()
+                val sortByFaction = AtomicBoolean()
+                val sortByFactionReversed = AtomicBoolean()
+                val sortByName = AtomicBoolean()
+                val sortByDistance = AtomicBoolean()
 
-        activityScenarioManager.onActivity { activity ->
-            val viewModel = activity.viewModels<AgentViewModel>().value
-            val enemiesManager = viewModel.enemiesManager
-            val enemySorter = enemiesManager.sorter
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        val enemiesManager = viewModel.enemiesManager
+                        val enemySorter = enemiesManager.sorter
 
-            enemiesEnabled.lazySet(enemiesManager.enabled)
-            enemiesManager.maxSurrenderDistance?.also { maxSurrenderRange.lazySet(it.toInt()) }
-            showIntel.lazySet(enemiesManager.showIntel)
-            showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
-            disableIneffectiveTaunts.lazySet(enemiesManager.disableIneffectiveTaunts)
+                        enemiesEnabled.lazySet(enemiesManager.enabled)
+                        enemiesManager.maxSurrenderDistance?.also {
+                            maxSurrenderRange.lazySet(it.toInt())
+                        }
+                        showIntel.lazySet(enemiesManager.showIntel)
+                        showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
+                        disableIneffectiveTaunts.lazySet(enemiesManager.disableIneffectiveTaunts)
 
-            sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
-            sortByFaction.lazySet(enemySorter.sortByFaction)
-            sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
-            sortByName.lazySet(enemySorter.sortByName)
-            sortByDistance.lazySet(enemySorter.sortByDistance)
+                        sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
+                        sortByFaction.lazySet(enemySorter.sortByFaction)
+                        sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
+                        sortByName.lazySet(enemySorter.sortByName)
+                        sortByDistance.lazySet(enemySorter.sortByDistance)
+                    }
+                }
+
+                scenario(SettingsMenuScenario)
+
+                val sortMethods =
+                    SortMethods(
+                        surrender = sortBySurrendered.get(),
+                        faction = sortByFaction.get(),
+                        factionReversed = sortByFactionReversed.get(),
+                        name = sortByName.get(),
+                        distance = sortByDistance.get(),
+                    )
+
+                val data =
+                    Data(
+                        enabled = enemiesEnabled.get(),
+                        surrenderRange = maxSurrenderRange.get().takeIf { it >= 0 },
+                        showIntel = showIntel.get(),
+                        showTauntStatuses = showTauntStatuses.get(),
+                        disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
+                        sortMethods = sortMethods,
+                    )
+                test(data)
+            }
         }
-
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
-
-        SettingsFragmentTest.openSettingsMenu()
-
-        val sortMethods =
-            SortMethods(
-                surrender = sortBySurrendered.get(),
-                faction = sortByFaction.get(),
-                factionReversed = sortByFactionReversed.get(),
-                name = sortByName.get(),
-                distance = sortByDistance.get(),
-            )
-
-        val data =
-            Data(
-                enabled = enemiesEnabled.get(),
-                surrenderRange = maxSurrenderRange.get().takeIf { it >= 0 },
-                showIntel = showIntel.get(),
-                showTauntStatuses = showTauntStatuses.get(),
-                disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
-                sortMethods = sortMethods,
-            )
-        test(data)
-        assertThatBackButtonClosesTheApp()
     }
 
     private data class Data(
@@ -126,26 +134,6 @@ class EnemySettingsFragmentTest {
     ) {
         val singleToggles by lazy {
             booleanArrayOf(showIntel, showTauntStatuses, disableIneffectiveTaunts)
-        }
-
-        fun testMenu(
-            openWithToggle: Boolean,
-            testSettings: Boolean,
-            closeWithToggle: Boolean,
-            closeWithBack: Boolean,
-        ) {
-            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, openWithToggle, true)
-            testEnemySubMenuOpen(this, testSettings)
-
-            val isToggleOn =
-                if (closeWithBack) {
-                    SettingsFragmentTest.backFromSubMenu()
-                    true
-                } else {
-                    SettingsFragmentTest.closeSettingsSubMenu(closeWithToggle)
-                    !closeWithToggle
-                }
-            testEnemySubMenuClosed(isToggleOn)
         }
     }
 
@@ -160,187 +148,226 @@ class EnemySettingsFragmentTest {
             booleanArrayOf(surrender, faction, factionReversed, name, distance)
         }
 
+        val isDefault: Boolean
+            get() = array.none { it }
+
         fun toArray(): BooleanArray = array
     }
 
     private companion object {
         const val ENTRY_INDEX = 4
 
-        val enemySortMethodSettings by lazy {
-            arrayOf(
-                GroupedToggleButtonSetting(R.id.enemySortingSurrenderButton, R.string.surrender),
-                GroupedToggleButtonSetting(R.id.enemySortingRaceButton, R.string.sort_by_race),
-                GroupedToggleButtonSetting(R.id.enemySortingNameButton, R.string.sort_by_name),
-                GroupedToggleButtonSetting(R.id.enemySortingRangeButton, R.string.sort_by_range),
-            )
+        fun TestContext<Unit>.testData(
+            data: Data,
+            openWithToggle: Boolean,
+            testSettings: Boolean,
+            closeWithToggle: Boolean,
+            closeWithBack: Boolean,
+        ) {
+            scenario(SettingsSubmenuOpenScenario.Enemies(openWithToggle))
+            testEnemySubMenuOpen(data, testSettings)
+
+            step("Close submenu") {
+                if (closeWithBack) SettingsPageScreen.backFromSubmenu()
+                else SettingsPageScreen.closeSubmenu(closeWithToggle)
+            }
+
+            step("All settings should be gone") {
+                SettingsPageScreen.Enemies.testScreenClosed(closeWithBack || !closeWithToggle)
+            }
         }
 
-        val enemySingleToggleSettings by lazy {
-            arrayOf(
-                SingleToggleButtonSetting(
-                    divider = R.id.showIntelDivider,
-                    label = R.id.showIntelTitle,
-                    text = R.string.show_intel,
-                    button = R.id.showIntelButton,
-                ),
-                SingleToggleButtonSetting(
-                    divider = R.id.showTauntStatusDivider,
-                    label = R.id.showTauntStatusTitle,
-                    text = R.string.show_taunt_status,
-                    button = R.id.showTauntStatusButton,
-                ),
-                SingleToggleButtonSetting(
-                    divider = R.id.disableIneffectiveDivider,
-                    label = R.id.disableIneffectiveTitle,
-                    text = R.string.disable_ineffective_taunts,
-                    button = R.id.disableIneffectiveButton,
-                ),
-            )
-        }
-
-        fun testEnemySubMenuOpen(data: Data, shouldTestSettings: Boolean) {
+        fun TestContext<Unit>.testEnemySubMenuOpen(data: Data, shouldTestSettings: Boolean) {
             testEnemySubMenuSortMethods(data.sortMethods, shouldTestSettings)
             testEnemySubMenuSurrenderRange(data.surrenderRange, shouldTestSettings)
 
-            enemySingleToggleSettings.forEachIndexed { index, setting ->
+            SettingsPageScreen.Enemies.singleToggleSettings.forEachIndexed { index, setting ->
                 setting.testSingleToggle(data.singleToggles[index])
             }
         }
 
-        fun testEnemySubMenuClosed(isToggleOn: Boolean) {
-            assertNotExist(R.id.enemySortingTitle)
-            assertNotExist(R.id.enemySortingDefaultButton)
-            enemySortMethodSettings.forEach { assertNotExist(it.button) }
-            assertNotExist(R.id.reverseRaceSortTitle)
-            assertNotExist(R.id.reverseRaceSortButton)
-            assertNotExist(R.id.enemySortingDivider)
-            assertNotExist(R.id.surrenderRangeTitle)
-            assertNotExist(R.id.surrenderRangeField)
-            assertNotExist(R.id.surrenderRangeKm)
-            assertNotExist(R.id.surrenderRangeEnableButton)
-            assertNotExist(R.id.surrenderRangeInfinity)
-            assertNotExist(R.id.surrenderRangeDivider)
-            enemySingleToggleSettings.forEach { it.testNotExist() }
+        fun TestContext<Unit>.testEnemySubMenuDisableFromMenu() {
+            step("Deactivate submenu from main menu") {
+                SettingsPageScreen.deactivateSubmenu(ENTRY_INDEX)
+            }
 
-            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
+            step("Submenu should not have been opened") {
+                SettingsPageScreen.Enemies.testScreenClosed(false)
+            }
         }
 
-        fun testEnemySubMenuDisableFromMenu() {
-            SettingsFragmentTest.toggleSettingsSubMenu(ENTRY_INDEX)
-            testEnemySubMenuClosed(false)
-        }
-
-        fun testEnemySubMenuSortMethods(sortMethods: SortMethods, shouldTest: Boolean) {
-            scrollTo(R.id.enemySortingDivider)
-            assertDisplayed(R.id.enemySortingTitle, R.string.sort_methods)
-            assertDisplayed(R.id.enemySortingDefaultButton, R.string.default_setting)
-
+        fun TestContext<Unit>.testEnemySubMenuSortMethods(
+            sortMethods: SortMethods,
+            shouldTest: Boolean,
+        ) {
             val sortMethodArray = sortMethods.toArray()
 
-            enemySortMethodSettings.forEachIndexed { index, setting ->
-                assertDisplayed(setting.button, setting.text)
-                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethodArray[index])
-            }
+            SettingsPageScreen.Enemies {
+                step("First line components displayed") {
+                    sortDivider.scrollTo()
+                    sortTitle.isDisplayedWithText(R.string.sort_methods)
+                    sortDefaultButton.isDisplayedWithText(R.string.default_setting)
+                }
 
-            ArtemisAgentTestHelpers.assertChecked(
-                R.id.enemySortingDefaultButton,
-                sortMethodArray.none { it },
-            )
+                step("Initial state of sort method settings") {
+                    sortMethodSettings.forEachIndexed { index, setting ->
+                        val name = device.targetContext.getString(setting.text)
+                        step(name) {
+                            setting.button {
+                                isDisplayedWithText(name)
+                                isCheckedIf(sortMethodArray[index])
+                            }
+                        }
+                    }
+
+                    step("Default") { sortDefaultButton.isCheckedIf(sortMethods.isDefault) }
+                }
+            }
 
             if (!shouldTest) return
 
-            clickOn(R.id.enemySortingDefaultButton)
-            enemySortMethodSettings.forEach { assertUnchecked(it.button) }
+            SettingsPageScreen.Enemies {
+                step("Default sort method should deactivate all others") {
+                    sortDefaultButton.click()
+                    sortMethodSettings.forEach { setting -> setting.button.isNotChecked() }
+                }
 
-            testEnemySubMenuSortBySurrender()
-            testEnemySubMenuSortByRace()
-            testEnemySubMenuSortByNameAndRange()
-            testEnemySubMenuSortPermutations()
+                scenario(SortMethodSingleScenario(sortSurrenderButton, sortDefaultButton))
+            }
 
-            enemySortMethodSettings.forEachIndexed { index, setting ->
-                if (sortMethodArray[index]) {
-                    clickOn(setting.button)
+            testEnemySubMenuSortByRace(sortMethods.factionReversed)
+
+            SettingsPageScreen.Enemies {
+                scenario(SortMethodPairScenario(sortNameButton, sortRangeButton, sortDefaultButton))
+                scenario(
+                    SortMethodPermutationsScenario(
+                        sortDefaultButton,
+                        sortSurrenderButton,
+                        sortRaceButton,
+                        sortNameButton,
+                        sortRangeButton,
+                        sortSurrenderButton,
+                        sortRaceButton,
+                        sortRangeButton,
+                    )
+                )
+
+                step("Restore sort methods from initial settings") {
+                    sortMethodSettings.forEachIndexed { index, setting ->
+                        if (sortMethodArray[index]) {
+                            setting.button.click()
+                        }
+                    }
                 }
             }
         }
 
-        fun testEnemySubMenuSortBySurrender() {
-            SettingsFragmentTest.testSortSingle(
-                R.id.enemySortingSurrenderButton,
-                R.id.enemySortingDefaultButton,
-            )
-        }
+        fun TestContext<*>.testEnemySubMenuSortByRace(sortByFactionReversed: Boolean) {
+            SettingsPageScreen.Enemies {
+                step("Sorting by race") {
+                    step("Reverse sort setting should be hidden") {
+                        reverseRaceSortSingleToggle.testHidden()
+                    }
 
-        fun testEnemySubMenuSortByRace() {
-            clickOn(R.id.enemySortingRaceButton)
-            assertChecked(R.id.enemySortingRaceButton)
-            assertUnchecked(R.id.enemySortingDefaultButton)
+                    step("Activate") {
+                        sortRaceButton {
+                            click()
+                            isChecked()
+                        }
+                    }
 
-            assertDisplayed(R.id.reverseRaceSortTitle, R.string.reverse_sorting_by_race)
-            assertDisplayed(R.id.reverseRaceSortButton)
+                    step("Sort method should not be default") { sortDefaultButton.isNotChecked() }
 
-            clickOn(R.id.enemySortingRaceButton)
-            assertUnchecked(R.id.enemySortingRaceButton)
-            assertChecked(R.id.enemySortingDefaultButton)
+                    step("Reverse sort setting should be displayed") {
+                        reverseRaceSortSingleToggle.testSingleToggle(sortByFactionReversed)
+                    }
 
-            assertNotDisplayed(R.id.reverseRaceSortTitle)
-            assertNotDisplayed(R.id.reverseRaceSortButton)
-        }
+                    step("Deactivate") {
+                        sortRaceButton {
+                            click()
+                            isNotChecked()
+                        }
+                    }
 
-        fun testEnemySubMenuSortByNameAndRange() {
-            SettingsFragmentTest.testSortPair(
-                R.id.enemySortingNameButton,
-                R.id.enemySortingRangeButton,
-                R.id.enemySortingDefaultButton,
-            )
-        }
+                    step("Sort method should be default") { sortDefaultButton.isChecked() }
 
-        fun testEnemySubMenuSortPermutations() {
-            SettingsFragmentTest.testSortPermutations(
-                R.id.enemySortingDefaultButton,
-                R.id.enemySortingSurrenderButton,
-                R.id.enemySortingRaceButton,
-                R.id.enemySortingNameButton,
-                R.id.enemySortingRangeButton,
-                R.id.enemySortingSurrenderButton,
-                R.id.enemySortingRaceButton,
-                R.id.enemySortingRangeButton,
-            )
-        }
-
-        fun testEnemySubMenuSurrenderRange(surrenderRange: Int?, shouldTest: Boolean) {
-            scrollTo(R.id.surrenderRangeDivider)
-            assertDisplayed(R.id.surrenderRangeTitle, R.string.surrender_range)
-            assertDisplayed(R.id.surrenderRangeEnableButton)
-
-            val isSurrenderRangeEnabled = surrenderRange != null
-
-            testEnemySubMenuSurrenderRange(isSurrenderRangeEnabled, surrenderRange)
-
-            if (!shouldTest) return
-
-            booleanArrayOf(false, true).forEach { isEnabled ->
-                clickOn(R.id.surrenderRangeEnableButton)
-                testEnemySubMenuSurrenderRange(isSurrenderRangeEnabled == isEnabled, surrenderRange)
-            }
-        }
-
-        fun testEnemySubMenuSurrenderRange(isEnabled: Boolean, surrenderRange: Int?) {
-            if (isEnabled) {
-                assertChecked(R.id.surrenderRangeEnableButton)
-                assertNotDisplayed(R.id.surrenderRangeInfinity)
-                assertDisplayed(R.id.surrenderRangeKm, R.string.kilometres)
-                if (surrenderRange == null) {
-                    assertDisplayed(R.id.surrenderRangeField)
-                } else {
-                    assertDisplayed(R.id.surrenderRangeField, surrenderRange.toString())
+                    step("Reverse sort setting should be hidden again") {
+                        reverseRaceSortSingleToggle.testHidden()
+                    }
                 }
-            } else {
-                assertUnchecked(R.id.surrenderRangeEnableButton)
-                assertDisplayed(R.id.surrenderRangeInfinity, R.string.infinity)
-                assertNotDisplayed(R.id.surrenderRangeKm)
-                assertNotDisplayed(R.id.surrenderRangeField)
             }
+        }
+
+        fun TestContext<Unit>.testEnemySubMenuSurrenderRange(
+            surrenderRange: Int?,
+            shouldTest: Boolean,
+        ) {
+            step("Surrender range setting") {
+                SettingsPageScreen.Enemies {
+                    step("Toggle components displayed") {
+                        surrenderRangeDivider.scrollTo()
+                        surrenderRangeTitle.isDisplayedWithText(R.string.surrender_range)
+                        surrenderRangeEnableButton.isDisplayed()
+                    }
+                }
+
+                val isSurrenderRangeEnabled = surrenderRange != null
+
+                testEnemySubMenuSurrenderRange(isSurrenderRangeEnabled, surrenderRange)
+
+                if (!shouldTest) return@step
+
+                listOf(false to "once", true to "again").forEach { (shouldBeEnabled, count) ->
+                    step("Toggle setting $count") {
+                        SettingsPageScreen.Enemies.surrenderRangeEnableButton.click()
+                    }
+
+                    testEnemySubMenuSurrenderRange(
+                        isSurrenderRangeEnabled == shouldBeEnabled,
+                        surrenderRange,
+                    )
+                }
+            }
+        }
+
+        fun TestContext<Unit>.testEnemySubMenuSurrenderRange(
+            isEnabled: Boolean,
+            surrenderRange: Int?,
+        ) {
+            step("Surrender range input ${if (isEnabled) "" else "not "}displayed}") {
+                SettingsPageScreen.Enemies {
+                    if (isEnabled) {
+                        surrenderRangeEnableButton.isChecked()
+                        surrenderRangeInfinity.isRemoved()
+                        surrenderRangeKm.isDisplayedWithText(R.string.kilometres)
+                        surrenderRangeField.isDisplayed()
+                        if (surrenderRange != null) {
+                            surrenderRangeField.hasText(surrenderRange.toString())
+                        }
+                    } else {
+                        surrenderRangeEnableButton.isNotChecked()
+                        surrenderRangeInfinity.isDisplayedWithText(R.string.infinity)
+                        surrenderRangeKm.isRemoved()
+                        surrenderRangeField.isRemoved()
+                    }
+                }
+            }
+        }
+
+        fun SettingsPageScreen.Enemies.testScreenClosed(isToggleOn: Boolean) {
+            sortTitle.doesNotExist()
+            sortDefaultButton.doesNotExist()
+            sortMethodSettings.forEach { it.button.doesNotExist() }
+            reverseRaceSortSingleToggle.testNotExist()
+            surrenderRangeTitle.doesNotExist()
+            surrenderRangeField.doesNotExist()
+            surrenderRangeKm.doesNotExist()
+            surrenderRangeEnableButton.doesNotExist()
+            surrenderRangeInfinity.doesNotExist()
+            surrenderRangeDivider.doesNotExist()
+            singleToggleSettings.forEach { it.testNotExist() }
+
+            SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn)
         }
     }
 }

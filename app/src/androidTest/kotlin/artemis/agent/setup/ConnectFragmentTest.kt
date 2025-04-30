@@ -1,36 +1,31 @@
 package artemis.agent.setup
 
-import android.Manifest
 import android.os.Build
 import androidx.activity.viewModels
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
-import artemis.agent.setup.settings.SettingsFragmentTest
-import com.adevinta.android.barista.assertion.BaristaAssertions.assertThatBackButtonClosesTheApp
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
-import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertDisabled
-import com.adevinta.android.barista.assertion.BaristaEnabledAssertions.assertEnabled
-import com.adevinta.android.barista.assertion.BaristaHintAssertions.assertHint
-import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
-import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
-import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.clearText
-import com.adevinta.android.barista.interaction.BaristaEditTextInteractions.writeTo
-import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
-import com.adevinta.android.barista.interaction.PermissionGranter
+import artemis.agent.isDisplayedWithSize
+import artemis.agent.isDisplayedWithText
+import artemis.agent.isRemoved
+import artemis.agent.scenario.ConnectScenario
+import artemis.agent.scenario.SettingsMenuScenario
+import artemis.agent.scenario.SettingsSubmenuOpenScenario
+import artemis.agent.screens.ConnectPageScreen
+import artemis.agent.screens.MainScreen.mainScreenTest
+import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.screens.SetupPageScreen
+import artemis.agent.screens.ShipsPageScreen
+import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import dev.tmapps.konnection.Konnection
-import java.util.concurrent.TimeUnit
+import io.github.kakaocup.kakao.screen.Screen
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import kotlinx.coroutines.test.TestResult
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -38,138 +33,159 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class ConnectFragmentTest {
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+class ConnectFragmentTest : TestCase() {
+    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
     fun scanTest() {
-        val scanTimeout = AtomicInteger()
-        activityScenarioManager.onActivity { activity ->
-            scanTimeout.lazySet(activity.viewModels<AgentViewModel>().value.scanTimeout)
+        run {
+            mainScreenTest {
+                val scanTimeout = AtomicInteger()
+                step("Fetch scan timeout") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        scanTimeout.lazySet(activity.viewModels<AgentViewModel>().value.scanTimeout)
+                    }
+                }
+
+                ConnectPageScreen {
+                    step("Initial state") {
+                        scanButton {
+                            isDisplayedWithText(R.string.scan)
+                            isEnabled()
+                        }
+                        scanSpinner.isRemoved()
+                        noServersLabel.isDisplayedWithText(R.string.click_scan)
+                        serverList.isDisplayedWithSize(0)
+                    }
+
+                    step("Scan for servers") { scanButton.click() }
+
+                    if (!isEmulator || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        // These steps fail on CI with pre-Android 24 emulators for some reason
+                        step("Check UI state") {
+                            scanButton.isDisabled()
+                            scanSpinner.isDisplayed()
+                            noServersLabel.isRemoved()
+                        }
+
+                        step("Wait for scan to finish") {
+                            Screen.idle(scanTimeout.get().seconds.inWholeMilliseconds)
+                        }
+                    }
+
+                    step("No servers found") {
+                        scanButton.isEnabled()
+                        scanSpinner.isRemoved()
+                        noServersLabel.isDisplayedWithText(R.string.no_servers_found)
+                        serverList.isDisplayedWithSize(0)
+                    }
+                }
+            }
         }
-
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
-
-        assertEnabled(R.id.scanButton)
-        assertNotDisplayed(R.id.scanSpinner)
-        assertDisplayed(R.id.noServersLabel, R.string.click_scan)
-        assertDisplayed(R.id.serverList)
-        assertRecyclerViewItemCount(R.id.serverList, 0)
-
-        clickOn(R.id.scanButton)
-
-        if (!isEmulator || Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // This part is failing on CI with pre-Android 24 emulators for some reason
-            assertDisabled(R.id.scanButton)
-            assertDisplayed(R.id.scanSpinner)
-            assertNotDisplayed(R.id.noServersLabel)
-
-            sleep(scanTimeout.toLong(), TimeUnit.SECONDS)
-        }
-
-        assertEnabled(R.id.scanButton)
-        assertNotDisplayed(R.id.scanSpinner)
-        assertDisplayed(R.id.noServersLabel, R.string.no_servers_found)
-        assertRecyclerViewItemCount(R.id.serverList, 0)
-
-        assertThatBackButtonClosesTheApp()
     }
 
     @Test
     fun addressBarTest() {
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+        run {
+            mainScreenTest {
+                ConnectPageScreen {
+                    step("Initial state") {
+                        addressBar {
+                            clearText()
+                            isDisplayed()
+                            hasHint(R.string.address)
+                        }
+                        connectButton {
+                            isDisplayedWithText(R.string.connect)
+                            isDisabled()
+                        }
+                        connectLabel.isDisplayedWithText(R.string.not_connected)
+                        connectSpinner.isRemoved()
+                    }
 
-        clearText(R.id.addressBar)
-        assertHint(R.id.addressBar, R.string.address)
-        assertDisabled(R.id.connectButton)
-
-        assertDisplayed(R.id.connectLabel, R.string.not_connected)
-        assertNotDisplayed(R.id.connectSpinner)
-
-        writeTo(R.id.addressBar, "127.0.0.1")
-        assertEnabled(R.id.connectButton)
-
-        assertThatBackButtonClosesTheApp()
+                    step("Write in address") {
+                        addressBar.replaceText("127.0.0.1")
+                        connectButton.isEnabled()
+                    }
+                }
+            }
+        }
     }
 
     @Test
     fun connectionSuccessTest() {
-        val connectTimeout = AtomicInteger()
-        activityScenarioManager.onActivity { activity ->
-            connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
+        run {
+            mainScreenTest(false) {
+                scenario(ConnectScenario(FAKE_SERVER_IP, activityScenarioRule.scenario))
+
+                step("Advance to Ships page") {
+                    SetupPageScreen {
+                        connectPageButton.isNotChecked()
+                        shipsPageButton.isChecked()
+                    }
+                    ConnectPageScreen {
+                        addressBar.doesNotExist()
+                        connectButton.doesNotExist()
+                        connectLabel.doesNotExist()
+                        connectSpinner.doesNotExist()
+                        scanButton.doesNotExist()
+                        scanSpinner.doesNotExist()
+                        noServersLabel.doesNotExist()
+                        serverList.doesNotExist()
+                    }
+                    ShipsPageScreen.shipsList.isDisplayed()
+                }
+
+                step("Check connection success state") {
+                    SetupPageScreen.connectPageButton.click()
+                    ConnectPageScreen {
+                        connectLabel.isDisplayedWithText(R.string.connected)
+                        connectSpinner.isRemoved()
+                    }
+                }
+            }
         }
-
-        connectToServer(FAKE_SERVER_IP)
-
-        if (!isEmulator) {
-            // Skip this check on CI since it always fails
-            assertDisplayed(R.id.connectLabel, R.string.connecting)
-            assertDisplayed(R.id.connectSpinner)
-        }
-
-        sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
-
-        assertUnchecked(R.id.connectPageButton)
-        assertNotExist(R.id.connectLabel)
-        assertNotExist(R.id.addressBar)
-        assertChecked(R.id.shipsPageButton)
-        assertDisplayed(R.id.shipsList)
-
-        clickOn(R.id.connectPageButton)
-        assertDisplayed(R.id.connectLabel, R.string.connected)
-        assertNotDisplayed(R.id.connectSpinner)
     }
 
     @Test
     fun connectionFailedTest() {
-        val connectTimeout = AtomicInteger()
-        activityScenarioManager.onActivity { activity ->
-            connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
+        run {
+            mainScreenTest {
+                scenario(ConnectScenario("127.0.0.1", activityScenarioRule.scenario))
+
+                ConnectPageScreen {
+                    step("Failure state") {
+                        connectLabel.isDisplayedWithText(R.string.failed_to_connect)
+                        connectSpinner.isRemoved()
+                    }
+                }
+            }
         }
-
-        connectToServer("127.0.0.1")
-
-        if (!isEmulator) {
-            // Skip this check on CI since it always fails
-            assertDisplayed(R.id.connectLabel, R.string.connecting)
-            assertDisplayed(R.id.connectSpinner)
-
-            sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
-        }
-
-        assertDisplayed(R.id.connectLabel, R.string.failed_to_connect)
-        assertNotDisplayed(R.id.connectSpinner)
-
-        assertThatBackButtonClosesTheApp()
     }
 
     @Test
-    fun showNetworkInfoTest(): TestResult = runTest {
-        val showingInfo = AtomicBoolean()
-        activityScenarioManager.onActivity { activity ->
-            showingInfo.lazySet(activity.viewModels<AgentViewModel>().value.showingNetworkInfo)
-        }
+    fun showNetworkInfoTest() {
+        run {
+            mainScreenTest {
+                val showingInfo = AtomicBoolean()
+                step("Fetch showing network info setting") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        showingInfo.lazySet(
+                            activity.viewModels<AgentViewModel>().value.showingNetworkInfo
+                        )
+                    }
+                }
+                val settingValue = showingInfo.get()
 
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+                runTest {
+                    val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
-        val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
-
-        val infoViews =
-            intArrayOf(R.id.addressLabel, R.id.networkTypeLabel, R.id.networkInfoDivider)
-
-        val settingValue = showingInfo.get()
-        listOf(settingValue, !settingValue, settingValue).forEachIndexed { index, showing ->
-            if (index != 0) {
-                SettingsFragmentTest.openSettingsMenu()
-                SettingsFragmentTest.openSettingsSubMenu(0)
-
-                clickOn(R.id.showNetworkInfoButton)
-                clickOn(R.id.connectPageButton)
-            }
-
-            infoViews.forEachIndexed { viewIndex, resId ->
-                val isNotEmpty = viewIndex > 0 || hasNetwork
-                ArtemisAgentTestHelpers.assertDisplayed(resId, showing && isNotEmpty)
+                    booleanArrayOf(settingValue, !settingValue, settingValue).forEachIndexed {
+                        index,
+                        showing ->
+                        testShowingInfo(showing, index != 0, hasNetwork)
+                    }
+                }
             }
         }
     }
@@ -181,15 +197,28 @@ class ConnectFragmentTest {
 
         private val isEmulator by lazy { Build.DEVICE in EMULATOR_DEVICES }
 
-        fun connectToServer(ip: String) {
-            PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+        private fun TestContext<Unit>.testShowingInfo(
+            isShowing: Boolean,
+            isToggling: Boolean,
+            hasNetwork: Boolean,
+        ) {
+            if (isToggling) {
+                scenario(SettingsMenuScenario)
+                scenario(SettingsSubmenuOpenScenario.Client)
 
-            assertDisplayed(R.id.connectLabel, R.string.not_connected)
-            assertNotDisplayed(R.id.connectSpinner)
+                step("Toggle network info setting") {
+                    SettingsPageScreen.Client.showNetworkInfoButton.click()
+                }
 
-            writeTo(R.id.addressBar, ip)
-            sleep(100L)
-            clickOn(R.id.connectButton)
+                step("Return to Connect page") { SetupPageScreen.connectPageButton.click() }
+            }
+
+            step("Network info views should ${if (isShowing) "" else "not "}be displayed") {
+                ConnectPageScreen.infoViews.forEachIndexed { index, view ->
+                    if (isShowing && (index > 0 || hasNetwork)) view.isDisplayed()
+                    else view.isNotDisplayed()
+                }
+            }
         }
     }
 }
