@@ -1,31 +1,24 @@
 package artemis.agent.scenario
 
-import androidx.annotation.StringRes
-import artemis.agent.R
 import artemis.agent.screens.SettingsPageScreen
 import artemis.agent.screens.SettingsPageScreen.Menu
 import com.kaspersky.kaspresso.testcases.api.scenario.Scenario
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 
 sealed class SettingsSubmenuOpenScenario
-private constructor(
-    index: Int,
-    @StringRes title: Int,
-    usingToggle: Boolean = false,
-    toggleDisplayed: Boolean = usingToggle,
-) : Scenario() {
+private constructor(page: SettingsPageScreen.Page, usingToggle: Boolean = false) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
-        val name = device.targetContext.getString(title)
+        val name = device.targetContext.getString(page.title)
         step("Open $name submenu") {
             SettingsPageScreen {
-                Menu.settingsPageMenu.childAt<Menu.Entry>(index) {
+                Menu.settingsPageMenu.childAt<Menu.Entry>(page.ordinal) {
                     if (usingToggle) toggle.click() else click()
                 }
 
-                assertSubmenuDisplayed(index)
+                assertSubmenuDisplayed(page)
 
                 settingsOnOff {
-                    if (toggleDisplayed) {
+                    if (page.toggleDisplayed) {
                         isDisplayed()
                         isChecked()
                     } else {
@@ -36,24 +29,24 @@ private constructor(
         }
     }
 
-    data object Client : SettingsSubmenuOpenScenario(0, R.string.settings_menu_client)
+    data object Client : SettingsSubmenuOpenScenario(SettingsPageScreen.Page.CLIENT)
 
-    data object Connection : SettingsSubmenuOpenScenario(1, R.string.settings_menu_connection)
+    data object Connection : SettingsSubmenuOpenScenario(SettingsPageScreen.Page.CONNECTION)
 
     class Missions(usingToggle: Boolean = false) :
-        SettingsSubmenuOpenScenario(2, R.string.settings_menu_missions, usingToggle, true)
+        SettingsSubmenuOpenScenario(SettingsPageScreen.Page.MISSIONS, usingToggle)
 
     class Allies(usingToggle: Boolean = false) :
-        SettingsSubmenuOpenScenario(3, R.string.settings_menu_allies, usingToggle, true)
+        SettingsSubmenuOpenScenario(SettingsPageScreen.Page.ALLIES, usingToggle)
 
     class Enemies(usingToggle: Boolean = false) :
-        SettingsSubmenuOpenScenario(4, R.string.settings_menu_enemies, usingToggle, true)
+        SettingsSubmenuOpenScenario(SettingsPageScreen.Page.ENEMIES, usingToggle)
 
     class Biomechs(usingToggle: Boolean = false) :
-        SettingsSubmenuOpenScenario(5, R.string.settings_menu_biomechs, usingToggle, true)
+        SettingsSubmenuOpenScenario(SettingsPageScreen.Page.BIOMECHS, usingToggle)
 
     class Routing(usingToggle: Boolean = false) :
-        SettingsSubmenuOpenScenario(6, R.string.settings_menu_routing, usingToggle, true)
+        SettingsSubmenuOpenScenario(SettingsPageScreen.Page.ROUTING, usingToggle)
 
-    data object Personal : SettingsSubmenuOpenScenario(7, R.string.settings_menu_personal)
+    data object Personal : SettingsSubmenuOpenScenario(SettingsPageScreen.Page.PERSONAL)
 }

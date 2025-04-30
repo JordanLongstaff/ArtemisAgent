@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import artemis.agent.R
 import artemis.agent.isDisplayedWithSize
 import artemis.agent.isDisplayedWithText
+import artemis.agent.isHidden
 import artemis.agent.isRemoved
 import artemis.agent.setup.settings.AllySettingsFragment
 import artemis.agent.setup.settings.BiomechSettingsFragment
@@ -40,32 +41,23 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
     val settingsBack = KImageView { withId(R.id.settingsBack) }
     val settingsOnOff = KCheckBox { withId(R.id.settingsOnOff) }
 
-    private val pageTitles by lazy {
-        intArrayOf(
-            R.string.settings_menu_client,
-            R.string.settings_menu_connection,
-            R.string.settings_menu_missions,
-            R.string.settings_menu_allies,
-            R.string.settings_menu_enemies,
-            R.string.settings_menu_biomechs,
-            R.string.settings_menu_routing,
-            R.string.settings_menu_personal,
-        )
-    }
-
     fun assertMainMenuDisplayed() {
         settingsPageTitle.isDisplayedWithText(R.string.settings)
         settingsBack.isRemoved()
         Menu.settingsPageMenu {
-            isDisplayedWithSize(this@SettingsPageScreen.pageTitles.size)
-            this@SettingsPageScreen.pageTitles.forEachIndexed { index, title ->
-                childAt<Menu.Entry>(index) { this.title.isDisplayedWithText(title) }
+            val pageEntries = Page.entries
+            isDisplayedWithSize(pageEntries.size)
+            pageEntries.forEach { entry ->
+                childAt<Menu.Entry>(entry.ordinal) {
+                    title.isDisplayedWithText(entry.title)
+                    if (entry.toggleDisplayed) toggle.isDisplayed() else toggle.isHidden()
+                }
             }
         }
     }
 
-    fun assertSubmenuDisplayed(index: Int) {
-        settingsPageTitle.isDisplayedWithText(pageTitles[index])
+    fun assertSubmenuDisplayed(page: Page) {
+        settingsPageTitle.isDisplayedWithText(page.title)
         settingsBack.isDisplayed()
         Menu.settingsPageMenu.doesNotExist()
     }
@@ -83,6 +75,17 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
     fun backFromSubmenu() {
         pressBack()
         assertMainMenuDisplayed()
+    }
+
+    enum class Page(@StringRes val title: Int, val toggleDisplayed: Boolean) {
+        CLIENT(R.string.settings_menu_client, false),
+        CONNECTION(R.string.settings_menu_connection, false),
+        MISSIONS(R.string.settings_menu_missions, true),
+        ALLIES(R.string.settings_menu_allies, true),
+        ENEMIES(R.string.settings_menu_enemies, true),
+        BIOMECHS(R.string.settings_menu_biomechs, true),
+        ROUTING(R.string.settings_menu_routing, true),
+        PERSONAL(R.string.settings_menu_personal, false),
     }
 
     object Menu : KScreen<Menu>() {
