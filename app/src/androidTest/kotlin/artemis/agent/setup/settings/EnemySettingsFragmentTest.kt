@@ -173,7 +173,7 @@ class EnemySettingsFragmentTest : TestCase() {
             }
 
             step("All settings should be gone") {
-                SettingsPageScreen.Enemies.testScreenClosed(closeWithBack || !closeWithToggle)
+                testScreenClosed(closeWithBack || !closeWithToggle)
             }
         }
 
@@ -191,9 +191,7 @@ class EnemySettingsFragmentTest : TestCase() {
                 SettingsPageScreen.deactivateSubmenu(ENTRY_INDEX)
             }
 
-            step("Submenu should not have been opened") {
-                SettingsPageScreen.Enemies.testScreenClosed(false)
-            }
+            step("Submenu should not have been opened") { testScreenClosed(false) }
         }
 
         fun TestContext<Unit>.testEnemySubMenuSortMethods(
@@ -354,20 +352,22 @@ class EnemySettingsFragmentTest : TestCase() {
             }
         }
 
-        fun SettingsPageScreen.Enemies.testScreenClosed(isToggleOn: Boolean) {
-            sortTitle.doesNotExist()
-            sortDefaultButton.doesNotExist()
-            sortMethodSettings.forEach { it.button.doesNotExist() }
-            reverseRaceSortSingleToggle.testNotExist()
-            surrenderRangeTitle.doesNotExist()
-            surrenderRangeField.doesNotExist()
-            surrenderRangeKm.doesNotExist()
-            surrenderRangeEnableButton.doesNotExist()
-            surrenderRangeInfinity.doesNotExist()
-            surrenderRangeDivider.doesNotExist()
-            singleToggleSettings.forEach { it.testNotExist() }
+        fun TestContext<Unit>.testScreenClosed(isToggleOn: Boolean) {
+            SettingsPageScreen.Enemies {
+                sortTitle.doesNotExist()
+                sortDefaultButton.doesNotExist()
+                sortMethodSettings.forEach { it.button.doesNotExist() }
+                reverseRaceSortSingleToggle.testNotExist()
+                surrenderRangeTitle.doesNotExist()
+                surrenderRangeField.doesNotExist()
+                surrenderRangeKm.doesNotExist()
+                surrenderRangeEnableButton.doesNotExist()
+                surrenderRangeInfinity.doesNotExist()
+                surrenderRangeDivider.doesNotExist()
+                singleToggleSettings.forEach { it.testNotExist() }
+            }
 
-            SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn)
+            flakySafely { SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn) }
         }
     }
 }

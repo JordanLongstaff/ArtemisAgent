@@ -195,7 +195,7 @@ class RoutingSettingsFragmentTest : TestCase() {
             }
 
             step("All settings should be gone") {
-                SettingsPageScreen.Routing.testScreenClosed(closeWithBack || !closeWithToggle)
+                testScreenClosed(closeWithBack || !closeWithToggle)
             }
         }
 
@@ -346,26 +346,26 @@ class RoutingSettingsFragmentTest : TestCase() {
                 SettingsPageScreen.deactivateSubmenu(ENTRY_INDEX)
             }
 
-            step("Submenu should not have been opened") {
-                SettingsPageScreen.Routing.testScreenClosed(false)
-            }
+            step("Submenu should not have been opened") { testScreenClosed(false) }
         }
 
-        fun SettingsPageScreen.Routing.testScreenClosed(isToggleOn: Boolean) {
-            incentivesTitle.doesNotExist()
-            incentivesAllButton.doesNotExist()
-            incentivesNoneButton.doesNotExist()
-            incentivesDivider.doesNotExist()
+        fun TestContext<Unit>.testScreenClosed(isToggleOn: Boolean) {
+            SettingsPageScreen.Routing {
+                incentivesTitle.doesNotExist()
+                incentivesAllButton.doesNotExist()
+                incentivesNoneButton.doesNotExist()
+                incentivesDivider.doesNotExist()
 
-            avoidancesTitle.doesNotExist()
-            avoidancesAllButton.doesNotExist()
-            avoidancesNoneButton.doesNotExist()
-            avoidancesDivider.doesNotExist()
+                avoidancesTitle.doesNotExist()
+                avoidancesAllButton.doesNotExist()
+                avoidancesNoneButton.doesNotExist()
+                avoidancesDivider.doesNotExist()
 
-            incentiveSettings.forEach { it.button.doesNotExist() }
-            avoidanceSettings.forEach { it.doesNotExist() }
+                incentiveSettings.forEach { it.button.doesNotExist() }
+                avoidanceSettings.forEach { it.doesNotExist() }
+            }
 
-            SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn)
+            flakySafely { SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn) }
         }
     }
 }

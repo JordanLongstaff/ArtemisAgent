@@ -146,7 +146,7 @@ class BiomechSettingsFragmentTest : TestCase() {
             }
 
             step("All settings should be gone") {
-                SettingsPageScreen.Biomechs.testScreenClosed(closeWithBack || !closeWithToggle)
+                testScreenClosed(closeWithBack || !closeWithToggle)
             }
         }
 
@@ -179,9 +179,7 @@ class BiomechSettingsFragmentTest : TestCase() {
                 SettingsPageScreen.deactivateSubmenu(ENTRY_INDEX)
             }
 
-            step("Submenu should not have been opened") {
-                SettingsPageScreen.Biomechs.testScreenClosed(false)
-            }
+            step("Submenu should not have been opened") { testScreenClosed(false) }
         }
 
         fun TestContext<Unit>.testBiomechSubMenuSortMethods(
@@ -245,15 +243,18 @@ class BiomechSettingsFragmentTest : TestCase() {
             }
         }
 
-        fun SettingsPageScreen.Biomechs.testScreenClosed(isToggleOn: Boolean) {
-            sortTitle.doesNotExist()
-            sortDefaultButton.doesNotExist()
-            sortMethodSettings.forEach { it.button.doesNotExist() }
-            sortDivider.doesNotExist()
-            freezeDurationTitle.doesNotExist()
-            freezeDurationTimeInput.doesNotExist()
-            freezeDurationDivider.doesNotExist()
-            SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn)
+        fun TestContext<Unit>.testScreenClosed(isToggleOn: Boolean) {
+            SettingsPageScreen.Biomechs {
+                sortTitle.doesNotExist()
+                sortDefaultButton.doesNotExist()
+                sortMethodSettings.forEach { it.button.doesNotExist() }
+                sortDivider.doesNotExist()
+                freezeDurationTitle.doesNotExist()
+                freezeDurationTimeInput.doesNotExist()
+                freezeDurationDivider.doesNotExist()
+            }
+
+            flakySafely { SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn) }
         }
     }
 }

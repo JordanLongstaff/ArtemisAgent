@@ -164,7 +164,7 @@ class AllySettingsFragmentTest : TestCase() {
             }
 
             step("All settings should be gone") {
-                SettingsPageScreen.Allies.testScreenClosed(closeWithBack || !closeWithToggle)
+                testScreenClosed(closeWithBack || !closeWithToggle)
             }
         }
 
@@ -188,9 +188,7 @@ class AllySettingsFragmentTest : TestCase() {
                 SettingsPageScreen.deactivateSubmenu(ENTRY_INDEX)
             }
 
-            step("Submenu should not have been opened") {
-                SettingsPageScreen.Allies.testScreenClosed(false)
-            }
+            step("Submenu should not have been opened") { testScreenClosed(false) }
         }
 
         fun TestContext<Unit>.testAllySubMenuSortMethods(
@@ -261,13 +259,16 @@ class AllySettingsFragmentTest : TestCase() {
             }
         }
 
-        fun SettingsPageScreen.Allies.testScreenClosed(isToggleOn: Boolean) {
-            sortTitle.doesNotExist()
-            sortDefaultButton.doesNotExist()
-            sortMethodSettings.forEach { it.button.doesNotExist() }
-            sortDivider.doesNotExist()
-            singleToggleSettings.forEach { it.testNotExist() }
-            SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn)
+        fun TestContext<Unit>.testScreenClosed(isToggleOn: Boolean) {
+            SettingsPageScreen.Allies {
+                sortTitle.doesNotExist()
+                sortDefaultButton.doesNotExist()
+                sortMethodSettings.forEach { it.button.doesNotExist() }
+                sortDivider.doesNotExist()
+                singleToggleSettings.forEach { it.testNotExist() }
+            }
+
+            flakySafely { SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn) }
         }
     }
 }

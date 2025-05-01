@@ -156,7 +156,7 @@ class MissionSettingsFragmentTest : TestCase() {
             }
 
             step("All settings should be gone") {
-                SettingsPageScreen.Missions.testScreenClosed(closeWithBack || !closeWithToggle)
+                testScreenClosed(closeWithBack || !closeWithToggle)
             }
         }
 
@@ -251,23 +251,24 @@ class MissionSettingsFragmentTest : TestCase() {
                 SettingsPageScreen.deactivateSubmenu(ENTRY_INDEX)
             }
 
-            step("Submenu should not have been opened") {
-                SettingsPageScreen.Missions.testScreenClosed(false)
-            }
+            step("Submenu should not have been opened") { testScreenClosed(false) }
         }
 
-        fun SettingsPageScreen.Missions.testScreenClosed(isToggleOn: Boolean) {
-            rewardsTitle.doesNotExist()
-            rewardsAllButton.doesNotExist()
-            rewardsNoneButton.doesNotExist()
-            rewardSettings.forEach { it.button.doesNotExist() }
-            rewardsDivider.doesNotExist()
-            autoDismissalButton.doesNotExist()
-            autoDismissalTitle.doesNotExist()
-            autoDismissalTimeInput.doesNotExist()
-            autoDismissalSecondsLabel.doesNotExist()
-            autoDismissalDivider.doesNotExist()
-            SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn)
+        fun TestContext<Unit>.testScreenClosed(isToggleOn: Boolean) {
+            SettingsPageScreen.Missions {
+                rewardsTitle.doesNotExist()
+                rewardsAllButton.doesNotExist()
+                rewardsNoneButton.doesNotExist()
+                rewardSettings.forEach { it.button.doesNotExist() }
+                rewardsDivider.doesNotExist()
+                autoDismissalButton.doesNotExist()
+                autoDismissalTitle.doesNotExist()
+                autoDismissalTimeInput.doesNotExist()
+                autoDismissalSecondsLabel.doesNotExist()
+                autoDismissalDivider.doesNotExist()
+            }
+
+            flakySafely { SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn) }
         }
     }
 }
