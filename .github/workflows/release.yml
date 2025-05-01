@@ -83,7 +83,7 @@ jobs:
 
       - name: Bump app version name
         id: nextVersionName
-        uses: cbrgm/semver-bump-action@6f6d41b5e40b5e269b65088666cb0e68405b249b # v1
+        uses: cbrgm/semver-bump-action@51e241fb790d15c91371376c9aac14ea87533fa8 # v1
         with:
           current-version: ${{ steps.version.outputs.versionName }}
           bump-level: ${{ inputs.versionBump }}
