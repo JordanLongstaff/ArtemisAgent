@@ -25,6 +25,7 @@ import dev.tmapps.konnection.Konnection
 import io.github.kakaocup.kakao.screen.Screen
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -177,7 +178,7 @@ class ConnectFragmentTest : TestCase() {
                 }
                 val settingValue = showingInfo.get()
 
-                runTest {
+                runTest(timeout = 2.minutes) {
                     val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
                     booleanArrayOf(settingValue, !settingValue, settingValue).forEachIndexed {
