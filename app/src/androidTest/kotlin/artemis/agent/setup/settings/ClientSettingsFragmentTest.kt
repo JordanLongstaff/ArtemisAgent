@@ -18,7 +18,6 @@ import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import junit.framework.AssertionFailedError
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -155,23 +154,23 @@ class ClientSettingsFragmentTest : TestCase() {
                         repeat(if (shouldTest) 3 else 1) { i ->
                             if (i > 0) addressLimitEnableButton.click()
 
-                            testAddressLimitFieldDisplayState()
+                            compose {
+                                or(addressLimitEnableButton) {
+                                    isChecked()
+                                    this@Client.testAddressLimitFieldDisplayState(true)
+                                }
+                                or(addressLimitEnableButton) {
+                                    isNotChecked()
+                                    this@Client.testAddressLimitFieldDisplayState(false)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        fun SettingsPageScreen.Client.testAddressLimitFieldDisplayState() {
-            val isChecked =
-                try {
-                    addressLimitEnableButton.isChecked()
-                    true
-                } catch (_: AssertionFailedError) {
-                    addressLimitEnableButton.isNotChecked()
-                    false
-                }
-
+        fun SettingsPageScreen.Client.testAddressLimitFieldDisplayState(isChecked: Boolean) {
             if (isChecked) {
                 addressLimitField.isDisplayed()
                 addressLimitInfinity.isRemoved()
