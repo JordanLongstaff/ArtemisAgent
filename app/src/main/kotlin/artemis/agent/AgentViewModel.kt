@@ -3,6 +3,11 @@ package artemis.agent
 import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.annotation.RequiresApi
 import androidx.annotation.StyleRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -342,6 +347,23 @@ class AgentViewModel(application: Application) :
 
     // Determines whether directions are shown as padded three-digit numbers
     var threeDigitDirections = true
+        private set
+
+    // Haptics
+    private val vibrator =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager =
+                application.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            manager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+
+    @RequiresApi(VERSION_Q)
+    private val clickEffect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+
+    private var hapticsEnabled = true
 
     // Setup fragment page
     val setupFragmentPage: MutableStateFlow<SetupFragment.Page> by lazy {
@@ -561,6 +583,16 @@ class AgentViewModel(application: Application) :
                 player.setVolume(volume, volume)
                 player.start()
             }
+        }
+    }
+
+    fun activateHaptic() {
+        if (!hapticsEnabled) return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            vibrator.vibrate(clickEffect)
+        } else {
+            @Suppress("DEPRECATION") vibrator.vibrate(CLICK_DURATION)
         }
     }
 
@@ -1118,6 +1150,7 @@ class AgentViewModel(application: Application) :
 
         threeDigitDirections = settings.threeDigitDirections
         volume = settings.soundVolume.toFloat()
+        hapticsEnabled = settings.hapticsEnabled
 
         val newThemeRes = ALL_THEMES[settings.themeValue]
         if (themeRes != newThemeRes) {
@@ -1180,6 +1213,7 @@ class AgentViewModel(application: Application) :
             themeValue = ALL_THEMES.indexOf(themeRes)
             showNetworkInfo = showingNetworkInfo
             alwaysScanPublic = alwaysScanPublicBroadcasts
+            hapticsEnabled = this@AgentViewModel.hapticsEnabled
         }
 
     companion object {
@@ -1195,12 +1229,15 @@ class AgentViewModel(application: Application) :
         const val DEFAULT_UPDATE_INTERVAL = 50
         const val FLASH_INTERVAL = 500L
         const val SECONDS_TO_MILLIS = 1000
+        private const val CLICK_DURATION = 100L
         private const val PIRATE_SIDE = 8
         private const val DAMAGED_ALPHA = 0.5f
         private const val JUMP_DURATION = 3000L
         const val FULL_HEADING_RANGE = 360
         const val VOLUME_SCALE = 100f
         private const val PADDED_ZEROES = 3
+
+        private const val VERSION_Q = 29
 
         private const val GAME_OVER_REASON_INDEX = 13
 

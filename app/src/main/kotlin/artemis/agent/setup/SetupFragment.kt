@@ -41,7 +41,10 @@ class SetupFragment : Fragment(R.layout.setup_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.setupPageSelector.children.forEach { button ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
         }
 
         binding.setupPageSelector.setOnCheckedChangeListener { _, checkedId ->

@@ -90,7 +90,10 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
             entryBinding.vesselLabel.text = ship.getFullName(vesselData)
             entryBinding.descriptionLabel.text = ship.getVessel(vesselData)?.description ?: ""
 
-            root.setOnClickListener { viewModel.selectShip(position) }
+            root.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.selectShip(position)
+            }
 
             entryBinding.selectedShipLabel.visibility =
                 if (selectedShipIndex == position) View.VISIBLE else View.GONE

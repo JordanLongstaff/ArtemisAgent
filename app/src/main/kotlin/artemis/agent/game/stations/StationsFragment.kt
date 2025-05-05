@@ -3,6 +3,7 @@ package artemis.agent.game.stations
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.IdRes
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
@@ -39,14 +40,14 @@ class StationsFragment : Fragment(R.layout.stations_fragment) {
 
         val friendlyStationsButton = binding.friendlyStationsButton
         val enemyStationsButton = binding.enemyStationsButton
-        val destroyedStationsButton = binding.destroyedStationsButton
         val stationsListSelector = binding.stationsListSelector
 
-        friendlyStationsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
-
-        enemyStationsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
-
-        destroyedStationsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        stationsListSelector.children.forEach { button ->
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
+        }
 
         stationsListSelector.setOnCheckedChangeListener { _, checkedId ->
             currentPage = Page.entries.find { it.buttonId == checkedId }

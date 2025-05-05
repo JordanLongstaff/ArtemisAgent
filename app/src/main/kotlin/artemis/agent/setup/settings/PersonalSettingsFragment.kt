@@ -22,6 +22,8 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
     private val viewModel: AgentViewModel by activityViewModels()
     private val binding: SettingsPersonalBinding by fragmentViewBinding()
 
+    private var initialized = false
+
     private var volume: Int
         get() = (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
         set(value) {
@@ -49,10 +51,15 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 getString(R.string.direction, if (it.threeDigitDirections) "000" else "0")
 
             binding.soundVolumeBar.progress = it.soundVolume
+
+            binding.enableHapticsButton.isChecked = it.hapticsEnabled
         }
 
         themeOptionButtons.forEachIndexed { index, button ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
             button.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     viewModel.viewModelScope.launch {
@@ -63,6 +70,7 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
         }
 
         binding.threeDigitDirectionsButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
         }
 
@@ -71,6 +79,15 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 view.context.userSettings.updateData {
                     it.copy { threeDigitDirections = isChecked }
                 }
+            }
+        }
+
+        binding.enableHapticsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+
+        binding.enableHapticsButton.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.viewModelScope.launch {
+                view.context.userSettings.updateData { it.copy { hapticsEnabled = isChecked } }
+                if (initialized) viewModel.activateHaptic() else initialized = true
             }
         }
 

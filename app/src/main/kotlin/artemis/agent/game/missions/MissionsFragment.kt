@@ -59,26 +59,39 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         val missionsListView = binding.missionsListView
-        val activeMissionsButton = binding.activeMissionsButton
-        val completedMissionsButton = binding.completedMissionsButton
-
         missionsListView.itemAnimator = null
 
-        val missionManager = viewModel.missionManager
-
-        val orientation = view.resources.configuration.orientation
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if (view.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             missionsListView.layoutManager = LinearLayoutManager(view.context)
         }
 
-        activeMissionsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        setupActiveMissions()
+        setupCompletedMissions()
 
-        completedMissionsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        if (viewModel.missionManager.showingPayouts.value) {
+                binding.completedMissionsButton
+            } else {
+                binding.activeMissionsButton
+            }
+            .isChecked = true
+    }
+
+    private fun setupActiveMissions() {
+        val missionsListView = binding.missionsListView
+        val activeMissionsButton = binding.activeMissionsButton
+
+        activeMissionsButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         val missionListAdapter = MissionListAdapter()
-        activeMissionsButton.setOnCheckedChangeListener { _, isChecked ->
+        activeMissionsButton.setOnCheckedChangeListener { v, isChecked ->
             if (isChecked) {
-                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (
+                    v.context.resources.configuration.orientation ==
+                        Configuration.ORIENTATION_LANDSCAPE
+                ) {
                     missionsListView.layoutManager =
                         LinearLayoutManager(
                             missionsListView.context,
@@ -88,39 +101,45 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                 }
 
                 missionsListView.adapter = missionListAdapter
-                missionManager.showingPayouts.value = false
+                viewModel.missionManager.showingPayouts.value = false
             }
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(updatedMissions) {
             it?.also(missionListAdapter::onMissionsUpdate)
         }
+    }
 
-        completedMissionsButton.setOnCheckedChangeListener { _, isChecked ->
+    private fun setupCompletedMissions() {
+        val missionsListView = binding.missionsListView
+        val completedMissionsButton = binding.completedMissionsButton
+
+        completedMissionsButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        completedMissionsButton.setOnCheckedChangeListener { v, isChecked ->
             if (isChecked) {
-                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (
+                    v.context.resources.configuration.orientation ==
+                        Configuration.ORIENTATION_LANDSCAPE
+                ) {
                     missionsListView.layoutManager =
                         GridLayoutManager(
                             missionsListView.context,
-                            missionManager.displayedRewards.size,
+                            viewModel.missionManager.displayedRewards.size,
                         )
                 }
 
                 missionsListView.adapter = completedAdapter
-                missionManager.showingPayouts.value = true
+                viewModel.missionManager.showingPayouts.value = true
             }
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(updatedPayouts) {
             it?.also(completedAdapter::onPayoutsUpdate)
         }
-
-        if (missionManager.showingPayouts.value) {
-                completedMissionsButton
-            } else {
-                activeMissionsButton
-            }
-            .isChecked = true
     }
 
     private class MissionsDiffUtilCallback(
@@ -227,7 +246,10 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         }
 
         private fun MissionsEntryBinding.bindCompleted(entry: SideMissionEntry) {
-            root.setOnClickListener { viewModel.missionManager.allMissions.remove(entry) }
+            root.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.missionManager.allMissions.remove(entry)
+            }
 
             root.setBackgroundColor(
                 ContextCompat.getColor(root.context, R.color.completedMissionGreen)

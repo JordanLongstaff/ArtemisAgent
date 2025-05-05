@@ -88,4 +88,5 @@ message UserSettings {
 
     bool show_network_info = 61;
     bool always_scan_public = 62;
+    bool haptics_enabled = 63;
 }
