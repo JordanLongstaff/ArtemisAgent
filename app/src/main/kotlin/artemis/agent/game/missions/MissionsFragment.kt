@@ -38,19 +38,19 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
     }
 
     private val listeningForPayouts: Flow<Boolean?> by lazy {
-        viewModel.jumping.combine(viewModel.showingPayouts) { jump, show ->
+        viewModel.jumping.combine(viewModel.missionManager.showingPayouts) { jump, show ->
             if (jump) null else show
         }
     }
 
     private val updatedMissions: Flow<List<SideMissionEntry>?> by lazy {
-        viewModel.missions.combine(listeningForPayouts) { list, listen ->
+        viewModel.missionManager.missions.combine(listeningForPayouts) { list, listen ->
             if (listen == false) list else null
         }
     }
 
     private val updatedPayouts: Flow<List<Pair<RewardType, Int>>?> by lazy {
-        viewModel.displayedPayouts.combine(listeningForPayouts) { list, listen ->
+        viewModel.missionManager.displayedPayouts.combine(listeningForPayouts) { list, listen ->
             if (listen == true) list else null
         }
     }
@@ -63,6 +63,8 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         val completedMissionsButton = binding.completedMissionsButton
 
         missionsListView.itemAnimator = null
+
+        val missionManager = viewModel.missionManager
 
         val orientation = view.resources.configuration.orientation
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -86,7 +88,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                 }
 
                 missionsListView.adapter = missionListAdapter
-                viewModel.showingPayouts.value = false
+                missionManager.showingPayouts.value = false
             }
         }
 
@@ -98,11 +100,14 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             if (isChecked) {
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     missionsListView.layoutManager =
-                        GridLayoutManager(missionsListView.context, viewModel.displayedRewards.size)
+                        GridLayoutManager(
+                            missionsListView.context,
+                            missionManager.displayedRewards.size,
+                        )
                 }
 
                 missionsListView.adapter = completedAdapter
-                viewModel.showingPayouts.value = true
+                missionManager.showingPayouts.value = true
             }
         }
 
@@ -110,7 +115,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             it?.also(completedAdapter::onPayoutsUpdate)
         }
 
-        if (viewModel.showingPayouts.value) {
+        if (missionManager.showingPayouts.value) {
                 completedMissionsButton
             } else {
                 activeMissionsButton
@@ -153,7 +158,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             entryBinding.bindStatus(entry)
 
             val rewardList =
-                viewModel.displayedRewards
+                viewModel.missionManager.displayedRewards
                     .filter { entry.rewards[it.ordinal] > 0 }
                     .joinToString { reward ->
                         val value =
@@ -222,7 +227,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         }
 
         private fun MissionsEntryBinding.bindCompleted(entry: SideMissionEntry) {
-            root.setOnClickListener { viewModel.allMissions.remove(entry) }
+            root.setOnClickListener { viewModel.missionManager.allMissions.remove(entry) }
 
             root.setBackgroundColor(
                 ContextCompat.getColor(root.context, R.color.completedMissionGreen)

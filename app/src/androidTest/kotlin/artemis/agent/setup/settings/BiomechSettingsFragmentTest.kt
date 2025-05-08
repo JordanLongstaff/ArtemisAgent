@@ -1,178 +1,260 @@
 package artemis.agent.setup.settings
 
-import android.Manifest
 import androidx.activity.viewModels
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers
 import artemis.agent.MainActivity
 import artemis.agent.R
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
-import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
-import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
-import com.adevinta.android.barista.interaction.PermissionGranter
+import artemis.agent.isCheckedIf
+import artemis.agent.isDisplayedWithText
+import artemis.agent.scenario.SettingsMenuScenario
+import artemis.agent.scenario.SettingsSubmenuOpenScenario
+import artemis.agent.scenario.SortMethodPairScenario
+import artemis.agent.scenario.SortMethodPermutationsScenario
+import artemis.agent.scenario.SortMethodSingleScenario
+import artemis.agent.scenario.TimeInputTestScenario
+import artemis.agent.screens.MainScreen.mainScreenTest
+import artemis.agent.screens.SettingsPageScreen
+import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.milliseconds
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class BiomechSettingsFragmentTest {
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+class BiomechSettingsFragmentTest : TestCase() {
+    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun biomechSettingsTest() {
-        val biomechsEnabled = AtomicBoolean()
-
-        val sortSettings = Array(4) { AtomicBoolean() }
-
-        activityScenarioManager.onActivity { activity ->
-            val viewModel = activity.viewModels<AgentViewModel>().value
-            val biomechSorter = viewModel.biomechSorter
-
-            booleanArrayOf(
-                    biomechSorter.sortByClassFirst,
-                    biomechSorter.sortByStatus,
-                    biomechSorter.sortByClassSecond,
-                    biomechSorter.sortByName,
+    fun biomechSettingsMutableTest() {
+        testWithSettings { data ->
+            booleanArrayOf(true, false).forEach { testSettings ->
+                testData(
+                    data = data,
+                    openWithToggle = data.enabled != testSettings,
+                    testSettings = testSettings,
+                    closeWithToggle = data.enabled == testSettings,
+                    closeWithBack = false,
                 )
-                .forEachIndexed { index, sort -> sortSettings[index].lazySet(sort) }
-
-            biomechsEnabled.lazySet(viewModel.biomechsEnabled)
-        }
-
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
-
-        SettingsFragmentTest.openSettingsMenu()
-
-        val enabled = biomechsEnabled.get()
-        val sortMethods = sortSettings.map { it.get() }.toBooleanArray()
-
-        booleanArrayOf(!enabled, enabled).forEach { usingToggle ->
-            SettingsFragmentTest.openSettingsSubMenu(ENTRY_INDEX, usingToggle, true)
-            testBiomechsSubMenuOpen(sortMethods, !usingToggle)
-
-            SettingsFragmentTest.closeSettingsSubMenu(!usingToggle)
-            testBiomechsSubMenuClosed(usingToggle)
-
-            if (usingToggle) {
-                SettingsFragmentTest.openSettingsSubMenu(
-                    index = ENTRY_INDEX,
-                    usingToggle = false,
-                    toggleDisplayed = true,
-                )
-                testBiomechsSubMenuOpen(sortMethods, false)
-
-                SettingsFragmentTest.backFromSubMenu()
-                testBiomechsSubMenuClosed(true)
             }
         }
+    }
+
+    @Test
+    fun biomechSettingsBackButtonTest() {
+        testWithSettings { data ->
+            if (data.enabled) testBiomechsSubMenuDisableFromMenu()
+
+            testData(
+                data = data,
+                openWithToggle = true,
+                testSettings = false,
+                closeWithToggle = false,
+                closeWithBack = true,
+            )
+
+            if (!data.enabled) testBiomechsSubMenuDisableFromMenu()
+        }
+    }
+
+    private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
+        run {
+            mainScreenTest {
+                val biomechsEnabled = AtomicBoolean()
+                val freezeTime = AtomicLong()
+
+                val sortByClassFirst = AtomicBoolean()
+                val sortByStatus = AtomicBoolean()
+                val sortByClassSecond = AtomicBoolean()
+                val sortByName = AtomicBoolean()
+
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        val biomechManager = viewModel.biomechManager
+                        val biomechSorter = biomechManager.sorter
+
+                        sortByClassFirst.lazySet(biomechSorter.sortByClassFirst)
+                        sortByStatus.lazySet(biomechSorter.sortByStatus)
+                        sortByClassSecond.lazySet(biomechSorter.sortByClassSecond)
+                        sortByName.lazySet(biomechSorter.sortByName)
+
+                        biomechsEnabled.lazySet(biomechManager.enabled)
+                        freezeTime.lazySet(biomechManager.freezeTime)
+                    }
+                }
+
+                scenario(SettingsMenuScenario)
+
+                val enabled = biomechsEnabled.get()
+                val freezeSeconds = freezeTime.get().milliseconds.inWholeSeconds.toInt()
+                val sortMethods =
+                    SortMethods(
+                        classFirst = sortByClassFirst.get(),
+                        status = sortByStatus.get(),
+                        classSecond = sortByClassSecond.get(),
+                        name = sortByName.get(),
+                    )
+
+                test(Data(enabled, freezeSeconds, sortMethods))
+            }
+        }
+    }
+
+    private data class Data(
+        val enabled: Boolean,
+        val freezeSeconds: Int,
+        val sortMethods: SortMethods,
+    )
+
+    private data class SortMethods(
+        val classFirst: Boolean,
+        val status: Boolean,
+        val classSecond: Boolean,
+        val name: Boolean,
+    ) {
+        private val array by lazy { booleanArrayOf(classFirst, status, classSecond, name) }
+
+        val isDefault: Boolean
+            get() = array.none { it }
+
+        fun toArray(): BooleanArray = array
     }
 
     private companion object {
         const val ENTRY_INDEX = 5
 
-        val biomechSortMethodSettings =
-            arrayOf(
-                GroupedToggleButtonSetting(R.id.biomechSortingClassButton1, R.string.sort_by_class),
-                GroupedToggleButtonSetting(
-                    R.id.biomechSortingStatusButton,
-                    R.string.sort_by_status,
-                ),
-                GroupedToggleButtonSetting(R.id.biomechSortingClassButton2, R.string.sort_by_class),
-                GroupedToggleButtonSetting(R.id.biomechSortingNameButton, R.string.sort_by_name),
-            )
+        fun TestContext<Unit>.testData(
+            data: Data,
+            openWithToggle: Boolean,
+            testSettings: Boolean,
+            closeWithToggle: Boolean,
+            closeWithBack: Boolean,
+        ) {
+            scenario(SettingsSubmenuOpenScenario.Biomechs(openWithToggle))
+            testBiomechsSubMenuOpen(data.sortMethods, data.freezeSeconds, testSettings)
 
-        fun testBiomechsSubMenuOpen(sortMethods: BooleanArray, shouldTestSortMethods: Boolean) {
-            testBiomechSubMenuSortMethods(sortMethods, shouldTestSortMethods)
-
-            scrollTo(R.id.freezeDurationDivider)
-            assertDisplayed(R.id.freezeDurationTitle, R.string.freeze_duration)
-            assertDisplayed(R.id.freezeDurationTimeInput)
-        }
-
-        fun testBiomechsSubMenuClosed(isToggleOn: Boolean) {
-            assertNotExist(R.id.biomechSortingTitle)
-            assertNotExist(R.id.biomechSortingDefaultButton)
-            biomechSortMethodSettings.forEach { assertNotExist(it.button) }
-            assertNotExist(R.id.biomechSortingDivider)
-            assertNotExist(R.id.freezeDurationTitle)
-            assertNotExist(R.id.freezeDurationTimeInput)
-            assertNotExist(R.id.freezeDurationDivider)
-
-            SettingsFragmentTest.assertSettingsMenuEntryToggleState(ENTRY_INDEX, isToggleOn)
-        }
-
-        fun testBiomechSubMenuSortMethods(sortMethods: BooleanArray, shouldTest: Boolean) {
-            scrollTo(R.id.biomechSortingDivider)
-            assertDisplayed(R.id.biomechSortingTitle, R.string.sort_methods)
-            assertDisplayed(R.id.biomechSortingDefaultButton, R.string.default_setting)
-
-            biomechSortMethodSettings.forEachIndexed { index, setting ->
-                assertDisplayed(setting.button, setting.text)
-                ArtemisAgentTestHelpers.assertChecked(setting.button, sortMethods[index])
+            step("Close submenu") {
+                if (closeWithBack) SettingsPageScreen.backFromSubmenu()
+                else SettingsPageScreen.closeSubmenu(closeWithToggle)
             }
 
-            ArtemisAgentTestHelpers.assertChecked(
-                R.id.biomechSortingDefaultButton,
-                sortMethods.none { it },
-            )
+            step("All settings should be gone") {
+                testScreenClosed(closeWithBack || !closeWithToggle)
+            }
+        }
 
-            if (!shouldTest) return
+        fun TestContext<Unit>.testBiomechsSubMenuOpen(
+            sortMethods: SortMethods,
+            freezeSeconds: Int,
+            shouldTestSettings: Boolean,
+        ) {
+            testBiomechSubMenuSortMethods(sortMethods, shouldTestSettings)
 
-            clickOn(R.id.biomechSortingDefaultButton)
-            biomechSortMethodSettings.forEach { assertUnchecked(it.button) }
+            SettingsPageScreen.Biomechs {
+                step("Freeze duration setting displayed") {
+                    freezeDurationDivider.scrollTo()
+                    freezeDurationTitle.isDisplayedWithText(R.string.freeze_duration)
+                    freezeDurationTimeInput.isDisplayed(withMinutes = true)
+                }
 
-            testBiomechsSubMenuSortByClass()
-            testBiomechsSubMenuSortByStatus()
-            testBiomechsSubMenuSortByName()
-            testBiomechsSubMenuSortPermutations()
-
-            biomechSortMethodSettings.forEachIndexed { index, setting ->
-                if (sortMethods[index]) {
-                    clickOn(setting.button)
+                if (shouldTestSettings) {
+                    step("Freeze duration changing test") {
+                        scenario(
+                            TimeInputTestScenario(freezeDurationTimeInput, freezeSeconds, true)
+                        )
+                    }
                 }
             }
         }
 
-        fun testBiomechsSubMenuSortByClass() {
-            SettingsFragmentTest.testSortPair(
-                R.id.biomechSortingClassButton1,
-                R.id.biomechSortingClassButton2,
-                R.id.biomechSortingDefaultButton,
-            )
+        fun TestContext<Unit>.testBiomechsSubMenuDisableFromMenu() {
+            step("Deactivate submenu from main menu") {
+                SettingsPageScreen.deactivateSubmenu(ENTRY_INDEX)
+            }
+
+            step("Submenu should not have been opened") { testScreenClosed(false) }
         }
 
-        fun testBiomechsSubMenuSortByStatus() {
-            SettingsFragmentTest.testSortSingle(
-                R.id.biomechSortingStatusButton,
-                R.id.biomechSortingDefaultButton,
-            )
+        fun TestContext<Unit>.testBiomechSubMenuSortMethods(
+            sortMethods: SortMethods,
+            shouldTest: Boolean,
+        ) {
+            SettingsPageScreen.Biomechs {
+                step("First line components displayed") {
+                    sortDivider.scrollTo()
+                    sortTitle.isDisplayedWithText(R.string.sort_methods)
+                    sortDefaultButton.isDisplayedWithText(R.string.default_setting)
+                }
+
+                val sortMethodArray = sortMethods.toArray()
+                step("Initial state of sort method settings") {
+                    sortMethodSettings.forEachIndexed { index, setting ->
+                        val name = device.targetContext.getString(setting.text)
+                        step(name) {
+                            setting.button {
+                                isDisplayedWithText(setting.text)
+                                isCheckedIf(sortMethodArray[index])
+                            }
+                        }
+                    }
+
+                    step("Default") { sortDefaultButton.isCheckedIf(sortMethods.isDefault) }
+                }
+
+                if (!shouldTest) return@Biomechs
+
+                step("Default sort method should deactivate all others") {
+                    sortDefaultButton.click()
+                    sortMethodSettings.forEach { setting -> setting.button.isNotChecked() }
+                }
+
+                scenario(
+                    SortMethodPairScenario(sortClassButton1, sortClassButton2, sortDefaultButton)
+                )
+                scenario(SortMethodSingleScenario(sortStatusButton, sortDefaultButton))
+                scenario(SortMethodSingleScenario(sortNameButton, sortDefaultButton))
+                scenario(
+                    SortMethodPermutationsScenario(
+                        sortDefaultButton,
+                        sortClassButton1,
+                        sortStatusButton,
+                        sortClassButton2,
+                        sortNameButton,
+                        sortStatusButton,
+                        sortClassButton2,
+                        sortNameButton,
+                    )
+                )
+
+                step("Restore sort methods from initial settings") {
+                    sortMethodSettings.forEachIndexed { index, setting ->
+                        if (sortMethodArray[index]) {
+                            setting.button.click()
+                        }
+                    }
+                }
+            }
         }
 
-        fun testBiomechsSubMenuSortByName() {
-            SettingsFragmentTest.testSortSingle(
-                R.id.biomechSortingNameButton,
-                R.id.biomechSortingDefaultButton,
-            )
-        }
+        fun TestContext<Unit>.testScreenClosed(isToggleOn: Boolean) {
+            SettingsPageScreen.Biomechs {
+                sortTitle.doesNotExist()
+                sortDefaultButton.doesNotExist()
+                sortMethodSettings.forEach { it.button.doesNotExist() }
+                sortDivider.doesNotExist()
+                freezeDurationTitle.doesNotExist()
+                freezeDurationTimeInput.doesNotExist()
+                freezeDurationDivider.doesNotExist()
+            }
 
-        fun testBiomechsSubMenuSortPermutations() {
-            SettingsFragmentTest.testSortPermutations(
-                R.id.biomechSortingDefaultButton,
-                R.id.biomechSortingClassButton1,
-                R.id.biomechSortingStatusButton,
-                R.id.biomechSortingClassButton2,
-                R.id.biomechSortingNameButton,
-                R.id.biomechSortingStatusButton,
-                R.id.biomechSortingClassButton2,
-                R.id.biomechSortingNameButton,
-            )
+            flakySafely { SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn) }
         }
     }
 }

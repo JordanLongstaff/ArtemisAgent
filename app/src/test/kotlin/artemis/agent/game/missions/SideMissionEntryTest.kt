@@ -1,6 +1,8 @@
 package artemis.agent.game.missions
 
 import artemis.agent.game.ObjectEntry
+import com.walkertribe.ian.vesseldata.VesselData
+import com.walkertribe.ian.world.ArtemisNpc
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.inspectors.shouldForAll
@@ -10,15 +12,22 @@ import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.bind
+import io.kotest.property.arbitrary.boolean
 import io.kotest.property.arbitrary.enum
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.next
 import io.kotest.property.arbs.cars
 import io.kotest.property.checkAll
+import io.mockk.mockk
 
 class SideMissionEntryTest :
     DescribeSpec({
-        val arbAlly = Arb.bind<ObjectEntry.Ally>()
+        val mockVesselData = mockk<VesselData>()
+
+        val arbAlly =
+            Arb.bind(Arb.bind<ArtemisNpc>(), Arb.boolean()) { npc, isDeepStrikeShip ->
+                ObjectEntry.Ally(npc, mockVesselData, isDeepStrikeShip)
+            }
         val arbReward = Arb.enum<RewardType>()
 
         fun create(payout: RewardType = arbReward.next()): SideMissionEntry =

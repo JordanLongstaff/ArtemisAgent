@@ -7,25 +7,19 @@ import androidx.annotation.StyleRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
+import artemis.agent.cpu.BiomechManager
 import artemis.agent.cpu.CPU
+import artemis.agent.cpu.EnemiesManager
+import artemis.agent.cpu.MiscManager
+import artemis.agent.cpu.MissionManager
 import artemis.agent.cpu.RoutingGraph
 import artemis.agent.cpu.RoutingGraph.Companion.calculateRouteCost
+import artemis.agent.cpu.VesselDataManager
 import artemis.agent.cpu.listeners
 import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
 import artemis.agent.game.WarStatus
 import artemis.agent.game.allies.AllySorter
-import artemis.agent.game.biomechs.BiomechEntry
-import artemis.agent.game.biomechs.BiomechRageStatus
-import artemis.agent.game.biomechs.BiomechSorter
-import artemis.agent.game.enemies.EnemyEntry
-import artemis.agent.game.enemies.EnemySortCategory
-import artemis.agent.game.enemies.EnemySorter
-import artemis.agent.game.enemies.TauntStatus
-import artemis.agent.game.misc.AudioEntry
-import artemis.agent.game.misc.CommsActionEntry
-import artemis.agent.game.missions.RewardType
-import artemis.agent.game.missions.SideMissionEntry
 import artemis.agent.game.route.RouteEntry
 import artemis.agent.game.route.RouteObjective
 import artemis.agent.game.route.RouteTaskIncentive
@@ -33,15 +27,12 @@ import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
-import artemis.agent.util.AssetsResolver
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
 import artemis.agent.util.TimerText.timerString
 import com.walkertribe.ian.enums.AlertStatus
-import com.walkertribe.ian.enums.AudioMode
 import com.walkertribe.ian.enums.Console
 import com.walkertribe.ian.enums.GameType
-import com.walkertribe.ian.enums.ObjectType
 import com.walkertribe.ian.iface.ArtemisNetworkInterface
 import com.walkertribe.ian.iface.ConnectionEvent
 import com.walkertribe.ian.iface.DisconnectCause
@@ -56,46 +47,32 @@ import com.walkertribe.ian.protocol.core.GameStartPacket
 import com.walkertribe.ian.protocol.core.JumpEndPacket
 import com.walkertribe.ian.protocol.core.PausePacket
 import com.walkertribe.ian.protocol.core.PlayerShipDamagePacket
-import com.walkertribe.ian.protocol.core.comm.CommsButtonPacket
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
-import com.walkertribe.ian.protocol.core.comm.IncomingAudioPacket
 import com.walkertribe.ian.protocol.core.setup.AllShipSettingsPacket
 import com.walkertribe.ian.protocol.core.setup.ReadyPacket
 import com.walkertribe.ian.protocol.core.setup.SetConsolePacket
 import com.walkertribe.ian.protocol.core.setup.SetShipPacket
 import com.walkertribe.ian.protocol.core.setup.Ship
 import com.walkertribe.ian.protocol.core.setup.VersionPacket
-import com.walkertribe.ian.protocol.core.world.BiomechRagePacket
-import com.walkertribe.ian.protocol.core.world.DeleteObjectPacket
 import com.walkertribe.ian.protocol.core.world.DockedPacket
 import com.walkertribe.ian.protocol.udp.Server
 import com.walkertribe.ian.protocol.udp.ServerDiscoveryRequester
 import com.walkertribe.ian.util.BoolState
-import com.walkertribe.ian.util.FilePathResolver
-import com.walkertribe.ian.util.Util.joinSpaceDelimited
 import com.walkertribe.ian.util.Version
-import com.walkertribe.ian.vesseldata.Taunt
 import com.walkertribe.ian.vesseldata.VesselData
-import com.walkertribe.ian.vesseldata.VesselDataObject
 import com.walkertribe.ian.world.Artemis
 import com.walkertribe.ian.world.ArtemisBlackHole
 import com.walkertribe.ian.world.ArtemisCreature
 import com.walkertribe.ian.world.ArtemisMine
-import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
 import com.walkertribe.ian.world.ArtemisShielded
-import com.walkertribe.ian.world.Property
-import java.io.File
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListMap
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -108,7 +85,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okio.Path.Companion.toOkioPath
 
 /** The view model containing all running client data and utility functions used by the UI. */
 class AgentViewModel(application: Application) :
@@ -116,7 +92,14 @@ class AgentViewModel(application: Application) :
     // Connection status
     val networkInterface: ArtemisNetworkInterface by lazy {
         KtorArtemisNetworkInterface(maxVersion = if (BuildConfig.DEBUG) null else maxVersion).also {
-            it.addListeners(listeners + cpu.listeners)
+            it.addListeners(
+                listeners +
+                    cpu.listeners +
+                    enemiesManager.listeners +
+                    missionManager.listeners +
+                    biomechManager.listeners +
+                    miscManager.listeners
+            )
         }
     }
 
@@ -131,6 +114,9 @@ class AgentViewModel(application: Application) :
         get() =
             connectionStatus.value == ConnectionStatus.NotConnected ||
                 connectionStatus.value == ConnectionStatus.Failed
+
+    val isConnected: Boolean
+        get() = !isIdle && connectionStatus.value != ConnectionStatus.Connecting
 
     // UDP discovered servers
     val discoveredServers: MutableStateFlow<List<Server>> by lazy { MutableStateFlow(emptyList()) }
@@ -194,20 +180,11 @@ class AgentViewModel(application: Application) :
 
     // Page activator data
     var alliesExist: Boolean = false
-    var biomechsExist: Boolean = false
     val stationsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val enemyStationsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     // Miscellaneous Comms actions
-    val miscActionsExist: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-    val miscAudioExists: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-    val commsActionSet = CopyOnWriteArraySet<CommsActionEntry>()
-    val commsAudioSet = CopyOnWriteArraySet<AudioEntry>()
-    val miscActions: MutableStateFlow<List<CommsActionEntry>> by lazy {
-        MutableStateFlow(emptyList())
-    }
-    val miscAudio: MutableStateFlow<List<AudioEntry>> by lazy { MutableStateFlow(emptyList()) }
-    val showingAudio: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
+    val miscManager = MiscManager()
 
     // Current player ship data
     val shipIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(-1) }
@@ -235,31 +212,7 @@ class AgentViewModel(application: Application) :
     val alertStatus: MutableStateFlow<AlertStatus> by lazy { MutableStateFlow(AlertStatus.NORMAL) }
 
     // Side mission data
-    var missionsEnabled: Boolean = true
-    var missionsExist: Boolean = false
-    internal val allMissions = CopyOnWriteArrayList<SideMissionEntry>()
-    val missions: MutableSharedFlow<List<SideMissionEntry>> by lazy {
-        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-
-    // Completed mission payout data
-    val payouts = IntArray(RewardType.entries.size)
-    var displayedRewards: Array<RewardType> = emptyArray()
-    val displayedPayouts: MutableStateFlow<List<Pair<RewardType, Int>>> by lazy {
-        MutableStateFlow(emptyList())
-    }
-    val showingPayouts: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
-
-    // Mission progress packet data
-    val newMissionPacket: MutableSharedFlow<CommsIncomingPacket> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val missionProgressPacket: MutableSharedFlow<CommsIncomingPacket> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val missionCompletionPacket: MutableSharedFlow<CommsIncomingPacket> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
+    val missionManager = MissionManager(this)
 
     // Friendly ship data
     var alliesEnabled: Boolean = true
@@ -300,7 +253,7 @@ class AgentViewModel(application: Application) :
     // Friendly station data
     val stationsRemain: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
     val livingStationNameIndex =
-        ConcurrentSkipListMap<String, Int>(Comparator(this::compareFriendlyStationNames))
+        ConcurrentSkipListMap<String, Int>(ObjectEntry.Station.FRIENDLY_COMPARATOR)
     val livingStationFullNameIndex = ConcurrentHashMap<String, Int>()
     val livingStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
 
@@ -316,7 +269,7 @@ class AgentViewModel(application: Application) :
 
     // Enemy station data
     val enemyStationNameIndex =
-        ConcurrentSkipListMap<String, Int>(Comparator(this::compareEnemyStationNames))
+        ConcurrentSkipListMap<String, Int>(ObjectEntry.Station.ENEMY_COMPARATOR)
     val livingEnemyStations = ConcurrentHashMap<Int, ObjectEntry.Station>()
     val enemyStations: MutableSharedFlow<List<ObjectEntry.Station>> by lazy {
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -344,55 +297,10 @@ class AgentViewModel(application: Application) :
     val destroyedStations: MutableStateFlow<List<String>> by lazy { MutableStateFlow(emptyList()) }
 
     // Biomech data
-    var biomechsEnabled: Boolean = true
-    val biomechs: MutableSharedFlow<List<BiomechEntry>> by lazy {
-        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    var biomechSorter = BiomechSorter()
-    val scannedBiomechs = CopyOnWriteArrayList<BiomechEntry>()
-    val unscannedBiomechs = ConcurrentHashMap<Int, ArtemisNpc>()
-
-    // Biomech rage data
-    private val biomechRageProperty = Property.IntProperty(Long.MIN_VALUE)
-    val biomechRage: MutableStateFlow<BiomechRageStatus> by lazy {
-        MutableStateFlow(BiomechRageStatus.NEUTRAL)
-    }
-
-    // Biomech notification data
-    val nextActiveBiomech: MutableSharedFlow<BiomechEntry> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val destroyedBiomechName: MutableSharedFlow<String> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
+    val biomechManager = BiomechManager()
 
     // Enemy ship data
-    var enemiesEnabled: Boolean = true
-    val selectedEnemy: MutableStateFlow<EnemyEntry?> by lazy { MutableStateFlow(null) }
-    val selectedEnemyIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(-1) }
-    val displayedEnemies: MutableSharedFlow<List<EnemyEntry>> by lazy {
-        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val enemyCategories: MutableStateFlow<List<EnemySortCategory>> by lazy {
-        MutableStateFlow(emptyList())
-    }
-    val enemyTaunts: MutableStateFlow<List<Pair<Taunt, TauntStatus>>> by lazy {
-        MutableStateFlow(emptyList())
-    }
-    val enemyIntel: MutableStateFlow<String?> by lazy { MutableStateFlow(null) }
-    val perfidiousEnemy: MutableSharedFlow<EnemyEntry> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    val destroyedEnemyName: MutableSharedFlow<String> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    }
-    var enemySorter = EnemySorter()
-    val enemyNameIndex = ConcurrentHashMap<String, Int>()
-    val enemies = ConcurrentHashMap<Int, EnemyEntry>()
-    var showTauntStatuses: Boolean = true
-    var showEnemyIntel: Boolean = true
-    var disableIneffectiveTaunts: Boolean = true
-    var maxSurrenderDistance: Float? = Float.MAX_VALUE
+    val enemiesManager = EnemiesManager()
 
     // Routing data
     var routingEnabled: Boolean = true
@@ -435,12 +343,6 @@ class AgentViewModel(application: Application) :
     // Determines whether directions are shown as padded three-digit numbers
     var threeDigitDirections = true
 
-    // Page flash variables
-    var missionUpdate: Boolean = false
-    var enemiesUpdate: Boolean = false
-    var biomechUpdate: Boolean = false
-    private var miscUpdate: Boolean = false
-
     // Setup fragment page
     val setupFragmentPage: MutableStateFlow<SetupFragment.Page> by lazy {
         MutableStateFlow(SetupFragment.Page.CONNECT)
@@ -458,22 +360,15 @@ class AgentViewModel(application: Application) :
     var updateObjectsInterval: Int = DEFAULT_UPDATE_INTERVAL
     var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT
     var scanTimeout: Int = DEFAULT_SCAN_TIMEOUT
-    var heartbeatTimeout: Long = DEFAULT_HEARTBEAT_TIMEOUT
+    var heartbeatTimeout: Int = DEFAULT_HEARTBEAT_TIMEOUT
         set(value) {
             field = value
-            ifConnected { networkInterface.setTimeout(field.seconds.inWholeMilliseconds) }
-        }
-
-    var biomechFreezeTime: Long = DEFAULT_FREEZE_TIME.seconds.inWholeMilliseconds
-        set(value) {
-            field = value.seconds.inWholeMilliseconds
+            if (isConnected) {
+                networkInterface.setTimeout(field.seconds.inWholeMilliseconds)
+            }
         }
 
     var autoDismissCompletedMissions: Boolean = true
-    var completedDismissalTime: Long = DEFAULT_COMPLETED_DISMISSAL.seconds.inWholeMilliseconds
-        set(value) {
-            field = value.seconds.inWholeMilliseconds
-        }
 
     // UDP server discovery requester
     private val serverDiscoveryRequester: ServerDiscoveryRequester
@@ -483,10 +378,6 @@ class AgentViewModel(application: Application) :
                 timeoutMs = scanTimeout.seconds.inWholeMilliseconds,
             )
 
-    // I/O resolver data
-    private val assetsResolver: AssetsResolver = AssetsResolver(application.assets)
-    val storageDirectories: Array<File> = application.applicationContext.getExternalFilesDirs(null)
-
     // Artemis version
     var version: Version = Version.DEFAULT
         private set
@@ -494,34 +385,10 @@ class AgentViewModel(application: Application) :
     var maxVersion: Version = Version.DEFAULT
 
     // Vessel data
-    private val defaultVesselData: VesselData by lazy { VesselData.load(assetsResolver) }
-    private val internalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.isEmpty()) null
-        else setupFilePathResolver(storageDirectories[0])?.let(VesselData.Companion::load)
-    }
-    private val externalStorageVesselData: VesselData? by lazy {
-        if (storageDirectories.size <= 1) null
-        else setupFilePathResolver(storageDirectories[1])?.let(VesselData.Companion::load)
-    }
+    val vesselDataManager = VesselDataManager(application)
 
-    var vesselDataIndex: Int = 0
-        set(index) {
-            if (field != index) {
-                field = index
-                vesselData =
-                    when (index) {
-                        1 -> internalStorageVesselData
-                        2 -> externalStorageVesselData
-                        else -> null
-                    } ?: defaultVesselData
-            }
-        }
-
-    var vesselData: VesselData = defaultVesselData
-        private set
-
-    private val allVesselData
-        get() = arrayOf(defaultVesselData, internalStorageVesselData, externalStorageVesselData)
+    val vesselData: VesselData
+        get() = vesselDataManager.vesselData
 
     // Sound effects players
     private val playSounds: Boolean
@@ -610,93 +477,6 @@ class AgentViewModel(application: Application) :
     private fun calculatePlayerRangeTo(obj: ArtemisObject<*>): Float =
         playerShip?.distanceTo(obj) ?: 0f
 
-    /** Returns the full name for the given object, including callsign, faction and vessel name. */
-    fun getFullNameForShip(obj: ArtemisShielded<*>?): String =
-        obj?.run { listOf(name.value, getFullNameForVessel(this)).joinSpaceDelimited() } ?: ""
-
-    /** Returns the faction and model name of the given object's vessel. */
-    fun getFullNameForVessel(obj: VesselDataObject?): String =
-        obj?.getVessel(vesselData)?.run {
-            listOfNotNull(getFaction(vesselData)?.name, name).joinSpaceDelimited()
-        } ?: ""
-
-    /** Determines how many currently applicable missions involve the given object. */
-    private fun calculateMissionsFor(entry: ObjectEntry<*>, reward: RewardType): Int =
-        allMissions
-            .filter {
-                val isDest = it.destination == entry
-                if (it.isStarted) isDest && it.associatedShipName == playerName
-                else isDest || it.source == entry
-            }
-            .sumOf { it.rewards[reward.ordinal] }
-
-    private fun reconcileDisplayedMissions(
-        battery: Boolean,
-        coolant: Boolean,
-        nukes: Boolean,
-        production: Boolean,
-        shieldBoost: Boolean,
-    ) {
-        val oldRewards = displayedRewards.copyOf()
-        val newRewards =
-            listOfNotNull(
-                    RewardType.BATTERY.takeIf { battery },
-                    RewardType.COOLANT.takeIf { coolant },
-                    RewardType.NUKE.takeIf { nukes },
-                    RewardType.PRODUCTION.takeIf { production },
-                    RewardType.SHIELD.takeIf { shieldBoost },
-                )
-                .toTypedArray()
-        displayedRewards = newRewards
-
-        var oldIndex = 0
-        var newIndex = 0
-        val allObjects = livingStations.values.toList() + allyShips.values.toList()
-        RewardType.entries.forEach { reward ->
-            var missionsSignum = 0
-
-            val inOldSet = oldIndex < oldRewards.size && oldRewards[oldIndex] == reward
-            if (inOldSet) {
-                oldIndex++
-                missionsSignum--
-            }
-            val inNewSet = newIndex < newRewards.size && newRewards[newIndex] == reward
-            if (inNewSet) {
-                newIndex++
-                missionsSignum++
-            }
-
-            if (missionsSignum != 0) {
-                allObjects.forEach {
-                    it.missions += missionsSignum * calculateMissionsFor(it, reward)
-                }
-            }
-        }
-
-        updatePayouts()
-    }
-
-    /**
-     * Attempts to set up the default vessel data in a given file path if it does not exist, and
-     * return a file path resolver using that file if successful, or null if there was an error.
-     */
-    private fun setupFilePathResolver(storageDir: File): FilePathResolver? {
-        val datDir = File(storageDir, "dat")
-
-        return if (assetsResolver.copyVesselDataTo(datDir))
-            FilePathResolver(storageDir.toOkioPath())
-        else null
-    }
-
-    fun reconcileVesselDataIndex(index: Int): Int = if (allVesselData[index] == null) 0 else index
-
-    fun checkContext(index: Int, ifError: (String) -> Unit) {
-        val vesselDataAtIndex = allVesselData[index]
-        if (vesselDataAtIndex is VesselData.Error) {
-            ifError(vesselDataAtIndex.message ?: "")
-        }
-    }
-
     /** Selects a player ship by its index. */
     fun selectShip(index: Int) {
         playSound(SoundEffect.CONFIRMATION)
@@ -762,12 +542,16 @@ class AgentViewModel(application: Application) :
             connectedUrl.value = ""
             shipIndex.value = -1
         }
-        ifConnected { networkInterface.stop() }
+        if (isConnected) {
+            networkInterface.stop()
+        }
     }
 
     /** Sends one or more packets to the server. */
     fun sendToServer(vararg packets: Packet.Client) {
-        ifConnected { cpu.launch { packets.forEach(networkInterface::sendPacket) } }
+        if (isConnected) {
+            cpu.launch { packets.forEach(networkInterface::sendPacket) }
+        }
     }
 
     /** Plays a sound effect if sound effects are enabled. */
@@ -796,13 +580,6 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    /** Dismisses an audio message. */
-    fun dismissAudio(entry: AudioEntry) {
-        if (commsAudioSet.remove(entry)) {
-            miscAudio.value = commsAudioSet.toList()
-        }
-    }
-
     /** When a server is discovered via UDP, adds it to the current list of discovered servers. */
     override suspend fun onDiscovered(server: Server) {
         val servers = discoveredServers.value.toMutableList()
@@ -823,10 +600,6 @@ class AgentViewModel(application: Application) :
             routeRunning = false
         }
         graph = null
-        missionUpdate = false
-        enemiesUpdate = false
-        biomechUpdate = false
-        miscUpdate = false
         isBorderWarPossible = false
         isDeepStrikePossible = false
         cpu.clear()
@@ -834,8 +607,7 @@ class AgentViewModel(application: Application) :
         players.clear()
         fighterIDs.clear()
         fightersInBays = 0
-        allMissions.clear()
-        payouts.fill(0)
+        missionManager.reset()
         focusedAlly.value = null
         allyShipIndex.clear()
         allyShips.clear()
@@ -847,26 +619,14 @@ class AgentViewModel(application: Application) :
         livingStations.clear()
         livingEnemyStations.clear()
         stationsRemain.value = false
-        scannedBiomechs.clear()
-        unscannedBiomechs.clear()
-        enemies.clear()
-        enemyNameIndex.clear()
-        selectedEnemy.value = null
-        commsActionSet.clear()
-        commsAudioSet.clear()
-        miscActions.value = emptyList()
-        miscAudio.value = emptyList()
-        biomechRageProperty.value = 0
-        biomechRage.value = BiomechRageStatus.NEUTRAL
+        enemiesManager.reset()
+        biomechManager.reset()
+        miscManager.reset()
         onPlayerShipDisposed()
-        missionsExist = false
         alliesExist = false
-        biomechsExist = false
         stationsExist.value = false
         enemyStationsExist.value = false
         stationName.value = ""
-        miscActionsExist.value = false
-        miscAudioExists.value = false
         cpu.launch { updateObjects() }
     }
 
@@ -887,18 +647,20 @@ class AgentViewModel(application: Application) :
         }
 
         val missionList =
-            if (missionsEnabled) {
-                if (autoDismissCompletedMissions) {
-                    allMissions.removeAll(
-                        allMissions.filter { it.completionTimestamp < startTime }.toSet()
-                    )
+            missionManager.run {
+                if (enabled) {
+                    if (autoDismissCompletedMissions) {
+                        allMissions.removeAll(
+                            allMissions.filter { it.completionTimestamp < startTime }.toSet()
+                        )
+                    }
+                    allMissions.filter {
+                        displayedRewards.any { reward -> it.rewards[reward.ordinal] > 0 } &&
+                            (!it.isStarted || it.associatedShipName == playerName)
+                    }
+                } else {
+                    emptyList()
                 }
-                allMissions.filter {
-                    displayedRewards.any { reward -> it.rewards[reward.ordinal] > 0 } &&
-                        (!it.isStarted || it.associatedShipName == playerName)
-                }
-            } else {
-                emptyList()
             }
 
         val allyShipList =
@@ -940,8 +702,9 @@ class AgentViewModel(application: Application) :
                     it.range = calculatePlayerRangeTo(it.obj)
                 }
 
-        val selectedEnemyEntry = selectedEnemy.value
-        val enemyShipList = enemies.values.filter { !it.vessel.isSingleseat }
+        val selectedEnemyEntry = enemiesManager.selection.value
+        val enemyShipList = enemiesManager.allEnemies.values.filter { !it.vessel.isSingleseat }
+        val enemySorter = enemiesManager.sorter
         val scannedEnemies =
             enemyShipList
                 .filter { playerShip?.let(it.enemy::hasBeenScannedBy)?.booleanValue == true }
@@ -954,11 +717,11 @@ class AgentViewModel(application: Application) :
         val enemyNavOptions = enemySorter.buildCategoryMap(scannedEnemies)
 
         val biomechList =
-            if (biomechsEnabled) {
-                scannedBiomechs.sortedWith(biomechSorter).onEach {
-                    if (it.onFreezeTimeExpired(startTime - biomechFreezeTime)) {
-                        nextActiveBiomech.tryEmit(it)
-                        biomechUpdate = true
+            if (biomechManager.enabled) {
+                biomechManager.scanned.sortedWith(biomechManager.sorter).onEach {
+                    if (it.onFreezeTimeExpired(startTime - biomechManager.freezeTime)) {
+                        biomechManager.nextActiveBiomech.tryEmit(it)
+                        biomechManager.notifyUpdate()
                     }
                 }
             } else {
@@ -970,10 +733,10 @@ class AgentViewModel(application: Application) :
         }
 
         when (currentGamePage.value) {
-            GameFragment.Page.MISSIONS -> missionUpdate = false
-            GameFragment.Page.ENEMIES -> enemiesUpdate = false
-            GameFragment.Page.BIOMECHS -> biomechUpdate = false
-            GameFragment.Page.MISC -> miscUpdate = false
+            GameFragment.Page.MISSIONS -> missionManager.hasUpdate = false
+            GameFragment.Page.ENEMIES -> enemiesManager.hasUpdate = false
+            GameFragment.Page.BIOMECHS -> biomechManager.resetUpdate()
+            GameFragment.Page.MISC -> miscManager.resetUpdate()
             else -> {}
         }
 
@@ -985,8 +748,8 @@ class AgentViewModel(application: Application) :
                 livingStations.size.takeIf { stationsExist.value },
                 enemyStationList.size.takeIf { enemyStationsExist.value },
                 allyShipList.size.takeIf { alliesExist },
-                missionList.size.takeIf { missionsExist },
-                biomechList.size.takeIf { biomechsExist },
+                missionList.size.takeIf { missionManager.confirmed },
+                biomechList.size.takeIf { biomechManager.confirmed },
                 hostile.size,
                 surrendered.size.takeIf { it > 0 },
             )
@@ -1004,10 +767,7 @@ class AgentViewModel(application: Application) :
         val stationShieldPercents =
             livingStationNameIndex.mapNotNull {
                 livingStations[it.value]?.let { station ->
-                    Pair(
-                        station,
-                        station.obj.shieldsFront.value / station.obj.shieldsFrontMax.value,
-                    )
+                    station to station.obj.shieldsFront.percentage
                 }
             }
         val stationMinimumShieldPercent =
@@ -1018,8 +778,7 @@ class AgentViewModel(application: Application) :
                 } ?: 1f
         val stationFlashOn = flashOn && stationMinimumShieldPercent < 1f
 
-        val currentFlashOn =
-            flashOn && focusedStation?.let { it.obj.shieldsFront < it.obj.shieldsFrontMax } == true
+        val currentFlashOn = flashOn && focusedStation?.run { obj.shieldsFront.isDamaged } == true
 
         val pagesWithFlash = sortedMapOf<GameFragment.Page, Boolean>()
 
@@ -1037,18 +796,12 @@ class AgentViewModel(application: Application) :
                                     .takeIf { includingAllies && alliesExist }
                                     ?.values
                                     ?.any { it.isDamaged }
-                            GameFragment.Page.MISSIONS ->
-                                missionUpdate.takeIf { missionsEnabled && missionsExist }
-                            GameFragment.Page.ENEMIES ->
-                                enemiesUpdate.takeIf { enemiesEnabled && enemies.isNotEmpty() }
-                            GameFragment.Page.BIOMECHS ->
-                                biomechUpdate.takeIf { biomechsEnabled && biomechsExist }
+                            GameFragment.Page.MISSIONS -> missionManager.shouldFlash
+                            GameFragment.Page.ENEMIES -> enemiesManager.shouldFlash
+                            GameFragment.Page.BIOMECHS -> biomechManager.shouldFlash
                             GameFragment.Page.ROUTE ->
                                 false.takeIf { stationsExist.value && routingEnabled }
-                            GameFragment.Page.MISC ->
-                                miscUpdate.takeIf {
-                                    miscActionsExist.value || miscAudioExists.value
-                                }
+                            GameFragment.Page.MISC -> miscManager.shouldFlash
                         }?.also { pagesWithFlash[page] = it }
                     }
                 }
@@ -1067,16 +820,16 @@ class AgentViewModel(application: Application) :
             }
         )
 
-        missions.tryEmit(missionList)
+        missionManager.missions.tryEmit(missionList)
         livingAllies.tryEmit(allyShipList)
         enemyStations.tryEmit(enemyStationList)
-        displayedEnemies.tryEmit(scannedEnemies)
-        enemyCategories.tryEmit(enemyNavOptions)
-        biomechs.tryEmit(biomechList)
+        enemiesManager.displayedEnemies.tryEmit(scannedEnemies)
+        enemiesManager.categories.tryEmit(enemyNavOptions)
+        biomechManager.allBiomechs.tryEmit(biomechList)
 
-        refreshEnemyTaunts()
-        enemyIntel.value = selectedEnemyEntry?.intel
-        selectedEnemyIndex.tryEmit(
+        enemiesManager.refreshTaunts()
+        enemiesManager.intel.value = selectedEnemyEntry?.intel
+        enemiesManager.selectionIndex.tryEmit(
             selectedEnemyEntry?.let { entry ->
                 scannedEnemies.indexOfFirst { it.enemy == entry.enemy }
             } ?: -1
@@ -1116,9 +869,9 @@ class AgentViewModel(application: Application) :
                                 routeGraph.resetGraph()
 
                                 if (routeIncludesMissions) {
-                                    allMissions.forEach { mission ->
+                                    missionManager.allMissions.forEach { mission ->
                                         if (
-                                            displayedRewards.none {
+                                            missionManager.displayedRewards.none {
                                                 mission.rewards[it.ordinal] > 0
                                             } ||
                                                 mission.isCompleted ||
@@ -1160,10 +913,6 @@ class AgentViewModel(application: Application) :
         delay(0L.coerceAtLeast(updateObjectsInterval + startTime - System.currentTimeMillis()))
     }
 
-    internal fun updatePayouts() {
-        displayedPayouts.value = displayedRewards.map { Pair(it, payouts[it.ordinal]) }
-    }
-
     internal fun checkGameStart() {
         if (gameIsRunning.value) return
         gameIsRunning.value = true
@@ -1184,32 +933,6 @@ class AgentViewModel(application: Application) :
             it.cancel()
             updateJob = null
         }
-    }
-
-    private fun compareFriendlyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
-        val firstName = firstNameOpt ?: ""
-        val secondName = secondNameOpt ?: ""
-        return if (STATION_CALLSIGN.matches(firstName) && STATION_CALLSIGN.matches(secondName))
-            firstName.substring(2).toInt().compareTo(secondName.substring(2).toInt())
-        else firstName.compareTo(secondName)
-    }
-
-    private fun compareEnemyStationNames(firstNameOpt: String?, secondNameOpt: String?): Int {
-        val firstName = firstNameOpt ?: ""
-        val secondName = secondNameOpt ?: ""
-        return if (ENEMY_STATION.matches(firstName) && ENEMY_STATION.matches(secondName)) {
-            val firstIndex = firstName.run { substring(lastIndexOf(" ") + 1).toInt() }
-            val secondIndex = secondName.run { substring(lastIndexOf(" ") + 1).toInt() }
-            firstIndex.compareTo(secondIndex)
-        } else {
-            firstName.compareTo(secondName)
-        }
-    }
-
-    fun refreshEnemyTaunts() {
-        val enemy = selectedEnemy.value
-
-        enemyTaunts.value = enemy?.run { faction.taunts.zip(tauntStatuses) }.orEmpty()
     }
 
     fun activateDoubleAgent() {
@@ -1282,53 +1005,6 @@ class AgentViewModel(application: Application) :
     }
 
     @Listener
-    fun onPacket(packet: IncomingAudioPacket) {
-        val audioMode = packet.audioMode
-        if (audioMode is AudioMode.Incoming) {
-            commsAudioSet.add(AudioEntry(packet.audioId, audioMode.title))
-            miscAudio.value = commsAudioSet.toList()
-            miscAudioExists.value = true
-            miscUpdate = true
-        }
-    }
-
-    @Listener
-    fun onPacket(packet: CommsButtonPacket) {
-        when (val action = packet.action) {
-            is CommsButtonPacket.Action.RemoveAll -> {
-                commsActionSet.clear()
-            }
-            is CommsButtonPacket.Action.Create -> {
-                commsActionSet.add(CommsActionEntry(action.label))
-                miscActionsExist.value = true
-                miscUpdate = true
-            }
-            is CommsButtonPacket.Action.Remove -> {
-                if (!commsActionSet.remove(CommsActionEntry(action.label))) {
-                    return
-                }
-            }
-        }
-        miscActions.value = commsActionSet.toList()
-    }
-
-    @Listener
-    fun onPacket(packet: BiomechRagePacket) {
-        val newRage = Property.IntProperty(packet.timestamp)
-        newRage.value = packet.rage
-        newRage updates biomechRageProperty
-        biomechRage.value =
-            BiomechRageStatus[biomechRageProperty.value].also {
-                if (
-                    biomechRage.value == BiomechRageStatus.NEUTRAL &&
-                        it == BiomechRageStatus.HOSTILE
-                ) {
-                    biomechUpdate = true
-                }
-            }
-    }
-
-    @Listener
     fun onPacket(packet: DockedPacket) {
         players[packet.objectId]?.docked = BoolState.True
     }
@@ -1336,7 +1012,6 @@ class AgentViewModel(application: Application) :
     @Listener
     fun onPacket(packet: GameStartPacket) {
         playerChange = false
-        updatePayouts()
         when (packet.gameType) {
             GameType.BORDER_WAR -> {
                 borderWarStatus.value = WarStatus.TENSION
@@ -1373,29 +1048,12 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    @Listener
-    fun onPacket(packet: DeleteObjectPacket) {
-        val id = packet.target
-
-        when (packet.targetType) {
-            ObjectType.NPC_SHIP -> cpu.onNpcDelete(id)
-            ObjectType.BASE -> cpu.onStationDelete(id)
-            ObjectType.PLAYER_SHIP -> cpu.onPlayerDelete(id)
-            ObjectType.MINE -> cpu.launch { mines.remove(id)?.also { graph?.removeObstacle(it) } }
-            ObjectType.BLACK_HOLE ->
-                cpu.launch { blackHoles.remove(id)?.also { graph?.removeObstacle(it) } }
-            ObjectType.CREATURE ->
-                cpu.launch { typhons.remove(id)?.also { graph?.removeObstacle(it) } }
-            else -> {}
-        }
+    internal fun <Obj : ArtemisObject<Obj>> onDeleteObstacle(
+        id: Int,
+        map: ConcurrentHashMap<Int, Obj>,
+    ) {
+        map.remove(id)?.also { graph?.removeObstacle(it) }
     }
-
-    internal inline fun <R> ifConnected(block: () -> R): R? =
-        when (connectionStatus.value) {
-            is ConnectionStatus.Connected,
-            is ConnectionStatus.HeartbeatLost -> block()
-            else -> null
-        }
 
     override fun onCleared() {
         disconnectFromServer(resetUrl = false)
@@ -1409,27 +1067,17 @@ class AgentViewModel(application: Application) :
     }
 
     fun updateFromSettings(settings: UserSettings) {
-        vesselDataIndex = settings.vesselDataLocationValue
+        vesselDataManager.index = settings.vesselDataLocationValue
         port = settings.serverPort
         updateObjectsInterval = settings.updateInterval
 
         connectTimeout = settings.connectionTimeoutSeconds
         scanTimeout = settings.scanTimeoutSeconds
-        heartbeatTimeout = settings.serverTimeoutSeconds.toLong()
+        heartbeatTimeout = settings.serverTimeoutSeconds
         showingNetworkInfo = settings.showNetworkInfo
         alwaysScanPublicBroadcasts = settings.alwaysScanPublic
 
-        missionsEnabled = settings.missionsEnabled
-        reconcileDisplayedMissions(
-            battery = settings.displayRewardBattery,
-            coolant = settings.displayRewardCoolant,
-            nukes = settings.displayRewardNukes,
-            production = settings.displayRewardProduction,
-            shieldBoost = settings.displayRewardShield,
-        )
-
-        autoDismissCompletedMissions = settings.completedMissionDismissalEnabled
-        completedDismissalTime = settings.completedMissionDismissalSeconds.toLong()
+        missionManager.updateFromSettings(settings)
 
         alliesEnabled = settings.alliesEnabled
         allySorter =
@@ -1443,15 +1091,7 @@ class AgentViewModel(application: Application) :
         showAllySelector = settings.showDestroyedAllies
         manuallyReturnFromCommands = settings.allyCommandManualReturn
 
-        biomechsEnabled = settings.biomechsEnabled
-        biomechSorter =
-            BiomechSorter(
-                sortByClassFirst = settings.biomechSortClassFirst,
-                sortByStatus = settings.biomechSortStatus,
-                sortByClassSecond = settings.biomechSortClassSecond,
-                sortByName = settings.biomechSortName,
-            )
-        biomechFreezeTime = settings.freezeDurationSeconds.toLong()
+        biomechManager.updateFromSettings(settings)
 
         routingEnabled = settings.routingEnabled
         routeIncludesMissions = settings.routeMissions
@@ -1466,20 +1106,7 @@ class AgentViewModel(application: Application) :
                 RouteTaskIncentive.HAS_ENERGY.takeIf { settings.routeHasEnergy },
             )
 
-        enemiesEnabled = settings.enemiesEnabled
-        enemySorter =
-            EnemySorter(
-                sortBySurrendered = settings.enemySortSurrendered,
-                sortByFaction = settings.enemySortFaction,
-                sortByFactionReversed = settings.enemySortFactionReversed,
-                sortByName = settings.enemySortName,
-                sortByDistance = settings.enemySortDistance,
-            )
-        maxSurrenderDistance =
-            settings.surrenderRange.toFloat().takeIf { settings.surrenderRangeEnabled }
-        showEnemyIntel = settings.showEnemyIntel
-        showTauntStatuses = settings.showTauntStatuses
-        disableIneffectiveTaunts = settings.disableIneffectiveTaunts
+        enemiesManager.updateFromSettings(settings)
 
         avoidBlackHoles = settings.avoidBlackHoles
         avoidMines = settings.avoidMines
@@ -1501,29 +1128,15 @@ class AgentViewModel(application: Application) :
 
     fun revertSettings(settings: UserSettings): UserSettings =
         settings.copy {
-            vesselDataLocationValue = vesselDataIndex
+            vesselDataLocationValue = vesselDataManager.index
             serverPort = port
             updateInterval = updateObjectsInterval
 
             connectionTimeoutSeconds = connectTimeout
             scanTimeoutSeconds = scanTimeout
-            serverTimeoutSeconds = heartbeatTimeout.toInt()
+            serverTimeoutSeconds = heartbeatTimeout
 
-            missionsEnabled = this@AgentViewModel.missionsEnabled
-
-            val rewardSettings =
-                mapOf(
-                    RewardType.BATTERY to this::displayRewardBattery,
-                    RewardType.COOLANT to this::displayRewardCoolant,
-                    RewardType.NUKE to this::displayRewardNukes,
-                    RewardType.PRODUCTION to this::displayRewardProduction,
-                    RewardType.SHIELD to this::displayRewardShield,
-                )
-            rewardSettings.values.forEach { it.set(false) }
-            displayedRewards.forEach { rewardSettings[it]?.set(true) }
-
-            completedMissionDismissalEnabled = autoDismissCompletedMissions
-            completedMissionDismissalSeconds = completedDismissalTime.toInt()
+            missionManager.revertSettings(this)
 
             alliesEnabled = this@AgentViewModel.alliesEnabled
             allySortClassFirst = allySorter.sortByClassFirst
@@ -1534,27 +1147,12 @@ class AgentViewModel(application: Application) :
             showDestroyedAllies = showAllySelector
             allyCommandManualReturn = manuallyReturnFromCommands
 
-            biomechsEnabled = this@AgentViewModel.biomechsEnabled
-            biomechSortClassFirst = biomechSorter.sortByClassFirst
-            biomechSortStatus = biomechSorter.sortByStatus
-            biomechSortClassSecond = biomechSorter.sortByClassSecond
-            biomechSortName = biomechSorter.sortByName
-            freezeDurationSeconds = biomechFreezeTime.milliseconds.inWholeSeconds.toInt()
+            biomechManager.revertSettings(this)
 
             routingEnabled = this@AgentViewModel.routingEnabled
             routeMissions = routeIncludesMissions
 
-            enemiesEnabled = this@AgentViewModel.enemiesEnabled
-            enemySortSurrendered = enemySorter.sortBySurrendered
-            enemySortFaction = enemySorter.sortByFaction
-            enemySortFactionReversed = enemySorter.sortByFactionReversed
-            enemySortName = enemySorter.sortByName
-            enemySortDistance = enemySorter.sortByDistance
-            surrenderRangeEnabled =
-                maxSurrenderDistance?.also { surrenderRange = it.toInt() } != null
-            showEnemyIntel = this@AgentViewModel.showEnemyIntel
-            showTauntStatuses = this@AgentViewModel.showTauntStatuses
-            disableIneffectiveTaunts = this@AgentViewModel.disableIneffectiveTaunts
+            enemiesManager.revertSettings(this)
 
             val incentiveSettings =
                 mapOf(
@@ -1588,9 +1186,7 @@ class AgentViewModel(application: Application) :
         private const val DEFAULT_PORT = 2010
         private const val DEFAULT_SCAN_TIMEOUT = 5
         private const val DEFAULT_CONNECT_TIMEOUT = 9
-        private const val DEFAULT_HEARTBEAT_TIMEOUT = 15L
-        private const val DEFAULT_FREEZE_TIME = 220
-        private const val DEFAULT_COMPLETED_DISMISSAL = 3
+        private const val DEFAULT_HEARTBEAT_TIMEOUT = 15
 
         private const val DEFAULT_BLACK_HOLE_CLEARANCE = 500f
         private const val DEFAULT_MINE_CLEARANCE = 1000f
@@ -1606,8 +1202,6 @@ class AgentViewModel(application: Application) :
         const val VOLUME_SCALE = 100f
         private const val PADDED_ZEROES = 3
 
-        private val STATION_CALLSIGN = Regex("DS\\d+")
-        private val ENEMY_STATION = Regex("^[A-Z][a-z]+ Base \\d+")
         private const val GAME_OVER_REASON_INDEX = 13
 
         val PLURALS_FOR_INVENTORY =

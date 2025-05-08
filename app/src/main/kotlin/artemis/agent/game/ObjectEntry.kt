@@ -23,15 +23,19 @@ import kotlin.time.Duration.Companion.minutes
 
 sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     val obj: Obj,
+    vesselData: VesselData,
     @PluralsRes private val missionsTextRes: Int,
 ) {
-    class Ally(npc: ArtemisNpc, val vesselName: String, private val isDeepStrikeShip: Boolean) :
-        ObjectEntry<ArtemisNpc>(npc, R.plurals.side_missions_for_ally) {
+    class Ally(npc: ArtemisNpc, vesselData: VesselData, private val isDeepStrikeShip: Boolean) :
+        ObjectEntry<ArtemisNpc>(npc, vesselData, R.plurals.side_missions_for_ally) {
+        val vesselName: String by lazy { npc.getVessel(vesselData)?.name ?: "" }
         var status: AllyStatus = AllyStatus.NORMAL
             set(value) {
                 field = value
                 isHailed = true
             }
+
+        var latestHailMessage: String = ""
 
         var hasEnergy: Boolean = false
         var destination: String? = null
@@ -47,7 +51,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
             get() = status.sortIndex == AllySortIndex.NORMAL
 
         val isDamaged: Boolean
-            get() = obj.shieldsFront < obj.shieldsFrontMax || obj.shieldsRear < obj.shieldsRearMax
+            get() = obj.shieldsFront.isDamaged || obj.shieldsRear.isDamaged
 
         val isInstructable: Boolean
             get() = isHailed && (isNormal || status == AllyStatus.FLYING_BLIND)
@@ -78,7 +82,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     }
 
     class Station(station: ArtemisBase, vesselData: VesselData) :
-        ObjectEntry<ArtemisBase>(station, R.plurals.side_missions) {
+        ObjectEntry<ArtemisBase>(station, vesselData, R.plurals.side_missions) {
         var fighters: Int = 0
         var isDocking: Boolean = false
         var isDocked: Boolean = false
@@ -121,7 +125,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         override val missionStatus: SideMissionStatus
             get() =
-                if (obj.shieldsFront < obj.shieldsFrontMax) SideMissionStatus.DAMAGED
+                if (obj.shieldsFront.isDamaged) SideMissionStatus.DAMAGED
                 else SideMissionStatus.ALL_CLEAR
 
         @get:StringRes
@@ -134,11 +138,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
                     else -> null
                 }
 
-        override fun getBackgroundColor(context: Context): Int {
-            val shields = obj.shieldsFront.value
-            val shieldsMax = obj.shieldsFrontMax.value
-            return getStationColorForShieldPercent(shields / shieldsMax, context)
-        }
+        override fun getBackgroundColor(context: Context): Int =
+            getStationColorForShieldPercent(obj.shieldsFront.percentage, context)
 
         fun setBuildMinutes(minutes: Int) {
             if (firstMissile || setMissile) return
@@ -215,11 +216,37 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         fun getTimerText(context: Context): String =
             context.getString(R.string.build_timer, TimerText.getTimeUntil(endTime))
+
+        companion object {
+            private val CALLSIGN_REGEX = Regex("DS\\d+")
+            private val ENEMY_REGEX = Regex("^[A-Z][a-z]+ Base \\d+")
+
+            val FRIENDLY_COMPARATOR =
+                buildStationNameComparator(CALLSIGN_REGEX) { it.substring(2).toInt() }
+
+            val ENEMY_COMPARATOR =
+                buildStationNameComparator(ENEMY_REGEX) { it.substringAfterLast(' ').toInt() }
+
+            private fun buildStationNameComparator(
+                regex: Regex,
+                selector: (String) -> Comparable<*>,
+            ) =
+                Comparator<String> { first, second ->
+                    val firstName = first.orEmpty()
+                    val secondName = second.orEmpty()
+
+                    if (regex matches firstName && regex matches secondName)
+                        compareValuesBy(firstName, secondName, selector)
+                    else compareValues(firstName, secondName)
+                }
+        }
     }
 
     var missions: Int = 0
     var heading: String = ""
     var range: Float = 0f
+
+    val fullName: String by lazy { obj.getFullName(vesselData) }
 
     abstract val missionStatus: SideMissionStatus
 

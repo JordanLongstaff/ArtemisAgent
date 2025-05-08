@@ -4,16 +4,14 @@ import artemis.agent.AgentViewModel
 import artemis.agent.game.GameFragment
 import artemis.agent.game.ObjectEntry
 import artemis.agent.game.biomechs.BiomechEntry
-import artemis.agent.game.enemies.EnemyCaptainStatus
 import artemis.agent.game.enemies.EnemyEntry
-import artemis.agent.game.enemies.TauntStatus
 import com.walkertribe.ian.enums.BaseMessage
-import com.walkertribe.ian.enums.IntelType
+import com.walkertribe.ian.enums.ObjectType
 import com.walkertribe.ian.enums.OtherMessage
 import com.walkertribe.ian.iface.Listener
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
-import com.walkertribe.ian.protocol.core.world.IntelPacket
+import com.walkertribe.ian.protocol.core.world.DeleteObjectPacket
 import com.walkertribe.ian.util.isKnown
 import com.walkertribe.ian.vesseldata.Faction
 import com.walkertribe.ian.world.ArtemisBase
@@ -23,11 +21,11 @@ import com.walkertribe.ian.world.ArtemisMine
 import com.walkertribe.ian.world.ArtemisNpc
 import com.walkertribe.ian.world.ArtemisObject
 import com.walkertribe.ian.world.ArtemisPlayer
-import com.walkertribe.ian.world.BaseArtemisShielded
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.set
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 
 class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
@@ -76,7 +74,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             MessageParser.HailResponse,
         )
 
-    fun onStationDelete(id: Int) {
+    private fun onStationDelete(id: Int) {
         with(viewModel) {
             livingEnemyStations.also { enemyStations ->
                 val enemyStation = enemyStations.remove(id)
@@ -92,34 +90,29 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                     livingStations.also { stations ->
                         stations.remove(id)?.apply {
                             obj.name.value?.also { name ->
-                                getFullNameForShip(obj).also { fullName ->
-                                    val replacementName =
-                                        livingStationNameIndex.run {
-                                            higherKey(name) ?: lowerKey(name)
-                                        }
+                                val replacementName =
+                                    livingStationNameIndex.run { higherKey(name) ?: lowerKey(name) }
 
-                                    val destroyedStationList =
-                                        destroyedStations.value.toMutableList()
-                                    destroyedStationList.add(fullName)
-                                    destroyedStations.value = destroyedStationList
+                                val destroyedStationList = destroyedStations.value.toMutableList()
+                                destroyedStationList.add(fullName)
+                                destroyedStations.value = destroyedStationList
 
-                                    if (replacementName == null) {
-                                        stationsRemain.value = false
-                                    } else if (stationName.value == name) {
-                                        stationName.value = replacementName
-                                    }
-
-                                    allyShips.values
-                                        .filter { it.destination == name }
-                                        .forEach {
-                                            it.destination = null
-                                            it.isMovingToStation = false
-                                        }
-                                    livingStationFullNameIndex.remove(fullName)
+                                if (replacementName == null) {
+                                    stationsRemain.value = false
+                                } else if (stationName.value == name) {
+                                    stationName.value = replacementName
                                 }
+
+                                allyShips.values
+                                    .filter { it.destination == name }
+                                    .forEach {
+                                        it.destination = null
+                                        it.isMovingToStation = false
+                                    }
+                                livingStationFullNameIndex.remove(fullName)
                                 livingStationNameIndex.remove(name)
                             }
-                            purgeMissions(obj)
+                            missionManager.purgeMissions(obj)
                         }
                     }
                 }
@@ -183,9 +176,10 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             with(viewModel) {
                 val firstStation = livingStations.isEmpty()
                 val id = station.id
-                livingStations[id] = ObjectEntry.Station(station, vesselData)
+                val entry = ObjectEntry.Station(station, vesselData)
+                livingStations[id] = entry
                 livingStationNameIndex[name] = id
-                livingStationFullNameIndex[getFullNameForShip(station)] = id
+                livingStationFullNameIndex[entry.fullName] = id
 
                 if (firstStation) {
                     stationName.value = livingStationNameIndex.firstKey()
@@ -196,7 +190,7 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         }
     }
 
-    fun onPlayerDelete(id: Int) {
+    private fun onPlayerDelete(id: Int) {
         with(viewModel) {
             players.remove(id)?.also {
                 val index = it.shipIndex.value.toInt()
@@ -310,119 +304,93 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     private fun updateUnscannedBiomech(update: ArtemisNpc): Boolean {
-        val biomech = viewModel.unscannedBiomechs[update.id] ?: return false
+        val biomechManager = viewModel.biomechManager
+        val biomech = biomechManager.unscanned[update.id] ?: return false
         update updates biomech
 
         if (viewModel.playerShip?.let { update.hasBeenScannedBy(it).booleanValue } == true) {
-            viewModel.unscannedBiomechs.remove(biomech.id)
-            viewModel.scannedBiomechs.add(BiomechEntry(biomech))
+            biomechManager.unscanned.remove(biomech.id)
+            biomechManager.scanned.add(BiomechEntry(biomech))
         }
 
         return true
     }
 
-    private fun updateScannedBiomech(update: ArtemisNpc): Boolean {
-        val biomechEntry = viewModel.scannedBiomechs.find { it.biomech == update } ?: return false
-        update updates biomechEntry.biomech
+    private fun updateScannedBiomech(update: ArtemisNpc): Boolean =
+        viewModel.biomechManager.scanned
+            .find { it.biomech == update }
+            ?.also { biomechEntry ->
+                update updates biomechEntry.biomech
 
-        if (update.x.hasValue || update.y.hasValue || update.z.hasValue) {
-            biomechEntry.onFreezeEnd()
-        }
-
-        return true
-    }
+                if (update.x.hasValue || update.y.hasValue || update.z.hasValue) {
+                    biomechEntry.onFreezeEnd()
+                }
+            } != null
 
     private fun updateEnemy(update: ArtemisNpc): Boolean {
-        val entry = viewModel.enemies[update.id] ?: return false
+        val enemiesManager = viewModel.enemiesManager
+        val entry = enemiesManager.allEnemies[update.id] ?: return false
         val enemy = entry.enemy
 
         val wasSurrendered = enemy.isSurrendered.value.booleanValue
         val isSurrendered = update.isSurrendered.value.booleanValue
         update updates enemy
 
-        if (isSurrendered && viewModel.selectedEnemy.value?.enemy == enemy) {
-            viewModel.selectedEnemy.value = null
+        if (isSurrendered && enemiesManager.selection.value?.enemy == enemy) {
+            enemiesManager.selection.value = null
         } else if (update.isSurrendered.hasValue && !isSurrendered && wasSurrendered) {
-            viewModel.perfidiousEnemy.tryEmit(entry)
-            viewModel.enemiesUpdate = true
+            enemiesManager.perfidy.tryEmit(entry)
+            enemiesManager.hasUpdate = true
         }
 
         return true
     }
 
-    @Listener
-    fun onIntel(packet: IntelPacket) {
-        if (packet.intelType != IntelType.LEVEL_2_SCAN) return
-
-        val enemy = viewModel.enemies[packet.id] ?: return
-        val taunts = enemy.faction.taunts
-
-        val intel = packet.intel
-        enemy.intel = intel
-
-        val description = intel.substring(INTEL_PREFIX_LENGTH)
-        val tauntIndex = taunts.indexOfFirst { taunt -> description.startsWith(taunt.immunity) }
-        val immunityEnd =
-            if (tauntIndex < 0) description.indexOf(',') else taunts[tauntIndex].immunity.length
-
-        val rest = description.substring(immunityEnd)
-        val captainStatus =
-            if (rest.startsWith(CAPTAIN_STATUS_PREFIX)) {
-                val status = rest.substring(CAPTAIN_STATUS_PREFIX.length)
-                EnemyCaptainStatus.entries.find {
-                    status.startsWith(it.name.lowercase().replace('_', ' '))
-                }
-            } else {
-                null
-            }
-        enemy.captainStatus = captainStatus ?: EnemyCaptainStatus.NORMAL
-        if (tauntIndex >= 0 && captainStatus != EnemyCaptainStatus.EASILY_OFFENDED) {
-            enemy.tauntStatuses[tauntIndex] = TauntStatus.INEFFECTIVE
-        }
-    }
-
-    fun onNpcDelete(id: Int) {
+    private fun onNpcDelete(id: Int) {
         npcDeleteFunctions.firstNotNullOfOrNull { it(id) }
     }
 
     private fun deleteBiomech(id: Int): ArtemisNpc? {
-        val unscannedBiomech = viewModel.unscannedBiomechs.remove(id)
+        val biomechManager = viewModel.biomechManager
+        val unscannedBiomech = biomechManager.unscanned.remove(id)
         if (unscannedBiomech != null) return unscannedBiomech
 
-        val biomechIndex = viewModel.scannedBiomechs.indexOfFirst { it.biomech.id == id }
+        val biomechIndex = biomechManager.scanned.indexOfFirst { it.biomech.id == id }
         return if (biomechIndex >= 0) {
-            val scannedBiomech = viewModel.scannedBiomechs.removeAt(biomechIndex).biomech
-            viewModel.destroyedBiomechName.tryEmit(viewModel.getFullNameForShip(scannedBiomech))
+            val scannedBiomech = biomechManager.scanned.removeAt(biomechIndex)
+            biomechManager.destroyedBiomechName.tryEmit(scannedBiomech.getFullName(viewModel))
 
-            if (viewModel.scannedBiomechs.isEmpty()) {
-                viewModel.biomechUpdate = false
+            if (biomechManager.scanned.isEmpty()) {
+                biomechManager.resetUpdate()
             }
 
-            scannedBiomech
+            scannedBiomech.biomech
         } else {
             null
         }
     }
 
     private fun deleteEnemy(id: Int): ArtemisNpc? =
-        viewModel.enemies.remove(id)?.let { entry ->
-            val enemy = entry.enemy
-            viewModel.destroyedEnemyName.tryEmit(viewModel.getFullNameForShip(enemy))
+        viewModel.enemiesManager.let { enemiesManager ->
+            enemiesManager.allEnemies.remove(id)?.let { entry ->
+                val enemy = entry.enemy
+                enemiesManager.destroyedEnemyName.tryEmit(entry.fullName)
 
-            val name = enemy.name.value
-            viewModel.allyShips.values
-                .filter { it.isAttacking && it.destination == name }
-                .forEach {
-                    it.isAttacking = false
-                    it.destination = null
+                val name = enemy.name.value
+                viewModel.allyShips.values
+                    .filter { it.isAttacking && it.destination == name }
+                    .forEach {
+                        it.isAttacking = false
+                        it.destination = null
+                    }
+                name?.also(enemiesManager.nameIndex::remove)
+
+                if (enemiesManager.selection.value == entry) {
+                    enemiesManager.selection.value = null
                 }
-            name?.also(viewModel.enemyNameIndex::remove)
 
-            if (viewModel.selectedEnemy.value == entry) {
-                viewModel.selectedEnemy.value = null
+                enemy
             }
-
-            enemy
         }
 
     private fun deleteAlly(id: Int): ArtemisNpc? =
@@ -431,29 +399,16 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
             npc.name.value?.also(viewModel.allyShipIndex::remove)
 
             val destroyedAllyList = viewModel.destroyedAllies.value.toMutableList()
-            destroyedAllyList.add(viewModel.getFullNameForShip(npc))
+            destroyedAllyList.add(ally.fullName)
             viewModel.destroyedAllies.value = destroyedAllyList
 
             if (viewModel.focusedAlly.value == ally) {
                 viewModel.focusedAlly.value = null
             }
-            purgeMissions(npc)
+            viewModel.missionManager.purgeMissions(npc)
 
             npc
         }
-
-    private fun purgeMissions(obj: BaseArtemisShielded<*>) {
-        with(viewModel) {
-            allMissions.removeAll(
-                allMissions
-                    .filter {
-                        !it.isCompleted &&
-                            (it.destination.obj == obj || (!it.isStarted && it.source.obj == obj))
-                    }
-                    .toSet()
-            )
-        }
-    }
 
     private fun onNpcCreate(npc: ArtemisNpc): Boolean =
         viewModel.run {
@@ -466,21 +421,23 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
                                 alliesExist = true
                             }
                             allyShipIndex[it] = npc.id
-                            allyShips[npc.id] = ObjectEntry.Ally(npc, vessel.name, isDeepStrike)
+                            allyShips[npc.id] = ObjectEntry.Ally(npc, vesselData, isDeepStrike)
                             sendToServer(CommsOutgoingPacket(npc, OtherMessage.Hail, vesselData))
                         }
                     faction[Faction.BIOMECH] -> {
-                        biomechsExist = true
+                        biomechManager.confirmed = true
                         if (playerShip?.let { npc.hasBeenScannedBy(it).booleanValue } == true) {
-                            scannedBiomechs.add(BiomechEntry(npc))
+                            biomechManager.scanned.add(BiomechEntry(npc))
                         } else {
-                            unscannedBiomechs[npc.id] = npc
+                            biomechManager.unscanned[npc.id] = npc
                         }
                     }
                     faction[Faction.ENEMY] ->
-                        npc.name.value?.also {
-                            enemies[npc.id] = EnemyEntry(npc, vessel, faction)
-                            enemyNameIndex[it] = npc.id
+                        npc.name.value?.also { name ->
+                            enemiesManager.addEnemy(
+                                EnemyEntry(npc, vessel, faction, vesselData),
+                                name,
+                            )
                         }
                 }
             } != null
@@ -523,6 +480,21 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
     }
 
     @Listener
+    fun onPacket(packet: DeleteObjectPacket) {
+        val id = packet.target
+
+        when (packet.targetType) {
+            ObjectType.NPC_SHIP -> onNpcDelete(id)
+            ObjectType.BASE -> onStationDelete(id)
+            ObjectType.PLAYER_SHIP -> onPlayerDelete(id)
+            ObjectType.MINE -> launch { viewModel.onDeleteObstacle(id, viewModel.mines) }
+            ObjectType.BLACK_HOLE -> launch { viewModel.onDeleteObstacle(id, viewModel.blackHoles) }
+            ObjectType.CREATURE -> launch { viewModel.onDeleteObstacle(id, viewModel.typhons) }
+            else -> {}
+        }
+    }
+
+    @Listener
     fun onCommsPacket(packet: CommsIncomingPacket) {
         for (parser in messageParsers) {
             if (parser.parseResult(packet, viewModel)) break
@@ -537,8 +509,5 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
 
     private companion object {
         const val NUM_THREADS = 20
-
-        const val INTEL_PREFIX_LENGTH = 19
-        const val CAPTAIN_STATUS_PREFIX = ", and is "
     }
 }

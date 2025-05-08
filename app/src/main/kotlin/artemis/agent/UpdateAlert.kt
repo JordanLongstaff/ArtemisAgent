@@ -1,7 +1,6 @@
 package artemis.agent
 
 import android.content.Context
-import android.util.Log
 import androidx.annotation.StringRes
 import artemis.agent.util.VersionString
 import com.google.firebase.Firebase
@@ -9,7 +8,7 @@ import com.google.firebase.remoteconfig.remoteConfig
 import com.walkertribe.ian.util.Version
 
 sealed class UpdateAlert(@StringRes val title: Int, @StringRes val message: Int) {
-    sealed class ArtemisVersion(@StringRes message: Int, private val newVersion: String) :
+    sealed class ArtemisVersion(@StringRes message: Int, internal val newVersion: String) :
         UpdateAlert(R.string.new_version_title, message) {
         class Restart(newVersion: String) :
             ArtemisVersion(R.string.new_version_restart_message, newVersion)
@@ -45,10 +44,6 @@ sealed class UpdateAlert(@StringRes val title: Int, @StringRes val message: Int)
                 remoteConfig.getLong(RemoteConfigKey.RequiredVersion.artemis).toInt()
             val artemisVersion =
                 VersionString(remoteConfig.getString(RemoteConfigKey.artemisLatestVersion))
-
-            Log.i("FRC", "Security update version: $securityUpdate")
-            Log.i("FRC", "Artemis update version: $artemisUpdate")
-            Log.i("FRC", "Latest version of Artemis: $artemisVersion")
 
             return when {
                 securityUpdate in updateRange -> Immediate

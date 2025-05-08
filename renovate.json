@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices"
   ],
   "autoApprove": true,
   "automerge": true,
@@ -9,14 +9,15 @@
   "packageRules": [
     {
       "groupName": "kotlin and ksp",
-      "matchPackageNames": [
-        "kotlin",
-        "ksp"
+      "matchSourceUrls": [
+        "https://github.com/JetBrains/kotlin",
+        "https://github.com/google/ksp"
       ]
     },
     {
       "groupName": "firebase",
-      "matchPackageNames": ["/^com\\.google\\.firebase/"]
+      "matchPackageNames": ["/^com\\.google\\.firebase/"],
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android"
     }
   ]
 }

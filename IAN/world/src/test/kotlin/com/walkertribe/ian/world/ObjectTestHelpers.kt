@@ -44,8 +44,8 @@ internal fun BaseArtemisShielded<*>.shouldBeUnknownObject(id: Int, type: ObjectT
 
     this.name.shouldBeUnspecified()
     this.hullId.shouldBeUnspecified()
-    this.shieldsFront.shouldBeUnspecified()
-    this.shieldsFrontMax.shouldBeUnspecified()
+    this.shieldsFront.strength.shouldBeUnspecified()
+    this.shieldsFront.maxStrength.shouldBeUnspecified()
 }
 
 internal fun BaseArtemisShielded<*>.shouldBeKnownObject(
@@ -63,8 +63,8 @@ internal fun BaseArtemisShielded<*>.shouldBeKnownObject(
 
     this.name shouldContainValue name
     this.hullId shouldContainValue hullId
-    this.shieldsFront shouldContainValue shieldsFront
-    this.shieldsFrontMax shouldContainValue shieldsFrontMax
+    this.shieldsFront.strength shouldContainValue shieldsFront
+    this.shieldsFront.maxStrength shouldContainValue shieldsFrontMax
 }
 
 internal fun BaseArtemisShielded.Dsl<*>.shouldBeReset() {
@@ -79,8 +79,8 @@ internal fun BaseArtemisShielded.Dsl<*>.shouldBeReset() {
 internal fun BaseArtemisShip<*>.shouldBeUnknownObject(id: Int, type: ObjectType) {
     (this as BaseArtemisShielded<*>).shouldBeUnknownObject(id, type)
 
-    this.shieldsRear.shouldBeUnspecified()
-    this.shieldsRearMax.shouldBeUnspecified()
+    this.shieldsRear.strength.shouldBeUnspecified()
+    this.shieldsRear.maxStrength.shouldBeUnspecified()
     this.impulse.shouldBeUnspecified()
     this.side.shouldBeUnspecified()
 }
@@ -102,8 +102,8 @@ internal fun BaseArtemisShip<*>.shouldBeKnownObject(
 ) {
     shouldBeKnownObject(id, type, name, x, y, z, hullId, shieldsFront, shieldsFrontMax)
 
-    this.shieldsRear shouldContainValue shieldsRear
-    this.shieldsRearMax shouldContainValue shieldsRearMax
+    this.shieldsRear.strength shouldContainValue shieldsRear
+    this.shieldsRear.maxStrength shouldContainValue shieldsRearMax
     this.impulse shouldContainValue impulse
     this.side shouldContainValue side
 }

@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -129,6 +130,36 @@ class MainActivity : AppCompatActivity() {
     private var isUpdateReady: Boolean = false
     @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
 
+    private val completeUpdateCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                updateManager.completeUpdate()
+            }
+        }
+    }
+
+    private val exitConfirmationCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                isEnabled = false
+                viewModel.playSound(SoundEffect.BEEP_2)
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(R.string.exit_message)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_1)
+                        isEnabled = true
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.CONFIRMATION)
+                        viewModel.networkInterface.stop()
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                    .show()
+            }
+        }
+    }
+
     private var notificationRequests = STOP_NOTIFICATIONS
 
     private val notificationManager: NotificationManager by lazy {
@@ -170,34 +201,35 @@ class MainActivity : AppCompatActivity() {
                     createStationPacketListener(
                         service,
                         viewModel.stationProductionPacket,
-                        NotificationManager.CHANNEL_PRODUCTION,
+                        NotificationChannelTag.PRODUCTION,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationAttackedPacket,
-                        NotificationManager.CHANNEL_ATTACK,
+                        NotificationChannelTag.ATTACK,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationDestroyedPacket,
-                        NotificationManager.CHANNEL_DESTROYED,
+                        NotificationChannelTag.DESTROYED,
                         false,
                     )
 
+                    val missionManager = viewModel.missionManager
                     createMissionPacketListener(
                         service,
-                        viewModel.newMissionPacket,
-                        NotificationManager.CHANNEL_NEW_MISSION,
+                        missionManager.newMissionPacket,
+                        NotificationChannelTag.NEW_MISSION,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionProgressPacket,
-                        NotificationManager.CHANNEL_MISSION_PROGRESS,
+                        missionManager.missionProgressPacket,
+                        NotificationChannelTag.MISSION_PROGRESS,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionCompletionPacket,
-                        NotificationManager.CHANNEL_MISSION_COMPLETED,
+                        missionManager.missionCompletionPacket,
+                        NotificationChannelTag.MISSION_COMPLETED,
                     )
 
                     setupOngoingNotifications(service)
@@ -229,10 +261,13 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_GAME_INFO,
-                        title = viewModel.connectedUrl.value,
-                        message = strings.joinToString(),
-                        ongoing = true,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.GAME_INFO,
+                                title = viewModel.connectedUrl.value,
+                                message = strings.joinToString(),
+                                ongoing = true,
+                            ),
                         onIntent = { putExtra(Section.GAME.name, GAME_PAGE_UNSPECIFIED) },
                     )
                 }
@@ -242,13 +277,16 @@ class MainActivity : AppCompatActivity() {
 
                     allies.firstOrNull()?.also { ally ->
                         buildNotification(
-                            channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
-                            title = viewModel.getFullNameForShip(ally.obj),
-                            message =
-                                if (viewModel.torpedoesReady)
-                                    getString(R.string.manufacturing_torpedoes_ready)
-                                else viewModel.getManufacturingTimer(this@MainActivity),
-                            ongoing = true,
+                            info =
+                                NotificationInfo(
+                                    channel = NotificationChannelTag.DEEP_STRIKE,
+                                    title = ally.fullName,
+                                    message =
+                                        if (viewModel.torpedoesReady)
+                                            getString(R.string.manufacturing_torpedoes_ready)
+                                        else viewModel.getManufacturingTimer(this@MainActivity),
+                                    ongoing = true,
+                                ),
                             onIntent = {
                                 putExtra(Section.GAME.name, GameFragment.Page.ALLIES.ordinal)
                             },
@@ -258,15 +296,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupBiomechNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedBiomechName) {
+                val biomechManager = viewModel.biomechManager
+
+                service.collectLatestWhileStarted(biomechManager.destroyedBiomechName) {
                     notificationManager.dismissBiomechMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.nextActiveBiomech) { entry ->
+                service.collectLatestWhileStarted(biomechManager.nextActiveBiomech) { entry ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_REANIMATE,
-                        title = viewModel.getFullNameForShip(entry.biomech),
-                        message = getString(R.string.biomech_notification),
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.REANIMATE,
+                                title = entry.getFullName(viewModel),
+                                message = getString(R.string.biomech_notification),
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.BIOMECHS.ordinal)
                         },
@@ -297,15 +340,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupEnemyNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedEnemyName) {
+                val enemiesManager = viewModel.enemiesManager
+
+                service.collectLatestWhileStarted(enemiesManager.destroyedEnemyName) {
                     notificationManager.dismissPerfidyMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.perfidiousEnemy) { entry ->
+                service.collectLatestWhileStarted(enemiesManager.perfidy) { entry ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_PERFIDY,
-                        title = viewModel.getFullNameForShip(entry.enemy),
-                        message = getString(R.string.enemy_perfidy_notification),
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.PERFIDY,
+                                title = entry.fullName,
+                                message = getString(R.string.enemy_perfidy_notification),
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.ENEMIES.ordinal)
                         },
@@ -316,9 +364,12 @@ class MainActivity : AppCompatActivity() {
             private fun setupGameNotifications(service: NotificationService) {
                 service.collectLatestWhileStarted(viewModel.borderWarMessage) { packet ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_BORDER_WAR,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.BORDER_WAR,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = { putExtra(Section.GAME.name, GAME_PAGE_UNSPECIFIED) },
                     )
                 }
@@ -326,9 +377,12 @@ class MainActivity : AppCompatActivity() {
                 service.collectLatestWhileStarted(viewModel.gameOverReason) { reason ->
                     if (viewModel.gameIsRunning.value) return@collectLatestWhileStarted
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_GAME_OVER,
-                        title = viewModel.connectedUrl.value,
-                        message = reason,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.GAME_OVER,
+                                title = viewModel.connectedUrl.value,
+                                message = reason,
+                            ),
                         setBuilder = { notificationManager.reset() },
                     )
                 }
@@ -349,9 +403,12 @@ class MainActivity : AppCompatActivity() {
                             else -> return@collectLatestWhileStarted
                         }
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_CONNECTION,
-                        title = viewModel.connectedUrl.value,
-                        message = message,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.CONNECTION,
+                                title = viewModel.connectedUrl.value,
+                                message = message,
+                            ),
                         onIntent = {
                             putExtra(Section.SETUP.name, SetupFragment.Page.CONNECT.ordinal)
                         },
@@ -369,9 +426,12 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_CONNECTION,
-                        title = viewModel.lastAttemptedHost,
-                        message = message,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.CONNECTION,
+                                title = viewModel.lastAttemptedHost,
+                                message = message,
+                            ),
                         onIntent = {
                             val openPage =
                                 if (status is ConnectionStatus.Connected) SetupFragment.Page.SHIPS
@@ -385,13 +445,16 @@ class MainActivity : AppCompatActivity() {
             private fun createMissionPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
-                        channelId = channelId,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channel = channel,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.MISSIONS.ordinal)
                         },
@@ -402,14 +465,17 @@ class MainActivity : AppCompatActivity() {
             private fun createStationPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
                 includeSenderName: Boolean = true,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
-                        channelId = channelId,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channel = channel,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = {
                             putExtra(
                                 GameFragment.Page.STATIONS.name,
@@ -423,10 +489,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun buildNotification(
-        channelId: String,
-        title: String,
-        message: String,
-        ongoing: Boolean = false,
+        info: NotificationInfo,
         onIntent: Intent.() -> Unit = {},
         setBuilder: (NotificationCompat.Builder) -> Unit = {},
     ) {
@@ -442,21 +505,14 @@ class MainActivity : AppCompatActivity() {
             )
 
         val builder =
-            NotificationCompat.Builder(this, channelId)
+            NotificationCompat.Builder(this, info.channel.tag)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setLargeIcon(
                     BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
                 )
                 .setContentIntent(pendingIntent)
-                .setOngoing(ongoing)
                 .also(setBuilder)
-        notificationManager.createNotification(
-            builder,
-            channelId,
-            title,
-            message,
-            applicationContext,
-        )
+        notificationManager.createNotification(builder, info, applicationContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -522,9 +578,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
-    override fun onDestroy() {
-        super.onDestroy()
-        unbindService(connection)
+    override fun onStop() {
+        super.onStop()
+        destroyServiceConnection()
 
         openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
             it.write(byteArrayOf(viewModel.themeIndex.toByte()))
@@ -540,9 +596,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         if (notificationRequests != STOP_NOTIFICATIONS) {
-            unbindService(connection)
-            notificationRequests = STOP_NOTIFICATIONS
-            notificationManager.reset()
+            destroyServiceConnection()
         }
 
         updateManager.appUpdateInfo.addOnSuccessListener { updateInfo ->
@@ -629,43 +683,23 @@ class MainActivity : AppCompatActivity() {
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
         }
-        Firebase.remoteConfig.setConfigSettingsAsync(configSettings)
+        Firebase.remoteConfig.apply {
+            setConfigSettingsAsync(configSettings)
+            setDefaultsAsync(
+                mapOf(RemoteConfigKey.artemisLatestVersion to Version.DEFAULT.toString())
+            )
+        }
     }
 
     private fun setupBackPressedCallbacks() {
-        val finishCallback =
-            onBackPressedDispatcher.addCallback(this) {
-                if (isUpdateReady) {
-                    updateManager.completeUpdate()
-                } else {
-                    supportFinishAfterTransition()
-                }
-            }
-
-        onBackPressedDispatcher.addCallback(this) {
-            val dialog =
-                viewModel.ifConnected {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setMessage(R.string.exit_message)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            viewModel.playSound(SoundEffect.BEEP_1)
-                            isEnabled = true
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            viewModel.playSound(SoundEffect.CONFIRMATION)
-                            viewModel.networkInterface.stop()
-                            finishCallback.handleOnBackPressed()
-                        }
-                }
-            if (dialog != null) {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                dialog.show()
-                isEnabled = false
-            } else {
-                finishCallback.handleOnBackPressed()
-            }
+        // Some Android 10 devices leak memory if this is not called, so we need to register this
+        // callback to address it
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+            onBackPressedDispatcher.addCallback(this) { supportFinishAfterTransition() }
         }
+
+        onBackPressedDispatcher.addCallback(this, completeUpdateCallback)
+        onBackPressedDispatcher.addCallback(this, exitConfirmationCallback)
     }
 
     private fun setupTheme() {
@@ -688,7 +722,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupConnectionObservers() {
         collectLatestWhileStarted(viewModel.connectionStatus) {
-            if (viewModel.isIdle) {
+            val isConnected = viewModel.isConnected
+            exitConfirmationCallback.isEnabled = isConnected
+            if (!isConnected) {
                 viewModel.selectableShips.value = emptyList()
             }
         }
@@ -766,12 +802,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupUserSettingsObserver() {
         collectLatestWhileStarted(userSettings.data) { settings ->
-            var newContextIndex =
-                viewModel.reconcileVesselDataIndex(settings.vesselDataLocationValue)
-            viewModel.checkContext(newContextIndex) { message ->
+            val vesselDataManager = viewModel.vesselDataManager
+            var newContextIndex = vesselDataManager.reconcileIndex(settings.vesselDataLocationValue)
+            vesselDataManager.checkContext(newContextIndex) { message ->
                 newContextIndex =
-                    if (viewModel.vesselDataIndex == newContextIndex) 0
-                    else viewModel.vesselDataIndex
+                    if (vesselDataManager.index == newContextIndex) 0 else vesselDataManager.index
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.xml_error)
                     .setMessage(getString(R.string.xml_error_message, message))
@@ -794,7 +829,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-            if (!viewModel.isIdle && newContextIndex != viewModel.vesselDataIndex) {
+            if (!viewModel.isIdle && newContextIndex != vesselDataManager.index) {
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle(R.string.vessel_data)
                     .setMessage(R.string.xml_location_warning)
@@ -918,6 +953,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onUpdateReady() {
         isUpdateReady = true
+        completeUpdateCallback.isEnabled = true
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.update_ready_title)
             .setMessage(R.string.update_ready_message)
@@ -961,6 +997,12 @@ class MainActivity : AppCompatActivity() {
             .setMessage(getString(R.string.review_error_message, errorCode))
             .setCancelable(true)
             .show()
+    }
+
+    private fun destroyServiceConnection() {
+        unbindService(connection)
+        notificationRequests = STOP_NOTIFICATIONS
+        notificationManager.reset()
     }
 
     private companion object {

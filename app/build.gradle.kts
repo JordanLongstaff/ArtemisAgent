@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.serialization")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
+    alias(libs.plugins.firebase.perf)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
@@ -39,11 +40,11 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 30
-        versionName = "1.0.9"
+        versionCode = 32
+        versionName = "1.1.1"
         multiDexEnabled = true
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
@@ -108,21 +109,29 @@ dependencies {
     implementation(projects.ian.util)
     implementation(projects.ian.vesseldata)
     implementation(projects.ian.world)
-    testImplementation(projects.ian.testing)
 
     ksp(projects.ian.processor)
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
 
+    testImplementation(projects.ian.testing)
+    testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.vesseldata))
+
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
 
-    androidTestImplementation(libs.bundles.app.androidTest)
+    androidTestImplementation(libs.bundles.app.androidTest) {
+        exclude(group = "org.hamcrest", module = "hamcrest-core")
+        exclude(group = "org.hamcrest", module = "hamcrest-library")
+    }
     androidTestUtil(libs.test.orchestrator)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
+    implementation(libs.bundles.firebase) {
+        exclude(group = "com.google.firebase", module = "protolite-well-known-types")
+    }
 
     constraints {
         implementation(libs.guava) {

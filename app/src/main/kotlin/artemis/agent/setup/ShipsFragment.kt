@@ -74,6 +74,7 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
         override fun onBindViewHolder(holder: ShipViewHolder, position: Int) {
             val ship = shipsList[position]
             val entryBinding = holder.entryBinding
+            val vesselData = viewModel.vesselData
 
             entryBinding.driveTypeLabel.text = ship.drive.name.substring(0, 1)
             entryBinding.nameLabel.text =
@@ -86,18 +87,13 @@ class ShipsFragment : Fragment(R.layout.ships_fragment) {
                 else Color.HSVToColor(floatArrayOf(hue, 1f, VALUE))
             )
 
-            entryBinding.vesselLabel.text = viewModel.getFullNameForVessel(ship)
-            entryBinding.descriptionLabel.text =
-                ship.getVessel(viewModel.vesselData)?.description ?: ""
+            entryBinding.vesselLabel.text = ship.getFullName(vesselData)
+            entryBinding.descriptionLabel.text = ship.getVessel(vesselData)?.description ?: ""
 
             root.setOnClickListener { viewModel.selectShip(position) }
 
-            val selectedShipLabel = entryBinding.selectedShipLabel
-            if (selectedShipIndex == position) {
-                selectedShipLabel.setText(R.string.selected)
-            } else {
-                selectedShipLabel.text = ""
-            }
+            entryBinding.selectedShipLabel.visibility =
+                if (selectedShipIndex == position) View.VISIBLE else View.GONE
         }
 
         fun update(value: Int) {

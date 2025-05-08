@@ -90,7 +90,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     }
 
     private fun prepareVesselDataSettingButtons(vesselDataOptionButtons: Array<RadioButton>) {
-        val numAvailableOptions = viewModel.storageDirectories.size + 1
+        val numAvailableOptions = viewModel.vesselDataManager.count
         vesselDataOptionButtons.forEachIndexed { index, button ->
             button.visibility =
                 if (index < numAvailableOptions) {

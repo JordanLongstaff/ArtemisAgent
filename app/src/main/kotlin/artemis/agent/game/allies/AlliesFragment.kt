@@ -1,5 +1,6 @@
 package artemis.agent.game.allies
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
@@ -206,12 +207,23 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         ) : this(AlliesEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
         fun bind(entry: Ally, viewModel: AgentViewModel) {
-            entryBinding.allyNameLabel.text = viewModel.getFullNameForShip(entry.obj)
+            entryBinding.allyNameLabel.text = entry.fullName
             entryBinding.allyHailButton.setOnClickListener {
                 viewModel.playSound(SoundEffect.BEEP_2)
                 viewModel.sendToServer(
                     CommsOutgoingPacket(entry.obj, OtherMessage.Hail, viewModel.vesselData)
                 )
+            }
+
+            entryBinding.allyRecapButton.setOnClickListener {
+                viewModel.playSound(SoundEffect.BEEP_2)
+                if (entry.latestHailMessage.isBlank()) return@setOnClickListener
+
+                AlertDialog.Builder(entryBinding.root.context)
+                    .setTitle(entry.fullName)
+                    .setMessage(entry.latestHailMessage)
+                    .setCancelable(true)
+                    .show()
             }
 
             bindAllyCommandButton(entry, viewModel)
@@ -307,14 +319,14 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
             entryBinding.allyFrontShieldLabel.text =
                 context.getString(
                     R.string.front_shield,
-                    entry.obj.shieldsFront.value.coerceAtLeast(0f),
-                    entry.obj.shieldsFrontMax.value,
+                    entry.obj.shieldsFront.strength.value.coerceAtLeast(0f),
+                    entry.obj.shieldsFront.maxStrength.value,
                 )
             entryBinding.allyRearShieldLabel.text =
                 context.getString(
                     R.string.rear_shield,
-                    entry.obj.shieldsRear.value.coerceAtLeast(0f),
-                    entry.obj.shieldsRearMax.value,
+                    entry.obj.shieldsRear.strength.value.coerceAtLeast(0f),
+                    entry.obj.shieldsRear.maxStrength.value,
                 )
         }
     }

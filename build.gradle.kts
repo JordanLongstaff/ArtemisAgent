@@ -20,7 +20,7 @@ buildscript {
     }
 }
 
-val sdkVersion: Int by extra(35)
+val sdkVersion: Int by extra(36)
 val minimumSdkVersion: Int by extra(21)
 val javaVersion: JavaVersion by extra(JavaVersion.VERSION_21)
 
@@ -58,6 +58,15 @@ plugins {
 tasks.detekt { jvmTarget = javaVersion.toString() }
 
 tasks.detektBaseline { jvmTarget = javaVersion.toString() }
+
+dependencyAnalysis {
+    usage {
+        analysis {
+            checkSuperClasses(true)
+        }
+    }
+    useTypesafeProjectAccessors(true)
+}
 
 detekt {
     toolVersion = libs.versions.detekt.get()

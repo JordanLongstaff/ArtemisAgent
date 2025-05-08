@@ -81,6 +81,6 @@ abstract class TimeInputBinder(
 
         const val SIX = 6
         const val TEN = 10
-        const val SIXTY = 60
+        const val SIXTY = SIX * TEN
     }
 }

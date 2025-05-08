@@ -23,14 +23,14 @@ class NotificationService : LifecycleService() {
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.getIntExtra(EXTRA_BIOMECH_ID, -1)?.also { id ->
-            binder?.viewModel?.apply {
-                scannedBiomechs
+            binder?.viewModel?.also { viewModel ->
+                viewModel.biomechManager.scanned
                     .find { it.biomech.id == id }
-                    ?.also {
-                        it.freeze(this)
+                    ?.also { biomech ->
+                        biomech.freeze(viewModel)
                         binder
                             ?.notificationManager
-                            ?.dismissBiomechMessage(getFullNameForShip(it.biomech))
+                            ?.dismissBiomechMessage(biomech.getFullName(viewModel))
                     }
             }
         }

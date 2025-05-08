@@ -3,7 +3,8 @@ package artemis.agent.setup.settings
 import android.os.Bundle
 import android.view.View
 import android.widget.ToggleButton
-import androidx.activity.addCallback
+import androidx.activity.BackEventCompat
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -215,17 +216,50 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             }
         }
 
+    private val onBackPressedCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            private var openedPage: Page? = null
+
+            override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                openedPage = currentPage
+            }
+
+            override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                if (backEvent.progress > 0f) {
+                    viewModel.settingsPage.value = null
+                    binding.backPressAlpha.visibility = View.VISIBLE
+                } else {
+                    viewModel.settingsPage.value = openedPage
+                    binding.backPressAlpha.visibility = View.GONE
+                }
+            }
+
+            override fun handleOnBackCancelled() {
+                onBackEnded()
+            }
+
+            override fun handleOnBackPressed() {
+                viewModel.settingsPage.value = null
+                isEnabled = false
+                onBackEnded()
+            }
+
+            private fun onBackEnded() {
+                viewModel.playSound(SoundEffect.BEEP_1)
+                binding.backPressAlpha.visibility = View.GONE
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val onBackPressedCallback =
-            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-                goBackToMenu()
-            }
+        requireActivity()
+            .onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, onBackPressedCallback)
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsPage) {
-            onBackPressedCallback.isEnabled = it != null
-            currentPage = it
+            currentPage = it?.also { onBackPressedCallback.isEnabled = true }
         }
 
         binding.settingsBack.setOnClickListener { goBackToMenu() }
@@ -249,7 +283,6 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
     }
 
     private fun goBackToMenu() {
-        viewModel.playSound(SoundEffect.BEEP_1)
-        viewModel.settingsPage.value = null
+        onBackPressedCallback.handleOnBackPressed()
     }
 }

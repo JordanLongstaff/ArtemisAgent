@@ -1,6 +1,6 @@
 package artemis.agent.cpu
 
-import artemis.agent.AgentViewModel
+import artemis.agent.game.ObjectEntry
 import artemis.agent.game.allies.AllyStatus
 
 enum class HailResponseEffect(private val prefix: String) {
@@ -59,18 +59,13 @@ enum class HailResponseEffect(private val prefix: String) {
 
     open fun appliesTo(response: String): Boolean = response.startsWith(prefix)
 
-    operator fun invoke(response: String, sender: String, viewModel: AgentViewModel): Boolean {
+    operator fun invoke(response: String, ally: ObjectEntry.Ally?): Boolean {
         if (!appliesTo(response)) return false
 
-        val splitPoint = sender.lastIndexOf(" ")
-        val vesselName = sender.substring(0, splitPoint)
-        val name = sender.substring(splitPoint + 1)
-        viewModel.allyShipIndex[name]?.let(viewModel.allyShips::get)?.also { ally ->
-            if (ally.vesselName == vesselName) {
-                if (ally.status != AllyStatus.FLYING_BLIND) ally.status = getAllyStatus(response)
-                ally.hasEnergy = response.endsWith(HAS_ENERGY)
-                ally.checkNebulaStatus()
-            }
+        if (ally != null) {
+            if (ally.status != AllyStatus.FLYING_BLIND) ally.status = getAllyStatus(response)
+            ally.hasEnergy = ally.hasEnergy || response.endsWith(HAS_ENERGY)
+            ally.checkNebulaStatus()
         }
 
         return true

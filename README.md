@@ -1,4 +1,4 @@
-# Artemis Agent 1.0.9
+# Artemis Agent 1.1.1
 
 ## What is Artemis Agent?
 
@@ -10,7 +10,7 @@ offered, and how much progress had been made. Later, it was expanded to include 
 reported from ally ships and stations as well, and later still, to also calculate efficient routes
 to complete all side missions and assist ally ships that needed help.
 
-Artemis Messenger has become obselete, and Artemis Agent has taken its place. It restores all the
+Artemis Messenger has become obsolete, and Artemis Agent has taken its place. It restores all the
 features of its predecessor and adds new ones. Users can toggle red alert status, activate secret
 code cases, send commands to ally ships, track BioMechs and remotely freeze them for a limited time,
 track scanned enemy ships, taunt them and request surrenders. The UI has been greatly modernized to
