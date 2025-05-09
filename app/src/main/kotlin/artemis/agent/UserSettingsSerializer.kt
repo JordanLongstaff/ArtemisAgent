@@ -108,6 +108,7 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
 
         showNetworkInfo = true
         alwaysScanPublic = false
+        hapticsEnabled = true
     }
 
     val Context.userSettings by dataStore(fileName = USER_SETTINGS_FILE_NAME, serializer = this)

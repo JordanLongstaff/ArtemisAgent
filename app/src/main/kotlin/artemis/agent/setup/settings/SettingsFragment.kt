@@ -160,6 +160,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                     theme = UserSettings.Theme.THEME_DEFAULT
                     threeDigitDirections = true
                     soundVolume = UserSettingsSerializer.DEFAULT_SOUND_VOLUME
+                    hapticsEnabled = true
                 }
         };
 
@@ -177,6 +178,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                     binding.settingsBack.visibility = View.GONE
 
                     binding.settingsReset.setOnClickListener {
+                        viewModel.activateHaptic()
                         viewModel.viewModelScope.launch {
                             binding.root.context.userSettings.updateData {
                                 defaultValue.copy {
@@ -200,6 +202,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                         } ?: View.INVISIBLE
 
                     binding.settingsReset.setOnClickListener {
+                        viewModel.activateHaptic()
                         viewModel.settingsReset.apply { value = !value }
                         viewModel.viewModelScope.launch {
                             binding.root.context.userSettings.updateData(page::reset)
@@ -262,13 +265,19 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             currentPage = it?.also { onBackPressedCallback.isEnabled = true }
         }
 
-        binding.settingsBack.setOnClickListener { goBackToMenu() }
+        binding.settingsBack.setOnClickListener {
+            viewModel.activateHaptic()
+            goBackToMenu()
+        }
 
         binding.settingsPageTitle.setOnClickListener {
             if (currentPage != null) {
+                viewModel.activateHaptic()
                 goBackToMenu()
             }
         }
+
+        binding.settingsOnOff.setOnClickListener { viewModel.activateHaptic() }
 
         binding.settingsOnOff.setOnCheckedChangeListener { _, isChecked ->
             currentPage?.onToggle?.also { onToggle ->

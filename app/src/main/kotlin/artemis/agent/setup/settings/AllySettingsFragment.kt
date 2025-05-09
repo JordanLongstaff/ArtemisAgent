@@ -54,7 +54,10 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
 
     private fun prepareAllySortMethodButtons(allySortMethodButtons: ToggleButtonMap) {
         allySortMethodButtons.keys.forEach { button ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
         }
 
         binding.allySortingClassButton1.bindSortButton { isChecked ->
@@ -91,6 +94,7 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
 
     private fun prepareDefaultSortMethodButton(allySortMethodButtons: ToggleButtonMap) {
         binding.allySortingDefaultButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
         }
 
@@ -111,10 +115,14 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
 
     private fun prepareOtherSettingButtons() {
         binding.showDestroyedAlliesButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
         }
 
-        binding.manuallyReturnButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.manuallyReturnButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.showDestroyedAlliesButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {

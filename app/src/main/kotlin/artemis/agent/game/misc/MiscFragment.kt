@@ -126,13 +126,19 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         fun bind(entry: AudioEntry, viewModel: AgentViewModel) {
             entryBinding.messageLabel.text = entry.title
             entryBinding.playButton.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(entry.playPacket)
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(entry.playPacket)
+                }
             }
             entryBinding.deleteButton.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(entry.dismissPacket)
-                viewModel.miscManager.dismissAudio(entry)
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(entry.dismissPacket)
+                    miscManager.dismissAudio(entry)
+                }
             }
         }
     }
@@ -183,8 +189,11 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         fun bind(entry: CommsActionEntry, viewModel: AgentViewModel) {
             button.text = entry.label
             button.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(entry.clickPacket)
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(entry.clickPacket)
+                }
             }
         }
     }

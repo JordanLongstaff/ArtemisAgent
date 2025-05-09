@@ -3,6 +3,9 @@ package artemis.agent
 import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
+import android.os.Build
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.annotation.StyleRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +30,7 @@ import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
 import artemis.agent.util.TimerText.timerString
@@ -342,6 +346,20 @@ class AgentViewModel(application: Application) :
 
     // Determines whether directions are shown as padded three-digit numbers
     var threeDigitDirections = true
+        private set
+
+    // Haptics
+    private val vibrator =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager =
+                application.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            manager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+
+    private var hapticsEnabled = true
 
     // Setup fragment page
     val setupFragmentPage: MutableStateFlow<SetupFragment.Page> by lazy {
@@ -561,6 +579,16 @@ class AgentViewModel(application: Application) :
                 player.setVolume(volume, volume)
                 player.start()
             }
+        }
+    }
+
+    fun activateHaptic(effect: HapticEffect = HapticEffect.CLICK) {
+        if (!hapticsEnabled) return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            vibrator.vibrate(effect.vibration)
+        } else {
+            @Suppress("DEPRECATION") vibrator.vibrate(effect.duration)
         }
     }
 
@@ -1118,6 +1146,7 @@ class AgentViewModel(application: Application) :
 
         threeDigitDirections = settings.threeDigitDirections
         volume = settings.soundVolume.toFloat()
+        hapticsEnabled = settings.hapticsEnabled
 
         val newThemeRes = ALL_THEMES[settings.themeValue]
         if (themeRes != newThemeRes) {
@@ -1180,6 +1209,7 @@ class AgentViewModel(application: Application) :
             themeValue = ALL_THEMES.indexOf(themeRes)
             showNetworkInfo = showingNetworkInfo
             alwaysScanPublic = alwaysScanPublicBroadcasts
+            hapticsEnabled = this@AgentViewModel.hapticsEnabled
         }
 
     companion object {

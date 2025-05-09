@@ -539,10 +539,16 @@ class MainActivity : AppCompatActivity() {
                 if (it == HelpFragment.ABOUT_TOPIC_INDEX) View.VISIBLE else View.GONE
         }
 
-        binding.updateButton.setOnClickListener { checkForUpdates() }
+        binding.updateButton.setOnClickListener {
+            viewModel.activateHaptic()
+            checkForUpdates()
+        }
 
         binding.mainPageSelector.children.forEach { view ->
-            view.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            view.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
         }
 
         binding.mainPageSelector.setOnCheckedChangeListener { _, checkedId ->
