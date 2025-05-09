@@ -274,10 +274,10 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             currentPage?.onToggle?.also { onToggle ->
                 viewModel.viewModelScope.launch {
                     view.context.userSettings.updateData { it.copy { onToggle(isChecked) } }
+                    if (!isChecked) {
+                        goBackToMenu()
+                    }
                 }
-            }
-            if (!isChecked) {
-                goBackToMenu()
             }
         }
     }
