@@ -4,10 +4,8 @@ import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
 import android.os.Build
-import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import androidx.annotation.RequiresApi
 import androidx.annotation.StyleRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,6 +30,7 @@ import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
 import artemis.agent.util.TimerText.timerString
@@ -360,11 +359,6 @@ class AgentViewModel(application: Application) :
             application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
 
-    @delegate:RequiresApi(VERSION_Q)
-    private val clickEffect by lazy {
-        VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-    }
-
     private var hapticsEnabled = true
 
     // Setup fragment page
@@ -588,13 +582,13 @@ class AgentViewModel(application: Application) :
         }
     }
 
-    fun activateHaptic() {
+    fun activateHaptic(effect: HapticEffect = HapticEffect.CLICK) {
         if (!hapticsEnabled) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator.vibrate(clickEffect)
+            vibrator.vibrate(effect.vibration)
         } else {
-            @Suppress("DEPRECATION") vibrator.vibrate(CLICK_DURATION)
+            @Suppress("DEPRECATION") vibrator.vibrate(effect.duration)
         }
     }
 
@@ -1231,15 +1225,12 @@ class AgentViewModel(application: Application) :
         const val DEFAULT_UPDATE_INTERVAL = 50
         const val FLASH_INTERVAL = 500L
         const val SECONDS_TO_MILLIS = 1000
-        private const val CLICK_DURATION = 100L
         private const val PIRATE_SIDE = 8
         private const val DAMAGED_ALPHA = 0.5f
         private const val JUMP_DURATION = 3000L
         const val FULL_HEADING_RANGE = 360
         const val VOLUME_SCALE = 100f
         private const val PADDED_ZEROES = 3
-
-        private const val VERSION_Q = 29
 
         private const val GAME_OVER_REASON_INDEX = 13
 

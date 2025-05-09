@@ -14,6 +14,7 @@ import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsPersonalBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
@@ -100,11 +101,13 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                     progress: Int,
                     fromUser: Boolean,
                 ) {
+                    if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
                     volume = progress
                     binding.soundVolumeLabel.text = progress.formatString()
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    viewModel.activateHaptic(HapticEffect.TICK)
                     viewModel.playSound(SoundEffect.BEEP_2)
                 }
 
