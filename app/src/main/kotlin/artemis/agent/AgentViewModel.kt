@@ -360,8 +360,10 @@ class AgentViewModel(application: Application) :
             application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
 
-    @RequiresApi(VERSION_Q)
-    private val clickEffect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+    @delegate:RequiresApi(VERSION_Q)
+    private val clickEffect by lazy {
+        VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+    }
 
     private var hapticsEnabled = true
 
