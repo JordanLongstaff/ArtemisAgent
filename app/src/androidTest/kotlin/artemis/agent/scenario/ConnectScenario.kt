@@ -1,30 +1,19 @@
 package artemis.agent.scenario
 
 import android.os.Build
-import androidx.activity.viewModels
-import androidx.test.core.app.ActivityScenario
 import artemis.agent.AgentViewModel
-import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isDisplayedWithText
 import artemis.agent.screens.ConnectPageScreen
 import com.kaspersky.kaspresso.testcases.api.scenario.Scenario
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import io.github.kakaocup.kakao.screen.Screen
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.seconds
 
-class ConnectScenario(ip: String, activityScenario: ActivityScenario<MainActivity>) : Scenario() {
+class ConnectScenario(ip: String, viewModel: AgentViewModel) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
         ConnectPageScreen {
-            val connectTimeout = AtomicInteger()
-            step("Fetch connect timeout") {
-                activityScenario.onActivity { activity ->
-                    connectTimeout.lazySet(
-                        activity.viewModels<AgentViewModel>().value.connectTimeout
-                    )
-                }
-            }
+            val connectTimeout = viewModel.connectTimeout
 
             step("Attempt connection") {
                 addressBar.typeText(ip)
@@ -38,9 +27,7 @@ class ConnectScenario(ip: String, activityScenario: ActivityScenario<MainActivit
                     connectSpinner.isDisplayed()
                 }
 
-                step("Wait for timeout") {
-                    Screen.idle(connectTimeout.get().seconds.inWholeMilliseconds)
-                }
+                step("Wait for timeout") { Screen.idle(connectTimeout.seconds.inWholeMilliseconds) }
             }
         }
     }

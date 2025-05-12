@@ -1,12 +1,11 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
+import artemis.agent.game.enemies.EnemySorter
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
 import artemis.agent.isRemoved
@@ -17,10 +16,9 @@ import artemis.agent.scenario.SortMethodPermutationsScenario
 import artemis.agent.scenario.SortMethodSingleScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,61 +63,30 @@ class EnemySettingsFragmentTest : TestCase() {
     private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
         run {
             mainScreenTest {
-                val enemiesEnabled = AtomicBoolean()
-                val maxSurrenderRange = AtomicInteger(-1)
-                val showIntel = AtomicBoolean()
-                val showTauntStatuses = AtomicBoolean()
-                val disableIneffectiveTaunts = AtomicBoolean()
+                withViewModel { viewModel ->
+                    val enemiesManager = viewModel.enemiesManager
 
-                val sortBySurrendered = AtomicBoolean()
-                val sortByFaction = AtomicBoolean()
-                val sortByFactionReversed = AtomicBoolean()
-                val sortByName = AtomicBoolean()
-                val sortByDistance = AtomicBoolean()
+                    val enemiesEnabled = enemiesManager.enabled
+                    val maxSurrenderRange = enemiesManager.maxSurrenderDistance?.toInt() ?: -1
+                    val showIntel = enemiesManager.showIntel
+                    val showTauntStatuses = enemiesManager.showTauntStatuses
+                    val disableIneffectiveTaunts = enemiesManager.disableIneffectiveTaunts
 
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        val enemiesManager = viewModel.enemiesManager
-                        val enemySorter = enemiesManager.sorter
+                    val sortMethods = SortMethods(enemiesManager.sorter)
 
-                        enemiesEnabled.lazySet(enemiesManager.enabled)
-                        enemiesManager.maxSurrenderDistance?.also {
-                            maxSurrenderRange.lazySet(it.toInt())
-                        }
-                        showIntel.lazySet(enemiesManager.showIntel)
-                        showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
-                        disableIneffectiveTaunts.lazySet(enemiesManager.disableIneffectiveTaunts)
+                    scenario(SettingsMenuScenario)
 
-                        sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
-                        sortByFaction.lazySet(enemySorter.sortByFaction)
-                        sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
-                        sortByName.lazySet(enemySorter.sortByName)
-                        sortByDistance.lazySet(enemySorter.sortByDistance)
-                    }
+                    val data =
+                        Data(
+                            enabled = enemiesEnabled,
+                            surrenderRange = maxSurrenderRange.takeIf { it >= 0 },
+                            showIntel = showIntel,
+                            showTauntStatuses = showTauntStatuses,
+                            disableIneffectiveTaunts = disableIneffectiveTaunts,
+                            sortMethods = sortMethods,
+                        )
+                    test(data)
                 }
-
-                scenario(SettingsMenuScenario)
-
-                val sortMethods =
-                    SortMethods(
-                        surrender = sortBySurrendered.get(),
-                        faction = sortByFaction.get(),
-                        factionReversed = sortByFactionReversed.get(),
-                        name = sortByName.get(),
-                        distance = sortByDistance.get(),
-                    )
-
-                val data =
-                    Data(
-                        enabled = enemiesEnabled.get(),
-                        surrenderRange = maxSurrenderRange.get().takeIf { it >= 0 },
-                        showIntel = showIntel.get(),
-                        showTauntStatuses = showTauntStatuses.get(),
-                        disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
-                        sortMethods = sortMethods,
-                    )
-                test(data)
             }
         }
     }
@@ -150,6 +117,16 @@ class EnemySettingsFragmentTest : TestCase() {
 
         val isDefault: Boolean
             get() = array.none { it }
+
+        constructor(
+            sorter: EnemySorter
+        ) : this(
+            surrender = sorter.sortBySurrendered,
+            faction = sorter.sortByFaction,
+            factionReversed = sorter.sortByFactionReversed,
+            name = sorter.sortByName,
+            distance = sorter.sortByDistance,
+        )
 
         fun toArray(): BooleanArray = array
     }

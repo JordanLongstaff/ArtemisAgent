@@ -1,11 +1,9 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isDisplayedWithText
@@ -14,11 +12,10 @@ import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.scenario.TimeInputTestScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import io.github.kakaocup.kakao.common.views.KView
 import io.github.kakaocup.kakao.text.KTextView
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,61 +38,53 @@ class ConnectionSettingsFragmentTest : TestCase() {
     private fun testWithSettings(shouldTestTimeInputs: Boolean, closeSubmenu: () -> Unit) {
         run {
             mainScreenTest {
-                val alwaysPublic = AtomicBoolean()
-                val connectTimeout = AtomicInteger()
-                val scanTimeout = AtomicInteger()
-                val heartbeatTimeout = AtomicInteger()
+                withViewModel { viewModel ->
+                    val alwaysPublic = viewModel.alwaysScanPublicBroadcasts
+                    val connectTimeout = viewModel.connectTimeout
+                    val scanTimeout = viewModel.scanTimeout
+                    val heartbeatTimeout = viewModel.heartbeatTimeout
 
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        alwaysPublic.lazySet(viewModel.alwaysScanPublicBroadcasts)
-                        connectTimeout.lazySet(viewModel.connectTimeout)
-                        scanTimeout.lazySet(viewModel.scanTimeout)
-                        heartbeatTimeout.lazySet(viewModel.heartbeatTimeout)
-                    }
-                }
+                    scenario(SettingsMenuScenario)
+                    scenario(SettingsSubmenuOpenScenario.Connection)
 
-                scenario(SettingsMenuScenario)
-                scenario(SettingsSubmenuOpenScenario.Connection)
+                    SettingsPageScreen.Connection {
+                        val timeInputSettings =
+                            buildTimeInputSettings(
+                                connectTimeout = connectTimeout,
+                                heartbeatTimeout = heartbeatTimeout,
+                                scanTimeout = scanTimeout,
+                            )
 
-                SettingsPageScreen.Connection {
-                    val timeInputSettings =
-                        buildTimeInputSettings(
-                            connectTimeout = connectTimeout.get(),
-                            heartbeatTimeout = heartbeatTimeout.get(),
-                            scanTimeout = scanTimeout.get(),
-                        )
+                        timeInputSettings.forEach { setting ->
+                            val settingName = device.targetContext.getString(setting.text)
+                            step(settingName) {
+                                step("Components should be displayed") { setting.testDisplayed() }
 
-                    timeInputSettings.forEach { setting ->
-                        val settingName = device.targetContext.getString(setting.text)
-                        step(settingName) {
-                            step("Components should be displayed") { setting.testDisplayed() }
-
-                            if (shouldTestTimeInputs) {
-                                step("Test changing time") {
-                                    scenario(
-                                        TimeInputTestScenario(
-                                            timeInput = setting.timeInput,
-                                            seconds = setting.initialSeconds,
-                                            includeMinutes = false,
-                                            minimumSeconds = 1,
+                                if (shouldTestTimeInputs) {
+                                    step("Test changing time") {
+                                        scenario(
+                                            TimeInputTestScenario(
+                                                timeInput = setting.timeInput,
+                                                seconds = setting.initialSeconds,
+                                                includeMinutes = false,
+                                                minimumSeconds = 1,
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    step("Check public scan setting components") {
-                        alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic.get())
-                    }
+                        step("Check public scan setting components") {
+                            alwaysScanPublicToggleSetting.testSingleToggle(alwaysPublic)
+                        }
 
-                    step("Close submenu") { closeSubmenu() }
+                        step("Close submenu") { closeSubmenu() }
 
-                    step("All settings should be gone") {
-                        timeInputSettings.forEach { setting -> setting.testNotExist() }
-                        alwaysScanPublicToggleSetting.testNotExist()
+                        step("All settings should be gone") {
+                            timeInputSettings.forEach { setting -> setting.testNotExist() }
+                            alwaysScanPublicToggleSetting.testNotExist()
+                        }
                     }
                 }
             }

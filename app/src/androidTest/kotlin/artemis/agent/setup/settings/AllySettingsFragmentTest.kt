@@ -1,12 +1,11 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
+import artemis.agent.game.allies.AllySorter
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
 import artemis.agent.scenario.SettingsMenuScenario
@@ -17,9 +16,9 @@ import artemis.agent.scenario.SortMethodPermutationsScenario
 import artemis.agent.scenario.SortMethodSingleScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
-import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,56 +63,24 @@ class AllySettingsFragmentTest : TestCase() {
     private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
         run {
             mainScreenTest {
-                val alliesEnabled = AtomicBoolean()
-                val showingDestroyed = AtomicBoolean()
-                val manuallyReturning = AtomicBoolean()
+                withViewModel { viewModel ->
+                    val alliesEnabled = viewModel.alliesEnabled
+                    val showingDestroyed = viewModel.showAllySelector
+                    val manuallyReturning = viewModel.manuallyReturnFromCommands
 
-                val sortByClassFirst = AtomicBoolean()
-                val sortByEnergy = AtomicBoolean()
-                val sortByStatus = AtomicBoolean()
-                val sortByClassSecond = AtomicBoolean()
-                val sortByName = AtomicBoolean()
+                    val sortMethods = SortMethods(viewModel.allySorter)
 
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        val allySorter = viewModel.allySorter
+                    scenario(SettingsMenuScenario)
 
-                        sortByClassFirst.lazySet(allySorter.sortByClassFirst)
-                        sortByEnergy.lazySet(allySorter.sortByEnergy)
-                        sortByStatus.lazySet(allySorter.sortByStatus)
-                        sortByClassSecond.lazySet(allySorter.sortByClassSecond)
-                        sortByName.lazySet(allySorter.sortByName)
-
-                        alliesEnabled.lazySet(viewModel.alliesEnabled)
-                        showingDestroyed.lazySet(viewModel.showAllySelector)
-                        manuallyReturning.lazySet(viewModel.manuallyReturnFromCommands)
-                    }
+                    test(
+                        Data(
+                            enabled = alliesEnabled,
+                            showingDestroyed = showingDestroyed,
+                            manuallyReturning = manuallyReturning,
+                            sortMethods = sortMethods,
+                        )
+                    )
                 }
-
-                scenario(SettingsMenuScenario)
-
-                val enabled = alliesEnabled.get()
-                val showDestroyed = showingDestroyed.get()
-                val manualReturn = manuallyReturning.get()
-
-                val sortMethods =
-                    SortMethods(
-                        classFirst = sortByClassFirst.get(),
-                        energy = sortByEnergy.get(),
-                        status = sortByStatus.get(),
-                        classSecond = sortByClassSecond.get(),
-                        name = sortByName.get(),
-                    )
-
-                test(
-                    Data(
-                        enabled = enabled,
-                        showingDestroyed = showDestroyed,
-                        manuallyReturning = manualReturn,
-                        sortMethods = sortMethods,
-                    )
-                )
             }
         }
     }
@@ -136,6 +103,16 @@ class AllySettingsFragmentTest : TestCase() {
 
         val isDefault: Boolean
             get() = array.none { it }
+
+        constructor(
+            sorter: AllySorter
+        ) : this(
+            classFirst = sorter.sortByClassFirst,
+            energy = sorter.sortByEnergy,
+            status = sorter.sortByStatus,
+            classSecond = sorter.sortByClassSecond,
+            name = sorter.sortByName,
+        )
 
         fun toArray(): BooleanArray = array
     }

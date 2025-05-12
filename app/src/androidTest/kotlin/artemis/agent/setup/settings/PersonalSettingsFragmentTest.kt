@@ -1,6 +1,5 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -13,10 +12,9 @@ import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 import org.junit.Rule
 import org.junit.Test
@@ -40,38 +38,27 @@ class PersonalSettingsFragmentTest : TestCase() {
     private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) {
         run {
             mainScreenTest {
-                val themeIndex = AtomicInteger()
-                val threeDigits = AtomicBoolean()
-                val soundVolume = AtomicInteger()
-                val hapticsEnabled = AtomicBoolean()
+                withViewModel { viewModel ->
+                    val themeIndex = viewModel.themeIndex
+                    val threeDigits = viewModel.threeDigitDirections
+                    val soundVolume = (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
 
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        themeIndex.lazySet(viewModel.themeIndex)
-                        threeDigits.lazySet(viewModel.threeDigitDirections)
-                        soundVolume.lazySet(
-                            (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
-                        )
-                        hapticsEnabled.lazySet(viewModel.hapticsEnabled)
+                    scenario(SettingsMenuScenario)
+                    scenario(SettingsSubmenuOpenScenario.Personal)
+
+                    testThemeSetting(themeIndex)
+                    testThreeDigitsSetting(shouldTestSettings, threeDigits)
+                    testSoundVolume(shouldTestSettings, soundVolume)
+
+                    SettingsPageScreen.Personal {
+                        step("Check haptics setting") {
+                            enableHapticsToggleSetting.testSingleToggle(viewModel.hapticsEnabled)
+                        }
+
+                        step("Close submenu") { closeSubmenu() }
+
+                        step("All settings should be gone") { testScreenClosed() }
                     }
-                }
-
-                scenario(SettingsMenuScenario)
-                scenario(SettingsSubmenuOpenScenario.Personal)
-
-                testThemeSetting(themeIndex.get())
-                testThreeDigitsSetting(shouldTestSettings, threeDigits.get())
-                testSoundVolume(shouldTestSettings, soundVolume.get())
-
-                SettingsPageScreen.Personal {
-                    step("Check haptics setting") {
-                        enableHapticsToggleSetting.testSingleToggle(hapticsEnabled.get())
-                    }
-
-                    step("Close submenu") { closeSubmenu() }
-
-                    step("All settings should be gone") { testScreenClosed() }
                 }
             }
         }

@@ -1,10 +1,8 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.game.missions.RewardType
@@ -16,10 +14,9 @@ import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.scenario.TimeInputTestScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,51 +61,39 @@ class MissionSettingsFragmentTest : TestCase() {
     private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
         run {
             mainScreenTest {
-                val missionsEnabled = AtomicBoolean()
-                val autoDismissal = AtomicBoolean()
-                val autoDismissalTime = AtomicLong()
-                val rewardsEnabled = Array(RewardType.entries.size) { AtomicBoolean() }
+                withViewModel { viewModel ->
+                    val missionManager = viewModel.missionManager
 
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        val missionManager = viewModel.missionManager
+                    val missionsEnabled = missionManager.enabled
+                    val autoDismissal = missionManager.autoDismissCompletedMissions
+                    val autoDismissalSeconds =
+                        missionManager.completedDismissalSeconds.inWholeSeconds.toInt()
 
-                        missionsEnabled.lazySet(missionManager.enabled)
-                        autoDismissalTime.lazySet(
-                            missionManager.completedDismissalSeconds.inWholeSeconds
-                        )
-                        autoDismissal.lazySet(missionManager.autoDismissCompletedMissions)
-
-                        missionManager.displayedRewards.forEach {
-                            rewardsEnabled[it.ordinal].lazySet(true)
-                        }
+                    val rewardsEnabled = BooleanArray(RewardType.entries.size) { false }
+                    missionManager.displayedRewards.forEach { reward ->
+                        rewardsEnabled[reward.ordinal] = true
                     }
+
+                    scenario(SettingsMenuScenario)
+
+                    val rewardSettings =
+                        RewardSettings(
+                            battery = rewardsEnabled[RewardType.BATTERY.ordinal],
+                            coolant = rewardsEnabled[RewardType.COOLANT.ordinal],
+                            nuke = rewardsEnabled[RewardType.NUKE.ordinal],
+                            production = rewardsEnabled[RewardType.PRODUCTION.ordinal],
+                            shield = rewardsEnabled[RewardType.SHIELD.ordinal],
+                        )
+
+                    test(
+                        Data(
+                            enabled = missionsEnabled,
+                            autoDismissal = autoDismissal,
+                            autoDismissalSeconds = autoDismissalSeconds,
+                            rewards = rewardSettings,
+                        )
+                    )
                 }
-
-                scenario(SettingsMenuScenario)
-
-                val enabled = missionsEnabled.get()
-                val autoDismissalOn = autoDismissal.get()
-                val autoDismissalSeconds = autoDismissalTime.toInt()
-
-                val rewardSettings =
-                    RewardSettings(
-                        battery = rewardsEnabled[RewardType.BATTERY.ordinal].get(),
-                        coolant = rewardsEnabled[RewardType.COOLANT.ordinal].get(),
-                        nuke = rewardsEnabled[RewardType.NUKE.ordinal].get(),
-                        production = rewardsEnabled[RewardType.PRODUCTION.ordinal].get(),
-                        shield = rewardsEnabled[RewardType.SHIELD.ordinal].get(),
-                    )
-
-                test(
-                    Data(
-                        enabled = enabled,
-                        autoDismissal = autoDismissalOn,
-                        autoDismissalSeconds = autoDismissalSeconds,
-                        rewards = rewardSettings,
-                    )
-                )
             }
         }
     }
