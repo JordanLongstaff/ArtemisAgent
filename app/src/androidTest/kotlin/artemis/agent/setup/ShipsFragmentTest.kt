@@ -13,6 +13,7 @@ import artemis.agent.screens.GamePageScreen
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SetupPageScreen
 import artemis.agent.screens.ShipsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.walkertribe.ian.world.Artemis
 import org.junit.Rule
@@ -44,55 +45,52 @@ class ShipsFragmentTest : TestCase() {
     fun connectedTest() {
         run {
             mainScreenTest(false) {
-                scenario(
-                    ConnectScenario(
-                        ConnectFragmentTest.FAKE_SERVER_IP,
-                        activityScenarioRule.scenario,
-                    )
-                )
+                withViewModel { viewModel ->
+                    scenario(ConnectScenario(ConnectFragmentTest.FAKE_SERVER_IP, viewModel))
 
-                step("Ships page opened") { SetupPageScreen.shipsPageButton.isChecked() }
+                    step("Ships page opened") { SetupPageScreen.shipsPageButton.isChecked() }
 
-                ShipsPageScreen {
-                    step("Ships list populated") {
-                        noShipsLabel.isRemoved()
-                        shipsList {
-                            isDisplayedWithSize(Artemis.SHIP_COUNT)
-                            children<ShipsPageScreen.ShipItem> {
-                                selectedShipLabel.isRemoved()
-                                nameLabel.isDisplayed()
-                                vesselLabel.isDisplayed()
-                                driveTypeLabel.isDisplayed()
-                                descriptionLabel.isDisplayed()
+                    ShipsPageScreen {
+                        step("Ships list populated") {
+                            noShipsLabel.isRemoved()
+                            shipsList {
+                                isDisplayedWithSize(Artemis.SHIP_COUNT)
+                                children<ShipsPageScreen.ShipItem> {
+                                    selectedShipLabel.isRemoved()
+                                    nameLabel.isDisplayed()
+                                    vesselLabel.isDisplayed()
+                                    driveTypeLabel.isDisplayed()
+                                    descriptionLabel.isDisplayed()
+                                }
                             }
                         }
                     }
-                }
 
-                step("Select ship") {
-                    ShipsPageScreen.shipsList.childAt<ShipsPageScreen.ShipItem>(0) { click() }
-                }
-
-                step("Game page opened") {
-                    setupPageButton.isNotChecked()
-                    SetupPageScreen.shipsPageButton.doesNotExist()
-                    gamePageButton.isChecked()
-                    GamePageScreen.shipNumberLabel.isDisplayedWithText("Ship 1")
-                }
-
-                step("Return to Setup page") { setupPageButton.click() }
-
-                step("Ships page still open") {
-                    SetupPageScreen.shipsPageButton {
-                        isDisplayed()
-                        isChecked()
+                    step("Select ship") {
+                        ShipsPageScreen.shipsList.childAt<ShipsPageScreen.ShipItem>(0) { click() }
                     }
-                    ShipsPageScreen.shipsList.isDisplayedWithSize(Artemis.SHIP_COUNT)
-                }
 
-                step("Selected ship is marked") {
-                    ShipsPageScreen.shipsList.childAt<ShipsPageScreen.ShipItem>(0) {
-                        selectedShipLabel.isDisplayedWithText(R.string.selected)
+                    step("Game page opened") {
+                        setupPageButton.isNotChecked()
+                        SetupPageScreen.shipsPageButton.doesNotExist()
+                        gamePageButton.isChecked()
+                        GamePageScreen.shipNumberLabel.isDisplayedWithText("Ship 1")
+                    }
+
+                    step("Return to Setup page") { setupPageButton.click() }
+
+                    step("Ships page still open") {
+                        SetupPageScreen.shipsPageButton {
+                            isDisplayed()
+                            isChecked()
+                        }
+                        ShipsPageScreen.shipsList.isDisplayedWithSize(Artemis.SHIP_COUNT)
+                    }
+
+                    step("Selected ship is marked") {
+                        ShipsPageScreen.shipsList.childAt<ShipsPageScreen.ShipItem>(0) {
+                            selectedShipLabel.isDisplayedWithText(R.string.selected)
+                        }
                     }
                 }
             }

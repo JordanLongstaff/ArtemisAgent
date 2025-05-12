@@ -1,10 +1,8 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.game.route.RouteTaskIncentive
@@ -14,10 +12,9 @@ import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,68 +59,40 @@ class RoutingSettingsFragmentTest : TestCase() {
     private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
         run {
             mainScreenTest {
-                val routingEnabled = AtomicBoolean()
+                withViewModel { viewModel ->
+                    val routingEnabled = viewModel.routingEnabled
 
-                val blackHoleAvoidance = AtomicBoolean()
-                val mineAvoidance = AtomicBoolean()
-                val typhonAvoidance = AtomicBoolean()
-
-                val blackHoleClearance = AtomicInteger()
-                val mineClearance = AtomicInteger()
-                val typhonClearance = AtomicInteger()
-
-                val incentives = Array(RouteTaskIncentive.entries.size + 1) { AtomicBoolean() }
-
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        routingEnabled.lazySet(viewModel.routingEnabled)
-
-                        blackHoleAvoidance.lazySet(viewModel.avoidBlackHoles)
-                        mineAvoidance.lazySet(viewModel.avoidMines)
-                        typhonAvoidance.lazySet(viewModel.avoidTyphons)
-
-                        arrayOf(
-                                blackHoleClearance to viewModel.blackHoleClearance,
-                                mineClearance to viewModel.mineClearance,
-                                typhonClearance to viewModel.typhonClearance,
-                            )
-                            .forEach { (holder, value) -> holder.lazySet(value.toInt()) }
-
-                        viewModel.routeIncentives.forEach { incentive ->
-                            incentives[incentive.ordinal].lazySet(true)
-                        }
-                        incentives.last().lazySet(viewModel.routeIncludesMissions)
+                    val incentives = BooleanArray(RouteTaskIncentive.entries.size) { false }
+                    viewModel.routeIncentives.forEach { incentive ->
+                        incentives[incentive.ordinal] = true
                     }
+
+                    val incentivesData =
+                        IncentivesData(
+                            needsEnergy = incentives[RouteTaskIncentive.NEEDS_ENERGY.ordinal],
+                            needsDamCon = incentives[RouteTaskIncentive.NEEDS_DAMCON.ordinal],
+                            malfunction = incentives[RouteTaskIncentive.RESET_COMPUTER.ordinal],
+                            ambassador = incentives[RouteTaskIncentive.AMBASSADOR_PICKUP.ordinal],
+                            hostage = incentives[RouteTaskIncentive.HOSTAGE.ordinal],
+                            commandeered = incentives[RouteTaskIncentive.COMMANDEERED.ordinal],
+                            hasEnergy = incentives[RouteTaskIncentive.HAS_ENERGY.ordinal],
+                            hasMissions = viewModel.routeIncludesMissions,
+                        )
+
+                    val avoidanceData =
+                        AvoidanceData(
+                            blackHolesEnabled = viewModel.avoidBlackHoles,
+                            blackHolesClearance = viewModel.blackHoleClearance.toInt(),
+                            minesEnabled = viewModel.avoidMines,
+                            minesClearance = viewModel.mineClearance.toInt(),
+                            typhonsEnabled = viewModel.avoidTyphons,
+                            typhonsClearance = viewModel.typhonClearance.toInt(),
+                        )
+
+                    scenario(SettingsMenuScenario)
+
+                    test(Data(routingEnabled, incentivesData, avoidanceData))
                 }
-
-                scenario(SettingsMenuScenario)
-
-                val enabled = routingEnabled.get()
-
-                val incentivesData =
-                    IncentivesData(
-                        needsEnergy = incentives[RouteTaskIncentive.NEEDS_ENERGY.ordinal].get(),
-                        needsDamCon = incentives[RouteTaskIncentive.NEEDS_DAMCON.ordinal].get(),
-                        malfunction = incentives[RouteTaskIncentive.RESET_COMPUTER.ordinal].get(),
-                        ambassador = incentives[RouteTaskIncentive.AMBASSADOR_PICKUP.ordinal].get(),
-                        hostage = incentives[RouteTaskIncentive.HOSTAGE.ordinal].get(),
-                        commandeered = incentives[RouteTaskIncentive.COMMANDEERED.ordinal].get(),
-                        hasEnergy = incentives[RouteTaskIncentive.HAS_ENERGY.ordinal].get(),
-                        hasMissions = incentives.last().get(),
-                    )
-
-                val avoidanceData =
-                    AvoidanceData(
-                        blackHolesEnabled = blackHoleAvoidance.get(),
-                        blackHolesClearance = blackHoleClearance.get(),
-                        minesEnabled = mineAvoidance.get(),
-                        minesClearance = mineClearance.get(),
-                        typhonsEnabled = typhonAvoidance.get(),
-                        typhonsClearance = typhonClearance.get(),
-                    )
-
-                test(Data(enabled, incentivesData, avoidanceData))
             }
         }
     }

@@ -1,10 +1,8 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isCheckedIf
@@ -14,10 +12,9 @@ import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,56 +37,47 @@ class ClientSettingsFragmentTest : TestCase() {
     private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) {
         run {
             mainScreenTest {
-                val expectedPort = AtomicInteger()
-                val expectedUpdateInterval = AtomicInteger()
-                val vesselDataCount = AtomicInteger()
-                val vesselDataIndex = AtomicInteger()
-                val showingInfo = AtomicBoolean()
+                withViewModel { viewModel ->
+                    val expectedPort = viewModel.port
+                    val expectedUpdateInterval = viewModel.updateObjectsInterval
+                    val vesselDataCount = viewModel.vesselDataManager.count
+                    val vesselDataIndex = viewModel.vesselDataManager.index
+                    val showingInfo = viewModel.showingNetworkInfo
 
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        expectedPort.lazySet(viewModel.port)
-                        expectedUpdateInterval.lazySet(viewModel.updateObjectsInterval)
-                        vesselDataCount.lazySet(viewModel.vesselDataManager.count)
-                        vesselDataIndex.lazySet(viewModel.vesselDataManager.index)
-                        showingInfo.lazySet(viewModel.showingNetworkInfo)
-                    }
-                }
+                    scenario(SettingsMenuScenario)
+                    scenario(SettingsSubmenuOpenScenario.Client)
 
-                scenario(SettingsMenuScenario)
-                scenario(SettingsSubmenuOpenScenario.Client)
+                    testVesselDataSetting(
+                        count = vesselDataCount,
+                        index = vesselDataIndex,
+                        shouldTest = shouldTestSettings,
+                    )
+                    testAddressFieldSetting(shouldTestSettings)
 
-                testVesselDataSetting(
-                    count = vesselDataCount.get(),
-                    index = vesselDataIndex.get(),
-                    shouldTest = shouldTestSettings,
-                )
-                testAddressFieldSetting(shouldTestSettings)
+                    SettingsPageScreen.Client {
+                        step("Test showing info setting") {
+                            showNetworkInfoToggleSetting.testSingleToggle(showingInfo)
+                        }
 
-                SettingsPageScreen.Client {
-                    step("Test showing info setting") {
-                        showNetworkInfoToggleSetting.testSingleToggle(showingInfo.get())
-                    }
+                        step("Test server port setting") {
+                            serverPortDivider.scrollTo()
+                            serverPortTitle.isDisplayedWithText(R.string.server_port)
+                            serverPortField.isDisplayedWithText(expectedPort.toString())
+                        }
 
-                    step("Test server port setting") {
-                        serverPortDivider.scrollTo()
-                        serverPortTitle.isDisplayedWithText(R.string.server_port)
-                        serverPortField.isDisplayedWithText(expectedPort.get().toString())
-                    }
+                        step("Test update interval setting") {
+                            updateIntervalDivider.scrollTo()
+                            updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
+                            updateIntervalField.isDisplayedWithText(
+                                expectedUpdateInterval.toString()
+                            )
+                            updateIntervalMilliseconds.isDisplayedWithText(R.string.milliseconds)
+                        }
 
-                    step("Test update interval setting") {
-                        updateIntervalDivider.scrollTo()
-                        updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
-                        updateIntervalField.isDisplayedWithText(
-                            expectedUpdateInterval.get().toString()
-                        )
-                        updateIntervalMilliseconds.isDisplayedWithText(R.string.milliseconds)
-                    }
-
-                    step("Close submenu") {
-                        closeSubmenu()
-                        testScreenClosed()
+                        step("Close submenu") {
+                            closeSubmenu()
+                            testScreenClosed()
+                        }
                     }
                 }
             }

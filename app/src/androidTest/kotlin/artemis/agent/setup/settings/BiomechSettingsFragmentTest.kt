@@ -1,12 +1,11 @@
 package artemis.agent.setup.settings
 
-import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
+import artemis.agent.game.biomechs.BiomechSorter
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
 import artemis.agent.scenario.SettingsMenuScenario
@@ -17,10 +16,9 @@ import artemis.agent.scenario.SortMethodSingleScenario
 import artemis.agent.scenario.TimeInputTestScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.withViewModel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
 import org.junit.Rule
 import org.junit.Test
@@ -66,43 +64,17 @@ class BiomechSettingsFragmentTest : TestCase() {
     private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
         run {
             mainScreenTest {
-                val biomechsEnabled = AtomicBoolean()
-                val freezeTime = AtomicLong()
+                withViewModel { viewModel ->
+                    val biomechManager = viewModel.biomechManager
+                    val biomechsEnabled = biomechManager.enabled
+                    val freezeSeconds =
+                        biomechManager.freezeTime.milliseconds.inWholeSeconds.toInt()
+                    val sortMethods = SortMethods(biomechManager.sorter)
 
-                val sortByClassFirst = AtomicBoolean()
-                val sortByStatus = AtomicBoolean()
-                val sortByClassSecond = AtomicBoolean()
-                val sortByName = AtomicBoolean()
+                    scenario(SettingsMenuScenario)
 
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        val biomechManager = viewModel.biomechManager
-                        val biomechSorter = biomechManager.sorter
-
-                        sortByClassFirst.lazySet(biomechSorter.sortByClassFirst)
-                        sortByStatus.lazySet(biomechSorter.sortByStatus)
-                        sortByClassSecond.lazySet(biomechSorter.sortByClassSecond)
-                        sortByName.lazySet(biomechSorter.sortByName)
-
-                        biomechsEnabled.lazySet(biomechManager.enabled)
-                        freezeTime.lazySet(biomechManager.freezeTime)
-                    }
+                    test(Data(biomechsEnabled, freezeSeconds, sortMethods))
                 }
-
-                scenario(SettingsMenuScenario)
-
-                val enabled = biomechsEnabled.get()
-                val freezeSeconds = freezeTime.get().milliseconds.inWholeSeconds.toInt()
-                val sortMethods =
-                    SortMethods(
-                        classFirst = sortByClassFirst.get(),
-                        status = sortByStatus.get(),
-                        classSecond = sortByClassSecond.get(),
-                        name = sortByName.get(),
-                    )
-
-                test(Data(enabled, freezeSeconds, sortMethods))
             }
         }
     }
@@ -123,6 +95,15 @@ class BiomechSettingsFragmentTest : TestCase() {
 
         val isDefault: Boolean
             get() = array.none { it }
+
+        constructor(
+            sorter: BiomechSorter
+        ) : this(
+            classFirst = sorter.sortByClassFirst,
+            status = sorter.sortByStatus,
+            classSecond = sorter.sortByClassSecond,
+            name = sorter.sortByName,
+        )
 
         fun toArray(): BooleanArray = array
     }

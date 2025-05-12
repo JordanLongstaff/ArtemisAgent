@@ -147,6 +147,7 @@ test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-
 test-monitor = { module = "androidx.test:monitor", version.ref = "androidx-test-monitor" }
 test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidx-test-orchestrator" }
 test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
+test-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-testing", version.ref = "androidx-lifecycle" }
 
 espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 uiautomator = "androidx.test.uiautomator:uiautomator:2.3.0"
@@ -263,6 +264,7 @@ app-androidTest = [
     "test-junit",
     "test-monitor",
     "test-runner",
+    "test-viewmodel",
     "konnection-android-debug",
 ]
 
