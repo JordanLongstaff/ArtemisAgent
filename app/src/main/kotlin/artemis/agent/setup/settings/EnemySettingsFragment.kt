@@ -199,7 +199,7 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
             val text = binding.surrenderRangeField.text?.toString()
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
-                    it.copy { surrenderRange = if (text.isNullOrBlank()) 0 else text.toInt() }
+                    it.copy { surrenderRange = if (text.isNullOrBlank()) 0f else text.toFloat() }
                 }
             }
         }

@@ -1141,9 +1141,9 @@ class AgentViewModel(application: Application) :
         avoidMines = settings.avoidMines
         avoidTyphons = settings.avoidTyphon
 
-        blackHoleClearance = settings.blackHoleClearance.toFloat()
-        mineClearance = settings.mineClearance.toFloat()
-        typhonClearance = settings.typhonClearance.toFloat()
+        blackHoleClearance = settings.blackHoleClearance
+        mineClearance = settings.mineClearance
+        typhonClearance = settings.typhonClearance
 
         threeDigitDirections = settings.threeDigitDirections
         volume = settings.soundVolume.toFloat()
@@ -1201,9 +1201,9 @@ class AgentViewModel(application: Application) :
             avoidMines = this@AgentViewModel.avoidMines
             avoidTyphon = this@AgentViewModel.avoidTyphons
 
-            blackHoleClearance = this@AgentViewModel.blackHoleClearance.toInt()
-            mineClearance = this@AgentViewModel.mineClearance.toInt()
-            typhonClearance = this@AgentViewModel.typhonClearance.toInt()
+            blackHoleClearance = this@AgentViewModel.blackHoleClearance
+            mineClearance = this@AgentViewModel.mineClearance
+            typhonClearance = this@AgentViewModel.typhonClearance
 
             threeDigitDirections = this@AgentViewModel.threeDigitDirections
             soundVolume = (volume * VOLUME_SCALE).toInt()
@@ -1256,6 +1256,6 @@ class AgentViewModel(application: Application) :
                 R.style.Theme_ArtemisAgent_Purple,
             )
 
-        fun Int.formatString(): String = toString().format(Locale.getDefault())
+        fun Number.formatString(): String = toString().format(Locale.getDefault())
     }
 }
