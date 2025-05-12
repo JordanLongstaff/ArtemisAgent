@@ -359,7 +359,8 @@ class AgentViewModel(application: Application) :
             application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
 
-    private var hapticsEnabled = true
+    var hapticsEnabled = true
+        private set
 
     // Setup fragment page
     val setupFragmentPage: MutableStateFlow<SetupFragment.Page> by lazy {

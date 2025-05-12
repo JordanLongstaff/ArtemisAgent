@@ -500,14 +500,21 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val themeYellowButton = KCheckBox { withId(R.id.themeYellowButton) }
         val themeBlueButton = KCheckBox { withId(R.id.themeBlueButton) }
         val themePurpleButton = KCheckBox { withId(R.id.themePurpleButton) }
+        val themeDivider = KView { withId(R.id.themeDivider) }
 
         val threeDigitDirectionsTitle = KTextView { withId(R.id.threeDigitDirectionsTitle) }
         val threeDigitDirectionsButton = KCheckBox { withId(R.id.threeDigitDirectionsButton) }
         val threeDigitDirectionsLabel = KTextView { withId(R.id.threeDigitDirectionsLabel) }
+        val threeDigitDirectionsDivider = KView { withId(R.id.threeDigitDirectionsDivider) }
 
         val soundVolumeTitle = KTextView { withId(R.id.soundVolumeTitle) }
         val soundVolumeBar = KSeekBar { withId(R.id.soundVolumeBar) }
         val soundVolumeLabel = KTextView { withId(R.id.soundVolumeLabel) }
+        val soundVolumeDivider = KView { withId(R.id.soundVolumeDivider) }
+
+        val enableHapticsTitle = KTextView { withId(R.id.enableHapticsTitle) }
+        val enableHapticsButton = KCheckBox { withId(R.id.enableHapticsButton) }
+        val enableHapticsDivider = KView { withId(R.id.enableHapticsDivider) }
 
         val themeButtons by lazy {
             listOf(
@@ -517,6 +524,15 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
                 themeYellowButton,
                 themeBlueButton,
                 themePurpleButton,
+            )
+        }
+
+        val enableHapticsToggleSetting by lazy {
+            SingleToggleButtonSetting(
+                divider = enableHapticsDivider,
+                label = enableHapticsTitle,
+                text = R.string.enable_haptics,
+                button = enableHapticsButton,
             )
         }
     }
