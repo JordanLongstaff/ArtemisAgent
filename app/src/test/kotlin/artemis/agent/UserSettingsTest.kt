@@ -96,7 +96,7 @@ class UserSettingsTest :
 
                     describe("Max surrender range") {
                         it("Enabled") { settings.surrenderRangeEnabled.shouldBeTrue() }
-                        it("Value") { settings.surrenderRange shouldBeEqual 5000 }
+                        it("Value") { settings.surrenderRange shouldBeEqual 5000f }
                     }
 
                     it("Show enemy intel") { settings.showEnemyIntel.shouldBeTrue() }

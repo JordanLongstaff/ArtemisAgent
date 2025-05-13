@@ -315,7 +315,7 @@ class EnemiesManagerTest :
                 describe("Max surrender distance") {
                     it("Enabled") {
                         settings.surrenderRangeEnabled.shouldBeTrue()
-                        settings.surrenderRange shouldBeEqual 100
+                        settings.surrenderRange shouldBeEqual 100f
                     }
 
                     it("Disabled") {
