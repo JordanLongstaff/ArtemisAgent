@@ -137,8 +137,8 @@ class UserSettingsTest :
                         data class AvoidanceSetting(
                             val name: String,
                             val enabled: Boolean,
-                            val clearance: Float,
-                            val defaultClearance: Float,
+                            val clearance: Int,
+                            val defaultClearance: Int,
                         ) : WithDataTestName {
                             fun test() {
                                 enabled.shouldBeTrue()
@@ -153,19 +153,19 @@ class UserSettingsTest :
                                 "Black holes",
                                 settings.avoidBlackHoles,
                                 settings.blackHoleClearance,
-                                500f,
+                                500,
                             ),
                             AvoidanceSetting(
                                 "Mines",
                                 settings.avoidMines,
                                 settings.mineClearance,
-                                1000f,
+                                1000,
                             ),
                             AvoidanceSetting(
                                 "Typhon",
                                 settings.avoidTyphon,
                                 settings.typhonClearance,
-                                3000f,
+                                3000,
                             ),
                         ) {
                             it.test()
