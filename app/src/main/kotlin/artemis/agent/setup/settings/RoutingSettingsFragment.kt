@@ -32,7 +32,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
         val toggleButton: ToggleButton,
         val enabledSetting: KMutableProperty1<UserSettingsKt.Dsl, Boolean>,
         val clearanceField: EditText,
-        val clearanceSetting: KMutableProperty1<UserSettingsKt.Dsl, Int>,
+        val clearanceSetting: KMutableProperty1<UserSettingsKt.Dsl, Float>,
         val kmLabel: TextView,
     )
 
@@ -208,7 +208,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
                 context.userSettings.updateData {
                     it.copy {
                         if (!text.isNullOrBlank()) {
-                            avoidance.clearanceSetting.set(this, text.toInt())
+                            avoidance.clearanceSetting.set(this, text.toFloat())
                         }
                     }
                 }
