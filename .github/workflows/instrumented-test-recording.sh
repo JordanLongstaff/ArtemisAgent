@@ -4,7 +4,7 @@ API_LEVEL=$1
 
 set -x
 echo "Starting the screen recording..."
-adb shell "while true; do screenrecord --bugreport --output-format=h264 -; done" | ffmpeg -i - testRecording-$API_LEVEL.mp4 &
+(adb exec-out "while true; do screenrecord --bugreport --output-format=h264 -; done" | ffmpeg -b:v 20M -i - testRecording-$API_LEVEL.mp4) &
 echo $! > ffmpeg_pid.txt
 set +e
 ./gradlew connectedCheck
