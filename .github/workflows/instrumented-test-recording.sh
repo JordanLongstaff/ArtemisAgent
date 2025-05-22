@@ -4,7 +4,7 @@ API_LEVEL=$1
 
 set -x
 echo "Starting the screen recording..."
-./scrcpy -r testRecording-$API_LEVEL.mp4 &
+./scrcpy-*/scrcpy -r testRecording-$API_LEVEL.mp4 &
 echo $! > scrcpy_pid.txt
 set +e
 ./gradlew connectedCheck
