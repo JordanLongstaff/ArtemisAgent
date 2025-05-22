@@ -6,6 +6,8 @@ import io.github.kakaocup.kakao.common.assertions.BaseAssertions
 import io.github.kakaocup.kakao.recycler.RecyclerAdapterAssertions
 import io.github.kakaocup.kakao.text.TextViewAssertions
 
+private const val MAX_DISTANCE_DIGITS = 7
+
 fun CheckableAssertions.isCheckedIf(checked: Boolean) {
     if (checked) isChecked() else isNotChecked()
 }
@@ -32,6 +34,10 @@ fun TextViewAssertions.isDisplayedWithText(text: String) {
 fun TextViewAssertions.isDisplayedWithText(@StringRes text: Int) {
     isDisplayed()
     hasText(text)
+}
+
+fun TextViewAssertions.showsFormattedDistance(distance: Float) {
+    hasText(distance.toString().take(MAX_DISTANCE_DIGITS))
 }
 
 fun <A> A.isDisplayedWithSize(size: Int) where A : RecyclerAdapterAssertions, A : BaseAssertions {

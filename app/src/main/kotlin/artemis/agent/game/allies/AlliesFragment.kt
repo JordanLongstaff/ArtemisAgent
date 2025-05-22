@@ -172,12 +172,13 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 )
                 .forEach { (button, message) ->
                     button.setOnClickListener {
-                        viewModel.playSound(SoundEffect.CONFIRMATION)
-                        viewModel.sendToServer(
-                            CommsOutgoingPacket(ally.obj, message, viewModel.vesselData)
-                        )
-                        if (!viewModel.manuallyReturnFromCommands && !viewModel.isSingleAlly) {
-                            viewModel.focusedAlly.value = null
+                        with(viewModel) {
+                            activateHaptic()
+                            playSound(SoundEffect.CONFIRMATION)
+                            sendToServer(CommsOutgoingPacket(ally.obj, message, vesselData))
+                            if (!manuallyReturnFromCommands && !isSingleAlly) {
+                                focusedAlly.value = null
+                            }
                         }
                     }
                 }
@@ -209,13 +210,15 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         fun bind(entry: Ally, viewModel: AgentViewModel) {
             entryBinding.allyNameLabel.text = entry.fullName
             entryBinding.allyHailButton.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(entry.obj, OtherMessage.Hail, viewModel.vesselData)
-                )
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(CommsOutgoingPacket(entry.obj, OtherMessage.Hail, vesselData))
+                }
             }
 
             entryBinding.allyRecapButton.setOnClickListener {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 if (entry.latestHailMessage.isBlank()) return@setOnClickListener
 
@@ -239,16 +242,22 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 root.setBackgroundColor(Color.TRANSPARENT)
                 allyCommandButton.setText(R.string.cancel)
                 allyCommandButton.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    if (!viewModel.isSingleAlly) {
-                        viewModel.focusedAlly.value = null
+                    with(viewModel) {
+                        activateHaptic()
+                        playSound(SoundEffect.BEEP_1)
+                        if (!isSingleAlly) {
+                            focusedAlly.value = null
+                        }
                     }
                 }
             } else {
                 root.setBackgroundColor(entry.getBackgroundColor(root.context))
                 allyCommandButton.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    viewModel.focusedAlly.value = entry
+                    with(viewModel) {
+                        activateHaptic()
+                        playSound(SoundEffect.BEEP_1)
+                        focusedAlly.value = entry
+                    }
                 }
             }
 
@@ -370,12 +379,13 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         fun bind(ally: ArtemisNpc, obj: ArtemisShielded<*>, viewModel: AgentViewModel) {
             button.text = obj.name.value
             button.setOnClickListener {
-                viewModel.playSound(SoundEffect.CONFIRMATION)
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(ally, OtherMessage.GoDefend(obj), viewModel.vesselData)
-                )
-                if (!viewModel.manuallyReturnFromCommands && !viewModel.isSingleAlly) {
-                    viewModel.focusedAlly.value = null
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.CONFIRMATION)
+                    sendToServer(CommsOutgoingPacket(ally, OtherMessage.GoDefend(obj), vesselData))
+                    if (!manuallyReturnFromCommands && !isSingleAlly) {
+                        focusedAlly.value = null
+                    }
                 }
             }
         }

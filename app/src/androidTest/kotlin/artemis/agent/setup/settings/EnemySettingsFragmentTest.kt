@@ -17,6 +17,7 @@ import artemis.agent.scenario.SortMethodPermutationsScenario
 import artemis.agent.scenario.SortMethodSingleScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.showsFormattedDistance
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
@@ -85,7 +86,7 @@ class EnemySettingsFragmentTest : TestCase() {
 
                         enemiesEnabled.lazySet(enemiesManager.enabled)
                         enemiesManager.maxSurrenderDistance?.also {
-                            maxSurrenderRange.lazySet(it.toInt())
+                            maxSurrenderRange.lazySet(it.toRawBits())
                         }
                         showIntel.lazySet(enemiesManager.showIntel)
                         showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
@@ -113,7 +114,8 @@ class EnemySettingsFragmentTest : TestCase() {
                 val data =
                     Data(
                         enabled = enemiesEnabled.get(),
-                        surrenderRange = maxSurrenderRange.get().takeIf { it >= 0 },
+                        surrenderRange =
+                            Float.fromBits(maxSurrenderRange.get()).takeIf { it >= 0f },
                         showIntel = showIntel.get(),
                         showTauntStatuses = showTauntStatuses.get(),
                         disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
@@ -126,7 +128,7 @@ class EnemySettingsFragmentTest : TestCase() {
 
     private data class Data(
         val enabled: Boolean,
-        val surrenderRange: Int?,
+        val surrenderRange: Float?,
         val showIntel: Boolean,
         val showTauntStatuses: Boolean,
         val disableIneffectiveTaunts: Boolean,
@@ -297,7 +299,7 @@ class EnemySettingsFragmentTest : TestCase() {
         }
 
         fun TestContext<Unit>.testEnemySubMenuSurrenderRange(
-            surrenderRange: Int?,
+            surrenderRange: Float?,
             shouldTest: Boolean,
         ) {
             step("Surrender range setting") {
@@ -330,7 +332,7 @@ class EnemySettingsFragmentTest : TestCase() {
 
         fun TestContext<Unit>.testEnemySubMenuSurrenderRange(
             isEnabled: Boolean,
-            surrenderRange: Int?,
+            surrenderRange: Float?,
         ) {
             step("Surrender range input ${if (isEnabled) "" else "not "}displayed}") {
                 SettingsPageScreen.Enemies {
@@ -340,7 +342,7 @@ class EnemySettingsFragmentTest : TestCase() {
                         surrenderRangeKm.isDisplayedWithText(R.string.kilometres)
                         surrenderRangeField.isDisplayed()
                         if (surrenderRange != null) {
-                            surrenderRangeField.hasText(surrenderRange.toString())
+                            surrenderRangeField.showsFormattedDistance(surrenderRange)
                         }
                     } else {
                         surrenderRangeEnableButton.isNotChecked()

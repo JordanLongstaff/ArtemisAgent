@@ -143,6 +143,7 @@
     <string name="displayed_rewards">Displayed rewards</string>
     <string name="docked">Docked</string>
     <string name="docking">Docking</string>
+    <string name="enable_haptics">Enable haptics</string>
     <string name="enemy">Enemy</string>
     <string name="enemy_perfidy_notification">
         This enemy has committed perfidy. Eliminate on sight.
