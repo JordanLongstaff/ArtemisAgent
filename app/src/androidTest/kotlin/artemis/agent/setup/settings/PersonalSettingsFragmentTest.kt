@@ -43,6 +43,8 @@ class PersonalSettingsFragmentTest : TestCase() {
                 val themeIndex = AtomicInteger()
                 val threeDigits = AtomicBoolean()
                 val soundVolume = AtomicInteger()
+                val hapticsEnabled = AtomicBoolean()
+
                 step("Fetch settings") {
                     activityScenarioRule.scenario.onActivity { activity ->
                         val viewModel = activity.viewModels<AgentViewModel>().value
@@ -51,6 +53,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                         soundVolume.lazySet(
                             (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
                         )
+                        hapticsEnabled.lazySet(viewModel.hapticsEnabled)
                     }
                 }
 
@@ -61,9 +64,13 @@ class PersonalSettingsFragmentTest : TestCase() {
                 testThreeDigitsSetting(shouldTestSettings, threeDigits.get())
                 testSoundVolume(shouldTestSettings, soundVolume.get())
 
-                step("Close submenu") { closeSubmenu() }
-
                 SettingsPageScreen.Personal {
+                    step("Check haptics setting") {
+                        enableHapticsToggleSetting.testSingleToggle(hapticsEnabled.get())
+                    }
+
+                    step("Close submenu") { closeSubmenu() }
+
                     step("All settings should be gone") { testScreenClosed() }
                 }
             }
@@ -157,12 +164,16 @@ class PersonalSettingsFragmentTest : TestCase() {
             themeYellowButton.doesNotExist()
             themeBlueButton.doesNotExist()
             themePurpleButton.doesNotExist()
+            themeDivider.doesNotExist()
             threeDigitDirectionsTitle.doesNotExist()
             threeDigitDirectionsButton.doesNotExist()
             threeDigitDirectionsLabel.doesNotExist()
+            threeDigitDirectionsDivider.doesNotExist()
             soundVolumeTitle.doesNotExist()
             soundVolumeBar.doesNotExist()
             soundVolumeLabel.doesNotExist()
+            soundVolumeDivider.doesNotExist()
+            enableHapticsToggleSetting.testNotExist()
         }
     }
 }

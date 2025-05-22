@@ -65,6 +65,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                 }
 
                 private fun onBackEnded() {
+                    viewModel.activateHaptic()
                     viewModel.playSound(SoundEffect.BEEP_1)
                     binding.backPressAlpha.visibility = View.GONE
                 }
@@ -179,6 +180,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     with(holder.itemView as Button) {
                         setText(helpTopics[position].buttonLabel)
                         setOnClickListener {
+                            viewModel.activateHaptic()
                             viewModel.playSound(SoundEffect.BEEP_2)
                             viewModel.helpTopicIndex.value = position
                         }

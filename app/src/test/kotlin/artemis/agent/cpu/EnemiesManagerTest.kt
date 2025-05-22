@@ -276,7 +276,7 @@ class EnemiesManagerTest :
                     it("Enabled") {
                         val otherSettings = userSettings {
                             surrenderRangeEnabled = true
-                            surrenderRange = 10000
+                            surrenderRange = 10000f
                         }
                         enemiesManager.updateFromSettings(otherSettings)
                         enemiesManager.maxSurrenderDistance.shouldNotBeNull() shouldBeEqual 10000f
@@ -315,7 +315,7 @@ class EnemiesManagerTest :
                 describe("Max surrender distance") {
                     it("Enabled") {
                         settings.surrenderRangeEnabled.shouldBeTrue()
-                        settings.surrenderRange shouldBeEqual 100
+                        settings.surrenderRange shouldBeEqual 100f
                     }
 
                     it("Disabled") {

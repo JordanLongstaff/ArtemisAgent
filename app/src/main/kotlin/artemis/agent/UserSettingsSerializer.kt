@@ -18,12 +18,12 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
     const val DEFAULT_ADDRESS_LIMIT = 20
     const val DEFAULT_AUTO_DISMISSAL_SECONDS = 3
     const val DEFAULT_FREEZE_DURATION = 220
-    const val DEFAULT_BLACK_HOLE_CLEARANCE = 500
-    const val DEFAULT_MINE_CLEARANCE = 1000
-    const val DEFAULT_TYPHON_CLEARANCE = 3000
+    const val DEFAULT_BLACK_HOLE_CLEARANCE = 500f
+    const val DEFAULT_MINE_CLEARANCE = 1000f
+    const val DEFAULT_TYPHON_CLEARANCE = 3000f
     const val DEFAULT_SOUND_VOLUME = 50
     const val DEFAULT_UPDATE_INTERVAL = 50
-    const val DEFAULT_SURRENDER_RANGE = 5000
+    const val DEFAULT_SURRENDER_RANGE = 5000f
 
     override val defaultValue: UserSettingsOuterClass.UserSettings = userSettings {
         vesselDataLocation =
@@ -108,6 +108,7 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
 
         showNetworkInfo = true
         alwaysScanPublic = false
+        hapticsEnabled = true
     }
 
     val Context.userSettings by dataStore(fileName = USER_SETTINGS_FILE_NAME, serializer = this)

@@ -3,6 +3,9 @@ package artemis.agent
 import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
+import android.os.Build
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.annotation.StyleRes
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +30,7 @@ import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
 import artemis.agent.util.TimerText.timerString
@@ -342,6 +346,21 @@ class AgentViewModel(application: Application) :
 
     // Determines whether directions are shown as padded three-digit numbers
     var threeDigitDirections = true
+        private set
+
+    // Haptics
+    private val vibrator =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager =
+                application.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            manager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+
+    var hapticsEnabled = true
+        private set
 
     // Setup fragment page
     val setupFragmentPage: MutableStateFlow<SetupFragment.Page> by lazy {
@@ -561,6 +580,16 @@ class AgentViewModel(application: Application) :
                 player.setVolume(volume, volume)
                 player.start()
             }
+        }
+    }
+
+    fun activateHaptic(effect: HapticEffect = HapticEffect.CLICK) {
+        if (!hapticsEnabled) return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            vibrator.vibrate(effect.vibration)
+        } else {
+            @Suppress("DEPRECATION") vibrator.vibrate(effect.duration)
         }
     }
 
@@ -1112,12 +1141,13 @@ class AgentViewModel(application: Application) :
         avoidMines = settings.avoidMines
         avoidTyphons = settings.avoidTyphon
 
-        blackHoleClearance = settings.blackHoleClearance.toFloat()
-        mineClearance = settings.mineClearance.toFloat()
-        typhonClearance = settings.typhonClearance.toFloat()
+        blackHoleClearance = settings.blackHoleClearance
+        mineClearance = settings.mineClearance
+        typhonClearance = settings.typhonClearance
 
         threeDigitDirections = settings.threeDigitDirections
         volume = settings.soundVolume.toFloat()
+        hapticsEnabled = settings.hapticsEnabled
 
         val newThemeRes = ALL_THEMES[settings.themeValue]
         if (themeRes != newThemeRes) {
@@ -1171,15 +1201,16 @@ class AgentViewModel(application: Application) :
             avoidMines = this@AgentViewModel.avoidMines
             avoidTyphon = this@AgentViewModel.avoidTyphons
 
-            blackHoleClearance = this@AgentViewModel.blackHoleClearance.toInt()
-            mineClearance = this@AgentViewModel.mineClearance.toInt()
-            typhonClearance = this@AgentViewModel.typhonClearance.toInt()
+            blackHoleClearance = this@AgentViewModel.blackHoleClearance
+            mineClearance = this@AgentViewModel.mineClearance
+            typhonClearance = this@AgentViewModel.typhonClearance
 
             threeDigitDirections = this@AgentViewModel.threeDigitDirections
             soundVolume = (volume * VOLUME_SCALE).toInt()
             themeValue = ALL_THEMES.indexOf(themeRes)
             showNetworkInfo = showingNetworkInfo
             alwaysScanPublic = alwaysScanPublicBroadcasts
+            hapticsEnabled = this@AgentViewModel.hapticsEnabled
         }
 
     companion object {
@@ -1225,6 +1256,6 @@ class AgentViewModel(application: Application) :
                 R.style.Theme_ArtemisAgent_Purple,
             )
 
-        fun Int.formatString(): String = toString().format(Locale.getDefault())
+        fun Number.formatString(): String = toString().format(Locale.getDefault())
     }
 }
