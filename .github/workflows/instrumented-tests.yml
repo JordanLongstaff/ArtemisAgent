@@ -60,9 +60,7 @@ jobs:
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
 
       - name: Setup FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3.1
-        with:
-          ffmpeg-version: release
+        uses: AnimMouse/setup-ffmpeg@v1
 
       - name: Enable script execution
         run: chmod +x .github/workflows/instrumented-test-recording.sh
