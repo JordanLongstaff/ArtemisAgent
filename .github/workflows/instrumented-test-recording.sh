@@ -3,13 +3,18 @@
 API_LEVEL=$1
 
 set -x
-echo "Starting the screen recording..."
-adb exec-out "while true; do screenrecord --bugreport --output-format=h264 -; done" | (ffmpeg -b:v 20M -i - testRecording-$API_LEVEL.mp4 & echo $! > ffmpeg_pid.txt)
 set +e
-./gradlew connectedCheck
+echo "Starting instrumented tests..."
+./gradlew connectedCheck &
+TEST_PID=$!
+echo "Starting the screen recording..."
+adb exec-out "while true; do screenrecord --bugreport --output-format=h264 -; done" | ffmpeg -i - testRecording-$API_LEVEL.mp4 &
+echo "Waiting for instrumented tests to finish..."
+wait $TEST_PID
 TEST_STATUS=$?
+echo "Stopping the screen recording..."
+ps aux | grep ffmpeg | awk '{print $2}' | xargs kill -9
 echo "Test run completed with status $TEST_STATUS"
-kill -2 $(cat ffmpeg_pid.txt)
 # Wait for the screen recording process to exit
 sleep 1
 exit $TEST_STATUS
