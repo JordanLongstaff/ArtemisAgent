@@ -178,7 +178,7 @@ jobs:
         uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
         with:
           github_token: ${{ secrets.RELEASE_PAT }}
-          default_bump: ${{ inputs.versionBump }}
+          custom_tag: ${{ steps.nextVersionName.outputs.new_version }}
 
       - name: Release
         uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1
