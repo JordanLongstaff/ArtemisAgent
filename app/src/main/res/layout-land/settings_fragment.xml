@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:checked="true"
         android:text="@string/on"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintEnd_toStartOf="@id/settingsReset"
         app:layout_constraintRight_toLeftOf="@id/settingsReset"
         app:layout_constraintTop_toTopOf="parent" />
@@ -36,12 +36,16 @@
         app:tint="?attr/colorButtonNormal" />
     <TextView
         android:id="@+id/settingsPageTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:text="@string/settings"
         android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="@id/settingsOnOff"
+        app:layout_constraintBottom_toBottomOf="@id/settingsReset"
+        app:layout_constraintEnd_toStartOf="@id/settingsOnOff"
         app:layout_constraintLeft_toRightOf="@id/settingsBack"
+        app:layout_constraintRight_toLeftOf="@id/settingsOnOff"
         app:layout_constraintStart_toEndOf="@id/settingsBack"
         app:layout_constraintTop_toTopOf="parent" />
     <View
@@ -50,7 +54,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="@dimen/paddingSmall"
         android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toBottomOf="@id/settingsOnOff" />
+        app:layout_constraintTop_toBottomOf="@id/settingsReset" />
     <ScrollView
         android:id="@+id/settingsScroll"
         android:layout_width="match_parent"

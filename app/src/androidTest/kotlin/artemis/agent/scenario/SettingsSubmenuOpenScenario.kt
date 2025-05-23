@@ -1,5 +1,6 @@
 package artemis.agent.scenario
 
+import artemis.agent.isRemoved
 import artemis.agent.screens.SettingsPageScreen
 import artemis.agent.screens.SettingsPageScreen.Menu
 import com.kaspersky.kaspresso.testcases.api.scenario.Scenario
@@ -22,7 +23,7 @@ private constructor(page: SettingsPageScreen.Page, usingToggle: Boolean = false)
                         isDisplayed()
                         isChecked()
                     } else {
-                        isNotDisplayed()
+                        isRemoved()
                     }
                 }
             }

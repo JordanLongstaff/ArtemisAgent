@@ -174,7 +174,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             val fragmentClass =
                 if (page == null) {
                     binding.settingsPageTitle.setText(R.string.settings)
-                    binding.settingsOnOff.visibility = View.INVISIBLE
+                    binding.settingsOnOff.visibility = View.GONE
                     binding.settingsBack.visibility = View.GONE
 
                     binding.settingsReset.setOnClickListener {
@@ -199,7 +199,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                             binding.settingsOnOff.isChecked = true
 
                             View.VISIBLE
-                        } ?: View.INVISIBLE
+                        } ?: View.GONE
 
                     binding.settingsReset.setOnClickListener {
                         viewModel.activateHaptic()
