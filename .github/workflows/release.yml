@@ -164,6 +164,7 @@ jobs:
           sed -i "1s/.*/# Artemis Agent $var/" ${{ github.workspace }}/README.md
 
       - name: Commit
+        id: commit
         uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
         with:
           commit_message: Release version ${{ steps.nextVersionName.outputs.new_version }}
@@ -179,6 +180,7 @@ jobs:
         with:
           github_token: ${{ secrets.RELEASE_PAT }}
           custom_tag: ${{ steps.nextVersionName.outputs.new_version }}
+          commit_sha: ${{ steps.commit.outputs.commit_hash }}
 
       - name: Release
         uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1
