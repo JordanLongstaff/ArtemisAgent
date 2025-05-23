@@ -10,6 +10,7 @@ on:
 
 jobs:
   test-matrix:
+    name: Generate API version matrix
     runs-on: ubuntu-latest
     outputs:
       api-level: ${{ steps.generate.outputs.matrix }}
@@ -25,6 +26,8 @@ jobs:
       fail-fast: false
       matrix:
         api-level: ${{ fromJSON(needs.test-matrix.outputs.api-level) }}
+        orientation: [ 0, 1 ]
+    name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation == 0 && 'portrait' || 'landscape' }})
     timeout-minutes: 20
     concurrency:
       group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ github.ref }}
@@ -67,7 +70,10 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew connectedCheck
+          script: |
+            adb shell settings put system accelerometer_rotation 0
+            adb shell settings put system user_rotation ${{ matrix.orientation }}
+            ./gradlew connectedCheck
 
       - name: Upload Test Results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
