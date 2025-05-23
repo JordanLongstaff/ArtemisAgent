@@ -30,7 +30,7 @@ jobs:
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation == 0 && 'portrait' || 'landscape' }})
     timeout-minutes: 20
     concurrency:
-      group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ matrix.orientation }}-${{ github.ref }}
       cancel-in-progress: true
 
     steps:
