@@ -607,7 +607,6 @@
     <string name="reason_pirate_boss">pick up boss</string>
     <string name="recap">Recap</string>
     <string name="refreeze">Re-freeze</string>
-    <string name="remember_servers">Remember servers</string>
     <string name="rendezvous_with">Rendezvous with:</string>
     <string name="restore_default_settings">Restore defaults</string>
     <string name="reverse_sorting_by_race">Reverse sorting by race</string>
@@ -644,6 +643,7 @@
     <string name="seconds">sec</string>
     <string name="selected">Selected</string>
     <string name="send">Send</string>
+    <string name="server_memory_limit">Server memory limit</string>
     <string name="server_port">Server port</string>
     <string name="settings">Settings</string>
     <string name="settings_menu_client">Client settings</string>
