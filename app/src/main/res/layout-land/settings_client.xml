@@ -114,14 +114,20 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:labelFor="@id/addressLimitField"
-        android:text="@string/recent_address_limit"
+        android:text="@string/remember_servers"
         android:textSize="@dimen/mediumTextSize"
         app:layout_constraintBottom_toBottomOf="@id/addressLimitEnableButton"
-        app:layout_constraintEnd_toStartOf="@id/addressLimitField"
+        app:layout_constraintEnd_toStartOf="@id/addressLimitBarrier"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/addressLimitField"
+        app:layout_constraintRight_toLeftOf="@id/addressLimitBarrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/addressLimitEnableButton" />
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/addressLimitBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="addressLimitField,addressLimitInfinity" />
     <EditText
         android:id="@+id/addressLimitField"
         android:layout_width="wrap_content"

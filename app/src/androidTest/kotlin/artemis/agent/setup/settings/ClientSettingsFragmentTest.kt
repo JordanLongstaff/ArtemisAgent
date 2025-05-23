@@ -146,7 +146,7 @@ class ClientSettingsFragmentTest : TestCase() {
                 SettingsPageScreen.Client {
                     step("Title displayed") {
                         addressLimitDivider.scrollTo()
-                        addressLimitTitle.isDisplayedWithText(R.string.recent_address_limit)
+                        addressLimitTitle.isDisplayedWithText(R.string.remember_servers)
                         addressLimitEnableButton.isDisplayed()
                     }
 
