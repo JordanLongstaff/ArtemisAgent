@@ -41,6 +41,6 @@ fun TextViewAssertions.showsFormattedDistance(distance: Float) {
 }
 
 fun <A> A.isDisplayedWithSize(size: Int) where A : RecyclerAdapterAssertions, A : BaseAssertions {
-    isCompletelyDisplayed()
+    isDisplayed()
     hasSize(size)
 }
