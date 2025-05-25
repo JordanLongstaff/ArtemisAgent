@@ -87,7 +87,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                     themeTitle.isDisplayedWithText(R.string.theme)
                     themeButtons.forEachIndexed { index, button ->
                         button {
-                            isDisplayed()
+                            isCompletelyDisplayed()
                             isCheckedIf(index == themeIndex)
                         }
                     }
@@ -117,7 +117,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                                     R.string.three_digit_directions
                                 )
                                 threeDigitDirectionsButton {
-                                    isDisplayed()
+                                    isCompletelyDisplayed()
                                     isCheckedIf(showingThree)
                                 }
                                 threeDigitDirectionsLabel.isDisplayedWithText(
@@ -137,7 +137,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                 step("Check sound volume setting components") {
                     soundVolumeTitle.isDisplayedWithText(R.string.sound_volume)
                     soundVolumeBar {
-                        isDisplayed()
+                        isCompletelyDisplayed()
                         hasProgress(soundVolume)
                     }
                     soundVolumeLabel.isDisplayedWithText(soundVolume.toString())

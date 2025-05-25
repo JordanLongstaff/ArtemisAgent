@@ -65,7 +65,7 @@ class ConnectFragmentTest : TestCase() {
                         // These steps fail on CI with pre-Android 24 emulators for some reason
                         step("Check UI state") {
                             scanButton.isDisabled()
-                            scanSpinner.isDisplayed()
+                            scanSpinner.isCompletelyDisplayed()
                             noServersLabel.isRemoved()
                         }
 
@@ -93,7 +93,7 @@ class ConnectFragmentTest : TestCase() {
                     step("Initial state") {
                         addressBar {
                             clearText()
-                            isDisplayed()
+                            isCompletelyDisplayed()
                             hasHint(R.string.address)
                         }
                         connectButton {
@@ -134,7 +134,7 @@ class ConnectFragmentTest : TestCase() {
                         noServersLabel.doesNotExist()
                         serverList.doesNotExist()
                     }
-                    ShipsPageScreen.shipsList.isDisplayed()
+                    ShipsPageScreen.shipsList.isCompletelyDisplayed()
                 }
 
                 step("Check connection success state") {
@@ -216,7 +216,7 @@ class ConnectFragmentTest : TestCase() {
 
             step("Network info views should ${if (isShowing) "" else "not "}be displayed") {
                 ConnectPageScreen.infoViews.forEachIndexed { index, view ->
-                    if (isShowing && (index > 0 || hasNetwork)) view.isDisplayed()
+                    if (isShowing && (index > 0 || hasNetwork)) view.isCompletelyDisplayed()
                     else view.isNotDisplayed()
                 }
             }

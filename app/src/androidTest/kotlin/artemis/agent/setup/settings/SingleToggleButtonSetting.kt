@@ -18,7 +18,7 @@ data class SingleToggleButtonSetting(
         divider.scrollTo()
         label.isDisplayedWithText(text)
         button {
-            isDisplayed()
+            isCompletelyDisplayed()
             isCheckedIf(isChecked)
         }
     }

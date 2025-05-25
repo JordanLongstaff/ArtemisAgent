@@ -27,12 +27,12 @@ fun BaseAssertions.isRemoved() {
 }
 
 fun TextViewAssertions.isDisplayedWithText(text: String) {
-    isDisplayed()
+    isCompletelyDisplayed()
     hasText(text)
 }
 
 fun TextViewAssertions.isDisplayedWithText(@StringRes text: Int) {
-    isDisplayed()
+    isCompletelyDisplayed()
     hasText(text)
 }
 
@@ -41,6 +41,6 @@ fun TextViewAssertions.showsFormattedDistance(distance: Float) {
 }
 
 fun <A> A.isDisplayedWithSize(size: Int) where A : RecyclerAdapterAssertions, A : BaseAssertions {
-    isDisplayed()
+    isCompletelyDisplayed()
     hasSize(size)
 }

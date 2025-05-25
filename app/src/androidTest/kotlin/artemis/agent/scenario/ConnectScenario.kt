@@ -35,7 +35,7 @@ class ConnectScenario(ip: String, activityScenario: ActivityScenario<MainActivit
                 // Skip this check on CI since it always fails
                 step("Connecting state") {
                     connectLabel.isDisplayedWithText(R.string.connecting)
-                    connectSpinner.isDisplayed()
+                    connectSpinner.isCompletelyDisplayed()
                 }
 
                 step("Wait for timeout") {
