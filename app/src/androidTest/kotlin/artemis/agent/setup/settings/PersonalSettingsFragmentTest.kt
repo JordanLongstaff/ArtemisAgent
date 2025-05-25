@@ -28,7 +28,7 @@ class PersonalSettingsFragmentTest : TestCase() {
     @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
 
     @Test
-    fun personalSettingsVolumeTest() {
+    fun personalSettingsMutableTest() {
         testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
     }
 
