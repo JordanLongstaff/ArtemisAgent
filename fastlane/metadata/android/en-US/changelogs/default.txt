@@ -1,8 +1,1 @@
-* Android 16 support
-* Added haptic feedback
-* Surrender range and avoidance settings now accept decimal points
-(CHECK TO MAKE SURE SETTINGS HAVEN'T CHANGED!!!)
-* Fixed back button behavior in Help and Settings pages
-* Fixed race condition with settings menu toggles
-* Fixed theme not being applied to bottom buttons
 * Minor UI fixes
