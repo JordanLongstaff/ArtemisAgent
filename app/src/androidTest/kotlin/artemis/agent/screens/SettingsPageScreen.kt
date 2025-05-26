@@ -50,7 +50,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
             pageEntries.forEach { entry ->
                 childAt<Menu.Entry>(entry.ordinal) {
                     title.isDisplayedWithText(entry.title)
-                    if (entry.toggleDisplayed) toggle.isDisplayed() else toggle.isHidden()
+                    if (entry.toggleDisplayed) toggle.isCompletelyDisplayed() else toggle.isHidden()
                 }
             }
         }
@@ -58,7 +58,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
 
     fun assertSubmenuDisplayed(page: Page) {
         settingsPageTitle.isDisplayedWithText(page.title)
-        settingsBack.isDisplayed()
+        settingsBack.isCompletelyDisplayed()
         Menu.settingsPageMenu.doesNotExist()
     }
 

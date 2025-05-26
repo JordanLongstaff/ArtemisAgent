@@ -72,7 +72,7 @@ object HelpPageScreen : KScreen<HelpPageScreen>() {
             isDisplayedWithSize(itemCount)
         }
         helpTopicTitle.isDisplayedWithText(titleId)
-        backButton.isDisplayed()
+        backButton.isCompletelyDisplayed()
     }
 
     class MenuButtonItem(parent: Matcher<View>) :
