@@ -65,7 +65,7 @@ object MainScreen : KScreen<MainScreen>() {
 
     fun assertPermissionRationaleDialogOpen() {
         permissionRationaleDialog {
-            isDisplayed()
+            isCompletelyDisplayed()
             title.isRemoved()
             message.isDisplayedWithText(R.string.permission_rationale)
             positiveButton.isDisplayedWithText(R.string.yes)

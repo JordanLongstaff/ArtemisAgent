@@ -307,7 +307,7 @@ class RoutingSettingsFragmentTest : TestCase() {
             step(title) {
                 step("Base components displayed") {
                     setting.label.isDisplayedWithText(title)
-                    setting.button.isDisplayed()
+                    setting.button.isCompletelyDisplayed()
                 }
 
                 testRoutingSubMenuAvoidanceSettingState(setting, isEnabled, clearance)
@@ -335,7 +335,7 @@ class RoutingSettingsFragmentTest : TestCase() {
                 if (isEnabled) {
                     setting.button.isChecked()
                     setting.input {
-                        isDisplayed()
+                        isCompletelyDisplayed()
                         showsFormattedDistance(clearance)
                     }
                     setting.kmLabel.isDisplayedWithText(R.string.kilometres)

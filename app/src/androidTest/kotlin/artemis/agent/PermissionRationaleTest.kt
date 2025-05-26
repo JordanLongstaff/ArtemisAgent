@@ -83,7 +83,7 @@ class PermissionRationaleTest : TestCase() {
 
                 step("No dialogs of any kind afterwards") {
                     try {
-                        permissionRationaleDialog.isDisplayed()
+                        permissionRationaleDialog.isCompletelyDisplayed()
                         Assert.fail("Expected permission rationale dialog to be gone")
                     } catch (_: NoMatchingRootException) {
                         // Success, but must still check that permission request dialog is gone

@@ -20,7 +20,7 @@ private constructor(page: SettingsPageScreen.Page, usingToggle: Boolean = false)
 
                 settingsOnOff {
                     if (page.toggleDisplayed) {
-                        isDisplayed()
+                        isCompletelyDisplayed()
                         isChecked()
                     } else {
                         isRemoved()

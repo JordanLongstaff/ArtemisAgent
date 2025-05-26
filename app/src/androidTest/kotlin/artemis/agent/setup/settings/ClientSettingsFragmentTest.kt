@@ -147,7 +147,7 @@ class ClientSettingsFragmentTest : TestCase() {
                     step("Title displayed") {
                         addressLimitDivider.scrollTo()
                         addressLimitTitle.isDisplayedWithText(R.string.server_memory_limit)
-                        addressLimitEnableButton.isDisplayed()
+                        addressLimitEnableButton.isCompletelyDisplayed()
                     }
 
                     step("UI state") {
@@ -172,7 +172,7 @@ class ClientSettingsFragmentTest : TestCase() {
 
         fun SettingsPageScreen.Client.testAddressLimitFieldDisplayState(isChecked: Boolean) {
             if (isChecked) {
-                addressLimitField.isDisplayed()
+                addressLimitField.isCompletelyDisplayed()
                 addressLimitInfinity.isRemoved()
             } else {
                 addressLimitField.isRemoved()
