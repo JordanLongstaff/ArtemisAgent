@@ -25,8 +25,6 @@ val javaVersion: JavaVersion by rootProject.extra
 val stringRes = "string"
 
 val release = "release"
-val keystoreProperties =
-    Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
 val kotlinMainPath: String by rootProject.extra
 val kotlinTestPath: String by rootProject.extra
@@ -61,6 +59,11 @@ android {
 
     signingConfigs {
         create(release) {
+            val keystoreProperties =
+                Properties().apply {
+                    load(FileInputStream(rootProject.file("keystore.properties")))
+                }
+
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
             storePassword = keystoreProperties["storePassword"] as String
