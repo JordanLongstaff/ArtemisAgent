@@ -228,9 +228,11 @@ app = [
     "jspecify",
 ]
 app-debug = [
-    "leakcanary",
     "konnection-android-debug",
     "material",
+]
+app-debug-runtime = [
+    "leakcanary",
 ]
 app-test = [
     "kotest-assertions-api",
