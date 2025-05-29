@@ -172,7 +172,7 @@ class MissionSettingsFragmentTest : TestCase() {
                 SettingsPageScreen.Missions {
                     autoDismissalDivider.scrollTo()
                     autoDismissalTitle.isDisplayedWithText(R.string.auto_dismissal)
-                    autoDismissalButton.isDisplayed()
+                    autoDismissalButton.isCompletelyDisplayed()
                 }
             }
 

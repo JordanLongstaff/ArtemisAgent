@@ -114,7 +114,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:labelFor="@id/addressLimitField"
-        android:text="@string/remember_servers"
+        android:text="@string/server_memory_limit"
         android:textSize="@dimen/mediumTextSize"
         app:layout_constraintBottom_toBottomOf="@id/addressLimitEnableButton"
         app:layout_constraintEnd_toStartOf="@id/addressLimitBarrier"

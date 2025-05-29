@@ -42,7 +42,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4
         with:
           dependency-graph: generate-and-upload
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
@@ -107,13 +107,13 @@ jobs:
           path: konsist
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@afb2984f4d89672b2f9d9c13ae23d53779671984 # v2
+        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
         with:
           check_name: Unit Test Results
           files: tests/**/*.xml
 
       - name: Publish Konsist Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@afb2984f4d89672b2f9d9c13ae23d53779671984 # v2
+        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
         if: always()
         with:
           check_name: Konsist Test Results

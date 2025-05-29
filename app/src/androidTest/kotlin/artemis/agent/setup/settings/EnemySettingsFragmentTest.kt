@@ -307,7 +307,7 @@ class EnemySettingsFragmentTest : TestCase() {
                     step("Toggle components displayed") {
                         surrenderRangeDivider.scrollTo()
                         surrenderRangeTitle.isDisplayedWithText(R.string.surrender_range)
-                        surrenderRangeEnableButton.isDisplayed()
+                        surrenderRangeEnableButton.isCompletelyDisplayed()
                     }
                 }
 
@@ -340,7 +340,7 @@ class EnemySettingsFragmentTest : TestCase() {
                         surrenderRangeEnableButton.isChecked()
                         surrenderRangeInfinity.isRemoved()
                         surrenderRangeKm.isDisplayedWithText(R.string.kilometres)
-                        surrenderRangeField.isDisplayed()
+                        surrenderRangeField.isCompletelyDisplayed()
                         if (surrenderRange != null) {
                             surrenderRangeField.showsFormattedDistance(surrenderRange)
                         }

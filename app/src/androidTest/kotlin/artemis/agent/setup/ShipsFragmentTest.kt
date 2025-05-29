@@ -60,10 +60,10 @@ class ShipsFragmentTest : TestCase() {
                             isDisplayedWithSize(Artemis.SHIP_COUNT)
                             children<ShipsPageScreen.ShipItem> {
                                 selectedShipLabel.isRemoved()
-                                nameLabel.isDisplayed()
-                                vesselLabel.isDisplayed()
-                                driveTypeLabel.isDisplayed()
-                                descriptionLabel.isDisplayed()
+                                nameLabel.isCompletelyDisplayed()
+                                vesselLabel.isCompletelyDisplayed()
+                                driveTypeLabel.isCompletelyDisplayed()
+                                descriptionLabel.isCompletelyDisplayed()
                             }
                         }
                     }
@@ -84,7 +84,7 @@ class ShipsFragmentTest : TestCase() {
 
                 step("Ships page still open") {
                     SetupPageScreen.shipsPageButton {
-                        isDisplayed()
+                        isCompletelyDisplayed()
                         isChecked()
                     }
                     ShipsPageScreen.shipsList.isDisplayedWithSize(Artemis.SHIP_COUNT)

@@ -60,7 +60,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4
 
       - name: Run tests on API ${{ matrix.api-level }}
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2
@@ -96,7 +96,7 @@ jobs:
           path: tests
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@afb2984f4d89672b2f9d9c13ae23d53779671984 # v2
+        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
         with:
           check_name: Instrumented Test Results
           files: tests/**/*.xml
