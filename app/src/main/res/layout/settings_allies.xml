@@ -66,8 +66,6 @@
         app:constraint_referenced_ids="allySortingClassButton1,allySortingEnergyButton,allySortingStatusButton,allySortingClassButton2,allySortingNameButton"
         app:flow_horizontalBias="0"
         app:flow_horizontalStyle="packed"
-        app:flow_lastHorizontalBias="1"
-        app:flow_lastHorizontalStyle="packed"
         app:flow_wrapMode="chain"
         app:layout_constraintTop_toBottomOf="@id/allySortingDefaultButtonGroup" />
     <View
