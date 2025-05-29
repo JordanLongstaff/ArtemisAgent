@@ -70,7 +70,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toBottomOf="@id/biomechSortingNameButton" />
+        app:layout_constraintTop_toBottomOf="@id/biomechSortingFlow" />
     <TextView
         android:id="@+id/freezeDurationTitle"
         android:layout_width="0dp"

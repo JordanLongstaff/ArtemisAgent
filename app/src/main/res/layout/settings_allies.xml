@@ -75,7 +75,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toBottomOf="@id/allySortingNameButton" />
+        app:layout_constraintTop_toBottomOf="@id/allySortingFlow" />
     <TextView
         android:id="@+id/showDestroyedAlliesTitle"
         android:layout_width="0dp"
