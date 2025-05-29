@@ -76,7 +76,9 @@ jobs:
             ./gradlew connectedCheck
 
       - name: Include orientation in results filename
-        run: rename .xml ${{ matrix.orientation == 0 && 'portrait' || 'landscape' }}.xml ${{ github.workspace }}/app/build/outputs/androidTest-results/connected/**/*.xml
+        run: |
+          orientation=${{ matrix.orientation == 0 && 'portrait' || 'landscape' }}
+          find ${{ github.workspace }}/app/build/outputs/androidTest-results/connected/ -name *.xml -exec sh -c 'mv "$1" "${1%.xml}$orientation.xml"' _ {} \;
 
       - name: Upload Test Results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
