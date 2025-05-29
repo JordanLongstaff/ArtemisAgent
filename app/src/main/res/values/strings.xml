@@ -665,7 +665,7 @@
     <string name="single_seat_craft_launched">%1$d single-seat craft launched</string>
     <string name="single_seat_craft_lost">%1$d single-seat craft lost</string>
     <string name="sort_by_class">Class</string>
-    <string name="sort_by_energy">En</string>
+    <string name="sort_by_energy">Energy</string>
     <string name="sort_by_name">Name</string>
     <string name="sort_by_race">Race</string>
     <string name="sort_by_range">Range</string>
