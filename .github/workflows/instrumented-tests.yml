@@ -75,6 +75,9 @@ jobs:
             adb shell settings put system user_rotation ${{ matrix.orientation }}
             ./gradlew connectedCheck
 
+      - name: Include orientation in results filename
+        run: rename .xml ${{ matrix.orientation == 0 && 'portrait' || 'landscape' }}.xml ${{ github.workspace }}/app/build/outputs/androidTest-results/connected/**/*.xml
+
       - name: Upload Test Results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
