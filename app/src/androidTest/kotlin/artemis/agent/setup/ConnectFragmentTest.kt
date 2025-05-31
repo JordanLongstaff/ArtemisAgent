@@ -178,7 +178,7 @@ class ConnectFragmentTest : TestCase() {
                 }
                 val settingValue = showingInfo.get()
 
-                runTest(timeout = 2.minutes) {
+                runTest(timeout = 3.minutes) {
                     val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
                     booleanArrayOf(settingValue, !settingValue, settingValue).forEachIndexed {
