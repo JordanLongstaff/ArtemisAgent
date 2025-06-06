@@ -10,6 +10,7 @@ on:
 
 jobs:
   test-matrix:
+    name: Generate API version matrix
     runs-on: ubuntu-latest
     outputs:
       api-level: ${{ steps.generate.outputs.matrix }}
@@ -25,9 +26,11 @@ jobs:
       fail-fast: false
       matrix:
         api-level: ${{ fromJSON(needs.test-matrix.outputs.api-level) }}
+        orientation: [ {name: portrait, rotation: 0}, {name: landscape, rotation: 1} ]
+    name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
     timeout-minutes: 20
     concurrency:
-      group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ matrix.orientation.rotation }}-${{ github.ref }}
       cancel-in-progress: true
 
     steps:
@@ -67,13 +70,16 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew connectedCheck
+          script: |
+            adb shell settings put system accelerometer_rotation 0
+            adb shell settings put system user_rotation ${{ matrix.orientation.rotation }}
+            ./gradlew connectedCheck
 
       - name: Upload Test Results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: "Instrumented Test Results (API ${{ matrix.api-level }})"
+          name: "Instrumented Test Results (API ${{ matrix.api-level }}, ${{ matrix.orientation.name }})"
           path: ${{ github.workspace }}/app/build/outputs/androidTest-results/connected/**/*.xml
 
   publish:
