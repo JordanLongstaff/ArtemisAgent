@@ -2,6 +2,7 @@ package artemis.agent.setup
 
 import android.os.Build
 import androidx.activity.viewModels
+import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -16,6 +17,7 @@ import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.ConnectPageScreen
 import artemis.agent.screens.MainScreen.mainScreenTest
+import artemis.agent.screens.NotificationScreen
 import artemis.agent.screens.SettingsPageScreen
 import artemis.agent.screens.SetupPageScreen
 import artemis.agent.screens.ShipsPageScreen
@@ -119,6 +121,8 @@ class ConnectFragmentTest : TestCase() {
             mainScreenTest(false) {
                 scenario(ConnectScenario(FAKE_SERVER_IP, activityScenarioRule.scenario))
 
+                val connectedString = device.targetContext.getString(R.string.connected)
+
                 step("Advance to Ships page") {
                     SetupPageScreen {
                         connectPageButton.isNotChecked()
@@ -140,9 +144,30 @@ class ConnectFragmentTest : TestCase() {
                 step("Check connection success state") {
                     SetupPageScreen.connectPageButton.click()
                     ConnectPageScreen {
-                        connectLabel.isDisplayedWithText(R.string.connected)
+                        connectLabel.isDisplayedWithText(connectedString)
                         connectSpinner.isRemoved()
                     }
+                }
+
+                step("Background app") { device.exploit.pressHome() }
+
+                step("Check connection notification") {
+                    NotificationScreen {
+                        title {
+                            isDisplayed()
+                            hasText(FAKE_SERVER_IP)
+                        }
+                        content {
+                            isDisplayed()
+                            hasText(connectedString)
+                        }
+                    }
+                }
+
+                step("Return to app") { ActivityScenario.launch(MainActivity::class.java) }
+
+                step("Check connection is still active") {
+                    ConnectPageScreen.connectLabel.isDisplayedWithText(connectedString)
                 }
             }
         }
