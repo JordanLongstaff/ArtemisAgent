@@ -583,14 +583,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
+    /** When the activity is stopped, write the current theme to disk. */
     override fun onStop() {
         super.onStop()
-        destroyServiceConnection()
-
         openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
             it.write(byteArrayOf(viewModel.themeIndex.toByte()))
         }
+    }
+
+    /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
+    override fun onDestroy() {
+        super.onDestroy()
+        destroyServiceConnection()
     }
 
     /**
