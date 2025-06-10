@@ -29,6 +29,30 @@ class HelpFragmentTest : TestCase() {
         testHelpFragment { pressBack() }
     }
 
+    @Test
+    fun checkForUpdatesTest() {
+        run {
+            mainScreenTest(false) {
+                step("Navigate to About page in Help") {
+                    helpPageButton.click()
+                    HelpPageScreen { openTopicAtIndex(helpTopics.lastIndex) }
+                }
+
+                step("Press update button") { updateButton.click() }
+
+                step("Check for alert dialog saying no updates") {
+                    alertDialog {
+                        isCompletelyDisplayed()
+                        title.isDisplayedWithText(R.string.app_version)
+                        message.isDisplayedWithText(R.string.no_updates)
+                        positiveButton.isRemoved()
+                        negativeButton.isRemoved()
+                    }
+                }
+            }
+        }
+    }
+
     private fun testHelpFragment(goBack: HelpPageScreen.() -> Unit) {
         run {
             mainScreenTest {

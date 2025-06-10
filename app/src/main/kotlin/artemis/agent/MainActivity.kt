@@ -527,7 +527,7 @@ class MainActivity : AppCompatActivity() {
         collectLatestWhileStarted(viewModel.gameOverReason) {
             if (shouldAskForReview) askForReview()
             shouldAskForReview = !shouldAskForReview
-            checkForUpdates()
+            checkForUpdates(false)
         }
 
         collectLatestWhileStarted(viewModel.jumping) {
@@ -541,7 +541,8 @@ class MainActivity : AppCompatActivity() {
 
         binding.updateButton.setOnClickListener {
             viewModel.activateHaptic()
-            checkForUpdates()
+            viewModel.playSound(SoundEffect.BEEP_2)
+            checkForUpdates(true)
         }
 
         binding.mainPageSelector.children.forEach { view ->
@@ -568,7 +569,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        checkForUpdates()
+        checkForUpdates(false)
     }
 
     /**
@@ -765,7 +766,7 @@ class MainActivity : AppCompatActivity() {
                 .setCancelable(true)
                 .apply {
                     if (suggestUpdate) {
-                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates() }
+                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates(true) }
                     }
                 }
                 .show()
@@ -862,7 +863,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForUpdates() {
+    private fun checkForUpdates(alertForNoUpdates: Boolean) {
         viewModel.viewModelScope.launch {
             val results =
                 awaitAll(
@@ -885,7 +886,16 @@ class MainActivity : AppCompatActivity() {
             val updateInfo = results[1] as? AppUpdateInfo
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
 
-            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode) ?: return@launch
+            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)
+            if (updateAlert == null) {
+                if (alertForNoUpdates) {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.app_version)
+                        .setMessage(R.string.no_updates)
+                        .show()
+                }
+                return@launch
+            }
 
             val context = this@MainActivity
 

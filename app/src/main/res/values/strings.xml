@@ -588,6 +588,7 @@
     <string name="no_ships">Connect to a server.</string>
     <string name="no_ship_selected">Select a ship.</string>
     <string name="no_stations">No stations.</string>
+    <string name="no_updates">No updates found.</string>
     <string name="none">None</string>
     <string name="not_connected">Not connected</string>
     <string name="off">Off</string>

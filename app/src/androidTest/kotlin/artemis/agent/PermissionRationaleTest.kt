@@ -28,7 +28,7 @@ class PermissionRationaleTest : TestCase() {
         run {
             testPermissionDialog { screen ->
                 step("Click positive button") {
-                    screen.permissionRationaleDialog { positiveButton.click() }
+                    screen.alertDialog { positiveButton.click() }
                 }
             }
         }
@@ -39,7 +39,7 @@ class PermissionRationaleTest : TestCase() {
         run {
             testPermissionDialog { screen ->
                 step("Click negative button") {
-                    screen.permissionRationaleDialog { negativeButton.click() }
+                    screen.alertDialog { negativeButton.click() }
                 }
 
                 step("Check for permissions dialog again") {
@@ -83,7 +83,7 @@ class PermissionRationaleTest : TestCase() {
 
                 step("No dialogs of any kind afterwards") {
                     try {
-                        permissionRationaleDialog.isCompletelyDisplayed()
+                        alertDialog.isCompletelyDisplayed()
                         Assert.fail("Expected permission rationale dialog to be gone")
                     } catch (_: NoMatchingRootException) {
                         // Success, but must still check that permission request dialog is gone
