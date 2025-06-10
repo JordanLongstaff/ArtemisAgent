@@ -1,2 +1,2 @@
-* Minor UI fixes
+* Fixed notifications disappearing too fast
 * Dependency upgrades
