@@ -37,11 +37,11 @@ class PermissionRationaleTest : TestCase() {
     @Test
     fun permissionRationaleDialogNegativeTest() {
         run {
-            testPermissionDialog { screen ->
+            testPermissionDialog {
                 step("Click negative button") { clickRationaleDialogButton { negativeButton } }
 
                 step("Check for permissions dialog again") {
-                    screen.assertPermissionsDialogOpen(device)
+                    MainScreen.assertPermissionsDialogOpen(device)
                 }
 
                 step("Deny permissions again") {
@@ -71,7 +71,7 @@ class PermissionRationaleTest : TestCase() {
             MainScreen.alertDialog.button().click()
         }
 
-        fun TestContext<*>.testPermissionDialog(withDialog: TestContext<*>.(MainScreen) -> Unit) {
+        fun TestContext<*>.testPermissionDialog(withDialog: TestContext<*>.() -> Unit) {
             MainScreen {
                 step("Check for permissions dialog") { assertPermissionsDialogOpen(device) }
 
@@ -81,7 +81,7 @@ class PermissionRationaleTest : TestCase() {
                     assertPermissionRationaleDialogOpen()
                 }
 
-                withDialog(this)
+                withDialog()
 
                 step("No dialogs of any kind afterwards") {
                     try {
