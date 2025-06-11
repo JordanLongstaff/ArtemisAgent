@@ -45,7 +45,6 @@ import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.InstallException
-import com.google.android.play.core.install.InstallState
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.ActivityResult
 import com.google.android.play.core.install.model.AppUpdateType
@@ -99,9 +98,27 @@ class MainActivity : AppCompatActivity() {
 
     val updateManager: AppUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
+    private val installStateListener: InstallStateUpdatedListener by lazy {
+        InstallStateUpdatedListener { state ->
+            when (state.installStatus()) {
+                InstallStatus.DOWNLOADED -> onUpdateReady()
+                InstallStatus.INSTALLED -> updateManager.unregisterListener(installStateListener)
+                else -> {}
+            }
+        }
+    }
+
     private val updateResultLauncher: ActivityResultLauncher<IntentSenderRequest> =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             when (result.resultCode) {
+                RESULT_OK -> {
+                    if (updateType == AppUpdateType.FLEXIBLE) {
+                        updateManager.registerListener(installStateListener)
+                    }
+
+                    null
+                }
+
                 RESULT_CANCELED -> {
                     R.string.update_declined_title to R.string.update_declined_message
                 }
@@ -943,29 +960,15 @@ class MainActivity : AppCompatActivity() {
         val appUpdateInfoTask = updateManager.appUpdateInfo
 
         appUpdateInfoTask.addOnSuccessListener { updateInfo ->
-            if (updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                if (updateType == AppUpdateType.FLEXIBLE) {
-                    val listener =
-                        object : InstallStateUpdatedListener {
-                            override fun onStateUpdate(installState: InstallState) {
-                                when (installState.installStatus()) {
-                                    InstallStatus.DOWNLOADED -> onUpdateReady()
-                                    InstallStatus.INSTALLED ->
-                                        updateManager.unregisterListener(this)
-                                    else -> {}
-                                }
-                            }
-                        }
-                    updateManager.registerListener(listener)
-                }
-
-                if (updateInfo.isUpdateTypeAllowed(updateType)) {
-                    updateManager.startUpdateFlowForResult(
-                        updateInfo,
-                        updateResultLauncher,
-                        AppUpdateOptions.newBuilder(updateType).build(),
-                    )
-                }
+            if (
+                updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                    updateInfo.isUpdateTypeAllowed(updateType)
+            ) {
+                updateManager.startUpdateFlowForResult(
+                    updateInfo,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(updateType).build(),
+                )
             }
         }
     }
