@@ -12,6 +12,8 @@ import androidx.test.uiautomator.UiSelector
 import artemis.agent.screens.MainScreen
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
+import io.github.kakaocup.kakao.dialog.KAlertDialog
+import io.github.kakaocup.kakao.text.KButton
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -26,10 +28,8 @@ class PermissionRationaleTest : TestCase() {
     @Test
     fun permissionRationaleDialogPositiveTest() {
         run {
-            testPermissionDialog { screen ->
-                step("Click positive button") {
-                    screen.alertDialog { positiveButton.click() }
-                }
+            testPermissionDialog {
+                step("Click positive button") { clickRationaleDialogButton { positiveButton } }
             }
         }
     }
@@ -38,9 +38,7 @@ class PermissionRationaleTest : TestCase() {
     fun permissionRationaleDialogNegativeTest() {
         run {
             testPermissionDialog { screen ->
-                step("Click negative button") {
-                    screen.alertDialog { negativeButton.click() }
-                }
+                step("Click negative button") { clickRationaleDialogButton { negativeButton } }
 
                 step("Check for permissions dialog again") {
                     screen.assertPermissionsDialogOpen(device)
@@ -68,6 +66,10 @@ class PermissionRationaleTest : TestCase() {
     private companion object {
         const val DENY_AND_DONT_ASK_BUTTON =
             "com.android.permissioncontroller:id/permission_deny_and_dont_ask_again_button"
+
+        fun clickRationaleDialogButton(button: KAlertDialog.() -> KButton) {
+            MainScreen.alertDialog.button().click()
+        }
 
         fun TestContext<*>.testPermissionDialog(withDialog: TestContext<*>.(MainScreen) -> Unit) {
             MainScreen {
