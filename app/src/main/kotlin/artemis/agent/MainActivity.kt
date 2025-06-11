@@ -127,7 +127,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private var isUpdateReady: Boolean = false
     @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
 
     private val completeUpdateCallback by lazy {
@@ -972,7 +971,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onUpdateReady() {
-        isUpdateReady = true
         completeUpdateCallback.isEnabled = true
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.update_ready_title)
@@ -983,7 +981,6 @@ class MainActivity : AppCompatActivity() {
             }
             .setPositiveButton(R.string.update_now) { _, _ ->
                 viewModel.playSound(SoundEffect.BEEP_2)
-                isUpdateReady = false
                 updateManager.completeUpdate()
             }
             .show()
