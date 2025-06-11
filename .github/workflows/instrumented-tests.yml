@@ -94,3 +94,5 @@ jobs:
         with:
           check_name: Instrumented Test Results
           files: tests/**/*.xml
+          root_log_level: DEBUG
+          log_level: DEBUG

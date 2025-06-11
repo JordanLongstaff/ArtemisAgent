@@ -111,6 +111,8 @@ jobs:
         with:
           check_name: Unit Test Results
           files: tests/**/*.xml
+          root_log_level: DEBUG
+          log_level: DEBUG
 
       - name: Publish Konsist Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
@@ -118,6 +120,8 @@ jobs:
         with:
           check_name: Konsist Test Results
           files: konsist/**/*.xml
+          root_log_level: DEBUG
+          log_level: DEBUG
 
   coverage:
     needs: build
