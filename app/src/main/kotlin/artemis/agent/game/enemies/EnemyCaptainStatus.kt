@@ -3,7 +3,7 @@ package artemis.agent.game.enemies
 import androidx.annotation.StringRes
 import artemis.agent.R
 
-enum class EnemyCaptainStatus(@field:StringRes val description: Int) {
+enum class EnemyCaptainStatus(@StringRes val description: Int) {
     NO_INTEL(R.string.enemy_status_no_intel),
     NORMAL(R.string.enemy_status_normal),
     COWARDLY(R.string.enemy_status_cowardly),

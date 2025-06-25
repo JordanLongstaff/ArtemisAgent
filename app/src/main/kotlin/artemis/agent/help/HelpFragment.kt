@@ -112,8 +112,8 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private class HelpTopic(
-        @field:StringRes val buttonLabel: Int,
-        @field:ArrayRes private val paragraphs: Int,
+        @StringRes val buttonLabel: Int,
+        @ArrayRes private val paragraphs: Int,
         private val insert: MutableList<HelpTopicContent>.(Resources) -> Unit,
     ) : ViewProvider {
         override val viewType: Int = MENU
@@ -133,7 +133,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private sealed interface HelpTopicContent : ViewProvider {
-        data class Image(@field:DrawableRes val imageSrcId: Int) : HelpTopicContent {
+        data class Image(@DrawableRes val imageSrcId: Int) : HelpTopicContent {
             override val viewType: Int = IMAGE
         }
 

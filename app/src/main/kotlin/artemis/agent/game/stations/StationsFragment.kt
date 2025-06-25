@@ -18,7 +18,7 @@ class StationsFragment : Fragment(R.layout.stations_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
     private val binding: StationsFragmentBinding by fragmentViewBinding()
 
-    enum class Page(val pageClass: Class<out Fragment>, @field:IdRes val buttonId: Int) {
+    enum class Page(val pageClass: Class<out Fragment>, @IdRes val buttonId: Int) {
         FRIENDLY(StationEntryFragment::class.java, R.id.friendlyStationsButton),
         ENEMY(EnemyStationsFragment::class.java, R.id.enemyStationsButton),
         DESTROYED(DestroyedStationsFragment::class.java, R.id.destroyedStationsButton),

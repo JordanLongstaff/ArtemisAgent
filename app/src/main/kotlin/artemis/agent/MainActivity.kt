@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: AgentViewModel by viewModels()
 
     /** UI sections selected by the three buttons at the bottom of the screen. */
-    enum class Section(val sectionClass: Class<out Fragment>, @field:IdRes val buttonId: Int) {
+    enum class Section(val sectionClass: Class<out Fragment>, @IdRes val buttonId: Int) {
         SETUP(SetupFragment::class.java, R.id.setupPageButton),
         GAME(GameFragment::class.java, R.id.gamePageButton),
         HELP(HelpFragment::class.java, R.id.helpPageButton),

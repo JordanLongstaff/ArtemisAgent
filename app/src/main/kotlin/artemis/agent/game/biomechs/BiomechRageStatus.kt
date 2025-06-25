@@ -3,7 +3,7 @@ package artemis.agent.game.biomechs
 import androidx.annotation.ColorRes
 import artemis.agent.R
 
-enum class BiomechRageStatus(@field:ColorRes val color: Int) {
+enum class BiomechRageStatus(@ColorRes val color: Int) {
     NEUTRAL(R.color.biomechNeutral),
     HOSTILE(R.color.enemyRed);
 
