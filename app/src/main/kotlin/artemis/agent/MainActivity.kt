@@ -3,7 +3,6 @@ package artemis.agent
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PendingIntent
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -74,7 +73,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: AgentViewModel by viewModels()
 
     /** UI sections selected by the three buttons at the bottom of the screen. */
-    enum class Section(val sectionClass: Class<out Fragment>, @IdRes val buttonId: Int) {
+    enum class Section(val sectionClass: Class<out Fragment>, @field:IdRes val buttonId: Int) {
         SETUP(SetupFragment::class.java, R.id.setupPageButton),
         GAME(GameFragment::class.java, R.id.gamePageButton),
         HELP(HelpFragment::class.java, R.id.helpPageButton),
@@ -596,14 +595,14 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         Intent(this, NotificationService::class.java).also {
             startService(it)
-            bindService(it, connection, Context.BIND_AUTO_CREATE)
+            bindService(it, connection, BIND_AUTO_CREATE)
         }
     }
 
     /** When the activity is stopped, write the current theme to disk. */
     override fun onStop() {
         super.onStop()
-        openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
+        openFileOutput(THEME_RES_FILE_NAME, MODE_PRIVATE).use {
             it.write(byteArrayOf(viewModel.themeIndex.toByte()))
         }
     }
@@ -713,7 +712,7 @@ class MainActivity : AppCompatActivity() {
         Firebase.remoteConfig.apply {
             setConfigSettingsAsync(configSettings)
             setDefaultsAsync(
-                mapOf(RemoteConfigKey.artemisLatestVersion to Version.DEFAULT.toString())
+                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
             )
         }
     }
@@ -948,9 +947,9 @@ class MainActivity : AppCompatActivity() {
         try {
                 openFileInput(MAX_VERSION_FILE_NAME).use { it.readBytes().decodeToString() }
             } catch (_: FileNotFoundException) {
-                Firebase.remoteConfig.getString(RemoteConfigKey.artemisLatestVersion).also { ver ->
-                    openFileOutput(MAX_VERSION_FILE_NAME, Context.MODE_PRIVATE).use {
-                        it.write(ver.encodeToByteArray())
+                Firebase.remoteConfig.getString(RemoteConfigKey.ARTEMIS_LATEST_VERSION).also { v ->
+                    openFileOutput(MAX_VERSION_FILE_NAME, MODE_PRIVATE).use {
+                        it.write(v.encodeToByteArray())
                     }
                 }
             }

@@ -5,7 +5,7 @@ import com.walkertribe.ian.iface.PacketReader
 import com.walkertribe.ian.util.Version
 import com.walkertribe.ian.world.Artemis
 
-sealed class UnobservedObjectParser private constructor(objectType: ObjectType) :
+sealed class UnobservedObjectParser(objectType: ObjectType) :
     AbstractObjectParser<Nothing>(objectType) {
     data object Engineering : UnobservedObjectParser(ObjectType.ENGINEERING_CONSOLE) {
         override fun getByteCounts(version: Version): IntArray =

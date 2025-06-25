@@ -9,6 +9,8 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +21,6 @@ import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import kotlinx.datetime.Clock
 import kotlinx.io.IOException
 
 /**
@@ -125,6 +126,7 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
         heartbeatManager.setTimeout(timeout)
     }
 
+    @OptIn(ExperimentalTime::class)
     override fun start() {
         if (startTime != null || disconnectCause != null) return
 

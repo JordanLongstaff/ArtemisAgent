@@ -14,7 +14,6 @@ import io.kotest.property.checkAll
 import io.mockk.clearMocks
 import io.mockk.mockk
 import kotlin.reflect.KClass
-import kotlinx.datetime.Clock
 import kotlinx.io.IOException
 
 class ConnectionEventTest :
