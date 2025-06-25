@@ -1,4 +1,6 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -54,7 +56,12 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
     testOptions.unitTests.all { it.useJUnitPlatform() }
