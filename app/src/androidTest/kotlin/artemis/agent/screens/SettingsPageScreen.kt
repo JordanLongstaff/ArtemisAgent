@@ -77,7 +77,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         assertMainMenuDisplayed()
     }
 
-    enum class Page(@StringRes val title: Int, val toggleDisplayed: Boolean) {
+    enum class Page(@field:StringRes val title: Int, val toggleDisplayed: Boolean) {
         CLIENT(R.string.settings_menu_client, false),
         CONNECTION(R.string.settings_menu_connection, false),
         MISSIONS(R.string.settings_menu_missions, true),
@@ -475,7 +475,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
 
         data class AvoidanceSetting(
             val label: KTextView,
-            @StringRes val text: Int,
+            @field:StringRes val text: Int,
             val input: KEditText,
             val kmLabel: KTextView,
             val button: KCheckBox,

@@ -15,8 +15,8 @@ class ConnectionStatusTest :
 
 private enum class ConnectionStatusTestCase(
     private val status: ConnectionStatus,
-    @StringRes private val expectedStringId: Int,
-    @ColorRes private val expectedColor: Int,
+    @field:StringRes private val expectedStringId: Int,
+    @field:ColorRes private val expectedColor: Int,
     private val expectedSpinnerVisibility: Int,
 ) : WithDataTestName {
     NOT_CONNECTED(

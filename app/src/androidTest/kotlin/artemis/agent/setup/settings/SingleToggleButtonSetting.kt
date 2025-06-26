@@ -11,7 +11,7 @@ import io.github.kakaocup.kakao.text.KTextView
 data class SingleToggleButtonSetting(
     val divider: KView,
     val label: KTextView,
-    @StringRes val text: Int,
+    @field:StringRes val text: Int,
     val button: KCheckBox,
 ) {
     fun testSingleToggle(isChecked: Boolean) {
