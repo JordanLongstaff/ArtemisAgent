@@ -33,7 +33,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
     private val binding: SettingsFragmentBinding by fragmentViewBinding()
 
     enum class Page(
-        @field:StringRes val titleRes: Int,
+        @all:StringRes val titleRes: Int,
         val pageClass: Class<out Fragment>,
         val onToggle: (UserSettingsKt.Dsl.(Boolean) -> Unit)? = null,
     ) {

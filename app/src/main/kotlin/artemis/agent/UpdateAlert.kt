@@ -7,7 +7,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.remoteConfig
 import com.walkertribe.ian.util.Version
 
-sealed class UpdateAlert(@field:StringRes val title: Int, @field:StringRes val message: Int) {
+sealed class UpdateAlert(@all:StringRes val title: Int, @all:StringRes val message: Int) {
     sealed class ArtemisVersion(@StringRes message: Int, internal val newVersion: String) :
         UpdateAlert(R.string.new_version_title, message) {
         class Restart(newVersion: String) :

@@ -105,7 +105,7 @@ class ConnectionSettingsFragmentTest : TestCase() {
     private data class TimeInputSetting(
         val divider: KView,
         val title: KTextView,
-        @field:StringRes val text: Int,
+        @all:StringRes val text: Int,
         val timeInput: KTimeInputBinder,
         val secondsLabel: KTextView,
         val initialSeconds: Int,
