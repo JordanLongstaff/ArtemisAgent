@@ -6,8 +6,8 @@ import artemis.agent.R
 
 enum class AllyStatus(
     val sortIndex: AllySortIndex,
-    @StringRes val description: Int,
-    @ColorRes val backgroundColor: Int,
+    @field:StringRes val description: Int,
+    @field:ColorRes val backgroundColor: Int,
 ) {
     HOSTAGE(
         AllySortIndex.HOSTAGE,

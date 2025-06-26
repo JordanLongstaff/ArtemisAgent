@@ -5,8 +5,8 @@ import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 
 sealed class ConnectionStatus(
-    @StringRes val stringId: Int,
-    @ColorRes val color: Int,
+    @field:StringRes val stringId: Int,
+    @field:ColorRes val color: Int,
     val spinnerVisibility: Int = View.GONE,
 ) {
     data object NotConnected : ConnectionStatus(R.string.not_connected, R.color.notConnected)

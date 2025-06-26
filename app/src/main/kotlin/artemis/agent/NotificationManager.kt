@@ -206,14 +206,14 @@ class NotificationManager(context: Context) {
 
     data class NotificationChannelSetup(
         val id: NotificationChannelTag,
-        @StringRes val nameID: Int,
+        @field:StringRes val nameID: Int,
         val importance: Int,
         val shouldShowBadge: Boolean = false,
     )
 
     class NotificationChannelGroupSetup(
         val id: String,
-        @StringRes val nameID: Int,
+        @field:StringRes val nameID: Int,
         vararg val channels: NotificationChannelSetup,
     )
 
