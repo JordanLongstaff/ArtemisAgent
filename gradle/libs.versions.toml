@@ -142,6 +142,7 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 
 test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
+test-junit-ktx = { module = "androidx.test.ext:junit-ktx", version.ref = "androidx-test-junit" }
 test-monitor = { module = "androidx.test:monitor", version.ref = "androidx-test-monitor" }
 test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidx-test-orchestrator" }
 test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
@@ -260,6 +261,7 @@ app-androidTest = [
     "kakao",
     "test-core",
     "test-junit",
+    "test-junit-ktx",
     "test-monitor",
     "test-runner",
     "konnection-android-debug",
