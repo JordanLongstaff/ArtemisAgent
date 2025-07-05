@@ -19,7 +19,7 @@ data object WelcomePacketFixture :
     PacketTestFixture.Server<WelcomePacket>(TestPacketTypes.PLAIN_TEXT_GREETING) {
     data class Data(val message: String) : PacketTestData.Server<WelcomePacket> {
         override val version: Version
-            get() = Version.LATEST
+            get() = Version.DEFAULT
 
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(message.length)

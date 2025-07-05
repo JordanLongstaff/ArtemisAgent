@@ -1,0 +1,67 @@
+[
+  {
+    "status": "HOSTAGE"
+  },
+  {
+    "status": "COMMANDEERED"
+  },
+  {
+    "status": "COMMANDEERED_NEBULA",
+    "sortIndex": "COMMANDEERED"
+  },
+  {
+    "status": "NEED_ENERGY"
+  },
+  {
+    "status": "NEED_DAMCON"
+  },
+  {
+    "status": "MALFUNCTION"
+  },
+  {
+    "status": "FLYING_BLIND"
+  },
+  {
+    "status": "AMBASSADOR",
+    "pirate": "PIRATE_BOSS"
+  },
+  {
+    "status": "PIRATE_BOSS",
+    "notPirate": "AMBASSADOR"
+  },
+  {
+    "status": "CONTRABAND",
+    "pirate": "PIRATE_SUPPLIES"
+  },
+  {
+    "status": "PIRATE_SUPPLIES",
+    "notPirate": "CONTRABAND"
+  },
+  {
+    "status": "SECURE_DATA",
+    "pirate": "PIRATE_DATA"
+  },
+  {
+    "status": "PIRATE_DATA",
+    "notPirate": "SECURE_DATA"
+  },
+  {
+    "status": "NORMAL"
+  },
+  {
+    "status": "REWARD",
+    "sortIndex": "NORMAL"
+  },
+  {
+    "status": "REPAIRING",
+    "sortIndex": "NORMAL"
+  },
+  {
+    "status": "FIGHTER_TRAP",
+    "sortIndex": "TRAP"
+  },
+  {
+    "status": "MINE_TRAP",
+    "sortIndex": "TRAP"
+  }
+]

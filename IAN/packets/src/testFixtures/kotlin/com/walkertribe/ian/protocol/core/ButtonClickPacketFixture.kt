@@ -9,8 +9,10 @@ import io.kotest.property.arbitrary.string
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-sealed class ButtonClickPacketFixture
-private constructor(override val specName: String, arbPacket: Arb<ButtonClickPacket>) :
+sealed class ButtonClickPacketFixture(
+    override val specName: String,
+    arbPacket: Arb<ButtonClickPacket>,
+) :
     PacketTestFixture.Client<ButtonClickPacket>(
         packetType = TestPacketTypes.VALUE_INT,
         expectedPayloadSize = PAYLOAD_SIZE,

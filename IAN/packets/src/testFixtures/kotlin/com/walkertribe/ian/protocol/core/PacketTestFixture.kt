@@ -14,6 +14,7 @@ import io.ktor.utils.io.readInt
 import io.ktor.utils.io.readPacket
 import io.ktor.utils.io.writeInt
 import io.ktor.utils.io.writePacket
+import kotlinx.coroutines.launch
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
@@ -73,10 +74,10 @@ sealed class PacketTestFixture<T : Packet>(val packetType: Int) {
             flush()
         }
 
-        suspend fun <F : PacketTestFixture<*>> DescribeSpecContainerScope.organizeTests(
+        fun <F : PacketTestFixture<*>> DescribeSpecContainerScope.organizeTests(
             fixtures: List<F>,
             describeTests: suspend DescribeSpecContainerScope.(F) -> Unit,
-        ) {
+        ) = launch {
             fixtures
                 .groupBy { it.groupName }
                 .forEach { (groupName, list) ->
@@ -88,10 +89,10 @@ sealed class PacketTestFixture<T : Packet>(val packetType: Int) {
                 }
         }
 
-        private suspend fun <F : PacketTestFixture<*>> DescribeSpecContainerScope.listTests(
+        private fun <F : PacketTestFixture<*>> DescribeSpecContainerScope.listTests(
             fixtures: List<F>,
             describeTests: suspend DescribeSpecContainerScope.(F) -> Unit,
-        ) {
+        ) = launch {
             if (fixtures.size == 1) {
                 val fixture = fixtures[0]
                 describeTests(fixture)

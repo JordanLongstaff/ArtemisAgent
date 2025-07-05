@@ -21,12 +21,12 @@ class GoDefendTest :
             )
 
         it("GoDefend helper extension") {
-            arbObject.checkAll {
-                collect(it.type)
+            arbObject.checkAll { target ->
+                collect(target.type)
 
-                val goDefend = OtherMessage.GoDefend(it)
+                val goDefend = OtherMessage.GoDefend(target)
                 goDefend.shouldBeInstanceOf<OtherMessage.GoDefend>()
-                goDefend.targetID shouldBeEqual it.id
+                goDefend.targetID shouldBeEqual target.id
             }
         }
     })

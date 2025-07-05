@@ -1,35 +1,52 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import java.io.FileInputStream
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.android.application")
     kotlin("android")
+    kotlin("plugin.serialization")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
+    alias(libs.plugins.firebase.perf)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kover)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
-val appName: String = "Artemis Agent"
+val appName = "Artemis Agent"
+val appId = "artemis.agent"
 val sdkVersion: Int by rootProject.extra
 val minimumSdkVersion: Int by rootProject.extra
 val javaVersion: JavaVersion by rootProject.extra
+val stringRes = "string"
+
+val release = "release"
+val keystoreProperties =
+    Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
+
+val kotlinMainPath: String by rootProject.extra
+val kotlinTestPath: String by rootProject.extra
+val kotlinAndroidTestPath = "src/androidTest/kotlin"
 
 android {
-    namespace = "artemis.agent"
+    namespace = appId
     compileSdk = sdkVersion
 
     defaultConfig {
-        applicationId = "artemis.agent"
+        applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 16
-        versionName = "1.0.6"
+        versionCode = 37
+        versionName = "1.3.2"
         multiDexEnabled = true
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
@@ -39,16 +56,33 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    testOptions { execution = "ANDROIDX_TEST_ORCHESTRATOR" }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xannotation-target-all")
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    testOptions.unitTests.all { it.useJUnitPlatform() }
+
+    signingConfigs {
+        create(release) {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storePassword = keystoreProperties["storePassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+        }
+    }
 
     buildTypes {
         configureEach {
-            resValue("string", "app_name", appName)
-            resValue("string", "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "app_name", appName)
+            resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
         }
         release {
+            signingConfig = signingConfigs.getByName(release)
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -88,11 +122,25 @@ dependencies {
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
-    androidTestImplementation(libs.bundles.app.androidTest)
+    debugRuntimeOnly(libs.bundles.app.debug.runtime)
+
+    testImplementation(projects.ian.testing)
+    testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.vesseldata))
+
+    testImplementation(libs.bundles.app.test)
+    testRuntimeOnly(libs.bundles.app.test.runtime)
+
+    androidTestImplementation(libs.bundles.app.androidTest) {
+        exclude(group = "org.hamcrest", module = "hamcrest-core")
+        exclude(group = "org.hamcrest", module = "hamcrest-library")
+    }
     androidTestUtil(libs.test.orchestrator)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
+    implementation(libs.bundles.firebase) {
+        exclude(group = "com.google.firebase", module = "protolite-well-known-types")
+    }
 
     constraints {
         implementation(libs.guava) {
@@ -112,10 +160,9 @@ dependencies {
 ktfmt { kotlinLangStyle() }
 
 detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-    ignoredBuildTypes = listOf("release")
-    ignoredVariants = listOf("release")
+    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
+    ignoredBuildTypes = listOf(release)
+    ignoredVariants = listOf(release)
 }
 
 protobuf {

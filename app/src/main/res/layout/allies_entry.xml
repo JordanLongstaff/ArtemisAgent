@@ -69,13 +69,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/allyHailButton" />
     <Button
+        android:id="@+id/allyRecapButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/recap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/allyHailButton" />
+    <Button
         android:id="@+id/allyCommandButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/command"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/allyHailButton" />
+        app:layout_constraintTop_toBottomOf="@id/allyRecapButton" />
     <View
         android:id="@+id/bottomDivider"
         android:layout_width="match_parent"

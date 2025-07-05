@@ -66,7 +66,7 @@ class VersionTest :
                     version.toString() shouldBeEqual expected
                 }
 
-                it("Latest does not precede minimum") { Version.MINIMUM <= Version.LATEST }
+                it("Latest does not precede minimum") { Version.MINIMUM <= Version.DEFAULT }
             }
 
             describe("Comparisons") {

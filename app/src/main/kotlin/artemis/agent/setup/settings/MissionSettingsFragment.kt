@@ -8,13 +8,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsMissionsBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
@@ -22,13 +22,12 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
     private val binding: SettingsMissionsBinding by fragmentViewBinding()
 
     private val autoDismissalBinder: TimeInputBinder by lazy {
-        object : TimeInputBinder(binding.autoDismissalTimeInput) {
-            override fun onSecondsChange(seconds: Int) {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.viewModelScope.launch {
-                    binding.root.context.userSettings.updateData {
-                        it.copy { completedMissionDismissalSeconds = seconds }
-                    }
+        TimeInputBinder(binding.autoDismissalTimeInput) { seconds ->
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+            viewModel.viewModelScope.launch {
+                binding.root.context.userSettings.updateData {
+                    it.copy { completedMissionDismissalSeconds = seconds }
                 }
             }
         }
@@ -70,7 +69,10 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             }
         }
 
-        binding.autoDismissalButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.autoDismissalButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.autoDismissalButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
@@ -87,6 +89,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
         val context = binding.root.context
 
         binding.rewardsAllButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
@@ -98,6 +101,7 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
         }
 
         binding.rewardsNoneButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
@@ -109,7 +113,10 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
         }
 
         displayRewardButtons.entries.forEach { (button, setting) ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
 
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {

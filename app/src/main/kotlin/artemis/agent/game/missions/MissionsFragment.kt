@@ -15,13 +15,15 @@ import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.SoundEffect
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.CompletedMissionsEntryBinding
 import artemis.agent.databinding.MissionsEntryBinding
 import artemis.agent.databinding.MissionsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.ObjectEntry
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
+import kotlin.math.sign
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -36,19 +38,19 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
     }
 
     private val listeningForPayouts: Flow<Boolean?> by lazy {
-        viewModel.jumping.combine(viewModel.showingPayouts) { jump, show ->
+        viewModel.jumping.combine(viewModel.missionManager.showingPayouts) { jump, show ->
             if (jump) null else show
         }
     }
 
     private val updatedMissions: Flow<List<SideMissionEntry>?> by lazy {
-        viewModel.missions.combine(listeningForPayouts) { list, listen ->
+        viewModel.missionManager.missions.combine(listeningForPayouts) { list, listen ->
             if (listen == false) list else null
         }
     }
 
     private val updatedPayouts: Flow<List<Pair<RewardType, Int>>?> by lazy {
-        viewModel.displayedPayouts.combine(listeningForPayouts) { list, listen ->
+        viewModel.missionManager.displayedPayouts.combine(listeningForPayouts) { list, listen ->
             if (listen == true) list else null
         }
     }
@@ -57,24 +59,39 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         val missionsListView = binding.missionsListView
-        val activeMissionsButton = binding.activeMissionsButton
-        val completedMissionsButton = binding.completedMissionsButton
-
         missionsListView.itemAnimator = null
 
-        val orientation = view.resources.configuration.orientation
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if (view.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             missionsListView.layoutManager = LinearLayoutManager(view.context)
         }
 
-        activeMissionsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        setupActiveMissions()
+        setupCompletedMissions()
 
-        completedMissionsButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        if (viewModel.missionManager.showingPayouts.value) {
+                binding.completedMissionsButton
+            } else {
+                binding.activeMissionsButton
+            }
+            .isChecked = true
+    }
+
+    private fun setupActiveMissions() {
+        val missionsListView = binding.missionsListView
+        val activeMissionsButton = binding.activeMissionsButton
+
+        activeMissionsButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         val missionListAdapter = MissionListAdapter()
-        activeMissionsButton.setOnCheckedChangeListener { _, isChecked ->
+        activeMissionsButton.setOnCheckedChangeListener { v, isChecked ->
             if (isChecked) {
-                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (
+                    v.context.resources.configuration.orientation ==
+                        Configuration.ORIENTATION_LANDSCAPE
+                ) {
                     missionsListView.layoutManager =
                         LinearLayoutManager(
                             missionsListView.context,
@@ -84,36 +101,45 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
                 }
 
                 missionsListView.adapter = missionListAdapter
-                viewModel.showingPayouts.value = false
+                viewModel.missionManager.showingPayouts.value = false
             }
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(updatedMissions) {
             it?.also(missionListAdapter::onMissionsUpdate)
         }
+    }
 
-        completedMissionsButton.setOnCheckedChangeListener { _, isChecked ->
+    private fun setupCompletedMissions() {
+        val missionsListView = binding.missionsListView
+        val completedMissionsButton = binding.completedMissionsButton
+
+        completedMissionsButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        completedMissionsButton.setOnCheckedChangeListener { v, isChecked ->
             if (isChecked) {
-                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (
+                    v.context.resources.configuration.orientation ==
+                        Configuration.ORIENTATION_LANDSCAPE
+                ) {
                     missionsListView.layoutManager =
-                        GridLayoutManager(missionsListView.context, viewModel.displayedRewards.size)
+                        GridLayoutManager(
+                            missionsListView.context,
+                            viewModel.missionManager.displayedRewards.size,
+                        )
                 }
 
                 missionsListView.adapter = completedAdapter
-                viewModel.showingPayouts.value = true
+                viewModel.missionManager.showingPayouts.value = true
             }
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(updatedPayouts) {
             it?.also(completedAdapter::onPayoutsUpdate)
         }
-
-        if (viewModel.showingPayouts.value) {
-                completedMissionsButton
-            } else {
-                activeMissionsButton
-            }
-            .isChecked = true
     }
 
     private class MissionsDiffUtilCallback(
@@ -148,32 +174,29 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
     private inner class MissionViewHolder(private val entryBinding: MissionsEntryBinding) :
         RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: SideMissionEntry) {
-            with(entryBinding) {
-                if (entry.isCompleted) {
-                    bindCompleted(entry)
-                } else {
-                    bindInProgress(entry)
-                }
+            entryBinding.bindStatus(entry)
 
-                val rewardList =
-                    viewModel.displayedRewards
-                        .filter { entry.rewards[it.ordinal] > 0 }
-                        .joinToString { reward ->
-                            val value =
-                                entry.rewards[reward.ordinal] *
-                                    if (reward == RewardType.NUKE) 2 else 1
-                            val name =
-                                if (reward == RewardType.PRODUCTION) {
-                                    entry.destination.obj.name.value
-                                } else {
-                                    null
-                                }
-                            val prefix = name?.let { n -> "$n " } ?: ""
-                            val suffix = if (value > 1) " x$value" else ""
-                            "$prefix${labels[reward.ordinal]}$suffix"
-                        }
-                rewardsLabel.text = getString(R.string.rewards, rewardList)
-            }
+            val rewardList =
+                viewModel.missionManager.displayedRewards
+                    .filter { entry.rewards[it.ordinal] > 0 }
+                    .joinToString { reward ->
+                        val value =
+                            entry.rewards[reward.ordinal] * if (reward == RewardType.NUKE) 2 else 1
+                        val name =
+                            if (reward == RewardType.PRODUCTION) {
+                                entry.destination.obj.name.value
+                            } else {
+                                null
+                            }
+                        val prefix = name?.let { n -> "$n " } ?: ""
+                        val suffix = if (value > 1) " x$value" else ""
+                        "$prefix${labels[reward.ordinal]}$suffix"
+                    }
+            entryBinding.rewardsLabel.text = getString(R.string.rewards, rewardList)
+        }
+
+        private fun MissionsEntryBinding.bindStatus(entry: SideMissionEntry) {
+            if (entry.isCompleted) bindCompleted(entry) else bindInProgress(entry)
         }
 
         private fun MissionsEntryBinding.bindInProgress(entry: SideMissionEntry) {
@@ -192,7 +215,7 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             root.setBackgroundColor(
                 ContextCompat.getColor(
                     root.context,
-                    SideMissionStatus.maxOf(
+                    maxOf(
                             nextTo.missionStatus,
                             thenTo?.missionStatus ?: SideMissionStatus.ALL_CLEAR,
                         )
@@ -223,9 +246,10 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
         }
 
         private fun MissionsEntryBinding.bindCompleted(entry: SideMissionEntry) {
-            val seconds = AgentViewModel.getTimeToEnd(entry.completionTimestamp).second
-
-            root.setOnClickListener { viewModel.allMissions.remove(entry) }
+            root.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.missionManager.allMissions.remove(entry)
+            }
 
             root.setBackgroundColor(
                 ContextCompat.getColor(root.context, R.color.completedMissionGreen)
@@ -233,6 +257,9 @@ class MissionsFragment : Fragment(R.layout.missions_fragment) {
             nextLabel.text = getString(R.string.mission_completed)
             thenLabel.text =
                 if (viewModel.autoDismissCompletedMissions) {
+                    val timeToDismiss = System.currentTimeMillis() - entry.completionTimestamp
+                    val seconds =
+                        timeToDismiss.milliseconds.toComponents { sec, nano -> sec + nano.sign }
                     getString(R.string.mission_will_be_removed, seconds)
                 } else {
                     getString(R.string.tap_to_dismiss)

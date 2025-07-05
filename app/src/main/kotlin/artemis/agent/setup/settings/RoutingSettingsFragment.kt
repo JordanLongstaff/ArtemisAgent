@@ -14,13 +14,13 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsRoutingBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlin.reflect.KMutableProperty1
 import kotlinx.coroutines.launch
 
@@ -32,7 +32,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
         val toggleButton: ToggleButton,
         val enabledSetting: KMutableProperty1<UserSettingsKt.Dsl, Boolean>,
         val clearanceField: EditText,
-        val clearanceSetting: KMutableProperty1<UserSettingsKt.Dsl, Int>,
+        val clearanceSetting: KMutableProperty1<UserSettingsKt.Dsl, Float>,
         val kmLabel: TextView,
     )
 
@@ -135,6 +135,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
         val context = binding.root.context
 
         binding.avoidancesAllButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
@@ -147,6 +148,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
 
         binding.avoidancesNoneButton.setOnClickListener {
             clearFocus()
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
@@ -165,7 +167,10 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
     private fun prepareAvoidanceSettingView(avoidance: Avoidance) {
         val context = binding.root.context
 
-        avoidance.toggleButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        avoidance.toggleButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         avoidance.toggleButton.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked && avoidance.clearanceField.hasFocus()) {
@@ -180,7 +185,10 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
             }
         }
 
-        avoidance.clearanceField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        avoidance.clearanceField.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         avoidance.clearanceField.addTextChangedListener {
             if (playSoundsOnTextChange) {
@@ -190,6 +198,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
 
         avoidance.clearanceField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -199,7 +208,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
                 context.userSettings.updateData {
                     it.copy {
                         if (!text.isNullOrBlank()) {
-                            avoidance.clearanceSetting.set(this, text.toInt())
+                            avoidance.clearanceSetting.set(this, text.toFloat())
                         }
                     }
                 }
@@ -212,6 +221,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
 
         binding.incentivesAllButton.setOnClickListener {
             clearFocus()
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
@@ -224,6 +234,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
 
         binding.incentivesNoneButton.setOnClickListener {
             clearFocus()
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData {
@@ -236,6 +247,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
 
         incentiveButtons.entries.forEach { (button, setting) ->
             button.setOnClickListener {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 clearFocus()
             }

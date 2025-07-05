@@ -6,21 +6,20 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Filter
-import androidx.annotation.ColorRes
-import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import artemis.agent.AgentViewModel
+import artemis.agent.ConnectionStatus
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.ConnectFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.protocol.udp.PrivateNetworkType
 import dev.tmapps.konnection.Konnection
 import dev.tmapps.konnection.NetworkConnection
@@ -28,24 +27,6 @@ import dev.tmapps.konnection.NetworkConnection
 class ConnectFragment : Fragment(R.layout.connect_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
     private val binding: ConnectFragmentBinding by fragmentViewBinding()
-
-    sealed class ConnectionStatus(
-        @StringRes val stringId: Int,
-        @ColorRes val color: Int,
-        val spinnerVisibility: Int = View.GONE,
-    ) {
-        data object NotConnected : ConnectionStatus(R.string.not_connected, R.color.notConnected)
-
-        data object Connecting :
-            ConnectionStatus(R.string.connecting, R.color.connecting, View.VISIBLE)
-
-        data object Connected : ConnectionStatus(R.string.connected, R.color.connected)
-
-        data object Failed : ConnectionStatus(R.string.failed_to_connect, R.color.failedToConnect)
-
-        data object HeartbeatLost :
-            ConnectionStatus(R.string.connection_lost, R.color.heartbeatLost)
-    }
 
     private val recentAdapter: RecentServersAdapter by lazy {
         RecentServersAdapter(binding.root.context)
@@ -120,6 +101,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
 
     private fun prepareConnectionSection() {
         binding.connectButton.setOnClickListener {
+            viewModel.activateHaptic()
             hideKeyboard()
             viewModel.connectToServer()
         }
@@ -129,11 +111,15 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
 
         addressBar.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
             }
         }
 
-        addressBar.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        addressBar.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.connectionStatus) {
             binding.connectLabel.text = getString(it.stringId)
@@ -163,6 +149,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
 
     private fun prepareScanningSection() {
         val serverListAdapter = GenericDataAdapter {
+            viewModel.activateHaptic()
             playSoundsOnTextChange = false
             binding.addressBar.setText(it.data)
             viewModel.connectToServer()
@@ -177,6 +164,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         val noServersLabel = binding.noServersLabel
 
         scanButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             hideKeyboard()
             viewModel.scanForServers(broadcastAddress)
@@ -199,12 +187,13 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
                     viewModel.playSound(SoundEffect.BEEP_1)
                 }
                 scanSpinner.visibility = View.GONE
-                if (serverListAdapter.itemCount == 0) {
-                    noServersLabel.setText(R.string.no_servers_found)
-                    noServersLabel.visibility = View.VISIBLE
-                } else {
-                    noServersLabel.visibility = View.GONE
-                }
+                noServersLabel.visibility =
+                    if (serverListAdapter.itemCount == 0) {
+                        noServersLabel.setText(R.string.no_servers_found)
+                        View.VISIBLE
+                    } else {
+                        View.GONE
+                    }
             }
             playSoundOnScanFinished = true
         }
@@ -221,7 +210,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
 
     private class RecentServersAdapter(context: Context) :
         ArrayAdapter<String>(context, R.layout.generic_data_entry, R.id.entryNameLabel) {
-        var servers: List<String> = listOf()
+        var servers: List<String> = emptyList()
         private val suggestions: MutableList<String> = mutableListOf()
         private val filter =
             object : Filter() {

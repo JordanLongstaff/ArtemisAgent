@@ -66,10 +66,10 @@ class PacketWriterTest :
 
                 checkAll(
                     iterations = iterations,
-                    Arb.int(),
-                    Arb.enum<GameType>(),
-                    Arb.float(),
-                    Arb.int(),
+                    genA = Arb.int(),
+                    genB = Arb.enum<GameType>(),
+                    genC = Arb.float(),
+                    genD = Arb.int(),
                 ) { int, gameType, float, packetType ->
                     packetWriter
                         .start(packetType)

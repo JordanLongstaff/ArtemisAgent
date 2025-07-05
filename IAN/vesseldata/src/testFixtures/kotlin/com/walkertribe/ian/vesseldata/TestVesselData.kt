@@ -19,7 +19,7 @@ fun Arb.Companion.vesselData(
         )
     }
 
-val VesselData.Companion.Empty by lazy { VesselData.Loaded(mapOf(), mapOf()) }
+val VesselData.Companion.Empty by lazy { VesselData.Loaded(emptyMap(), emptyMap()) }
 
 val VesselData.Loaded.vesselKeys
     get() = vessels.keys

@@ -41,8 +41,8 @@ internal constructor(
     }
 
     init {
-        if (!accentColor.isNaN()) {
-            require(accentColor in 0f..1f) { "Accent color must be in range [0.0,1.0]" }
+        accentColor.also {
+            require(it.isNaN() || it in 0f..1f) { "Accent color must be in range [0.0,1.0]" }
         }
     }
 
@@ -66,11 +66,8 @@ internal constructor(
     }"
 
     private fun matchesAccentColor(otherAccentColor: Float): Boolean =
-        if (otherAccentColor.isNaN()) {
-            accentColor.isNaN()
-        } else {
-            (accentColor - otherAccentColor) in -ACCENT_EPSILON..ACCENT_EPSILON
-        }
+        if (otherAccentColor.isNaN()) accentColor.isNaN()
+        else accentColor - otherAccentColor in -ACCENT_EPSILON..ACCENT_EPSILON
 
     companion object {
         internal const val HUE_RANGE = 360f

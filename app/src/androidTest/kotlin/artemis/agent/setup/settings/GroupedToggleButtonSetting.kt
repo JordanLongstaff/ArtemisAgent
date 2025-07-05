@@ -1,6 +1,6 @@
 package artemis.agent.setup.settings
 
-import androidx.annotation.IdRes
 import androidx.annotation.StringRes
+import io.github.kakaocup.kakao.check.KCheckBox
 
-class GroupedToggleButtonSetting(@IdRes val button: Int, @StringRes val text: Int)
+class GroupedToggleButtonSetting(val button: KCheckBox, @all:StringRes val text: Int)

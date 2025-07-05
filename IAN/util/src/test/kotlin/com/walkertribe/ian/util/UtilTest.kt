@@ -7,6 +7,7 @@ import com.walkertribe.ian.util.Util.toHex
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
@@ -33,7 +34,7 @@ class UtilTest :
 
                         val tokens = string.splitSpaceDelimited()
                         val tokenCount = s.count { it == ' ' } + 1
-                        tokens.size shouldBeEqual tokenCount
+                        tokens shouldHaveSize tokenCount
 
                         val spaceIndices = s.indices.filter { s[it] == ' ' } + listOf(s.length)
                         val tokenLengths =
@@ -60,7 +61,7 @@ class UtilTest :
         }
 
         describe("Join space delimited") {
-            it("Empty collection") { listOf<String>().joinSpaceDelimited() shouldBeEqual "" }
+            it("Empty collection") { emptyList<String>().joinSpaceDelimited() shouldBeEqual "" }
 
             it("Non-empty collection") {
                 Arb.list(Arb.string(codepoints = Codepoint.alphanumeric()), 1..100).checkAll {
@@ -97,13 +98,13 @@ class UtilTest :
         }
 
         it("Byte to hex string") {
-            Exhaustive.bytes().checkAll {
-                val expectedHexA = hexChars[(it.toInt() shr 4) and 0xf]
-                val expectedHexB = hexChars[it.toInt() and 0xf]
+            Exhaustive.bytes().checkAll { byte ->
+                val expectedHexA = hexChars[(byte.toInt() shr 4) and 0xf]
+                val expectedHexB = hexChars[byte.toInt() and 0xf]
                 val hex = "$expectedHexA$expectedHexB"
 
-                it.toHex() shouldBeEqual hex
-                hex.toInt(16).toByte() shouldBeEqual it
+                byte.toHex() shouldBeEqual hex
+                hex.toInt(16).toByte() shouldBeEqual byte
             }
         }
     })

@@ -6,8 +6,8 @@ import artemis.agent.R
 
 enum class AllyStatus(
     val sortIndex: AllySortIndex,
-    @StringRes val description: Int,
-    @ColorRes val backgroundColor: Int,
+    @all:StringRes val description: Int,
+    @all:ColorRes val backgroundColor: Int,
 ) {
     HOSTAGE(
         AllySortIndex.HOSTAGE,
@@ -95,10 +95,10 @@ enum class AllyStatus(
         return PIRATE_SENSITIVE[if (isPirate) index or PIRATE_FLAG else index and NOT_PIRATE_FLAG]
     }
 
-    private companion object {
+    internal companion object {
         val PIRATE_SENSITIVE = entries.subList(AMBASSADOR.ordinal, NORMAL.ordinal)
 
-        const val PIRATE_FLAG = 1
-        const val NOT_PIRATE_FLAG = 1.inv()
+        private const val PIRATE_FLAG = 1
+        private const val NOT_PIRATE_FLAG = 1.inv()
     }
 }

@@ -13,12 +13,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.EnemiesEntryBinding
 import artemis.agent.databinding.EnemiesFragmentBinding
 import artemis.agent.databinding.TauntEntryBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 import com.walkertribe.ian.vesseldata.Taunt
@@ -50,18 +50,20 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
         tauntListView.itemAnimator = null
         tauntListView.adapter = tauntsAdapter
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemy) {
+        val enemiesManager = viewModel.enemiesManager
+
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.selection) { enemy ->
             var backgroundColor: Int = Color.TRANSPARENT
             val visibility =
-                if (it != null) {
-                    binding.selectedEnemyLabel.text = viewModel.getFullNameForShip(it.enemy)
-                    backgroundColor = it.getBackgroundColor(context)
+                when {
+                    enemy != null -> {
+                        binding.selectedEnemyLabel.text = enemy.fullName
+                        backgroundColor = enemy.getBackgroundColor(context)
 
-                    View.VISIBLE
-                } else if (isLandscape) {
-                    View.INVISIBLE
-                } else {
-                    View.GONE
+                        View.VISIBLE
+                    }
+                    isLandscape -> View.INVISIBLE
+                    else -> View.GONE
                 }
 
             binding.selectedEnemyLabel.visibility = visibility
@@ -70,34 +72,36 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
             binding.tauntList.visibility = visibility
 
             binding.enemyIntelLabel.visibility =
-                if (viewModel.showEnemyIntel) visibility else View.GONE
+                if (viewModel.enemiesManager.showIntel) visibility else View.GONE
 
             binding.selectedEnemyLabel.setBackgroundColor(backgroundColor)
             binding.enemyIntelLabel.setBackgroundColor(backgroundColor)
             binding.tauntList.setBackgroundColor(backgroundColor)
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.enemyIntel) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.intel) {
             binding.enemyIntelLabel.text = it ?: context.getText(R.string.enemy_status_no_intel)
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.selectedEnemyIndex) { index ->
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.selectionIndex) { index ->
             binding.selectedEnemyLabel.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
                 if (index >= 0) binding.enemyList.scrollToPosition(index)
             }
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.displayedEnemies) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.displayedEnemies) {
             enemyAdapter.onEnemiesUpdate(it)
 
             binding.noEnemiesLabel.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.enemyCategories) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.categories) {
             categoryAdapter.onCategoriesUpdate(it)
         }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.enemyTaunts) {
+        viewLifecycleOwner.collectLatestWhileStarted(enemiesManager.taunts) {
             tauntsAdapter.onTauntsUpdate(it)
         }
     }
@@ -120,7 +124,75 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
     }
 
     private class EnemyViewHolder(val enemyBinding: EnemiesEntryBinding) :
-        RecyclerView.ViewHolder(enemyBinding.root)
+        RecyclerView.ViewHolder(enemyBinding.root) {
+        fun bind(entry: EnemyEntry, viewModel: AgentViewModel) {
+            val context = enemyBinding.root.context
+            val enemy = entry.enemy
+            val enemiesManager = viewModel.enemiesManager
+
+            enemyBinding.root.setBackgroundColor(entry.getBackgroundColor(context))
+
+            enemyBinding.enemyNameLabel.text = entry.fullName
+
+            enemyBinding.enemyDirectionLabel.text =
+                context.getString(R.string.direction, entry.heading)
+            enemyBinding.enemyRangeLabel.text = context.getString(R.string.range, entry.range)
+
+            enemyBinding.enemyStatusLabel.text =
+                context.getString(
+                    when {
+                        !enemy.isSurrendered.value.booleanValue -> entry.captainStatus.description
+                        entry.captainStatus == EnemyCaptainStatus.DUPLICITOUS ->
+                            R.string.surrendered_duplicitous
+                        else -> R.string.surrendered
+                    }
+                )
+
+            enemyBinding.enemyTauntsLabel.text = entry.getTauntCountText(context)
+
+            val buttonVisibility: Int =
+                if (enemy.isSurrendered.value.booleanValue) {
+                    View.GONE
+                } else {
+                    enemyBinding.enemySurrenderButton.isEnabled =
+                        enemiesManager.maxSurrenderDistance?.let { entry.range < it } != false
+                    enemyBinding.enemySurrenderButton.setOnClickListener {
+                        with(viewModel) {
+                            activateHaptic()
+                            playSound(SoundEffect.BEEP_2)
+                            sendToServer(
+                                CommsOutgoingPacket(
+                                    enemy,
+                                    EnemyMessage.WILL_YOU_SURRENDER,
+                                    vesselData,
+                                )
+                            )
+                        }
+                    }
+
+                    val enemyToTaunt =
+                        if (enemiesManager.selection.value?.enemy == enemy) {
+                            enemyBinding.enemyTauntButton.setText(R.string.cancel)
+                            null
+                        } else {
+                            enemyBinding.enemyTauntButton.setText(R.string.taunt)
+                            entry
+                        }
+
+                    enemyBinding.enemyTauntButton.setOnClickListener {
+                        viewModel.activateHaptic()
+                        viewModel.playSound(SoundEffect.BEEP_1)
+                        enemiesManager.selection.value = enemyToTaunt
+                        enemiesManager.refreshTaunts()
+                    }
+
+                    View.VISIBLE
+                }
+
+            enemyBinding.enemySurrenderButton.visibility = buttonVisibility
+            enemyBinding.enemyTauntButton.visibility = buttonVisibility
+        }
+    }
 
     private inner class EnemyListAdapter : RecyclerView.Adapter<EnemyViewHolder>() {
         private var enemies = listOf<EnemyEntry>()
@@ -133,69 +205,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
             )
 
         override fun onBindViewHolder(holder: EnemyViewHolder, position: Int) {
-            with(holder.enemyBinding) {
-                val context = root.context
-                val entry = enemies[position]
-                val enemy = entry.enemy
-
-                root.setBackgroundColor(entry.getBackgroundColor(context))
-
-                enemyNameLabel.text = viewModel.getFullNameForShip(enemy)
-
-                enemyDirectionLabel.text = context.getString(R.string.direction, entry.heading)
-                enemyRangeLabel.text = context.getString(R.string.range, entry.range)
-
-                enemyStatusLabel.text =
-                    context.getString(
-                        if (!enemy.isSurrendered.value.booleanValue) {
-                            entry.captainStatus.description
-                        } else if (entry.captainStatus == EnemyCaptainStatus.DUPLICITOUS) {
-                            R.string.surrendered_duplicitous
-                        } else {
-                            R.string.surrendered
-                        }
-                    )
-
-                enemyTauntsLabel.text = entry.getTauntCountText(context)
-
-                val buttonVisibility: Int =
-                    if (enemy.isSurrendered.value.booleanValue) {
-                        View.GONE
-                    } else {
-                        enemySurrenderButton.isEnabled =
-                            viewModel.maxSurrenderDistance?.let { entry.range < it } != false
-                        enemySurrenderButton.setOnClickListener {
-                            viewModel.playSound(SoundEffect.BEEP_2)
-                            viewModel.sendToServer(
-                                CommsOutgoingPacket(
-                                    enemy,
-                                    EnemyMessage.WILL_YOU_SURRENDER,
-                                    viewModel.vesselData,
-                                )
-                            )
-                        }
-
-                        val enemyToTaunt =
-                            if (viewModel.selectedEnemy.value?.enemy == enemy) {
-                                enemyTauntButton.setText(R.string.cancel)
-                                null
-                            } else {
-                                enemyTauntButton.setText(R.string.taunt)
-                                entry
-                            }
-
-                        enemyTauntButton.setOnClickListener {
-                            viewModel.playSound(SoundEffect.BEEP_1)
-                            viewModel.selectedEnemy.value = enemyToTaunt
-                            viewModel.refreshEnemyTaunts()
-                        }
-
-                        View.VISIBLE
-                    }
-
-                enemySurrenderButton.visibility = buttonVisibility
-                enemyTauntButton.visibility = buttonVisibility
-            }
+            holder.bind(enemies[position], viewModel)
         }
 
         fun onEnemiesUpdate(newList: List<EnemyEntry>) {
@@ -234,6 +244,7 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
             val category = categories[position]
             holder.button.text = category.getString(holder.itemView.context)
             holder.button.setOnClickListener {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 binding.enemyList.scrollToPosition(category.scrollIndex)
             }
@@ -278,12 +289,13 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
             if (position >= taunts.size) return
 
             val (taunt, status) = taunts[position]
+            val enemiesManager = viewModel.enemiesManager
 
             with(holder.tauntBinding) {
                 tauntLabel.text = taunt.text
 
                 statusLabel.visibility =
-                    if (viewModel.showTauntStatuses) {
+                    if (enemiesManager.showTauntStatuses) {
                         statusLabel.text = status.name
                         View.VISIBLE
                     } else {
@@ -291,17 +303,18 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
                     }
 
                 sendButton.isEnabled =
-                    !viewModel.disableIneffectiveTaunts || status != TauntStatus.INEFFECTIVE
+                    !enemiesManager.disableIneffectiveTaunts || status != TauntStatus.INEFFECTIVE
                 sendButton.setOnClickListener {
+                    viewModel.activateHaptic()
                     viewModel.playSound(SoundEffect.BEEP_2)
-                    viewModel.selectedEnemy.value?.also { enemy ->
+                    enemiesManager.selection.value?.also { enemy ->
                         val tauntMessage = EnemyMessage.entries[position + 1]
                         viewModel.sendToServer(
                             CommsOutgoingPacket(enemy.enemy, tauntMessage, viewModel.vesselData)
                         )
                         enemy.lastTaunt = tauntMessage
                     }
-                    viewModel.selectedEnemy.value = null
+                    enemiesManager.selection.value = null
                 }
             }
         }

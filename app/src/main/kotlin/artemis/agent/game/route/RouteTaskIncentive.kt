@@ -29,11 +29,8 @@ enum class RouteTaskIncentive {
             ally.status == AllyStatus.AMBASSADOR || ally.status == AllyStatus.PIRATE_BOSS
 
         override fun getTextFor(ally: ObjectEntry.Ally): Int =
-            if (ally.status == AllyStatus.PIRATE_BOSS) {
-                R.string.reason_pirate_boss
-            } else {
-                R.string.reason_ambassador
-            }
+            if (ally.status == AllyStatus.PIRATE_BOSS) R.string.reason_pirate_boss
+            else R.string.reason_ambassador
     },
     HOSTAGE {
         override fun matches(ally: ObjectEntry.Ally): Boolean = ally.status == AllyStatus.HOSTAGE

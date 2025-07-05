@@ -45,9 +45,6 @@ import org.koin.test.inject
 class ProtocolTest : DescribeSpec(), KoinTest {
     private val protocol: Protocol by inject()
 
-    override fun extensions(): List<Extension> =
-        listOf(KoinExtension(defaultModule, mode = KoinLifecycleMode.Root))
-
     init {
         describe("Protocol") {
             describe("Has factories registered for server packets") {
@@ -141,13 +138,13 @@ class ProtocolTest : DescribeSpec(), KoinTest {
                         WelcomePacket::class,
                         type = TestPacketTypes.PLAIN_TEXT_GREETING,
                     ),
-                ) {
+                ) { (packetClass, _, type, specificSubtype) ->
                     val subtypeGen: Gen<Byte> =
-                        it.subtype?.let { byte -> Exhaustive.of(byte) } ?: Exhaustive.bytes()
+                        specificSubtype?.let { Exhaustive.of(it) } ?: Exhaustive.bytes()
                     subtypeGen.checkAll { subtype ->
-                        val factory = protocol.getFactory(it.type, subtype)
+                        val factory = protocol.getFactory(type, subtype)
                         factory.shouldNotBeNull()
-                        factory.factoryClass shouldBeEqual it.packetClass
+                        factory.factoryClass shouldBeEqual packetClass
                     }
                 }
             }
@@ -177,13 +174,10 @@ class ProtocolTest : DescribeSpec(), KoinTest {
                     ClientPacketTestCase("SetConsolePacket", 0x0e),
                     ClientPacketTestCase("SetShipPacket", 0x0d),
                     ClientPacketTestCase("ToggleRedAlertPacket", 0x0a),
-                ) {
+                ) { (_, specificSubtype, type) ->
                     val subtypeGen: Gen<Byte> =
-                        it.subtype?.let { byte -> Exhaustive.of(byte) } ?: Exhaustive.bytes()
-                    subtypeGen.checkAll { subtype ->
-                        val factory = protocol.getFactory(it.type, subtype)
-                        factory.shouldBeNull()
-                    }
+                        specificSubtype?.let { Exhaustive.of(it) } ?: Exhaustive.bytes()
+                    subtypeGen.checkAll { protocol.getFactory(type, it).shouldBeNull() }
                 }
             }
 
@@ -232,4 +226,7 @@ class ProtocolTest : DescribeSpec(), KoinTest {
             }
         }
     }
+
+    override fun extensions(): List<Extension> =
+        listOf(KoinExtension(defaultModule, mode = KoinLifecycleMode.Root))
 }

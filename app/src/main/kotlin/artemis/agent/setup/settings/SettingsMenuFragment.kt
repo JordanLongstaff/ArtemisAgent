@@ -10,13 +10,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
 import artemis.agent.UserSettingsSerializer.userSettings
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsMenuBinding
 import artemis.agent.databinding.SettingsMenuEntryBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.collectLatestWhileStarted
 import kotlinx.coroutines.launch
 
 class SettingsMenuFragment : Fragment(R.layout.settings_menu) {
@@ -57,6 +57,7 @@ class SettingsMenuFragment : Fragment(R.layout.settings_menu) {
             entryBinding.settingsEntryToggle.visibility =
                 page.onToggle?.let { onToggle ->
                     entryBinding.settingsEntryToggle.setOnClickListener {
+                        viewModel.activateHaptic()
                         viewModel.playSound(SoundEffect.BEEP_2)
                     }
                     entryBinding.settingsEntryToggle.setOnCheckedChangeListener { _, isChecked ->
@@ -75,6 +76,7 @@ class SettingsMenuFragment : Fragment(R.layout.settings_menu) {
                 } ?: View.INVISIBLE
 
             entryBinding.root.setOnClickListener {
+                viewModel.activateHaptic()
                 if (entryBinding.settingsEntryToggle.isChecked) {
                     viewModel.playSound(SoundEffect.BEEP_2)
                     viewModel.settingsPage.value = page

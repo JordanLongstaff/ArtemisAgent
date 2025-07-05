@@ -3,14 +3,25 @@ package artemis.agent.game.enemies
 import android.content.Context
 import androidx.annotation.StringRes
 
-sealed class EnemySortCategory(val scrollIndex: Int) {
-    class Res(@StringRes val resId: Int, scrollIndex: Int) : EnemySortCategory(scrollIndex) {
+sealed interface EnemySortCategory {
+    data class Res(@all:StringRes val resId: Int, override val scrollIndex: Int) :
+        EnemySortCategory {
         override fun getString(context: Context): String = context.getString(resId)
+
+        override fun hashCode(): Int = resId
+
+        override fun equals(other: Any?): Boolean = other is Res && resId == other.resId
     }
 
-    class Text(val text: String, scrollIndex: Int) : EnemySortCategory(scrollIndex) {
+    data class Text(val text: String, override val scrollIndex: Int) : EnemySortCategory {
         override fun getString(context: Context): String = text
+
+        override fun hashCode(): Int = text.hashCode()
+
+        override fun equals(other: Any?): Boolean = other is Text && text == other.text
     }
 
-    abstract fun getString(context: Context): String
+    val scrollIndex: Int
+
+    fun getString(context: Context): String
 }

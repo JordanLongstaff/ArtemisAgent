@@ -1,25 +1,17 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>CognitiveComplexMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
+    <ID>CognitiveComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>CyclomaticComplexMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
-    <ID>CyclomaticComplexMethod:MainActivity.kt$MainActivity$@OptIn(ExperimentalStdlibApi::class) override fun onCreate(savedInstanceState: Bundle?)</ID>
-    <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
-    <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
+    <ID>CyclomaticComplexMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>LargeClass:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
-    <ID>LongMethod:AgentViewModel.kt$AgentViewModel$fun revertSettings(settings: UserSettings): UserSettings</ID>
-    <ID>LongMethod:AgentViewModel.kt$AgentViewModel$fun updateFromSettings(settings: UserSettings)</ID>
     <ID>LongMethod:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
-    <ID>LongMethod:MainActivity.kt$MainActivity$@OptIn(ExperimentalStdlibApi::class) override fun onCreate(savedInstanceState: Bundle?)</ID>
-    <ID>LongMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
-    <ID>LongMethod:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
-    <ID>LongParameterList:MainActivity.kt$MainActivity$( channelId: String, title: String, message: String, ongoing: Boolean = false, onIntent: Intent.() -&gt; Unit = {}, setBuilder: (NotificationCompat.Builder) -&gt; Unit = {}, )</ID>
-    <ID>LongParameterList:RoutingGraph.kt$RoutingGraph$( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, simpleDistance: Float, maxCost: Float = Float.POSITIVE_INFINITY, )</ID>
+    <ID>LongMethod:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>LoopWithTooManyJumpStatements:RoutingGraph.kt$RoutingGraph$while</ID>
     <ID>NestedBlockDepth:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
-    <ID>NestedBlockDepth:CPU.kt$CPU$private fun onNpcCreate(npc: ArtemisNpc): Boolean</ID>
-    <ID>ReturnCount:RoutingGraph.kt$RoutingGraph$suspend fun searchForRoute(): List&lt;RouteEntry&gt;?</ID>
+    <ID>ReturnCount:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>TooManyFunctions:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
-    <ID>TooManyFunctions:CPU.kt$CPU : CoroutineScope</ID>
   </CurrentIssues>
 </SmellBaseline>

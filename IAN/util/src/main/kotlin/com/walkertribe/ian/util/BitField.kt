@@ -26,6 +26,9 @@ class BitField(private val bitCount: Int) {
             )
         )
 
+    /** Returns the number of bytes in this BitField. */
+    val byteCount: Int by lazy { bytes.size }
+
     /**
      * Creates a BitField large enough to accommodate the enumerated bits, and stores the indicated
      * bytes in it.
@@ -33,9 +36,6 @@ class BitField(private val bitCount: Int) {
     internal constructor(bitCount: Int, packet: Source) : this(bitCount) {
         packet.readByteArray(byteCount).copyInto(this.bytes)
     }
-
-    /** Returns the number of bytes in this BitField. */
-    val byteCount: Int by lazy { bytes.size }
 
     /** Returns true if the indicated bit is 1, false if it's 0. */
     operator fun get(bitIndex: Int): Boolean =

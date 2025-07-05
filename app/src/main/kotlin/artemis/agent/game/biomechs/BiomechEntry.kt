@@ -3,7 +3,9 @@ package artemis.agent.game.biomechs
 import android.content.Context
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.SoundEffect
+import artemis.agent.cpu.BiomechManager
+import artemis.agent.util.SoundEffect
+import artemis.agent.util.TimerText
 import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 import com.walkertribe.ian.world.ArtemisNpc
@@ -20,13 +22,13 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     val canFreezeAgain: Boolean
         get() = timesFrozen < MAX_FREEZES
 
-    fun getFrozenStatusText(viewModel: AgentViewModel, context: Context): String {
-        val (minutes, seconds) =
-            AgentViewModel.getTimeToEnd(freezeStartTime + viewModel.biomechFreezeTime)
+    fun getFullName(viewModel: AgentViewModel): String = biomech.getFullName(viewModel.vesselData)
+
+    fun getFrozenStatusText(biomechManager: BiomechManager, context: Context): String {
+        val timer = TimerText.getTimeUntil(freezeStartTime + biomechManager.freezeTime)
 
         return when {
-            seconds > 0 || minutes > 0 ->
-                context.getString(R.string.biomech_frozen, minutes, seconds)
+            timer != "0:00" -> context.getString(R.string.biomech_frozen, timer)
             !canFreezeAgain -> context.getString(R.string.biomech_cannot_freeze)
             isFrozen -> context.getString(R.string.biomech_will_move)
             else -> context.getString(R.string.biomech_moving)
@@ -34,13 +36,8 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     }
 
     fun freeze(viewModel: AgentViewModel) {
-        if (!canFreezeAgain) {
-            return
-        }
-
-        if (isFrozen && !isReadyToReanimate) {
-            return
-        }
+        if (!canFreezeAgain) return
+        if (isFrozen && !isReadyToReanimate) return
 
         freezeSent = true
         viewModel.playSound(SoundEffect.BEEP_1)
@@ -50,26 +47,24 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
     }
 
     fun onFreezeResponse() {
-        if (freezeSent) {
-            freezeSent = false
-            isFrozen = true
-            isReadyToReanimate = false
-            freezeStartTime = System.currentTimeMillis()
-        }
+        if (!freezeSent) return
+
+        freezeSent = false
+        isFrozen = true
+        isReadyToReanimate = false
+        freezeStartTime = System.currentTimeMillis()
     }
 
     fun onFreezeTimeExpired(elapsedTime: Long): Boolean {
-        if (!isFrozen || isReadyToReanimate || elapsedTime < freezeStartTime) {
-            return false
-        }
+        if (!isFrozen || isReadyToReanimate || elapsedTime < freezeStartTime) return false
+
         isReadyToReanimate = true
         return true
     }
 
     fun onFreezeEnd() {
-        if (!isReadyToReanimate) {
-            return
-        }
+        if (!isReadyToReanimate) return
+
         isFrozen = false
         isReadyToReanimate = false
     }

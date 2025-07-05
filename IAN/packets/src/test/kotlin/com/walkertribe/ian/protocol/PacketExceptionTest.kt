@@ -7,6 +7,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.ints.shouldBeZero
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.byte
@@ -29,21 +30,21 @@ class PacketExceptionTest :
             }
 
             it("Can be constructed from message") {
-                checkAll<String> {
-                    val ex = PacketException(it)
-                    ex.message.shouldNotBeNull() shouldBeEqual it
+                checkAll<String> { message ->
+                    val ex = PacketException(message)
+                    ex.message shouldBe message
                     ex.cause.shouldBeNull()
                     ex.packetType.shouldBeZero()
                     ex.payload.shouldBeNull()
 
-                    messages.add(it)
+                    messages.add(message)
                 }
             }
 
             it("Can be constructed from another exception") {
-                (messages + null).forEach {
-                    val ex = PacketException(RuntimeException(it))
-                    ex.message.shouldNotBeNull().shouldBeEqual(it ?: "RuntimeException")
+                (messages + null).forEach { message ->
+                    val ex = PacketException(RuntimeException(message))
+                    ex.message.shouldBe(message ?: "RuntimeException")
                     ex.cause.shouldNotBeNull().shouldBeInstanceOf<RuntimeException>()
                     ex.packetType.shouldBeZero()
                     ex.payload.shouldBeNull()

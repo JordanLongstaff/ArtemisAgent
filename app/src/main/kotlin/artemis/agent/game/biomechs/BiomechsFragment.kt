@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.collectLatestWhileStarted
 import artemis.agent.databinding.BiomechEntryBinding
 import artemis.agent.databinding.BiomechsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.collectLatestWhileStarted
 
 class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -27,12 +27,15 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
 
         val biomechsListView = binding.biomechsListView
         val context = view.context
+        val biomechManager = viewModel.biomechManager
 
         val adapter = BiomechListAdapter(viewModel)
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.biomechs) { adapter.update(it) }
+        viewLifecycleOwner.collectLatestWhileStarted(biomechManager.allBiomechs) {
+            adapter.update(it)
+        }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.biomechRage) { rage ->
+        viewLifecycleOwner.collectLatestWhileStarted(biomechManager.rageStatus) { rage ->
             val bgColor = ContextCompat.getColor(context, rage.color)
             biomechsListView.setBackgroundColor(bgColor)
             binding.biomechRageBackground.setBackgroundColor(bgColor)
@@ -74,10 +77,13 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
     private class BiomechViewHolder(val entryBinding: BiomechEntryBinding) :
         RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: BiomechEntry, viewModel: AgentViewModel) {
-            entryBinding.root.setOnClickListener { entry.freeze(viewModel) }
-            entryBinding.biomechNameLabel.text = viewModel.getFullNameForShip(entry.biomech)
+            entryBinding.root.setOnClickListener {
+                viewModel.activateHaptic()
+                entry.freeze(viewModel)
+            }
+            entryBinding.biomechNameLabel.text = entry.getFullName(viewModel)
             entryBinding.biomechStatusLabel.text =
-                entry.getFrozenStatusText(viewModel, entryBinding.root.context)
+                entry.getFrozenStatusText(viewModel.biomechManager, entryBinding.root.context)
         }
     }
 

@@ -31,12 +31,10 @@ enum class ObjectType {
 
     companion object {
         operator fun get(id: Int): ObjectType? =
-            if (id == 0) {
-                null
-            } else {
+            if (id == 0) null
+            else
                 requireNotNull(entries.find { it.id.toInt() == id }) {
                     "No ObjectType with this ID: $id"
                 }
-            }
     }
 }
