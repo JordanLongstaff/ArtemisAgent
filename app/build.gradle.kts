@@ -177,5 +177,3 @@ protobuf {
         }
     }
 }
-
-kover { useJacoco(libs.versions.jacoco.get()) }

@@ -59,10 +59,7 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover {
-    useJacoco(libs.versions.jacoco.get())
-    currentProject.sources.excludedSourceSets.add("testFixtures")
-}
+kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
 
 val pitestMutators: Set<String> by rootProject.extra
 val pitestTimeoutFactor: BigDecimal by rootProject.extra

@@ -80,8 +80,6 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover { useJacoco(libs.versions.jacoco.get()) }
-
 val pitestMutators: Set<String> by rootProject.extra
 val pitestTimeoutFactor: BigDecimal by rootProject.extra
 
