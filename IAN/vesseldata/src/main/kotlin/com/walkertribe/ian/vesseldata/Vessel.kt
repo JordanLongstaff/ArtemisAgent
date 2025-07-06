@@ -39,6 +39,13 @@ internal constructor(
     /** Returns a short description of this Vessel. */
     val description: String?,
 ) {
+    /** Returns an array of this Vessel's attributes. */
+    val attributes: Set<String> = build(broadType)
+
+    /** Returns true if this is a single-seat vessel. */
+    val isSingleseat: Boolean
+        get() = this[SINGLESEAT]
+
     internal constructor(
         xml: Xml
     ) : this(
@@ -57,21 +64,14 @@ internal constructor(
         description = xml.child("long_desc")?.run { str("text").caretToNewline() },
     )
 
-    /** Returns an array of this Vessel's attributes. */
-    val attributes: Set<String> = build(broadType)
-
     /** Returns the Faction to which this Vessel belongs. */
     fun getFaction(vesselData: VesselData): Faction? = vesselData.getFaction(side)
 
     /** Returns true if this Vessel has all the given attributes; false otherwise. */
     operator fun get(vararg attrs: String): Boolean = attrs.all(attributes::contains)
 
-    /** Returns true if this is a single-seat vessel. */
-    val isSingleseat: Boolean
-        get() = this[SINGLESEAT]
-
     private companion object {
-        private const val SINGLESEAT = "singleseat"
+        const val SINGLESEAT = "singleseat"
 
         private fun build(broadType: String): Set<String> =
             broadType.lowercase().splitSpaceDelimited().toSet()

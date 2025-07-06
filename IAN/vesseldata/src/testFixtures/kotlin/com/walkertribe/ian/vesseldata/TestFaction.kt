@@ -11,6 +11,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import korlibs.io.serialization.xml.Xml
 
+@Suppress("StringLiteralDuplication")
 enum class TestFaction(
     val factionName: String,
     val attributes: TestFactionAttributes,
@@ -167,7 +168,7 @@ enum class TestFaction(
 
     override fun toString(): String = factionName
 
-    fun build(): Faction = Faction(ordinal, factionName, attributes.keys, taunts)
+    fun build(): Faction = Faction(id = ordinal, name = factionName, keys = attributes.keys, taunts)
 
     suspend fun test(faction: Faction?) {
         faction.shouldNotBeNull()

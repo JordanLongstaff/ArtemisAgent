@@ -40,11 +40,11 @@ private constructor(
     data class Data(
         override val version: Version,
         val shouldWriteAccentColor: Boolean,
-        val ships: List<Pair<Int, Ship>>,
+        val ships: List<Pair<Ship, Int>>,
     ) : PacketTestData.Server<AllShipSettingsPacket> {
         override fun buildPayload(): Source = buildPacket {
             writeIntLe(SimpleEventPacket.Subtype.SHIP_SETTINGS.toInt())
-            ships.forEach { (hasName, ship) ->
+            ships.forEach { (ship, hasName) ->
                 writeIntLe(ship.drive.ordinal)
                 writeIntLe(ship.shipType)
                 if (shouldWriteAccentColor) {
@@ -58,13 +58,13 @@ private constructor(
         }
 
         override fun validate(packet: AllShipSettingsPacket) {
-            packet.ships shouldContainExactly ships.map { it.second }
+            packet.ships shouldContainExactly ships.map { it.first }
             packet.ships.indices.forEach { index ->
                 val ship = packet[index]
-                val counterpart = ships[index].second
+                val counterpart = ships[index].first
                 ship shouldBeEqual counterpart
 
-                (ship.name == null) shouldBeEqual (ships[index].first == 0)
+                (ship.name == null) shouldBeEqual (ships[index].second == 0)
                 if (shouldWriteAccentColor) {
                     ship.hue.shouldNotBeNaN()
                     ship.hue.shouldBeWithinPercentageOf(counterpart.hue, EPSILON)
@@ -80,17 +80,20 @@ private constructor(
             versionArb,
             Arb.list(
                 Arb.bind(
-                    Arb.int(),
-                    Arb.string(),
-                    Arb.int(),
-                    if (shouldWriteAccentColor) {
-                        Arb.numericFloat(min = 0f, max = 1f)
-                    } else {
-                        Arb.of(Float.NaN)
-                    },
-                    Arb.enum<DriveType>(),
+                    genA = Arb.int(),
+                    genB = Arb.string(),
+                    genC = Arb.int(),
+                    genD =
+                        if (shouldWriteAccentColor) Arb.numericFloat(min = 0f, max = 1f)
+                        else Arb.of(Float.NaN),
+                    genE = Arb.enum<DriveType>(),
                 ) { hasName, name, shipType, accentColor, drive ->
-                    Pair(hasName, Ship(name.takeIf { hasName != 0 }, shipType, drive, accentColor))
+                    Ship(
+                        name = name.takeIf { hasName != 0 },
+                        shipType = shipType,
+                        drive = drive,
+                        accentColor = accentColor,
+                    ) to hasName
                 },
                 Artemis.SHIP_COUNT..Artemis.SHIP_COUNT,
             ),

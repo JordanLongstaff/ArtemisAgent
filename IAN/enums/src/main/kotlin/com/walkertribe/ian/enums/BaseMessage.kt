@@ -5,7 +5,7 @@ package com.walkertribe.ian.enums
  *
  * @author rjwut
  */
-sealed class BaseMessage private constructor(override val id: Int) : CommsMessage {
+sealed class BaseMessage(override val id: Int) : CommsMessage {
     data object StandByForDockingOrCeaseOperation : BaseMessage(0)
 
     data object PleaseReportStatus : BaseMessage(1)

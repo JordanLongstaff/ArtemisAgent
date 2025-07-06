@@ -13,13 +13,14 @@ import io.kotest.datatest.withData
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.checkAll
+import kotlinx.coroutines.launch
 
 class CommsOutgoingPacketTest :
     PacketTestSpec.Client<CommsOutgoingPacket>(
         specName = "CommsOutgoingPacket",
         fixtures = CommsOutgoingPacketFixture.ALL,
     ) {
-    override suspend fun DescribeSpecContainerScope.describeMore() {
+    override fun DescribeSpecContainerScope.describeMore() = launch {
         describe("Throws with invalid arguments") {
             val castFixtures = fixtures.filterIsInstance<CommsOutgoingPacketFixture>()
 

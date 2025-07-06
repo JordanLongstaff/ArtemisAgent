@@ -1,6 +1,7 @@
 package artemis.agent.game.allies
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -26,6 +27,19 @@ class AllyStatusTest :
             }
 
             describe("Pirate-sensitive equivalents") {
+                it("Companion") {
+                    val expected =
+                        listOf(
+                            AllyStatus.AMBASSADOR,
+                            AllyStatus.PIRATE_BOSS,
+                            AllyStatus.CONTRABAND,
+                            AllyStatus.PIRATE_SUPPLIES,
+                            AllyStatus.SECURE_DATA,
+                            AllyStatus.PIRATE_DATA,
+                        )
+                    AllyStatus.PIRATE_SENSITIVE shouldContainExactly expected
+                }
+
                 listOf("Is pirate" to true, "Is not pirate" to false).forEach { (name, isPirate) ->
                     describe(name) {
                         testCases.forEach { test ->

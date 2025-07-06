@@ -3,11 +3,8 @@ package com.walkertribe.ian.world
 /** Base implementation for ships (player or NPC). */
 abstract class BaseArtemisShip<T : BaseArtemisShip<T>>(id: Int, timestamp: Long) :
     BaseArtemisShielded<T>(id, timestamp) {
-    /** The strength of the aft shields. Unspecified: Float.NaN */
-    val shieldsRear = Property.FloatProperty(timestamp)
-
-    /** The maximum strength of the aft shields. Unspecified: Float.NaN */
-    val shieldsRearMax = Property.FloatProperty(timestamp)
+    /** The aft shields. */
+    val shieldsRear = Shields(timestamp)
 
     /**
      * Impulse setting, as a value from 0 (all stop) and 1 (full impulse). Unspecified: Float.NaN
@@ -19,23 +16,17 @@ abstract class BaseArtemisShip<T : BaseArtemisShip<T>>(id: Int, timestamp: Long)
      */
     val side = Property.ByteProperty(timestamp)
 
+    /** Returns true if this object contains any data. */
+    override val hasData
+        get() = super.hasData || shieldsRear.hasData || impulse.hasValue || side.hasValue
+
     override fun updates(other: T) {
         shieldsRear updates other.shieldsRear
-        shieldsRearMax updates other.shieldsRearMax
         impulse updates other.impulse
         side updates other.side
 
         super.updates(other)
     }
-
-    /** Returns true if this object contains any data. */
-    override val hasData
-        get() =
-            super.hasData ||
-                shieldsRear.hasValue ||
-                shieldsRearMax.hasValue ||
-                impulse.hasValue ||
-                side.hasValue
 
     abstract class Dsl<T : BaseArtemisShip<T>> : BaseArtemisShielded.Dsl<T>() {
         var shieldsRear: Float = Float.NaN
@@ -46,8 +37,8 @@ abstract class BaseArtemisShip<T : BaseArtemisShip<T>>(id: Int, timestamp: Long)
         override fun updates(obj: T) {
             super.updates(obj)
 
-            obj.shieldsRear.value = shieldsRear
-            obj.shieldsRearMax.value = shieldsRearMax
+            obj.shieldsRear.strength.value = shieldsRear
+            obj.shieldsRear.maxStrength.value = shieldsRearMax
             obj.impulse.value = impulse
             obj.side.value = side
 

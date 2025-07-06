@@ -1,5 +1,6 @@
 package artemis.agent.game.allies
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
@@ -136,11 +137,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         allyDefendList.layoutManager = DestinationGridLayoutManager(allyDefendList.context)
 
         viewLifecycleOwner.collectLatestWhileStarted(allyAndDefendableTargets) { (ally, targets) ->
-            if (ally == null) {
-                showAlliesListView()
-            } else {
-                showSelectedAllyCommands(ally, targets)
-            }
+            if (ally == null) showAlliesListView() else showSelectedAllyCommands(ally, targets)
         }
     }
 
@@ -175,12 +172,13 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 )
                 .forEach { (button, message) ->
                     button.setOnClickListener {
-                        viewModel.playSound(SoundEffect.CONFIRMATION)
-                        viewModel.sendToServer(
-                            CommsOutgoingPacket(ally.obj, message, viewModel.vesselData)
-                        )
-                        if (!viewModel.manuallyReturnFromCommands && !viewModel.isSingleAlly) {
-                            viewModel.focusedAlly.value = null
+                        with(viewModel) {
+                            activateHaptic()
+                            playSound(SoundEffect.CONFIRMATION)
+                            sendToServer(CommsOutgoingPacket(ally.obj, message, vesselData))
+                            if (!manuallyReturnFromCommands && !isSingleAlly) {
+                                focusedAlly.value = null
+                            }
                         }
                     }
                 }
@@ -210,12 +208,25 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         ) : this(AlliesEntryBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
         fun bind(entry: Ally, viewModel: AgentViewModel) {
-            entryBinding.allyNameLabel.text = viewModel.getFullNameForShip(entry.obj)
+            entryBinding.allyNameLabel.text = entry.fullName
             entryBinding.allyHailButton.setOnClickListener {
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(CommsOutgoingPacket(entry.obj, OtherMessage.Hail, vesselData))
+                }
+            }
+
+            entryBinding.allyRecapButton.setOnClickListener {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(entry.obj, OtherMessage.Hail, viewModel.vesselData)
-                )
+                if (entry.latestHailMessage.isBlank()) return@setOnClickListener
+
+                AlertDialog.Builder(entryBinding.root.context)
+                    .setTitle(entry.fullName)
+                    .setMessage(entry.latestHailMessage)
+                    .setCancelable(true)
+                    .show()
             }
 
             bindAllyCommandButton(entry, viewModel)
@@ -231,16 +242,22 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 root.setBackgroundColor(Color.TRANSPARENT)
                 allyCommandButton.setText(R.string.cancel)
                 allyCommandButton.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    if (!viewModel.isSingleAlly) {
-                        viewModel.focusedAlly.value = null
+                    with(viewModel) {
+                        activateHaptic()
+                        playSound(SoundEffect.BEEP_1)
+                        if (!isSingleAlly) {
+                            focusedAlly.value = null
+                        }
                     }
                 }
             } else {
                 root.setBackgroundColor(entry.getBackgroundColor(root.context))
                 allyCommandButton.setOnClickListener {
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    viewModel.focusedAlly.value = entry
+                    with(viewModel) {
+                        activateHaptic()
+                        playSound(SoundEffect.BEEP_1)
+                        focusedAlly.value = entry
+                    }
                 }
             }
 
@@ -252,54 +269,54 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         private fun bindDescriptionLabel(entry: Ally, viewModel: AgentViewModel) {
             val context = entryBinding.root.context
 
-            val description = mutableListOf(context.getString(entry.status.description))
-            if (!entry.isTrap && entry.status != AllyStatus.PIRATE_DATA) {
-                if (entry.hasEnergy) {
-                    description.add(context.getString(R.string.has_energy))
-                }
+            val description = buildList {
+                add(context.getString(entry.status.description))
+
+                if (entry.isTrap || entry.status == AllyStatus.PIRATE_DATA) return@buildList
+
+                if (entry.hasEnergy) add(context.getString(R.string.has_energy))
+
                 if (viewModel.isDeepStrike) {
-                    description[0] = context.getString(R.string.ally_status_deep_strike)
-                    description.add(
-                        if (viewModel.torpedoesReady) {
-                            context.getString(R.string.has_ordnance)
-                        } else {
-                            viewModel.getManufacturingTimer(context)
-                        }
+                    this[0] = context.getString(R.string.ally_status_deep_strike)
+                    add(
+                        if (viewModel.torpedoesReady) context.getString(R.string.has_ordnance)
+                        else viewModel.getManufacturingTimer(context)
                     )
                 }
-                if (entry.missions > 0) {
-                    description.add(entry.getMissionsText(context))
-                }
 
-                val destination = entry.destination
-                if (destination == null) {
-                    entry.direction?.also {
-                        description.add(
-                            context.getString(
-                                R.string.currently_moving_to_heading,
-                                viewModel.formattedHeading(it),
-                            )
-                        )
-                    }
-                } else {
-                    val destinationText =
-                        context.getString(
-                            if (entry.isAttacking) {
-                                R.string.currently_moving_to_attack
-                            } else {
-                                R.string.currently_moving_toward
-                            },
-                            destination,
-                        )
-                    if (entry.status == AllyStatus.FLYING_BLIND && entry.isMovingToStation) {
-                        description[0] = destinationText
-                    } else {
-                        description.add(destinationText)
-                    }
-                }
+                if (entry.missions > 0) add(entry.getMissionsText(context))
+
+                addDestinationInfo(entry, viewModel)
             }
 
             entryBinding.allyDescriptionLabel.text = description.joinSpaceDelimited()
+        }
+
+        private fun MutableList<String>.addDestinationInfo(entry: Ally, viewModel: AgentViewModel) {
+            val context = entryBinding.root.context
+
+            val destination = entry.destination
+            if (destination != null) {
+                val destinationText =
+                    context.getString(
+                        if (entry.isAttacking) R.string.currently_moving_to_attack
+                        else R.string.currently_moving_toward,
+                        destination,
+                    )
+                if (entry.status == AllyStatus.FLYING_BLIND && entry.isMovingToStation)
+                    this[0] = destinationText
+                else add(destinationText)
+                return
+            }
+
+            entry.direction?.also {
+                add(
+                    context.getString(
+                        R.string.currently_moving_to_heading,
+                        viewModel.formattedHeading(it),
+                    )
+                )
+            }
         }
 
         private fun bindInfoLabels(entry: Ally) {
@@ -311,14 +328,14 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
             entryBinding.allyFrontShieldLabel.text =
                 context.getString(
                     R.string.front_shield,
-                    entry.obj.shieldsFront.value.coerceAtLeast(0f),
-                    entry.obj.shieldsFrontMax.value,
+                    entry.obj.shieldsFront.strength.value.coerceAtLeast(0f),
+                    entry.obj.shieldsFront.maxStrength.value,
                 )
             entryBinding.allyRearShieldLabel.text =
                 context.getString(
                     R.string.rear_shield,
-                    entry.obj.shieldsRear.value.coerceAtLeast(0f),
-                    entry.obj.shieldsRearMax.value,
+                    entry.obj.shieldsRear.strength.value.coerceAtLeast(0f),
+                    entry.obj.shieldsRear.maxStrength.value,
                 )
         }
     }
@@ -362,12 +379,13 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
         fun bind(ally: ArtemisNpc, obj: ArtemisShielded<*>, viewModel: AgentViewModel) {
             button.text = obj.name.value
             button.setOnClickListener {
-                viewModel.playSound(SoundEffect.CONFIRMATION)
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(ally, OtherMessage.GoDefend(obj), viewModel.vesselData)
-                )
-                if (!viewModel.manuallyReturnFromCommands && !viewModel.isSingleAlly) {
-                    viewModel.focusedAlly.value = null
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.CONFIRMATION)
+                    sendToServer(CommsOutgoingPacket(ally, OtherMessage.GoDefend(obj), vesselData))
+                    if (!manuallyReturnFromCommands && !isSingleAlly) {
+                        focusedAlly.value = null
+                    }
                 }
             }
         }

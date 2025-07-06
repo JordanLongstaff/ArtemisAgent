@@ -1,13 +1,14 @@
 package com.walkertribe.ian.iface
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * An event regarding the connection to a remote machine.
  *
  * @author rjwut
  */
-sealed class ConnectionEvent private constructor() : ListenerArgument {
+sealed class ConnectionEvent : ListenerArgument {
     /**
      * An event that gets thrown when IAN successfully connects to a remote machine.
      *
@@ -44,6 +45,7 @@ sealed class ConnectionEvent private constructor() : ListenerArgument {
      */
     data object HeartbeatRegained : ConnectionEvent()
 
+    @OptIn(ExperimentalTime::class)
     final override val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 
     final override fun offerTo(module: ListenerModule) {

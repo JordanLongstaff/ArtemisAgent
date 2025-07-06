@@ -37,6 +37,7 @@ import io.kotest.property.exhaustive.filter
 import io.kotest.property.exhaustive.of
 import io.kotest.property.forAll
 import kotlin.math.sign
+import kotlinx.coroutines.launch
 
 class PropertyTest :
     DescribeSpec({
@@ -55,8 +56,8 @@ enum class PropertyTestCase {
 
             Arb.float()
                 .filter { !it.isNaN() }
-                .checkAll {
-                    prop.value = it
+                .checkAll { value ->
+                    prop.value = value
                     prop.shouldBeSpecified()
                 }
         }
@@ -78,16 +79,7 @@ enum class PropertyTestCase {
                 .checkAll { (oldTime, newTime, newValue) ->
                     val oldProp = Property.FloatProperty(oldTime)
                     val newProp = Property.FloatProperty(newTime)
-
-                    val senderProp: Property.FloatProperty
-                    val receiverProp: Property.FloatProperty
-                    if (scenario.senderNewOldIdentifier == NewOldIdentifier.NEW) {
-                        senderProp = newProp
-                        receiverProp = oldProp
-                    } else {
-                        senderProp = oldProp
-                        receiverProp = newProp
-                    }
+                    val (senderProp, receiverProp) = scenario.organize(oldProp, newProp)
 
                     if (scenario.senderIsSpecifiedIdentifier == SpecifiedIdentifier.SPECIFIED) {
                         senderProp.value = newValue
@@ -149,8 +141,8 @@ enum class PropertyTestCase {
 
             Exhaustive.bytes()
                 .filter { it.toInt() != -1 }
-                .checkAll {
-                    prop.value = it
+                .checkAll { value ->
+                    prop.value = value
                     prop.shouldBeSpecified()
                 }
         }
@@ -174,16 +166,7 @@ enum class PropertyTestCase {
 
                     val oldProp = Property.ByteProperty(oldTime)
                     val newProp = Property.ByteProperty(newTime)
-
-                    val senderProp: Property.ByteProperty
-                    val receiverProp: Property.ByteProperty
-                    if (scenario.senderNewOldIdentifier == NewOldIdentifier.NEW) {
-                        senderProp = newProp
-                        receiverProp = oldProp
-                    } else {
-                        senderProp = oldProp
-                        receiverProp = newProp
-                    }
+                    val (senderProp, receiverProp) = scenario.organize(oldProp, newProp)
 
                     if (scenario.senderIsSpecifiedIdentifier == SpecifiedIdentifier.SPECIFIED) {
                         senderProp.value = newValue
@@ -214,17 +197,8 @@ enum class PropertyTestCase {
                         receiverProp.shouldBeUnspecified()
                     }
 
-                    if (scenario.expectSpecifiedMatch) {
-                        receiverProp.hasValue shouldBeEqual senderProp.hasValue
-                    } else {
-                        receiverProp.hasValue shouldNotBeEqual senderProp.hasValue
-                    }
-
-                    if (scenario.expectValueMatch) {
-                        receiverProp.value shouldBeEqual senderProp.value
-                    } else {
-                        receiverProp.value shouldNotBeEqual senderProp.value
-                    }
+                    scenario.testSpecifiedMatch(receiverProp, senderProp)
+                    scenario.testValueMatch(receiverProp, senderProp)
                 }
         }
 
@@ -289,8 +263,8 @@ enum class PropertyTestCase {
 
             Arb.int()
                 .filter { it != -1 }
-                .checkAll {
-                    prop.value = it
+                .checkAll { value ->
+                    prop.value = value
                     prop.shouldBeSpecified()
                 }
         }
@@ -314,16 +288,7 @@ enum class PropertyTestCase {
 
                     val oldProp = Property.IntProperty(oldTime)
                     val newProp = Property.IntProperty(newTime)
-
-                    val senderProp: Property.IntProperty
-                    val receiverProp: Property.IntProperty
-                    if (scenario.senderNewOldIdentifier == NewOldIdentifier.NEW) {
-                        senderProp = newProp
-                        receiverProp = oldProp
-                    } else {
-                        senderProp = oldProp
-                        receiverProp = newProp
-                    }
+                    val (senderProp, receiverProp) = scenario.organize(oldProp, newProp)
 
                     if (scenario.senderIsSpecifiedIdentifier == SpecifiedIdentifier.SPECIFIED) {
                         senderProp.value = newValue
@@ -354,17 +319,8 @@ enum class PropertyTestCase {
                         receiverProp.shouldBeUnspecified()
                     }
 
-                    if (scenario.expectSpecifiedMatch) {
-                        receiverProp.hasValue shouldBeEqual senderProp.hasValue
-                    } else {
-                        receiverProp.hasValue shouldNotBeEqual senderProp.hasValue
-                    }
-
-                    if (scenario.expectValueMatch) {
-                        receiverProp.value shouldBeEqual senderProp.value
-                    } else {
-                        receiverProp.value shouldNotBeEqual senderProp.value
-                    }
+                    scenario.testSpecifiedMatch(receiverProp, senderProp)
+                    scenario.testValueMatch(receiverProp, senderProp)
                 }
         }
 
@@ -424,8 +380,8 @@ enum class PropertyTestCase {
             val prop = Property.BoolProperty(0L)
             prop.shouldBeUnspecified()
 
-            Exhaustive.of(BoolState.True, BoolState.False).checkAll {
-                prop.value = it
+            Exhaustive.of(BoolState.True, BoolState.False).checkAll { value ->
+                prop.value = value
                 prop.shouldBeSpecified()
             }
         }
@@ -442,16 +398,7 @@ enum class PropertyTestCase {
                 .checkAll { (oldTime, newTime) ->
                     val oldProp = Property.BoolProperty(oldTime)
                     val newProp = Property.BoolProperty(newTime)
-
-                    val senderProp: Property.BoolProperty
-                    val receiverProp: Property.BoolProperty
-                    if (scenario.senderNewOldIdentifier == NewOldIdentifier.NEW) {
-                        senderProp = newProp
-                        receiverProp = oldProp
-                    } else {
-                        senderProp = oldProp
-                        receiverProp = newProp
-                    }
+                    val (senderProp, receiverProp) = scenario.organize(oldProp, newProp)
 
                     if (scenario.senderIsSpecifiedIdentifier == SpecifiedIdentifier.SPECIFIED) {
                         senderProp.value = BoolState.True
@@ -480,17 +427,8 @@ enum class PropertyTestCase {
                         receiverProp.shouldBeUnspecified()
                     }
 
-                    if (scenario.expectSpecifiedMatch) {
-                        receiverProp.hasValue shouldBeEqual senderProp.hasValue
-                    } else {
-                        receiverProp.hasValue shouldNotBeEqual senderProp.hasValue
-                    }
-
-                    if (scenario.expectValueMatch) {
-                        receiverProp.value shouldBeEqual senderProp.value
-                    } else {
-                        receiverProp.value shouldNotBeEqual senderProp.value
-                    }
+                    scenario.testSpecifiedMatch(receiverProp, senderProp)
+                    scenario.testValueMatch(receiverProp, senderProp)
                 }
         }
     },
@@ -499,8 +437,8 @@ enum class PropertyTestCase {
             val prop = Property.ObjectProperty<AlertStatus>(0L)
             prop.shouldBeUnspecified()
 
-            Exhaustive.enum<AlertStatus>().checkAll {
-                prop.value = it
+            Exhaustive.enum<AlertStatus>().checkAll { value ->
+                prop.value = value
                 prop.shouldBeSpecified()
             }
         }
@@ -519,16 +457,7 @@ enum class PropertyTestCase {
 
                     val oldProp = Property.ObjectProperty<AlertStatus>(oldTime)
                     val newProp = Property.ObjectProperty<AlertStatus>(newTime)
-
-                    val senderProp: Property.ObjectProperty<AlertStatus>
-                    val receiverProp: Property.ObjectProperty<AlertStatus>
-                    if (scenario.senderNewOldIdentifier == NewOldIdentifier.NEW) {
-                        senderProp = newProp
-                        receiverProp = oldProp
-                    } else {
-                        senderProp = oldProp
-                        receiverProp = newProp
-                    }
+                    val (senderProp, receiverProp) = scenario.organize(oldProp, newProp)
 
                     val senderValue = values[1]
                     if (scenario.senderIsSpecifiedIdentifier == SpecifiedIdentifier.SPECIFIED) {
@@ -559,17 +488,8 @@ enum class PropertyTestCase {
                         receiverProp.shouldBeUnspecified()
                     }
 
-                    if (scenario.expectSpecifiedMatch) {
-                        receiverProp.hasValue shouldBeEqual senderProp.hasValue
-                    } else {
-                        receiverProp.hasValue shouldNotBeEqual senderProp.hasValue
-                    }
-
-                    if (scenario.expectValueMatch) {
-                        receiverProp.value shouldBe senderProp.value
-                    } else {
-                        receiverProp.value shouldNotBe senderProp.value
-                    }
+                    scenario.testSpecifiedMatch(receiverProp, senderProp)
+                    scenario.testValueMatch(receiverProp, senderProp)
                 }
         }
     };
@@ -611,11 +531,8 @@ enum class PropertyTestCase {
                 firstProp.value = first
                 secondProp.value = second
 
-                if (first < second) {
-                    comparisonTest(firstProp, secondProp)
-                } else {
-                    comparisonTest(secondProp, firstProp)
-                }
+                if (first < second) comparisonTest(firstProp, secondProp)
+                else comparisonTest(secondProp, firstProp)
             }
         }
 
@@ -624,22 +541,22 @@ enum class PropertyTestCase {
             propertyGenerator: (Long) -> P,
             comparisonTest: (P, P) -> Boolean,
         ) where N : Number, N : Comparable<N>, P : Property<N, P>, P : Comparable<P> {
-            arb.forAll {
+            arb.forAll { value ->
                 val propWithoutValue = propertyGenerator(0L)
                 val propWithValue = propertyGenerator(0L)
-                propWithValue.value = it
+                propWithValue.value = value
 
                 comparisonTest(propWithValue, propWithoutValue)
             }
         }
 
-        suspend fun <N, P> DescribeSpecContainerScope.describeComparisonTests(
+        fun <N, P> DescribeSpecContainerScope.describeComparisonTests(
             strictArbPair: Arb<Pair<N, N>>,
             softArbPair: Arb<Pair<N, N>>,
             singleArb: Arb<N>,
             emptyPropertyGenerator: Gen<P>,
             basePropertyGenerator: (Long) -> P,
-        ) where N : Number, N : Comparable<N>, P : Property<N, P>, P : Comparable<P> {
+        ) where N : Number, N : Comparable<N>, P : Property<N, P>, P : Comparable<P> = launch {
             describe("Comparisons") {
                 it("Less than") {
                     testComparisons(strictArbPair, basePropertyGenerator) { a, b -> a < b }
@@ -676,8 +593,12 @@ enum class PropertyTestCase {
 }
 
 enum class NewOldIdentifier(private val receiverIdName: String) {
-    NEW("old"),
-    OLD("new");
+    NEW("old") {
+        override fun <V, P : Property<V, P>> organize(old: P, new: P): Pair<P, P> = new to old
+    },
+    OLD("new") {
+        override fun <V, P : Property<V, P>> organize(old: P, new: P): Pair<P, P> = old to new
+    };
 
     suspend fun describeScenarios(scope: ContainerScope, testCase: PropertyTestCase) {
         val specifiedIdentifiers = SpecifiedIdentifier.entries.toList()
@@ -686,9 +607,9 @@ enum class NewOldIdentifier(private val receiverIdName: String) {
             specifiedIdentifiers,
         ) { sender ->
             withData(
-                nameFn = {
-                    "${it.expectedBehaviourDescription} $receiverIdName, " +
-                        "${it.receiverIsSpecifiedIdentifier.name.lowercase()} property"
+                nameFn = { scenario ->
+                    "${scenario.expectedBehaviourDescription} $receiverIdName, " +
+                        "${scenario.receiverIsSpecifiedIdentifier.name.lowercase()} property"
                 },
                 specifiedIdentifiers.map { receiver ->
                     PropertyUpdateScenario(
@@ -710,6 +631,8 @@ enum class NewOldIdentifier(private val receiverIdName: String) {
             }
         }
     }
+
+    abstract fun <V, P : Property<V, P>> organize(old: P, new: P): Pair<P, P>
 
     override fun toString(): String = name[0] + name.substring(1).lowercase()
 }
@@ -738,7 +661,24 @@ data class PropertyUpdateScenario(
     val expectSpecifiedMatch =
         expectedToUpdate || senderIsSpecifiedIdentifier == receiverIsSpecifiedIdentifier
 
-    val expectValueMatch = expectSpecifiedMatch && (expectedToUpdate == expectReceiverSpecified)
-
     val expectedBehaviourDescription = if (expectedToUpdate) "Updates" else "Skips"
+
+    fun <V, P : Property<V, P>> organize(old: P, new: P): Pair<P, P> =
+        senderNewOldIdentifier.organize(old, new)
+
+    fun <V, P : Property<V, P>> testSpecifiedMatch(receiver: P, sender: P) {
+        if (expectSpecifiedMatch) {
+            receiver.hasValue shouldBeEqual sender.hasValue
+        } else {
+            receiver.hasValue shouldNotBeEqual sender.hasValue
+        }
+    }
+
+    fun <V, P : Property<V, P>> testValueMatch(receiver: P, sender: P) {
+        if (expectedToUpdate || (expectSpecifiedMatch && !expectReceiverSpecified)) {
+            receiver.value shouldBe sender.value
+        } else {
+            receiver.value shouldNotBe sender.value
+        }
+    }
 }

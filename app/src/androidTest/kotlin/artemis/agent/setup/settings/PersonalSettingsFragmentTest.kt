@@ -1,20 +1,20 @@
 package artemis.agent.setup.settings
 
-import android.Manifest
 import androidx.activity.viewModels
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.ActivityScenarioManager
 import artemis.agent.AgentViewModel
-import artemis.agent.ArtemisAgentTestHelpers.assertChecked
 import artemis.agent.MainActivity
 import artemis.agent.R
-import com.adevinta.android.barista.assertion.BaristaProgressBarAssertions.assertProgress
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
-import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
-import com.adevinta.android.barista.interaction.BaristaSeekBarInteractions.setProgressTo
-import com.adevinta.android.barista.interaction.PermissionGranter
+import artemis.agent.isCheckedIf
+import artemis.agent.isDisplayedWithText
+import artemis.agent.scenario.SettingsMenuScenario
+import artemis.agent.scenario.SettingsSubmenuOpenScenario
+import artemis.agent.screens.MainScreen.mainScreenTest
+import artemis.agent.screens.SettingsPageScreen
+import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
@@ -24,96 +24,156 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class PersonalSettingsFragmentTest {
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+class PersonalSettingsFragmentTest : TestCase() {
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
-    fun personalSettingsTest() {
-        val threeDigits = AtomicBoolean()
-        val soundVolume = AtomicInteger()
-        activityScenarioManager.onActivity { activity ->
-            val viewModel = activity.viewModels<AgentViewModel>().value
+    fun personalSettingsMutableTest() {
+        testWithSettings(true) { SettingsPageScreen.closeSubmenu() }
+    }
 
-            threeDigits.lazySet(viewModel.threeDigitDirections)
-            soundVolume.lazySet((viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt())
-        }
+    @Test
+    fun personalSettingsBackButtonTest() {
+        testWithSettings(false) { SettingsPageScreen.backFromSubmenu() }
+    }
 
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+    private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) {
+        run {
+            mainScreenTest {
+                val themeIndex = AtomicInteger()
+                val threeDigits = AtomicBoolean()
+                val soundVolume = AtomicInteger()
+                val hapticsEnabled = AtomicBoolean()
 
-        SettingsFragmentTest.openSettingsMenu()
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        themeIndex.lazySet(viewModel.themeIndex)
+                        threeDigits.lazySet(viewModel.threeDigitDirections)
+                        soundVolume.lazySet(
+                            (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
+                        )
+                        hapticsEnabled.lazySet(viewModel.hapticsEnabled)
+                    }
+                }
 
-        listOf(
-                { SettingsFragmentTest.closeSettingsSubMenu() },
-                { SettingsFragmentTest.backFromSubMenu() },
-            )
-            .forEachIndexed { index, closeSubMenu ->
-                SettingsFragmentTest.openSettingsSubMenu(7)
-                testPersonalSubMenuOpen(threeDigits.get(), soundVolume.get(), index == 0)
+                scenario(SettingsMenuScenario)
+                scenario(SettingsSubmenuOpenScenario.Personal)
 
-                closeSubMenu()
-                testPersonalSubMenuClosed()
+                testThemeSetting(themeIndex.get())
+                testThreeDigitsSetting(shouldTestSettings, threeDigits.get())
+                testSoundVolume(shouldTestSettings, soundVolume.get())
+
+                SettingsPageScreen.Personal {
+                    step("Check haptics setting") {
+                        enableHapticsToggleSetting.testSingleToggle(hapticsEnabled.get())
+                    }
+
+                    step("Close submenu") { closeSubmenu() }
+
+                    step("All settings should be gone") { testScreenClosed() }
+                }
             }
+        }
     }
 
     private companion object {
         const val VOLUME_TEST_COUNT = 20
         const val MAX_VOLUME = 101
 
-        fun testPersonalSubMenuOpen(
-            isThreeDigitsOn: Boolean,
-            soundVolume: Int,
-            shouldTestVolumeBar: Boolean,
-        ) {
-            scrollTo(R.id.themeDivider)
-            assertDisplayed(R.id.themeTitle, R.string.theme)
-            assertDisplayed(R.id.themeSelector)
-            assertDisplayed(R.id.themeDefaultButton, R.string.default_setting)
-            assertDisplayed(R.id.themeRedButton)
-            assertDisplayed(R.id.themeGreenButton)
-            assertDisplayed(R.id.themeYellowButton)
-            assertDisplayed(R.id.themeBlueButton)
-            assertDisplayed(R.id.themePurpleButton)
-
-            scrollTo(R.id.threeDigitDirectionsDivider)
-            assertDisplayed(R.id.threeDigitDirectionsTitle, R.string.three_digit_directions)
-            assertDisplayed(R.id.threeDigitDirectionsButton)
-            assertDisplayed(R.id.threeDigitDirectionsLabel)
-            assertChecked(R.id.threeDigitDirectionsButton, isThreeDigitsOn)
-
-            scrollTo(R.id.soundVolumeDivider)
-            assertDisplayed(R.id.soundVolumeTitle, R.string.sound_volume)
-            assertDisplayed(R.id.soundVolumeBar)
-            assertProgress(R.id.soundVolumeBar, soundVolume)
-            assertDisplayed(R.id.soundVolumeLabel, soundVolume.toString())
-
-            if (shouldTestVolumeBar) {
-                val volumeTests =
-                    List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume
-                volumeTests.forEach { volume ->
-                    setProgressTo(R.id.soundVolumeBar, volume)
-                    assertDisplayed(R.id.soundVolumeLabel, volume.toString())
+        fun TestContext<*>.testThemeSetting(themeIndex: Int) {
+            SettingsPageScreen.Personal {
+                step("Check theme setting components") {
+                    themeTitle.isDisplayedWithText(R.string.theme)
+                    themeButtons.forEachIndexed { index, button ->
+                        button {
+                            isCompletelyDisplayed()
+                            isCheckedIf(index == themeIndex)
+                        }
+                    }
                 }
             }
         }
 
-        fun testPersonalSubMenuClosed() {
-            assertNotExist(R.id.themeTitle)
-            assertNotExist(R.id.themeSelector)
-            assertNotExist(R.id.themeDefaultButton)
-            assertNotExist(R.id.themeRedButton)
-            assertNotExist(R.id.themeGreenButton)
-            assertNotExist(R.id.themeYellowButton)
-            assertNotExist(R.id.themeBlueButton)
-            assertNotExist(R.id.themePurpleButton)
-            assertNotExist(R.id.themeDivider)
-            assertNotExist(R.id.threeDigitDirectionsTitle)
-            assertNotExist(R.id.threeDigitDirectionsButton)
-            assertNotExist(R.id.threeDigitDirectionsLabel)
-            assertNotExist(R.id.threeDigitDirectionsDivider)
-            assertNotExist(R.id.soundVolumeTitle)
-            assertNotExist(R.id.soundVolumeBar)
-            assertNotExist(R.id.soundVolumeLabel)
-            assertNotExist(R.id.soundVolumeDivider)
+        fun TestContext<*>.testThreeDigitsSetting(
+            shouldTest: Boolean,
+            isShowingThreeDigits: Boolean,
+        ) {
+            SettingsPageScreen.Personal {
+                listOf(
+                        "Check three-digit setting components" to isShowingThreeDigits,
+                        "Toggle three-digit setting once" to !isShowingThreeDigits,
+                        "Toggle three-digit setting again" to isShowingThreeDigits,
+                    )
+                    .let { if (shouldTest) it else it.take(1) }
+                    .forEachIndexed { index, (stepName, showingThree) ->
+                        step(stepName) {
+                            if (index > 0) {
+                                step("Click toggle") { threeDigitDirectionsButton.click() }
+                            }
+
+                            step("Test UI") {
+                                threeDigitDirectionsTitle.isDisplayedWithText(
+                                    R.string.three_digit_directions
+                                )
+                                threeDigitDirectionsButton {
+                                    isCompletelyDisplayed()
+                                    isCheckedIf(showingThree)
+                                }
+                                threeDigitDirectionsLabel.isDisplayedWithText(
+                                    device.targetContext.getString(
+                                        R.string.direction,
+                                        "0".repeat(if (showingThree) 3 else 1),
+                                    )
+                                )
+                            }
+                        }
+                    }
+            }
+        }
+
+        fun TestContext<*>.testSoundVolume(shouldTest: Boolean, soundVolume: Int) {
+            SettingsPageScreen.Personal {
+                step("Check sound volume setting components") {
+                    soundVolumeTitle.isDisplayedWithText(R.string.sound_volume)
+                    soundVolumeBar {
+                        isCompletelyDisplayed()
+                        hasProgress(soundVolume)
+                    }
+                    soundVolumeLabel.isDisplayedWithText(soundVolume.toString())
+                }
+
+                if (shouldTest) {
+                    step("Test changing sound volume") {
+                        val volumeTests =
+                            List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume
+                        volumeTests.forEach { volume ->
+                            soundVolumeBar.setProgress(volume)
+                            soundVolumeLabel.hasText(volume.toString())
+                        }
+                    }
+                }
+            }
+        }
+
+        fun SettingsPageScreen.Personal.testScreenClosed() {
+            themeTitle.doesNotExist()
+            themeDefaultButton.doesNotExist()
+            themeRedButton.doesNotExist()
+            themeGreenButton.doesNotExist()
+            themeYellowButton.doesNotExist()
+            themeBlueButton.doesNotExist()
+            themePurpleButton.doesNotExist()
+            themeDivider.doesNotExist()
+            threeDigitDirectionsTitle.doesNotExist()
+            threeDigitDirectionsButton.doesNotExist()
+            threeDigitDirectionsLabel.doesNotExist()
+            threeDigitDirectionsDivider.doesNotExist()
+            soundVolumeTitle.doesNotExist()
+            soundVolumeBar.doesNotExist()
+            soundVolumeLabel.doesNotExist()
+            soundVolumeDivider.doesNotExist()
+            enableHapticsToggleSetting.testNotExist()
         }
     }
 }

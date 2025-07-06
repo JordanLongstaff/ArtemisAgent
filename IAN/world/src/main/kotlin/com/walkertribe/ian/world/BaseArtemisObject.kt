@@ -15,13 +15,16 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     override val y = Property.FloatProperty(timestamp)
     override val z = Property.FloatProperty(timestamp)
 
+    /** Returns true if this object contains any data. */
+    internal open val hasData: Boolean
+        get() = x.hasValue || y.hasValue || z.hasValue
+
     override val hasPosition: Boolean
         get() = x.hasValue && z.hasValue
 
     override fun distanceTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val y0 = other.y.valueOrZero
         val y1 = y.valueOrZero
         val dX = other.x.value.toDouble() - x.value.toDouble()
@@ -37,9 +40,8 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     override fun distanceSquaredTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val y0 = other.y.valueOrZero
         val y1 = y.valueOrZero
         val dX = other.x.value.toDouble() - x.value.toDouble()
@@ -49,9 +51,8 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     override fun horizontalDistanceTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val dX = other.x.value.toDouble() - x.value.toDouble()
         val dZ = other.z.value.toDouble() - z.value.toDouble()
 
@@ -63,18 +64,16 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     override fun horizontalDistanceSquaredTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute distance if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(DISTANCE) }
+
         val dX = other.x.value.toDouble() - x.value.toDouble()
         val dZ = other.z.value.toDouble() - z.value.toDouble()
         return (dX * dX + dZ * dZ).toFloat()
     }
 
     override fun headingTo(other: ArtemisObject<*>): Float {
-        check(hasPosition && other.hasPosition) {
-            "Can't compute heading if both objects don't have a position"
-        }
+        check(hasPosition && other.hasPosition) { cannotCompute(HEADING) }
+
         val dX = other.x.value - x.value
         val dZ = other.z.value - z.value
         return (atan2(dX, dZ) * RAD_TO_DEG + HALF_CIRCLE) % FULL_CIRCLE
@@ -89,10 +88,6 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     final override fun offerTo(module: ListenerModule) {
         module.onArtemisObject(this)
     }
-
-    /** Returns true if this object contains any data. */
-    internal open val hasData: Boolean
-        get() = x.hasValue || y.hasValue || z.hasValue
 
     override fun equals(other: Any?): Boolean =
         this === other || (other is ArtemisObject<*> && id == other.id && type == other.type)
@@ -124,8 +119,14 @@ abstract class BaseArtemisObject<T : ArtemisObject<T>>(
     }
 
     private companion object {
-        private const val HALF_CIRCLE = 180f
-        private const val FULL_CIRCLE = HALF_CIRCLE * 2f
-        private const val RAD_TO_DEG = (HALF_CIRCLE / PI).toFloat()
+        const val HALF_CIRCLE = 180f
+        const val FULL_CIRCLE = HALF_CIRCLE * 2f
+        const val RAD_TO_DEG = (HALF_CIRCLE / PI).toFloat()
+
+        const val DISTANCE = "distance"
+        const val HEADING = "heading"
+
+        fun cannotCompute(type: String): String =
+            "Can't compute $type if both objects don't have a position"
     }
 }

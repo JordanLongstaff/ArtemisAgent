@@ -3,7 +3,8 @@ package com.walkertribe.ian.iface
 import com.walkertribe.ian.protocol.core.GameOverReasonPacket
 import com.walkertribe.ian.protocol.core.GameStartPacket
 import com.walkertribe.ian.protocol.core.HeartbeatPacket
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * Class responsible for tracking and sending HeartbeatPackets.
@@ -11,6 +12,7 @@ import kotlinx.datetime.Clock
  * @author rjwut
  */
 class HeartbeatManager(private val iface: ArtemisNetworkInterface) {
+    @OptIn(ExperimentalTime::class)
     private var lastHeartbeatReceivedTime: Long = Clock.System.now().toEpochMilliseconds()
     private var lastHeartbeatSentTime: Long = -1
     private var isLost = false
@@ -59,6 +61,7 @@ class HeartbeatManager(private val iface: ArtemisNetworkInterface) {
      * Checks to see if we need to send a [ConnectionEvent.HeartbeatLost] event, and sends it if
      * needed.
      */
+    @OptIn(ExperimentalTime::class)
     fun checkForHeartbeat() {
         if (!isActive || isLost) {
             return
@@ -74,6 +77,7 @@ class HeartbeatManager(private val iface: ArtemisNetworkInterface) {
      * Determines whether enough time has elapsed that we need to send a HeartbeatPacket, and sends
      * it if needed. Does nothing if autoSendHeartbeat is set to false.
      */
+    @OptIn(ExperimentalTime::class)
     fun sendHeartbeatIfNeeded() {
         if (!isAutoSendHeartbeat) {
             return

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
@@ -15,7 +16,7 @@ java {
     targetCompatibility = javaVersion
 }
 
-tasks.compileKotlin {
+tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
         javaParameters = true
@@ -23,11 +24,6 @@ tasks.compileKotlin {
 }
 
 ktfmt { kotlinLangStyle() }
-
-detekt {
-    source.setFrom(file("src/main/kotlin"))
-    config.setFrom(file("$rootDir/config/detekt/detekt.yml"))
-}
 
 dependencies {
     api(libs.kotlin.stdlib)
