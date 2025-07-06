@@ -2,21 +2,20 @@ package artemis.agent
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PendingIntent
-import android.content.ActivityNotFoundException
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
@@ -26,35 +25,55 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.databinding.ActivityMainBinding
 import artemis.agent.game.GameFragment
 import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
-import artemis.agent.setup.ConnectFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.util.SoundEffect
+import artemis.agent.util.VersionString
 import artemis.agent.util.collectLatestWhileStarted
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.InstallException
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.ActivityResult
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
+import com.jakewharton.processphoenix.ProcessPhoenix
 import com.walkertribe.ian.iface.DisconnectCause
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.asDeferred
 
 /** The main application activity. */
 class MainActivity : AppCompatActivity() {
     private val viewModel: AgentViewModel by viewModels()
 
     /** UI sections selected by the three buttons at the bottom of the screen. */
-    enum class Section(val sectionClass: Class<out Fragment>, @IdRes val buttonId: Int) {
+    enum class Section(val sectionClass: Class<out Fragment>, @all:IdRes val buttonId: Int) {
         SETUP(SetupFragment::class.java, R.id.setupPageButton),
         GAME(GameFragment::class.java, R.id.gamePageButton),
         HELP(HelpFragment::class.java, R.id.helpPageButton),
@@ -75,6 +94,86 @@ class MainActivity : AppCompatActivity() {
 
     private val reviewManager: ReviewManager by lazy { ReviewManagerFactory.create(this) }
     private var shouldAskForReview: Boolean = false
+
+    val updateManager: AppUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
+
+    private val installStateListener: InstallStateUpdatedListener by lazy {
+        InstallStateUpdatedListener { state ->
+            when (state.installStatus()) {
+                InstallStatus.DOWNLOADED -> onUpdateReady()
+                InstallStatus.INSTALLED -> updateManager.unregisterListener(installStateListener)
+                else -> {}
+            }
+        }
+    }
+
+    private val updateResultLauncher: ActivityResultLauncher<IntentSenderRequest> =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            when (result.resultCode) {
+                RESULT_OK -> {
+                    if (updateType == AppUpdateType.FLEXIBLE) {
+                        updateManager.registerListener(installStateListener)
+                    }
+
+                    null
+                }
+
+                RESULT_CANCELED -> {
+                    R.string.update_declined_title to R.string.update_declined_message
+                }
+
+                ActivityResult.RESULT_IN_APP_UPDATE_FAILED -> {
+                    R.string.update_failed_title to R.string.update_failed_message
+                }
+
+                else -> null
+            }?.also { (titleId, messageId) ->
+                AlertDialog.Builder(this)
+                    .setTitle(titleId)
+                    .setMessage(messageId)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                        startUpdateFlow()
+                    }
+                    .show()
+            }
+        }
+
+    @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
+
+    private val completeUpdateCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                updateManager.completeUpdate()
+            }
+        }
+    }
+
+    private val exitConfirmationCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                isEnabled = false
+                viewModel.playSound(SoundEffect.BEEP_2)
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(R.string.exit_message)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_1)
+                        isEnabled = true
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.CONFIRMATION)
+                        viewModel.networkInterface.stop()
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                    .show()
+            }
+        }
+    }
 
     private var notificationRequests = STOP_NOTIFICATIONS
 
@@ -117,34 +216,35 @@ class MainActivity : AppCompatActivity() {
                     createStationPacketListener(
                         service,
                         viewModel.stationProductionPacket,
-                        NotificationManager.CHANNEL_PRODUCTION,
+                        NotificationChannelTag.PRODUCTION,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationAttackedPacket,
-                        NotificationManager.CHANNEL_ATTACK,
+                        NotificationChannelTag.ATTACK,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationDestroyedPacket,
-                        NotificationManager.CHANNEL_DESTROYED,
+                        NotificationChannelTag.DESTROYED,
                         false,
                     )
 
+                    val missionManager = viewModel.missionManager
                     createMissionPacketListener(
                         service,
-                        viewModel.newMissionPacket,
-                        NotificationManager.CHANNEL_NEW_MISSION,
+                        missionManager.newMissionPacket,
+                        NotificationChannelTag.NEW_MISSION,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionProgressPacket,
-                        NotificationManager.CHANNEL_MISSION_PROGRESS,
+                        missionManager.missionProgressPacket,
+                        NotificationChannelTag.MISSION_PROGRESS,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionCompletionPacket,
-                        NotificationManager.CHANNEL_MISSION_COMPLETED,
+                        missionManager.missionCompletionPacket,
+                        NotificationChannelTag.MISSION_COMPLETED,
                     )
 
                     setupOngoingNotifications(service)
@@ -176,10 +276,13 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_GAME_INFO,
-                        title = viewModel.connectedUrl.value,
-                        message = strings.joinToString(),
-                        ongoing = true,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.GAME_INFO,
+                                title = viewModel.connectedUrl.value,
+                                message = strings.joinToString(),
+                                ongoing = true,
+                            ),
                         onIntent = { putExtra(Section.GAME.name, GAME_PAGE_UNSPECIFIED) },
                     )
                 }
@@ -189,15 +292,16 @@ class MainActivity : AppCompatActivity() {
 
                     allies.firstOrNull()?.also { ally ->
                         buildNotification(
-                            channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
-                            title = viewModel.getFullNameForShip(ally.obj),
-                            message =
-                                if (viewModel.torpedoesReady) {
-                                    getString(R.string.manufacturing_torpedoes_ready)
-                                } else {
-                                    viewModel.getManufacturingTimer(this@MainActivity)
-                                },
-                            ongoing = true,
+                            info =
+                                NotificationInfo(
+                                    channel = NotificationChannelTag.DEEP_STRIKE,
+                                    title = ally.fullName,
+                                    message =
+                                        if (viewModel.torpedoesReady)
+                                            getString(R.string.manufacturing_torpedoes_ready)
+                                        else viewModel.getManufacturingTimer(this@MainActivity),
+                                    ongoing = true,
+                                ),
                             onIntent = {
                                 putExtra(Section.GAME.name, GameFragment.Page.ALLIES.ordinal)
                             },
@@ -207,15 +311,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupBiomechNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedBiomechName) {
+                val biomechManager = viewModel.biomechManager
+
+                service.collectLatestWhileStarted(biomechManager.destroyedBiomechName) {
                     notificationManager.dismissBiomechMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.nextActiveBiomech) { entry ->
+                service.collectLatestWhileStarted(biomechManager.nextActiveBiomech) { entry ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_REANIMATE,
-                        title = viewModel.getFullNameForShip(entry.biomech),
-                        message = getString(R.string.biomech_notification),
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.REANIMATE,
+                                title = entry.getFullName(viewModel),
+                                message = getString(R.string.biomech_notification),
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.BIOMECHS.ordinal)
                         },
@@ -246,15 +355,20 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupEnemyNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedEnemyName) {
+                val enemiesManager = viewModel.enemiesManager
+
+                service.collectLatestWhileStarted(enemiesManager.destroyedEnemyName) {
                     notificationManager.dismissPerfidyMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.perfidiousEnemy) { entry ->
+                service.collectLatestWhileStarted(enemiesManager.perfidy) { entry ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_PERFIDY,
-                        title = viewModel.getFullNameForShip(entry.enemy),
-                        message = getString(R.string.enemy_perfidy_notification),
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.PERFIDY,
+                                title = entry.fullName,
+                                message = getString(R.string.enemy_perfidy_notification),
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.ENEMIES.ordinal)
                         },
@@ -265,9 +379,12 @@ class MainActivity : AppCompatActivity() {
             private fun setupGameNotifications(service: NotificationService) {
                 service.collectLatestWhileStarted(viewModel.borderWarMessage) { packet ->
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_BORDER_WAR,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.BORDER_WAR,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = { putExtra(Section.GAME.name, GAME_PAGE_UNSPECIFIED) },
                     )
                 }
@@ -275,9 +392,12 @@ class MainActivity : AppCompatActivity() {
                 service.collectLatestWhileStarted(viewModel.gameOverReason) { reason ->
                     if (viewModel.gameIsRunning.value) return@collectLatestWhileStarted
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_GAME_OVER,
-                        title = viewModel.connectedUrl.value,
-                        message = reason,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.GAME_OVER,
+                                title = viewModel.connectedUrl.value,
+                                message = reason,
+                            ),
                         setBuilder = { notificationManager.reset() },
                     )
                 }
@@ -298,9 +418,12 @@ class MainActivity : AppCompatActivity() {
                             else -> return@collectLatestWhileStarted
                         }
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_CONNECTION,
-                        title = viewModel.connectedUrl.value,
-                        message = message,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.CONNECTION,
+                                title = viewModel.connectedUrl.value,
+                                message = message,
+                            ),
                         onIntent = {
                             putExtra(Section.SETUP.name, SetupFragment.Page.CONNECT.ordinal)
                         },
@@ -311,27 +434,24 @@ class MainActivity : AppCompatActivity() {
                 service.collectLatestWhileStarted(viewModel.connectionStatus) { status ->
                     val message =
                         when (status) {
-                            is ConnectFragment.ConnectionStatus.NotConnected,
-                            is ConnectFragment.ConnectionStatus.Connecting ->
-                                return@collectLatestWhileStarted
+                            is ConnectionStatus.NotConnected,
+                            is ConnectionStatus.Connecting -> return@collectLatestWhileStarted
 
                             else -> getString(status.stringId)
                         }
 
                     buildNotification(
-                        channelId = NotificationManager.CHANNEL_CONNECTION,
-                        title = viewModel.lastAttemptedHost,
-                        message = message,
+                        info =
+                            NotificationInfo(
+                                channel = NotificationChannelTag.CONNECTION,
+                                title = viewModel.lastAttemptedHost,
+                                message = message,
+                            ),
                         onIntent = {
-                            putExtra(
-                                Section.SETUP.name,
-                                when (status) {
-                                    is ConnectFragment.ConnectionStatus.Connected ->
-                                        SetupFragment.Page.SHIPS.ordinal
-
-                                    else -> SetupFragment.Page.CONNECT.ordinal
-                                },
-                            )
+                            val openPage =
+                                if (status is ConnectionStatus.Connected) SetupFragment.Page.SHIPS
+                                else SetupFragment.Page.CONNECT
+                            putExtra(Section.SETUP.name, openPage.ordinal)
                         },
                     )
                 }
@@ -340,13 +460,16 @@ class MainActivity : AppCompatActivity() {
             private fun createMissionPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
-                        channelId = channelId,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channel = channel,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = {
                             putExtra(Section.GAME.name, GameFragment.Page.MISSIONS.ordinal)
                         },
@@ -357,22 +480,22 @@ class MainActivity : AppCompatActivity() {
             private fun createStationPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
                 includeSenderName: Boolean = true,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
-                        channelId = channelId,
-                        title = packet.sender,
-                        message = packet.message,
+                        info =
+                            NotificationInfo(
+                                channel = channel,
+                                title = packet.sender,
+                                message = packet.message,
+                            ),
                         onIntent = {
                             putExtra(
                                 GameFragment.Page.STATIONS.name,
-                                if (includeSenderName) {
-                                    packet.sender
-                                } else {
-                                    StationsFragment.Page.FRIENDLY.name
-                                },
+                                if (includeSenderName) packet.sender
+                                else StationsFragment.Page.FRIENDLY.name,
                             )
                         },
                     )
@@ -381,10 +504,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     private fun buildNotification(
-        channelId: String,
-        title: String,
-        message: String,
-        ongoing: Boolean = false,
+        info: NotificationInfo,
         onIntent: Intent.() -> Unit = {},
         setBuilder: (NotificationCompat.Builder) -> Unit = {},
     ) {
@@ -400,247 +520,71 @@ class MainActivity : AppCompatActivity() {
             )
 
         val builder =
-            NotificationCompat.Builder(this, channelId)
+            NotificationCompat.Builder(this, info.channel.tag)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setLargeIcon(
                     BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
                 )
                 .setContentIntent(pendingIntent)
-                .setOngoing(ongoing)
                 .also(setBuilder)
-        notificationManager.createNotification(
-            builder,
-            channelId,
-            title,
-            message,
-            applicationContext,
-        )
+        notificationManager.createNotification(builder, info, applicationContext)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-
-        val crashlytics = FirebaseCrashlytics.getInstance()
-        crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
-
+        setupTheme()
+        setupWindowInsets()
+        setupFirebase()
         setupTiramisu()
+        setupBackPressedCallbacks()
+        setupConnectionObservers()
+        setupUserSettingsObserver()
 
-        with(viewModel) {
-            val finishCallback =
-                onBackPressedDispatcher.addCallback(this@MainActivity) {
-                    supportFinishAfterTransition()
-                }
+        collectLatestWhileStarted(viewModel.gameOverReason) {
+            if (shouldAskForReview) askForReview()
+            shouldAskForReview = !shouldAskForReview
+            checkForUpdates(false)
+        }
 
-            onBackPressedDispatcher.addCallback(this@MainActivity) {
-                val dialog = ifConnected {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setMessage(R.string.exit_message)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            playSound(SoundEffect.BEEP_1)
-                            isEnabled = true
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            playSound(SoundEffect.CONFIRMATION)
-                            networkInterface.stop()
-                            finishCallback.handleOnBackPressed()
-                        }
-                }
-                if (dialog != null) {
-                    playSound(SoundEffect.BEEP_2)
-                    dialog.show()
-                    isEnabled = false
-                } else {
-                    finishCallback.handleOnBackPressed()
-                }
-            }
+        collectLatestWhileStarted(viewModel.jumping) {
+            binding.jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
+        }
 
-            try {
-                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
-            } catch (_: FileNotFoundException) {}
+        collectLatestWhileStarted(viewModel.helpTopicIndex) {
+            binding.updateButton.visibility =
+                if (it == HelpFragment.ABOUT_TOPIC_INDEX) View.VISIBLE else View.GONE
+        }
 
-            theme.applyStyle(themeRes, true)
-            isThemeChanged.value = false
+        binding.updateButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+            checkForUpdates(true)
+        }
 
-            collectLatestWhileStarted(connectionStatus) {
-                if (isIdle) {
-                    selectableShips.value = listOf()
-                }
-            }
-
-            collectLatestWhileStarted(connectedUrl) { newUrl ->
-                if (newUrl.isNotBlank()) {
-                    userSettings.updateData {
-                        val serversList = it.recentServersList.toMutableList()
-                        serversList.remove(newUrl)
-                        serversList.add(0, newUrl)
-
-                        it.copy {
-                            recentServers.clear()
-
-                            recentServers +=
-                                if (recentAddressLimitEnabled) {
-                                    serversList.take(recentAddressLimit)
-                                } else {
-                                    serversList
-                                }
-                        }
-                    }
-                }
-            }
-
-            collectLatestWhileStarted(userSettings.data) { settings ->
-                var newContextIndex = reconcileVesselDataIndex(settings.vesselDataLocationValue)
-                checkContext(newContextIndex) { message ->
-                    newContextIndex = if (vesselDataIndex == newContextIndex) 0 else vesselDataIndex
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.xml_error)
-                        .setMessage(getString(R.string.xml_error_message, message))
-                        .setCancelable(true)
-                        .show()
-                }
-
-                val limit = settings.recentAddressLimit
-                val hasLimit = settings.recentAddressLimitEnabled
-
-                val adjustedSettings =
-                    settings.copy {
-                        vesselDataLocationValue = newContextIndex
-                        val recentServersCount = recentServers.size
-                        if (hasLimit && recentServersCount > limit) {
-                            val min = recentServersCount.coerceAtMost(limit)
-                            val serversList = recentServers.take(min)
-                            recentServers.clear()
-                            recentServers += serversList
-                        }
-                    }
-
-                if (!isIdle && newContextIndex != vesselDataIndex) {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.vessel_data)
-                        .setMessage(R.string.xml_location_warning)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            launch { userSettings.updateData { revertSettings(it) } }
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            playSound(SoundEffect.BEEP_2)
-                            disconnectFromServer()
-                            updateFromSettings(adjustedSettings)
-                            launch { userSettings.updateData { adjustedSettings } }
-                        }
-                        .show()
-                    return@collectLatestWhileStarted
-                } else {
-                    updateFromSettings(adjustedSettings)
-                    userSettings.updateData { adjustedSettings }
-                }
-            }
-
-            collectLatestWhileStarted(disconnectCause) {
-                var suggestUpdate = false
-                val message =
-                    when (it) {
-                        is DisconnectCause.IOError -> {
-                            crashlytics.recordException(it.exception)
-                            getString(R.string.disconnect_io_error, it.exception.message)
-                        }
-                        is DisconnectCause.PacketParseError -> {
-                            val ex = it.exception
-                            crashlytics.setCustomKeys {
-                                key("Version", viewModel.version.toString())
-                                key("Packet type", ex.packetType.toHexString())
-                                key("Payload", ex.payload?.toHexString() ?: "[]")
-                            }
-                            crashlytics.recordException(ex)
-                            getString(R.string.disconnect_parse, it.exception.message)
-                        }
-                        is DisconnectCause.RemoteDisconnect -> {
-                            getString(R.string.disconnect_remote)
-                        }
-                        is DisconnectCause.UnsupportedVersion -> {
-                            if (it.version < Version.MINIMUM) {
-                                getString(
-                                    R.string.disconnect_unsupported_version_old,
-                                    Version.MINIMUM,
-                                    it.version,
-                                )
-                            } else {
-                                suggestUpdate = true
-                                getString(R.string.disconnect_unsupported_version_new, it.version)
-                            }
-                        }
-                        is DisconnectCause.UnknownError -> {
-                            crashlytics.recordException(it.throwable)
-                            getString(R.string.disconnect_unknown_error, it.throwable.message)
-                        }
-                        is DisconnectCause.LocalDisconnect -> return@collectLatestWhileStarted
-                    }
-                AlertDialog.Builder(this@MainActivity)
-                    .setMessage(message)
-                    .setCancelable(true)
-                    .apply {
-                        if (suggestUpdate) {
-                            setPositiveButton(R.string.check_for_updates) { _, _ ->
-                                openPlayStore()
-                            }
-                        }
-                    }
-                    .show()
-            }
-
-            collectLatestWhileStarted(gameOverReason) {
-                if (shouldAskForReview) askForReview()
-                shouldAskForReview = !shouldAskForReview
-            }
-
-            with(binding) {
-                collectLatestWhileStarted(isThemeChanged) {
-                    if (it) {
-                        isThemeChanged.value = false
-                        recreate()
-                    }
-                }
-
-                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
-                    val insets =
-                        windowInsets.getInsets(
-                            WindowInsetsCompat.Type.systemBars() or
-                                WindowInsetsCompat.Type.displayCutout()
-                        )
-                    view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
-                    WindowInsetsCompat.CONSUMED
-                }
-
-                collectLatestWhileStarted(jumping) {
-                    jumpInputDisabler.visibility = if (it) View.VISIBLE else View.GONE
-                }
-
-                setupPageButton.setOnClickListener { playSound(SoundEffect.BEEP_2) }
-
-                gamePageButton.setOnClickListener { playSound(SoundEffect.BEEP_2) }
-
-                helpPageButton.setOnClickListener { playSound(SoundEffect.BEEP_2) }
-
-                mainPageSelector.setOnCheckedChangeListener { _, checkedId ->
-                    currentSection = Section.entries.find { it.buttonId == checkedId }
-                }
-
-                super.onCreate(savedInstanceState)
-                setContentView(root)
-
-                if (savedInstanceState == null) {
-                    setupPageButton.isChecked = true
-                }
-
-                collectLatestWhileStarted(shipIndex) {
-                    if (it >= 0) {
-                        gamePageButton.isChecked = true
-                    }
-                }
+        binding.mainPageSelector.children.forEach { view ->
+            view.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
             }
         }
+
+        binding.mainPageSelector.setOnCheckedChangeListener { _, checkedId ->
+            currentSection = Section.entries.find { it.buttonId == checkedId }
+        }
+
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+
+        if (savedInstanceState == null) {
+            binding.setupPageButton.isChecked = true
+        }
+
+        collectLatestWhileStarted(viewModel.shipIndex) {
+            if (it >= 0) {
+                binding.gamePageButton.isChecked = true
+            }
+        }
+
+        checkForUpdates(false)
     }
 
     /**
@@ -651,18 +595,22 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         Intent(this, NotificationService::class.java).also {
             startService(it)
-            bindService(it, connection, Context.BIND_AUTO_CREATE)
+            bindService(it, connection, BIND_AUTO_CREATE)
+        }
+    }
+
+    /** When the activity is stopped, write the current theme to disk. */
+    override fun onStop() {
+        super.onStop()
+        openFileOutput(THEME_RES_FILE_NAME, MODE_PRIVATE).use {
+            it.write(byteArrayOf(viewModel.themeIndex.toByte()))
         }
     }
 
     /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(connection)
-
-        openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
-            it.write(byteArrayOf(viewModel.themeIndex.toByte()))
-        }
+        destroyServiceConnection()
     }
 
     /**
@@ -672,10 +620,27 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
+
         if (notificationRequests != STOP_NOTIFICATIONS) {
-            unbindService(connection)
-            notificationRequests = STOP_NOTIFICATIONS
-            notificationManager.reset()
+            destroyServiceConnection()
+        }
+
+        updateManager.appUpdateInfo.addOnSuccessListener { updateInfo ->
+            if (updateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                onUpdateReady()
+            }
+
+            if (
+                updateInfo.updateAvailability() ==
+                    UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
+            ) {
+                // Resume immediate update that was in progress
+                updateManager.startUpdateFlowForResult(
+                    updateInfo,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build(),
+                )
+            }
         }
     }
 
@@ -685,6 +650,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+
         val setupPage = intent.getIntExtra(Section.SETUP.name, NO_NAVIGATION)
         if (setupPage >= 0) {
             viewModel.setupFragmentPage.value = SetupFragment.Page.entries[setupPage]
@@ -700,29 +666,34 @@ class MainActivity : AppCompatActivity() {
         }
 
         intent.getStringExtra(GameFragment.Page.STATIONS.name)?.also { station ->
-            with(viewModel) {
-                try {
-                    stationPage.value = StationsFragment.Page.valueOf(station)
-                } catch (_: IllegalArgumentException) {
-                    stationPage.value = StationsFragment.Page.FRIENDLY
-                    if (livingStationNameIndex.containsKey(station)) {
-                        stationName.value = station
-                    }
+            try {
+                viewModel.stationPage.value = StationsFragment.Page.valueOf(station)
+            } catch (_: IllegalArgumentException) {
+                viewModel.stationPage.value = StationsFragment.Page.FRIENDLY
+                if (viewModel.livingStationNameIndex.containsKey(station)) {
+                    viewModel.stationName.value = station
                 }
-                currentGamePage.value = GameFragment.Page.STATIONS
-                binding.mainPageSelector.check(Section.GAME.buttonId)
             }
+            viewModel.currentGamePage.value = GameFragment.Page.STATIONS
+            binding.mainPageSelector.check(Section.GAME.buttonId)
+        }
+    }
+
+    private fun setupWindowInsets() {
+        enableEdgeToEdge()
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets =
+                windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                )
+            view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
         }
     }
 
     private fun setupTiramisu() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-
-        //        onBackInvokedDispatcher.registerOnBackInvokedCallback(
-        //            OnBackInvokedDispatcher.PRIORITY_DEFAULT
-        //        ) {
-        //            onBackPressed()
-        //        }
 
         if (
             ActivityCompat.checkSelfPermission(this, POST_NOTIFICATIONS) !=
@@ -732,17 +703,289 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openPlayStore() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")))
-        } catch (_: ActivityNotFoundException) {
-            startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=$packageName"),
-                )
+    private fun setupFirebase() {
+        Firebase.crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
+        }
+        Firebase.remoteConfig.apply {
+            setConfigSettingsAsync(configSettings)
+            setDefaultsAsync(
+                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
             )
         }
+    }
+
+    private fun setupBackPressedCallbacks() {
+        // Some Android 10 devices leak memory if this is not called, so we need to register this
+        // callback to address it
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+            onBackPressedDispatcher.addCallback(this) { supportFinishAfterTransition() }
+        }
+
+        onBackPressedDispatcher.addCallback(this, completeUpdateCallback)
+        onBackPressedDispatcher.addCallback(this, exitConfirmationCallback)
+    }
+
+    private fun setupTheme() {
+        with(viewModel) {
+            try {
+                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
+            } catch (_: FileNotFoundException) {}
+
+            theme.applyStyle(themeRes, true)
+            isThemeChanged.value = false
+
+            collectLatestWhileStarted(isThemeChanged) {
+                if (it) {
+                    isThemeChanged.value = false
+                    recreate()
+                }
+            }
+        }
+    }
+
+    private fun setupConnectionObservers() {
+        collectLatestWhileStarted(viewModel.connectionStatus) {
+            val isConnected = viewModel.isConnected
+            exitConfirmationCallback.isEnabled = isConnected
+            if (!isConnected) {
+                viewModel.selectableShips.value = emptyList()
+            }
+        }
+
+        collectLatestWhileStarted(viewModel.connectedUrl) { newUrl ->
+            if (newUrl.isNotBlank()) {
+                userSettings.updateData {
+                    val serversList = it.recentServersList.toMutableList()
+                    serversList.remove(newUrl)
+                    serversList.add(0, newUrl)
+
+                    it.copy {
+                        recentServers.clear()
+
+                        recentServers +=
+                            if (recentAddressLimitEnabled) serversList.take(recentAddressLimit)
+                            else serversList
+                    }
+                }
+            }
+        }
+
+        collectLatestWhileStarted(viewModel.disconnectCause) {
+            val (message, suggestUpdate) =
+                getDisconnectDialogContents(it) ?: return@collectLatestWhileStarted
+            AlertDialog.Builder(this@MainActivity)
+                .setMessage(message)
+                .setCancelable(true)
+                .apply {
+                    if (suggestUpdate) {
+                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates(true) }
+                    }
+                }
+                .show()
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun getDisconnectDialogContents(cause: DisconnectCause): Pair<String, Boolean>? {
+        val crashlytics = Firebase.crashlytics
+        return when (cause) {
+            is DisconnectCause.IOError -> {
+                crashlytics.recordException(cause.exception)
+                getString(R.string.disconnect_io_error, cause.exception.message) to false
+            }
+            is DisconnectCause.PacketParseError -> {
+                val ex = cause.exception
+                crashlytics.setCustomKeys {
+                    key("Version", viewModel.version.toString())
+                    key("Packet type", ex.packetType.toHexString())
+                    key("Payload", ex.payload?.toHexString() ?: "[]")
+                }
+                crashlytics.recordException(ex)
+                getString(R.string.disconnect_parse, cause.exception.message) to false
+            }
+            is DisconnectCause.RemoteDisconnect -> {
+                getString(R.string.disconnect_remote) to false
+            }
+            is DisconnectCause.UnsupportedVersion -> {
+                if (cause.version < Version.MINIMUM)
+                    getString(
+                        R.string.disconnect_unsupported_version_old,
+                        Version.MINIMUM,
+                        cause.version,
+                    ) to false
+                else getString(R.string.disconnect_unsupported_version_new, cause.version) to true
+            }
+            is DisconnectCause.UnknownError -> {
+                crashlytics.recordException(cause.throwable)
+                getString(R.string.disconnect_unknown_error, cause.throwable.message) to false
+            }
+            is DisconnectCause.LocalDisconnect -> null
+        }
+    }
+
+    private fun setupUserSettingsObserver() {
+        collectLatestWhileStarted(userSettings.data) { settings ->
+            val vesselDataManager = viewModel.vesselDataManager
+            var newContextIndex = vesselDataManager.reconcileIndex(settings.vesselDataLocationValue)
+            vesselDataManager.checkContext(newContextIndex) { message ->
+                newContextIndex =
+                    if (vesselDataManager.index == newContextIndex) 0 else vesselDataManager.index
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.xml_error)
+                    .setMessage(getString(R.string.xml_error_message, message))
+                    .setCancelable(true)
+                    .show()
+            }
+
+            val limit = settings.recentAddressLimit
+            val hasLimit = settings.recentAddressLimitEnabled
+
+            val adjustedSettings =
+                settings.copy {
+                    vesselDataLocationValue = newContextIndex
+                    val recentServersCount = recentServers.size
+                    if (hasLimit && recentServersCount > limit) {
+                        val min = recentServersCount.coerceAtMost(limit)
+                        val serversList = recentServers.take(min)
+                        recentServers.clear()
+                        recentServers += serversList
+                    }
+                }
+
+            if (!viewModel.isIdle && newContextIndex != vesselDataManager.index) {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.vessel_data)
+                    .setMessage(R.string.xml_location_warning)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        launch { userSettings.updateData { viewModel.revertSettings(it) } }
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                        viewModel.disconnectFromServer()
+                        viewModel.updateFromSettings(adjustedSettings)
+                        launch { userSettings.updateData { adjustedSettings } }
+                    }
+                    .show()
+                return@collectLatestWhileStarted
+            } else {
+                viewModel.updateFromSettings(adjustedSettings)
+                userSettings.updateData { adjustedSettings }
+            }
+        }
+    }
+
+    private fun checkForUpdates(alertForNoUpdates: Boolean) {
+        viewModel.viewModelScope.launch {
+            val results =
+                awaitAll(
+                    Firebase.remoteConfig
+                        .fetchAndActivate()
+                        .continueWith { fetchArtemisLatestVersion() }
+                        .asDeferred(),
+                    async {
+                        try {
+                            updateManager.appUpdateInfo.asDeferred().await()
+                        } catch (_: InstallException) {
+                            null
+                        }
+                    },
+                )
+
+            val maxVersion = results[0] as Version
+            viewModel.maxVersion = maxVersion
+
+            val updateInfo = results[1] as? AppUpdateInfo
+            val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
+
+            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)
+            if (updateAlert == null) {
+                if (alertForNoUpdates) {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.app_version)
+                        .setMessage(R.string.no_updates)
+                        .show()
+                }
+                return@launch
+            }
+
+            val context = this@MainActivity
+
+            AlertDialog.Builder(context)
+                .setTitle(updateAlert.getTitle(context))
+                .setMessage(updateAlert.getMessage(context))
+                .setCancelable(false)
+                .setNegativeButton(R.string.no) { _, _ -> viewModel.playSound(SoundEffect.BEEP_1) }
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                    when (updateAlert) {
+                        is UpdateAlert.Immediate,
+                        is UpdateAlert.ArtemisVersion.Update -> {
+                            updateType = AppUpdateType.IMMEDIATE
+                            startUpdateFlow()
+                        }
+
+                        is UpdateAlert.Flexible -> {
+                            updateType = AppUpdateType.FLEXIBLE
+                            startUpdateFlow()
+                        }
+
+                        is UpdateAlert.ArtemisVersion.Restart -> {
+                            deleteFile(MAX_VERSION_FILE_NAME)
+                            ProcessPhoenix.triggerRebirth(context)
+                        }
+                    }
+                }
+                .show()
+        }
+    }
+
+    private fun fetchArtemisLatestVersion(): Version =
+        try {
+                openFileInput(MAX_VERSION_FILE_NAME).use { it.readBytes().decodeToString() }
+            } catch (_: FileNotFoundException) {
+                Firebase.remoteConfig.getString(RemoteConfigKey.ARTEMIS_LATEST_VERSION).also { v ->
+                    openFileOutput(MAX_VERSION_FILE_NAME, MODE_PRIVATE).use {
+                        it.write(v.encodeToByteArray())
+                    }
+                }
+            }
+            .let { VersionString(it).toVersion() }
+
+    private fun startUpdateFlow() {
+        val appUpdateInfoTask = updateManager.appUpdateInfo
+
+        appUpdateInfoTask.addOnSuccessListener { updateInfo ->
+            if (
+                updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                    updateInfo.isUpdateTypeAllowed(updateType)
+            ) {
+                updateManager.startUpdateFlowForResult(
+                    updateInfo,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(updateType).build(),
+                )
+            }
+        }
+    }
+
+    private fun onUpdateReady() {
+        completeUpdateCallback.isEnabled = true
+        AlertDialog.Builder(this@MainActivity)
+            .setTitle(R.string.update_ready_title)
+            .setMessage(R.string.update_ready_message)
+            .setCancelable(false)
+            .setNegativeButton(R.string.update_later) { _, _ ->
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
+            .setPositiveButton(R.string.update_now) { _, _ ->
+                viewModel.playSound(SoundEffect.BEEP_2)
+                updateManager.completeUpdate()
+            }
+            .show()
     }
 
     private fun askForReview() {
@@ -775,12 +1018,19 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun destroyServiceConnection() {
+        unbindService(connection)
+        notificationRequests = STOP_NOTIFICATIONS
+        notificationManager.reset()
+    }
+
     private companion object {
         const val STOP_NOTIFICATIONS = -1
         const val NO_NAVIGATION = -1
         const val GAME_PAGE_UNSPECIFIED = 6
 
         const val THEME_RES_FILE_NAME = "theme_res.dat"
+        const val MAX_VERSION_FILE_NAME = "max_version.dat"
 
         val PENDING_INTENT_FLAGS =
             PendingIntent.FLAG_UPDATE_CURRENT.or(

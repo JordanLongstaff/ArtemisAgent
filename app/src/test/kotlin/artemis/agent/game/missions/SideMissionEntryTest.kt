@@ -1,23 +1,33 @@
 package artemis.agent.game.missions
 
 import artemis.agent.game.ObjectEntry
+import com.walkertribe.ian.vesseldata.VesselData
+import com.walkertribe.ian.world.ArtemisNpc
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.bind
+import io.kotest.property.arbitrary.boolean
 import io.kotest.property.arbitrary.enum
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.next
 import io.kotest.property.arbs.cars
 import io.kotest.property.checkAll
+import io.mockk.mockk
 
 class SideMissionEntryTest :
     DescribeSpec({
-        val arbAlly = Arb.bind<ObjectEntry.Ally>()
+        val mockVesselData = mockk<VesselData>()
+
+        val arbAlly =
+            Arb.bind(Arb.bind<ArtemisNpc>(), Arb.boolean()) { npc, isDeepStrikeShip ->
+                ObjectEntry.Ally(npc, mockVesselData, isDeepStrikeShip)
+            }
         val arbReward = Arb.enum<RewardType>()
 
         fun create(payout: RewardType = arbReward.next()): SideMissionEntry =
@@ -35,8 +45,8 @@ class SideMissionEntryTest :
                 it("Not started") { entry.isStarted.shouldBeFalse() }
 
                 it("Starts when associated with a ship name") {
-                    Arb.cars().checkAll {
-                        entry.associatedShipName = it.value
+                    Arb.cars().checkAll { ship ->
+                        entry.associatedShipName = ship.value
                         entry.isStarted.shouldBeTrue()
                     }
                 }
@@ -44,21 +54,21 @@ class SideMissionEntryTest :
                 it("Not completed") { entry.isCompleted.shouldBeFalse() }
 
                 it("Completes when timestamp is set") {
-                    Arb.long(max = Long.MAX_VALUE - 1).checkAll {
-                        entry.completionTimestamp = it
+                    Arb.long(max = Long.MAX_VALUE - 1).checkAll { timestamp ->
+                        entry.completionTimestamp = timestamp
                         entry.isCompleted.shouldBeTrue()
                     }
                 }
             }
 
             describe("Initial payout") {
-                withData(RewardType.entries) {
-                    val entry = create(it)
+                withData(RewardType.entries) { rewardType ->
+                    val entry = create(rewardType)
 
                     val expectedPayouts = IntArray(RewardType.entries.size)
-                    entry.rewards.size shouldBeEqual expectedPayouts.size
+                    entry.rewards shouldBeSameSizeAs expectedPayouts
 
-                    expectedPayouts[it.ordinal] = 1
+                    expectedPayouts[rewardType.ordinal] = 1
                     entry.rewards.zip(expectedPayouts).shouldForAll { (actual, expected) ->
                         actual shouldBeEqual expected
                     }

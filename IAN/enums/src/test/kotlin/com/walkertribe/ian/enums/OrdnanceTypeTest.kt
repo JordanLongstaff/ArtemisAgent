@@ -5,7 +5,9 @@ import com.walkertribe.ian.util.version
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.property.Arb
@@ -25,10 +27,10 @@ class OrdnanceTypeTest :
         describe("OrdnanceType") {
             val validCodes = arrayOf("trp", "nuk", "min", "emp", "shk", "bea", "pro", "tag")
 
-            validCodes.size shouldBeEqual OrdnanceType.size
+            validCodes shouldBeSameSizeAs OrdnanceType.entries
 
             val legacyTypes = intArrayOf(1, 4, 6, 9, 8)
-            legacyTypes.size shouldBeEqual OrdnanceType.BEACON.ordinal
+            legacyTypes shouldHaveSize OrdnanceType.BEACON.ordinal
 
             describe("Infer from three-letter code") {
                 withData(
@@ -44,15 +46,15 @@ class OrdnanceTypeTest :
             it("Invalid code returns null") {
                 Arb.string()
                     .filter { !validCodes.contains(it) }
-                    .forAll {
+                    .forAll { code ->
                         val lengthClass =
-                            when (it.length) {
+                            when (code.length) {
                                 in 0..2 -> "Shorter than"
                                 3 -> "Exactly"
                                 else -> "Longer than"
                             }
                         collect("$lengthClass 3 characters")
-                        OrdnanceType[it] == null
+                        OrdnanceType[code] == null
                     }
             }
 
@@ -191,7 +193,7 @@ class OrdnanceTypeTest :
             }
 
             describe("Labels") {
-                val latestVersion = Version.LATEST
+                val latestVersion = Version.DEFAULT
 
                 OrdnanceType.entries.forEach { ordnanceType ->
                     describe(ordnanceType.toString()) {

@@ -13,7 +13,9 @@ class BoolStateTest :
         describe("BoolState") {
             describe("From value") {
                 withData(
-                    nameFn = { (value, boolState) -> "$value: $boolState" },
+                    nameFn = { (value, boolState) ->
+                        @Suppress("NullableToStringCall") "$value: $boolState"
+                    },
                     true to BoolState.True,
                     false to BoolState.False,
                     null to BoolState.Unknown,
@@ -37,7 +39,7 @@ class BoolStateTest :
                 withData(
                     nameFn = { (boolState, known) ->
                         val prefix = if (known) "" else "un"
-                        "$boolState is ${prefix}known"
+                        "${boolState?.toString() ?: "Null"} is ${prefix}known"
                     },
                     BoolState.True to true,
                     BoolState.False to true,

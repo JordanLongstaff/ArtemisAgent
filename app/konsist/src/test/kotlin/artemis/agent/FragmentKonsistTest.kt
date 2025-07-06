@@ -40,6 +40,16 @@ class FragmentKonsistTest :
             }
         }
 
+        describe("Fragment classes use layout constructor") {
+            withData(nameFn = { it.name }, fragmentClasses) { fragmentClass ->
+                fragmentClass.assertTrue {
+                    it.hasParent { parent ->
+                        parent.hasArgument { arg -> arg.value?.startsWith("R.layout.") == true }
+                    }
+                }
+            }
+        }
+
         describe("Fragment classes reference AgentViewModel") {
             withData(nameFn = { it.name }, fragmentClasses) { fragmentClass ->
                 fragmentClass.assertTrue {

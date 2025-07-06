@@ -1,5 +1,7 @@
 package com.walkertribe.ian.world
 
+import com.walkertribe.ian.util.Util.joinSpaceDelimited
+import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.vesseldata.VesselDataObject
 
 /**
@@ -17,9 +19,10 @@ interface ArtemisShielded<T : ArtemisShielded<T>> : ArtemisObject<T>, VesselData
      */
     val hullId: Property.IntProperty
 
-    /** The strength of the forward shields. Unspecified: Float.NaN */
-    val shieldsFront: Property.FloatProperty
+    /** The forward shields. */
+    val shieldsFront: Shields
 
-    /** The maximum strength of the forward shields. Unspecified: Float.NaN */
-    val shieldsFrontMax: Property.FloatProperty
+    /** Returns the full name for this object, including callsign, faction and vessel name. */
+    override fun getFullName(vesselData: VesselData): String =
+        listOfNotNull(name.value, super.getFullName(vesselData)).joinSpaceDelimited()
 }

@@ -52,7 +52,8 @@ private constructor(
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int(), audioModeGen, ::Data)
+    override val generator: Gen<Data> =
+        Arb.bind(genA = arbVersion, genB = Arb.int(), genC = audioModeGen, bindFn = ::Data)
 
     override suspend fun testType(packet: Packet.Server): IncomingAudioPacket =
         packet.shouldBeInstanceOf()

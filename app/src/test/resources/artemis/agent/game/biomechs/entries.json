@@ -1,0 +1,88 @@
+{
+  "entries": [
+    {
+      "name": "B",
+      "hullId": 0
+    },
+    {
+      "name": "A",
+      "hullId": 1
+    },
+    {
+      "name": "B",
+      "hullId": 1
+    },
+    {
+      "name": "A",
+      "hullId": 0
+    }
+  ],
+  "sortingTests": [
+    {
+      "sortByClassFirst": false,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        1,
+        3,
+        0,
+        2
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByClassSecond": true,
+      "sortByName": false,
+      "sortedIndices": [
+        1,
+        2,
+        0,
+        3
+      ]
+    },
+    {
+      "sortByClassFirst": false,
+      "sortByClassSecond": true,
+      "sortByName": true,
+      "sortedIndices": [
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByClassSecond": false,
+      "sortByName": false,
+      "sortedIndices": [
+        1,
+        2,
+        0,
+        3
+      ]
+    },
+    {
+      "sortByClassFirst": true,
+      "sortByClassSecond": false,
+      "sortByName": true,
+      "sortedIndices": [
+        1,
+        2,
+        3,
+        0
+      ]
+    }
+  ]
+}

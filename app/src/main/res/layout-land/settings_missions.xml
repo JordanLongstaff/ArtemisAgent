@@ -95,7 +95,9 @@
         android:text="@string/auto_dismissal"
         android:textSize="@dimen/mediumTextSize"
         app:layout_constraintBottom_toBottomOf="@id/autoDismissalButton"
+        app:layout_constraintEnd_toStartOf="@id/autoDismissalTimeInput"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/autoDismissalTimeInput"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/autoDismissalButton" />
     <ToggleButton

@@ -19,16 +19,8 @@ import kotlinx.coroutines.withTimeoutOrNull
  * @author rjwut
  */
 class ServerDiscoveryRequester(private val listener: Listener, private val timeoutMs: Long) {
-    /**
-     * Interface for an object which is notified when a server is discovered or the discovery
-     * process ends.
-     */
-    interface Listener {
-        /** Invoked when a [Server] is discovered. */
-        suspend fun onDiscovered(server: Server)
-
-        /** Invoked when the [ServerDiscoveryRequester] quits listening for responses. */
-        suspend fun onQuit()
+    init {
+        require(timeoutMs >= 1) { "Invalid timeout: $timeoutMs" }
     }
 
     suspend fun run(broadcastAddress: String) {
@@ -67,12 +59,20 @@ class ServerDiscoveryRequester(private val listener: Listener, private val timeo
         listener.onQuit()
     }
 
+    /**
+     * Interface for an object which is notified when a server is discovered or the discovery
+     * process ends.
+     */
+    interface Listener {
+        /** Invoked when a [Server] is discovered. */
+        suspend fun onDiscovered(server: Server)
+
+        /** Invoked when the [ServerDiscoveryRequester] quits listening for responses. */
+        suspend fun onQuit()
+    }
+
     companion object {
         const val PORT = 3100
         const val DEFAULT_BROADCAST_ADDRESS = "255.255.255.255"
-    }
-
-    init {
-        require(timeoutMs >= 1) { "Invalid timeout: $timeoutMs" }
     }
 }

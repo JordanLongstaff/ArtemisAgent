@@ -4,10 +4,6 @@
     android:viewportWidth="16"
     android:viewportHeight="12">
   <path
-      android:pathData="M2,2L14,2L14,10L2,10Z"
-      android:strokeWidth="1"
-      android:strokeColor="?attr/colorButtonNormal"/>
-  <path
-      android:pathData="M12,4L8,8L4,4Z"
+      android:pathData="M2,2L8,8L12,4L4,4L2,2L14,2L14,10L2,10Z"
       android:fillColor="?attr/colorButtonNormal"/>
 </vector>

@@ -28,11 +28,11 @@ class BitFieldTest :
                     nameFn = { "Works with $it extra bit${if (it == 1) "" else "s"}" },
                     0 until Byte.SIZE_BITS,
                 ) { extraBits ->
-                    Arb.positiveInt(UShort.MAX_VALUE.toInt()).checkAll {
-                        val bitCount = (it - 1) * Byte.SIZE_BITS + extraBits
+                    Arb.positiveInt(UShort.MAX_VALUE.toInt()).checkAll { byteCount ->
+                        val bitCount = (byteCount - 1) * Byte.SIZE_BITS + extraBits
 
                         val bitField = BitField(bitCount)
-                        bitField.byteCount shouldBeEqual it
+                        bitField.byteCount shouldBeEqual byteCount
                         for (i in 0 until bitCount) {
                             bitField[i].shouldBeFalse()
                         }

@@ -3,6 +3,7 @@ package com.walkertribe.ian.world
 import com.walkertribe.ian.util.shouldBeUnknown
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldContainOnlyNulls
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
@@ -43,7 +44,7 @@ class ArtemisDslTest :
 
                 describe("tubeStates") {
                     it("Size: ${Artemis.MAX_TUBES}") {
-                        ArtemisPlayer.Dsl.Weapons.tubeStates.size shouldBeEqual Artemis.MAX_TUBES
+                        ArtemisPlayer.Dsl.Weapons.tubeStates shouldHaveSize Artemis.MAX_TUBES
                     }
 
                     it("Contents: null") {
@@ -53,7 +54,7 @@ class ArtemisDslTest :
 
                 describe("tubeContents") {
                     it("Size: ${Artemis.MAX_TUBES}") {
-                        ArtemisPlayer.Dsl.Weapons.tubeContents.size shouldBeEqual Artemis.MAX_TUBES
+                        ArtemisPlayer.Dsl.Weapons.tubeContents shouldHaveSize Artemis.MAX_TUBES
                     }
 
                     it("Contents: null") {

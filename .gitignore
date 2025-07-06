@@ -1,0 +1,7 @@
+/.gradle/
+/.idea/
+/.kotlin/
+/build/
+/.firebaserc
+/keystore.properties
+/local.properties

@@ -1,8 +1,7 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
-  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ReturnCount:PacketReader.kt$PacketReader$@Throws(PacketException::class) suspend fun readPacket(): ParseResult</ID>
     <ID>TooManyFunctions:PacketReader.kt$PacketReader : KoinComponent</ID>
   </CurrentIssues>
 </SmellBaseline>

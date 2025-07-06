@@ -1,28 +1,36 @@
 package artemis.agent.setup.settings
 
-import androidx.annotation.IdRes
 import androidx.annotation.StringRes
-import artemis.agent.ArtemisAgentTestHelpers
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
-import com.adevinta.android.barista.interaction.BaristaScrollInteractions.scrollTo
+import artemis.agent.isCheckedIf
+import artemis.agent.isDisplayedWithText
+import artemis.agent.isRemoved
+import io.github.kakaocup.kakao.check.KCheckBox
+import io.github.kakaocup.kakao.common.views.KView
+import io.github.kakaocup.kakao.text.KTextView
 
-class SingleToggleButtonSetting(
-    @IdRes val divider: Int,
-    @IdRes val label: Int,
-    @StringRes val text: Int,
-    @IdRes val button: Int,
+data class SingleToggleButtonSetting(
+    val divider: KView,
+    val label: KTextView,
+    @all:StringRes val text: Int,
+    val button: KCheckBox,
 ) {
     fun testSingleToggle(isChecked: Boolean) {
-        scrollTo(divider)
-        assertDisplayed(label, text)
-        assertDisplayed(button)
-        ArtemisAgentTestHelpers.assertChecked(button, isChecked)
+        divider.scrollTo()
+        label.isDisplayedWithText(text)
+        button {
+            isCompletelyDisplayed()
+            isCheckedIf(isChecked)
+        }
+    }
+
+    fun testHidden() {
+        label.isRemoved()
+        button.isRemoved()
     }
 
     fun testNotExist() {
-        assertNotExist(divider)
-        assertNotExist(button)
-        assertNotExist(text)
+        label.doesNotExist()
+        button.doesNotExist()
+        divider.doesNotExist()
     }
 }
