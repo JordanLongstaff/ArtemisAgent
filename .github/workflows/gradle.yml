@@ -48,7 +48,7 @@ jobs:
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
       - name: Build with Gradle Wrapper
-        uses: burrunan/gradle-cache-action@v2
+        uses: burrunan/gradle-cache-action@v3
         with:
           arguments: build koverXmlReport
 
