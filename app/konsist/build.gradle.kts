@@ -1,6 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("com.android.library")
     kotlin("android")
+    alias(libs.plugins.detekt)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -35,13 +39,19 @@ android {
         targetCompatibility = javaVersion
     }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
     tasks.withType<Test>().configureEach { useJUnitPlatform() }
 }
 
 dependencies {
     testImplementation(projects.app)
+    testImplementation(projects.ian.testing)
 
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)

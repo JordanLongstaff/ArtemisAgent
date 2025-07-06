@@ -46,7 +46,7 @@ data class Version(val major: Int, val minor: Int, val patch: Int) : Comparable<
         private const val MAJOR_SHIFT = MINOR_SHIFT * 2
 
         val MINIMUM = Version(2, 3, 0)
-        val LATEST = Version(2, 8, 1)
+        val DEFAULT = Version(2, 8, 1)
 
         val ACCENT_COLOR = Version(2, 4, 0)
         val COMM_FILTERS = Version(2, 6, 0)

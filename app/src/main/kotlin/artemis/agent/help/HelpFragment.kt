@@ -9,7 +9,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.addCallback
+import androidx.activity.BackEventCompat
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.ArrayRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -36,7 +37,43 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         viewModel.settingsPage.value = null
 
         val onBackPressedCallback =
-            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) { onBack() }
+            object : OnBackPressedCallback(false) {
+                private var currentTopicIndex: Int = MENU
+
+                override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                    currentTopicIndex = viewModel.helpTopicIndex.value
+                }
+
+                override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                    if (backEvent.progress > 0f) {
+                        viewModel.helpTopicIndex.value = MENU
+                        binding.backPressAlpha.visibility = View.VISIBLE
+                    } else {
+                        viewModel.helpTopicIndex.value = currentTopicIndex
+                        binding.backPressAlpha.visibility = View.GONE
+                    }
+                }
+
+                override fun handleOnBackCancelled() {
+                    onBackEnded()
+                }
+
+                override fun handleOnBackPressed() {
+                    viewModel.helpTopicIndex.value = MENU
+                    isEnabled = false
+                    onBackEnded()
+                }
+
+                private fun onBackEnded() {
+                    viewModel.activateHaptic()
+                    viewModel.playSound(SoundEffect.BEEP_1)
+                    binding.backPressAlpha.visibility = View.GONE
+                }
+            }
+
+        requireActivity()
+            .onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, onBackPressedCallback)
 
         val helpTopicContent = binding.helpTopicContent
 
@@ -50,7 +87,6 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
             val headerVisibility =
                 if (index == MENU) {
                     layoutManager.spanCount = 2
-                    onBackPressedCallback.isEnabled = false
                     View.GONE
                 } else {
                     helpTopics[index].initContents(resources)
@@ -64,16 +100,11 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
             @Suppress("NotifyDataSetChanged") adapter.notifyDataSetChanged()
         }
 
-        binding.backButton.setOnClickListener { onBack() }
+        binding.backButton.setOnClickListener { onBackPressedCallback.handleOnBackPressed() }
 
         helpTopicContent.itemAnimator = null
         helpTopicContent.adapter = adapter
         helpTopicContent.layoutManager = layoutManager
-    }
-
-    private fun onBack() {
-        viewModel.playSound(SoundEffect.BEEP_1)
-        viewModel.helpTopicIndex.value = MENU
     }
 
     private interface ViewProvider {
@@ -81,13 +112,13 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private class HelpTopic(
-        @StringRes val buttonLabel: Int,
-        @ArrayRes private val paragraphs: Int,
+        @all:StringRes val buttonLabel: Int,
+        @all:ArrayRes private val paragraphs: Int,
         private val insert: MutableList<HelpTopicContent>.(Resources) -> Unit,
     ) : ViewProvider {
         override val viewType: Int = MENU
 
-        var contents: List<HelpTopicContent> = listOf()
+        var contents: List<HelpTopicContent> = emptyList()
             private set
 
         fun initContents(res: Resources) {
@@ -102,7 +133,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private sealed interface HelpTopicContent : ViewProvider {
-        data class Image(@DrawableRes val imageSrcId: Int) : HelpTopicContent {
+        data class Image(@all:DrawableRes val imageSrcId: Int) : HelpTopicContent {
             override val viewType: Int = IMAGE
         }
 
@@ -123,11 +154,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         private val contents: List<ViewProvider>
             get() =
                 currentHelpTopicIndex.let {
-                    if (it == MENU) {
-                        helpTopics
-                    } else {
-                        helpTopics[it].contents
-                    }
+                    if (it == MENU) helpTopics else helpTopics[it].contents
                 }
 
         override fun getItemCount(): Int = contents.size
@@ -153,6 +180,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     with(holder.itemView as Button) {
                         setText(helpTopics[position].buttonLabel)
                         setOnClickListener {
+                            viewModel.activateHaptic()
                             viewModel.playSound(SoundEffect.BEEP_2)
                             viewModel.helpTopicIndex.value = position
                         }
@@ -202,7 +230,10 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     addImages(1 to R.drawable.station_entry_preview)
                 },
                 HelpTopic(R.string.help_topics_allies, R.array.help_contents_allies) {
-                    addImages(1 to R.drawable.ally_entry_preview)
+                    addImages(
+                        INDEX_PREVIEW_ALLY to R.drawable.ally_entry_preview,
+                        INDEX_PREVIEW_RECAP to R.drawable.ally_recap_preview,
+                    )
                 },
                 HelpTopic(R.string.help_topics_missions, R.array.help_contents_missions) {
                     addImages(
@@ -239,8 +270,13 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         const val IMAGE = 0
         const val TEXT = 1
 
+        val ABOUT_TOPIC_INDEX = helpTopics.lastIndex
+
         private const val INDEX_PREVIEW_CONNECT = 4
         private const val INDEX_PREVIEW_SHIP = 6
+
+        private const val INDEX_PREVIEW_ALLY = 1
+        private const val INDEX_PREVIEW_RECAP = 3
 
         private const val INDEX_PREVIEW_COMMS_MESSAGE = 1
         private const val INDEX_PREVIEW_MISSION = 7

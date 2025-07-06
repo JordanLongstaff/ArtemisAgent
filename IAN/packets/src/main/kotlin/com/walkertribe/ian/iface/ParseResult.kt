@@ -9,7 +9,7 @@ import com.walkertribe.ian.protocol.core.world.ObjectUpdatePacket
  *
  * @author rjwut
  */
-sealed class ParseResult private constructor() {
+sealed class ParseResult {
     internal class Processing : ParseResult()
 
     data object Skip : ParseResult() {
@@ -48,18 +48,18 @@ sealed class ParseResult private constructor() {
     protected val interestedListeners: MutableSet<ListenerModule> = mutableSetOf()
 
     /**
-     * Adds [ListenerModule]s that are interested in the packet, or any objects in an
-     * [ObjectUpdatePacket].
-     */
-    open fun addListeners(listeners: Iterable<ListenerModule>) {
-        interestedListeners.addAll(listeners)
-    }
-
-    /**
      * Returns true if the packet was of interest to any listeners. Note that in the case of an
      * [ObjectUpdatePacket], there may be listeners that aren't interested in the packet itself, but
      * are interested in certain types of objects the packet may contain.
      */
     val isInteresting: Boolean
         get() = interestedListeners.isNotEmpty()
+
+    /**
+     * Adds [ListenerModule]s that are interested in the packet, or any objects in an
+     * [ObjectUpdatePacket].
+     */
+    open fun addListeners(listeners: Iterable<ListenerModule>) {
+        interestedListeners.addAll(listeners)
+    }
 }

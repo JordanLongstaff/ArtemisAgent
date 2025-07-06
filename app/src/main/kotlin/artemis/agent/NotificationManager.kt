@@ -29,23 +29,23 @@ class NotificationManager(context: Context) {
                         CHANNEL_GROUP_IMPORTANT,
                         R.string.channel_group_important,
                         NotificationChannelSetup(
-                            CHANNEL_GAME_INFO,
+                            NotificationChannelTag.GAME_INFO,
                             R.string.channel_game_info,
                             NotificationManagerCompat.IMPORTANCE_LOW,
                             true,
                         ),
                         NotificationChannelSetup(
-                            CHANNEL_GAME_OVER,
+                            NotificationChannelTag.GAME_OVER,
                             R.string.channel_game_over,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
                         NotificationChannelSetup(
-                            CHANNEL_CONNECTION,
+                            NotificationChannelTag.CONNECTION,
                             R.string.channel_connection,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
                         NotificationChannelSetup(
-                            CHANNEL_BORDER_WAR,
+                            NotificationChannelTag.BORDER_WAR,
                             R.string.channel_border_war,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
@@ -54,17 +54,17 @@ class NotificationManager(context: Context) {
                         CHANNEL_GROUP_STATION,
                         R.string.channel_group_stations,
                         NotificationChannelSetup(
-                            CHANNEL_PRODUCTION,
+                            NotificationChannelTag.PRODUCTION,
                             R.string.channel_station_production,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
                         NotificationChannelSetup(
-                            CHANNEL_ATTACK,
+                            NotificationChannelTag.ATTACK,
                             R.string.channel_station_attack,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
                         NotificationChannelSetup(
-                            CHANNEL_DESTROYED,
+                            NotificationChannelTag.DESTROYED,
                             R.string.channel_station_destroyed,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
@@ -73,17 +73,17 @@ class NotificationManager(context: Context) {
                         CHANNEL_GROUP_MISSION,
                         R.string.channel_group_missions,
                         NotificationChannelSetup(
-                            CHANNEL_NEW_MISSION,
+                            NotificationChannelTag.NEW_MISSION,
                             R.string.channel_mission_new,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
                         NotificationChannelSetup(
-                            CHANNEL_MISSION_PROGRESS,
+                            NotificationChannelTag.MISSION_PROGRESS,
                             R.string.channel_mission_progress,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
                         NotificationChannelSetup(
-                            CHANNEL_MISSION_COMPLETED,
+                            NotificationChannelTag.MISSION_COMPLETED,
                             R.string.channel_mission_completed,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
@@ -92,7 +92,7 @@ class NotificationManager(context: Context) {
                         CHANNEL_GROUP_BIOMECH,
                         R.string.channel_group_biomechs,
                         NotificationChannelSetup(
-                            CHANNEL_REANIMATE,
+                            NotificationChannelTag.REANIMATE,
                             R.string.channel_biomech_moving,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
@@ -101,7 +101,7 @@ class NotificationManager(context: Context) {
                         CHANNEL_GROUP_ALLIES,
                         R.string.channel_group_allies,
                         NotificationChannelSetup(
-                            CHANNEL_DEEP_STRIKE,
+                            NotificationChannelTag.DEEP_STRIKE,
                             R.string.channel_allies_deep_string,
                             NotificationManagerCompat.IMPORTANCE_LOW,
                         ),
@@ -110,7 +110,7 @@ class NotificationManager(context: Context) {
                         CHANNEL_GROUP_ENEMIES,
                         R.string.channel_group_enemies,
                         NotificationChannelSetup(
-                            CHANNEL_PERFIDY,
+                            NotificationChannelTag.PERFIDY,
                             R.string.channel_enemies_perfidy,
                             NotificationManagerCompat.IMPORTANCE_HIGH,
                         ),
@@ -118,20 +118,20 @@ class NotificationManager(context: Context) {
                 )
 
             createNotificationChannelGroupsCompat(
-                groupSetups.map {
-                    NotificationChannelGroupCompat.Builder(it.id)
-                        .setName(context.getString(it.nameID))
+                groupSetups.map { group ->
+                    NotificationChannelGroupCompat.Builder(group.id)
+                        .setName(context.getString(group.nameID))
                         .build()
                 }
             )
 
             createNotificationChannelsCompat(
                 groupSetups.flatMap { group ->
-                    group.channels.map {
-                        NotificationChannelCompat.Builder(it.id, it.importance)
+                    group.channels.map { channel ->
+                        NotificationChannelCompat.Builder(channel.id.tag, channel.importance)
                             .setGroup(group.id)
-                            .setName(context.getString(it.nameID))
-                            .setShowBadge(it.shouldShowBadge)
+                            .setName(context.getString(channel.nameID))
+                            .setShowBadge(channel.shouldShowBadge)
                             .build()
                     }
                 }
@@ -140,9 +140,7 @@ class NotificationManager(context: Context) {
 
     fun createNotification(
         builder: NotificationCompat.Builder,
-        channelId: String,
-        title: String,
-        message: String,
+        info: NotificationInfo,
         context: Context,
     ) {
         if (
@@ -152,27 +150,29 @@ class NotificationManager(context: Context) {
             return
         }
 
+        val (channel, title, message, ongoing) = info
         builder
             .setStyle(NotificationCompat.BigTextStyle().bigText(message).setBigContentTitle(title))
             .setContentTitle(title)
             .setContentText(message)
+            .setOngoing(ongoing)
 
         val index =
-            when (channelId) {
-                CHANNEL_ATTACK -> {
+            when (channel) {
+                NotificationChannelTag.ATTACK -> {
                     attackedStations.getOrPut(title) { attackedStations.size }
                 }
-                CHANNEL_REANIMATE -> {
+                NotificationChannelTag.REANIMATE -> {
                     biomechs.getOrPut(title) { biomechs.size }
                 }
-                CHANNEL_PERFIDY -> {
+                NotificationChannelTag.PERFIDY -> {
                     enemies.getOrPut(title) { enemies.size }
                 }
-                CHANNEL_DESTROYED -> destroyedStations++
-                CHANNEL_NEW_MISSION -> newMissionMessages++
-                CHANNEL_MISSION_PROGRESS -> progressMessages++
-                CHANNEL_MISSION_COMPLETED -> completionMessages++
-                CHANNEL_PRODUCTION -> {
+                NotificationChannelTag.DESTROYED -> destroyedStations++
+                NotificationChannelTag.NEW_MISSION -> newMissionMessages++
+                NotificationChannelTag.MISSION_PROGRESS -> progressMessages++
+                NotificationChannelTag.MISSION_COMPLETED -> completionMessages++
+                NotificationChannelTag.PRODUCTION -> {
                     val stationIndex = production.getOrPut(title) { production.size }
                     val ordnanceName = message.substring(ORDNANCE_NAME_INDEX, message.indexOf('.'))
                     val ordnanceType = OrdnanceType.entries.find { it.hasLabel(ordnanceName) }
@@ -181,15 +181,15 @@ class NotificationManager(context: Context) {
                 else -> 0
             }
 
-        manager.notify(channelId, index, builder.build())
+        manager.notify(channel.tag, index, builder.build())
     }
 
     fun dismissBiomechMessage(name: String) {
-        biomechs[name]?.also { manager.cancel(CHANNEL_REANIMATE, it) }
+        biomechs[name]?.also { manager.cancel(NotificationChannelTag.REANIMATE.tag, it) }
     }
 
     fun dismissPerfidyMessage(name: String) {
-        enemies[name]?.also { manager.cancel(CHANNEL_PERFIDY, it) }
+        enemies[name]?.also { manager.cancel(NotificationChannelTag.PERFIDY.tag, it) }
     }
 
     fun reset() {
@@ -205,15 +205,15 @@ class NotificationManager(context: Context) {
     }
 
     data class NotificationChannelSetup(
-        val id: String,
-        @StringRes val nameID: Int,
+        val id: NotificationChannelTag,
+        @all:StringRes val nameID: Int,
         val importance: Int,
         val shouldShowBadge: Boolean = false,
     )
 
     class NotificationChannelGroupSetup(
         val id: String,
-        @StringRes val nameID: Int,
+        @all:StringRes val nameID: Int,
         vararg val channels: NotificationChannelSetup,
     )
 
@@ -224,20 +224,6 @@ class NotificationManager(context: Context) {
         const val CHANNEL_GROUP_ALLIES = "allies"
         const val CHANNEL_GROUP_ENEMIES = "enemies"
         const val CHANNEL_GROUP_IMPORTANT = "important"
-
-        const val CHANNEL_GAME_INFO = "game info"
-        const val CHANNEL_CONNECTION = "connection"
-        const val CHANNEL_GAME_OVER = "game over"
-        const val CHANNEL_BORDER_WAR = "border war"
-        const val CHANNEL_DEEP_STRIKE = "deep strike"
-        const val CHANNEL_NEW_MISSION = "new mission"
-        const val CHANNEL_MISSION_PROGRESS = "mission progress"
-        const val CHANNEL_MISSION_COMPLETED = "mission completed"
-        const val CHANNEL_PRODUCTION = "production"
-        const val CHANNEL_ATTACK = "attack"
-        const val CHANNEL_DESTROYED = "destroyed"
-        const val CHANNEL_REANIMATE = "reanimate"
-        const val CHANNEL_PERFIDY = "perfidy"
 
         private const val ORDNANCE_NAME_INDEX = 23
         private val ORDNANCE_SIZE = OrdnanceType.entries.size

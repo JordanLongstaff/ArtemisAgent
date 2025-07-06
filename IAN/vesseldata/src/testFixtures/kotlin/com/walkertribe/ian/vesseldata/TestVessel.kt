@@ -63,11 +63,8 @@ class TestVessel(
         vessel.side shouldBeEqual side
 
         val coefficient = productionCoefficient
-        if (coefficient == null) {
-            vessel.productionCoefficient.shouldBeZero()
-        } else {
-            vessel.productionCoefficient.shouldBeWithinPercentageOf(coefficient, EPSILON)
-        }
+        if (coefficient == null) vessel.productionCoefficient.shouldBeZero()
+        else vessel.productionCoefficient.shouldBeWithinPercentageOf(coefficient, EPSILON)
 
         val bays = bayCount
         if (bays == null) {
@@ -81,11 +78,8 @@ class TestVessel(
         vessel.attributes shouldContainExactly expectedAttributes
 
         val desc = description
-        if (desc == null) {
-            vessel.description.shouldBeNull()
-        } else {
-            vessel.description.shouldNotBeNull() shouldBeEqual desc.replace('^', '\n')
-        }
+        if (desc == null) vessel.description.shouldBeNull()
+        else vessel.description.shouldNotBeNull() shouldBeEqual desc.replace('^', '\n')
 
         expectedAttributes.forEach { vessel[it].shouldBeTrue() }
 
@@ -112,11 +106,7 @@ class TestVessel(
             }
 
             description?.let { text ->
-                if (text.isBlank()) {
-                    node("long_desc")
-                } else {
-                    node("long_desc", "text" to text)
-                }
+                if (text.isBlank()) node("long_desc") else node("long_desc", "text" to text)
             }
 
             bayCount?.let { node("carrierload", "baycount" to it) }
@@ -137,39 +127,39 @@ class TestVessel(
 
             val arbOrdnanceCounts =
                 Arb.bind(
-                    Arb.int().orNull(),
-                    Arb.int().orNull(),
-                    Arb.int().orNull(),
-                    Arb.int().orNull(),
-                    Arb.int().orNull(),
-                    Arb.int().orNull(),
-                    Arb.int().orNull(),
-                    Arb.int().orNull(),
+                    genA = Arb.int().orNull(),
+                    genB = Arb.int().orNull(),
+                    genC = Arb.int().orNull(),
+                    genD = Arb.int().orNull(),
+                    genE = Arb.int().orNull(),
+                    genF = Arb.int().orNull(),
+                    genG = Arb.int().orNull(),
+                    genH = Arb.int().orNull(),
                 ) { trp, nuk, mine, emp, shk, bea, pro, tag ->
                     listOf(trp, nuk, mine, emp, shk, bea, pro, tag)
                 }
 
             return Arb.bind(
-                Arb.int().filter { it != -1 },
-                arbFaction,
-                arbXmlString,
-                Arb.set(Arb.string(minSize = 1, codepoints = Codepoint.az())),
-                Arb.numericFloat().orNull(),
-                arbOrdnanceCounts,
-                Arb.int().orNull(),
-                arbXmlString.orNull(),
+                genA = Arb.int().filter { it != -1 },
+                genB = arbFaction,
+                genC = arbXmlString,
+                genD = Arb.set(Arb.string(minSize = 1, codepoints = Codepoint.az())),
+                genE = Arb.numericFloat().orNull(),
+                genF = arbOrdnanceCounts,
+                genG = Arb.int().orNull(),
+                genH = arbXmlString.orNull(),
             ) { id, faction, name, broadType, prod, ordCounts, bays, desc ->
                 TestVessel(
                     id,
-                    faction.ordinal,
+                    side = faction.ordinal,
                     faction,
-                    name,
-                    broadType.joinToString(" "),
-                    prod,
-                    ordCounts,
-                    bays,
-                    broadType.map { it.lowercase() }.toSet(),
-                    desc?.trim(),
+                    vesselName = name,
+                    broadType = broadType.joinToString(" "),
+                    productionCoefficient = prod,
+                    ordnanceCounts = ordCounts,
+                    bayCount = bays,
+                    expectedAttributes = broadType.map { it.lowercase() }.toSet(),
+                    description = desc?.trim(),
                 )
             }
         }

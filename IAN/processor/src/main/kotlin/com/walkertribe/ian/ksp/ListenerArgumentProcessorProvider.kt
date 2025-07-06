@@ -5,7 +5,6 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 
 class ListenerArgumentProcessorProvider : SymbolProcessorProvider {
-    override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-        return ListenerArgumentProcessor(environment.codeGenerator)
-    }
+    override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
+        ListenerArgumentProcessor(environment.codeGenerator)
 }

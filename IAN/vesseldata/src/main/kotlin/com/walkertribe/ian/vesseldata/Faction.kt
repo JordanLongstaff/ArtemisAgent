@@ -20,6 +20,9 @@ internal constructor(
     /** Returns a list of taunts used against this Faction. */
     val taunts: List<Taunt>,
 ) : Comparable<Faction> {
+    /** Returns a Set containing the FactionAttributes that correspond to this Faction. */
+    val attributes: Set<String> = build(keys)
+
     internal constructor(
         xml: Xml
     ) : this(
@@ -28,9 +31,6 @@ internal constructor(
         keys = xml.str("keys"),
         taunts = xml["taunt"].map(::Taunt),
     )
-
-    /** Returns a Set containing the FactionAttributes that correspond to this Faction. */
-    val attributes: Set<String> = build(keys)
 
     /** Returns true if this Faction has all the given FactionAttributes; false otherwise. */
     operator fun get(vararg attrs: String): Boolean = attrs.all(attributes::contains)

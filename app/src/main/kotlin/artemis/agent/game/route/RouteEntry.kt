@@ -15,30 +15,29 @@ data class RouteEntry(val objEntry: ObjectEntry<*>) {
     ): String =
         when (objective) {
             is RouteObjective.ReplacementFighters ->
-                if (objEntry is ObjectEntry.Station) {
-                    objEntry.getFightersText(context)
-                } else {
-                    ""
-                }
+                if (objEntry is ObjectEntry.Station) objEntry.getFightersText(context) else ""
             is RouteObjective.Ordnance ->
-                if (objEntry is ObjectEntry.Station) {
+                if (objEntry is ObjectEntry.Station)
                     objEntry.getOrdnanceText(viewModel, context, objective.ordnanceType)
-                } else {
-                    ""
-                }
-            is RouteObjective.Tasks -> {
-                val reasons = mutableListOf<String>()
+                else ""
+            is RouteObjective.Tasks -> getReasonTextForTasks(viewModel, context)
+        }
+
+    private fun getReasonTextForTasks(viewModel: AgentViewModel, context: Context): String =
+        buildList {
                 if (objEntry is ObjectEntry.Ally) {
-                    reasons.addAll(
+                    addAll(
                         viewModel.routeIncentives
                             .filter { it.matches(objEntry) }
                             .map { context.getString(it.getTextFor(objEntry)) }
                     )
                 }
+
                 if (viewModel.routeIncludesMissions) {
-                    objEntry.missions.also { missions ->
-                        if (missions > 0) {
-                            reasons.add(
+                    objEntry.missions
+                        .takeIf { it > 0 }
+                        ?.also { missions ->
+                            add(
                                 context.resources.getQuantityString(
                                     R.plurals.side_missions,
                                     missions,
@@ -46,17 +45,10 @@ data class RouteEntry(val objEntry: ObjectEntry<*>) {
                                 )
                             )
                         }
-                    }
-                }
-                reasons.joinToString().let {
-                    if (it.isEmpty()) {
-                        it
-                    } else {
-                        it[0].uppercase() + it.substring(1)
-                    }
                 }
             }
-        }
+            .joinToString()
+            .let { if (it.isEmpty()) it else it[0].uppercase() + it.substring(1) }
 
     fun getBuildTimeText(objective: RouteObjective, context: Context): String =
         when {

@@ -4,10 +4,11 @@ import android.view.View
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.databinding.SecondsInputBinding
 
-abstract class TimeInputBinder(
+class TimeInputBinder(
     binding: SecondsInputBinding,
     private val includeMinutes: Boolean = false,
     private val minimumSeconds: Int = 0,
+    private val onSecondsChange: (Int) -> Unit,
 ) {
     private var binding: SecondsInputBinding? = binding
 
@@ -69,8 +70,6 @@ abstract class TimeInputBinder(
             }
         }
 
-    abstract fun onSecondsChange(seconds: Int)
-
     fun destroy() {
         binding = null
     }
@@ -81,6 +80,6 @@ abstract class TimeInputBinder(
 
         const val SIX = 6
         const val TEN = 10
-        const val SIXTY = 60
+        const val SIXTY = SIX * TEN
     }
 }

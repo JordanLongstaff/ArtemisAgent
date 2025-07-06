@@ -4,6 +4,7 @@ import com.walkertribe.ian.util.FilePathResolver
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.engine.spec.tempdir
+import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -36,8 +37,8 @@ class VesselDataTest :
                                 val vesselName = attributes[index++]
                                 val broadType = attributes[index++]
 
-                                val prodCoefficient = attributes[index].toFloatOrNull()
-                                if (prodCoefficient != null) {
+                                val productionCoefficient = attributes[index].toFloatOrNull()
+                                if (productionCoefficient != null) {
                                     index++
                                 }
 
@@ -66,7 +67,7 @@ class VesselDataTest :
                                     faction,
                                     vesselName,
                                     broadType,
-                                    prodCoefficient,
+                                    productionCoefficient,
                                     ordnanceCounts,
                                     bayCount,
                                     expectedAttributes,
@@ -113,12 +114,12 @@ class VesselDataTest :
                             VesselData.load(FilePathResolver(tmpDirPath))
                                 .shouldBeInstanceOf<VesselData.Loaded>()
 
-                        loadedData.factions.size shouldBeEqual TestFaction.entries.size
+                        loadedData.factions.keys shouldBeSameSizeAs TestFaction.entries
                         TestFaction.entries.forEach { test ->
                             test.test(loadedData.getFaction(test.ordinal))
                         }
 
-                        loadedData.vessels.size shouldBeEqual distinctVessels.size
+                        loadedData.vesselKeys shouldBeSameSizeAs distinctVessels
                         distinctVessels.forEach { test ->
                             test.test(loadedData[test.id], loadedData)
                         }

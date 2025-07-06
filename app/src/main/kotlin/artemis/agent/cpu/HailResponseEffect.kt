@@ -1,5 +1,6 @@
 package artemis.agent.cpu
 
+import artemis.agent.game.ObjectEntry
 import artemis.agent.game.allies.AllyStatus
 
 enum class HailResponseEffect(private val prefix: String) {
@@ -17,11 +18,9 @@ enum class HailResponseEffect(private val prefix: String) {
     },
     AMBASSADOR("We're dead in space, our d") {
         override fun getAllyStatus(response: String): AllyStatus =
-            when {
-                response.substring(AMBASSADOR_SEARCH_INDEX).startsWith(PIRATE_BOSS) ->
-                    AllyStatus.PIRATE_BOSS
-                else -> AllyStatus.AMBASSADOR
-            }
+            if (response.substring(AMBASSADOR_SEARCH_INDEX).startsWith(PIRATE_BOSS))
+                AllyStatus.PIRATE_BOSS
+            else AllyStatus.AMBASSADOR
     },
     CONTRABAND("We are carrying needed su") {
         override fun getAllyStatus(response: String): AllyStatus = AllyStatus.CONTRABAND
@@ -60,8 +59,21 @@ enum class HailResponseEffect(private val prefix: String) {
 
     open fun appliesTo(response: String): Boolean = response.startsWith(prefix)
 
+    operator fun invoke(response: String, ally: ObjectEntry.Ally?): Boolean {
+        if (!appliesTo(response)) return false
+
+        if (ally != null) {
+            if (ally.status != AllyStatus.FLYING_BLIND) ally.status = getAllyStatus(response)
+            ally.hasEnergy = ally.hasEnergy || response.endsWith(HAS_ENERGY)
+            ally.checkNebulaStatus()
+        }
+
+        return true
+    }
+
     private companion object {
         const val AMBASSADOR_SEARCH_INDEX = 58
         const val PIRATE_BOSS = "the big boss"
+        const val HAS_ENERGY = "some."
     }
 }

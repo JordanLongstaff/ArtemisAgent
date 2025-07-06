@@ -11,17 +11,17 @@ class CorePacketTypeTest :
             CorePacketType::class.memberProperties.forEach { property ->
                 var uppercase = false
                 val expectedValue =
-                    property.name.toCharArray().joinToString("") {
+                    property.name.toCharArray().joinToString("") { ch ->
                         when {
                             uppercase -> {
                                 uppercase = false
-                                it.toString()
+                                ch.toString()
                             }
-                            it == '_' -> {
+                            ch == '_' -> {
                                 uppercase = true
                                 ""
                             }
-                            else -> it.lowercase()
+                            else -> ch.lowercase()
                         }
                     }
 

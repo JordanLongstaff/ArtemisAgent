@@ -38,8 +38,7 @@ import io.kotest.property.exhaustive.of
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-sealed class CommsOutgoingPacketFixture
-private constructor(
+sealed class CommsOutgoingPacketFixture(
     val recipientGen: Gen<ArtemisObject<*>>,
     val messageGen: Gen<CommsMessage>,
     protected val vesselDataGen: Gen<VesselData>,
@@ -89,13 +88,14 @@ private constructor(
 
     data object EnemyVessel :
         CommsOutgoingPacketFixture(
-            Arb.bind<ArtemisNpc>(),
-            Arb.enum<EnemyMessage>(),
-            Arb.vesselData(
-                vessels = TestVessel.arbitrary(Arb.enum<TestFaction>().filter { it.isEnemy }),
-                numVessels = 1..1,
-            ),
-            CommsRecipientType.ENEMY,
+            recipientGen = Arb.bind<ArtemisNpc>(),
+            messageGen = Arb.enum<EnemyMessage>(),
+            vesselDataGen =
+                Arb.vesselData(
+                    vessels = TestVessel.arbitrary(Arb.enum<TestFaction>().filter { it.isEnemy }),
+                    numVessels = 1..1,
+                ),
+            expectedRecipientType = CommsRecipientType.ENEMY,
             specQualifier = "from vessel data",
         ) {
         override val generator: Gen<Data> =

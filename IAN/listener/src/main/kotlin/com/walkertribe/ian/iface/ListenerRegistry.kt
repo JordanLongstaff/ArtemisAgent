@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * @author rjwut
  */
 class ListenerRegistry {
-    private val listeners: MutableStateFlow<List<ListenerModule>> = MutableStateFlow(listOf())
+    private val listeners: MutableStateFlow<List<ListenerModule>> = MutableStateFlow(emptyList())
 
     /** Registers all functions in the given [ListenerModule] with the registry. */
     fun register(module: ListenerModule) {
@@ -31,6 +31,6 @@ class ListenerRegistry {
 
     /** Removes all listeners from the registry. */
     fun clear() {
-        listeners.value = listOf()
+        listeners.value = emptyList()
     }
 }
