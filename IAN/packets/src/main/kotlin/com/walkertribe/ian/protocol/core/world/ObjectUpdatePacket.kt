@@ -29,28 +29,6 @@ import kotlin.reflect.KClass
  */
 @PacketType(type = CorePacketType.OBJECT_BIT_STREAM)
 class ObjectUpdatePacket(reader: PacketReader) : Packet.Server(reader) {
-    private companion object {
-        private val PARSERS =
-            listOf(
-                    PlayerShipParser,
-                    WeaponsParser,
-                    UnobservedObjectParser.Engineering,
-                    UpgradesParser,
-                    NpcShipParser,
-                    BaseParser,
-                    MineParser,
-                    UnobservedObjectParser.Anomaly,
-                    UnobservedObjectParser.Nebula,
-                    UnobservedObjectParser.Torpedo,
-                    BlackHoleParser,
-                    UnobservedObjectParser.Asteroid,
-                    UnobservedObjectParser.GenericMesh,
-                    CreatureParser,
-                    UnobservedObjectParser.Drone,
-                )
-                .associateBy { it.objectType.id }
-    }
-
     /** Returns the updated objects. */
     val objects: List<ArtemisObject<*>>
 
@@ -80,5 +58,27 @@ class ObjectUpdatePacket(reader: PacketReader) : Packet.Server(reader) {
     override fun offerTo(module: ListenerModule) {
         super.offerTo(module)
         objects.forEach { it.offerTo(module) }
+    }
+
+    private companion object {
+        val PARSERS =
+            listOf(
+                    PlayerShipParser,
+                    WeaponsParser,
+                    UnobservedObjectParser.Engineering,
+                    UpgradesParser,
+                    NpcShipParser,
+                    BaseParser,
+                    MineParser,
+                    UnobservedObjectParser.Anomaly,
+                    UnobservedObjectParser.Nebula,
+                    UnobservedObjectParser.Torpedo,
+                    BlackHoleParser,
+                    UnobservedObjectParser.Asteroid,
+                    UnobservedObjectParser.GenericMesh,
+                    CreatureParser,
+                    UnobservedObjectParser.Drone,
+                )
+                .associateBy { it.objectType.id }
     }
 }

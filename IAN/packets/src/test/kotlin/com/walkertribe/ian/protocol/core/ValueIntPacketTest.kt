@@ -17,9 +17,12 @@ class ValueIntPacketTest :
                 val nameRegex = Regex("\\.[A-Z].+")
 
                 withData<Triple<KClass<out Packet>, Byte, Byte>>(
-                    nameFn = {
-                        val name = it.first.qualifiedName?.let(nameRegex::find)?.value?.substring(1)
-                        "$name = ${it.third}"
+                    nameFn = { (packetClass, _, expectedSubtype) ->
+                        val name =
+                            packetClass.qualifiedName?.let(nameRegex::find)?.run {
+                                value.substring(1)
+                            } ?: "INVALID"
+                        "$name = $expectedSubtype"
                     },
                     Triple(
                         ToggleRedAlertPacket::class,

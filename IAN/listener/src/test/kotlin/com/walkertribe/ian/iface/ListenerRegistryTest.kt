@@ -2,7 +2,7 @@ package com.walkertribe.ian.iface
 
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -10,7 +10,9 @@ import io.mockk.mockk
 class ListenerRegistryTest :
     DescribeSpec({
         val mockModule =
-            mockk<ListenerModule>(relaxUnitFun = true) { every { acceptedTypes } returns setOf() }
+            mockk<ListenerModule>(relaxUnitFun = true) {
+                every { acceptedTypes } returns emptySet()
+            }
 
         afterSpec {
             TestListener.clear()
@@ -33,12 +35,12 @@ class ListenerRegistryTest :
 
             it("Registering an object with a listener function registers that function") {
                 registry.register(TestListener.module)
-                registry.listeningFor(ListenerArgument::class).size shouldBeEqual 1
+                registry.listeningFor(ListenerArgument::class).shouldBeSingleton()
             }
 
             it("Can offer arguments") {
                 registry.offer(ArgumentTypeA())
-                TestListener.calls<ArgumentTypeA>().size shouldBeEqual 1
+                TestListener.calls<ArgumentTypeA>().shouldBeSingleton()
             }
 
             it("Can clear") {

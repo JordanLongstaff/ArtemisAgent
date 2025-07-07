@@ -18,8 +18,13 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class IntelPacketFixture private constructor(arbVersion: Arb<Version>, intelType: IntelType) :
-    PacketTestFixture.Server<IntelPacket>(TestPacketTypes.OBJECT_TEXT) {
+class IntelPacketFixture
+private constructor(
+    arbVersion: Arb<Version>,
+    intelType: IntelType,
+    arbId: Arb<Int> = Arb.int(),
+    arbText: Arb<String> = Arb.string(),
+) : PacketTestFixture.Server<IntelPacket>(TestPacketTypes.OBJECT_TEXT) {
     override val specName: String = "Intel type: ${normalize(intelType.name)}"
 
     class Data
@@ -43,15 +48,19 @@ class IntelPacketFixture private constructor(arbVersion: Arb<Version>, intelType
     }
 
     override val generator: Gen<Data> =
-        Arb.bind(arbVersion, Arb.int(), Arb.string()) { version, id, intel ->
-            Data(version, id, intelType, intel)
+        Arb.bind(arbVersion, arbId, arbText) { version, id, intel ->
+            Data(version, objectID = id, intelType, intel)
         }
 
     override suspend fun testType(packet: Packet.Server): IntelPacket = packet.shouldBeInstanceOf()
 
     companion object {
-        fun allFixtures(arbVersion: Arb<Version> = Arb.version()): List<IntelPacketFixture> =
-            IntelType.entries.map { IntelPacketFixture(arbVersion, it) }
+        fun allFixtures(
+            arbVersion: Arb<Version> = Arb.version(),
+            arbId: Arb<Int> = Arb.int(),
+            arbText: Arb<String> = Arb.string(),
+        ): List<IntelPacketFixture> =
+            IntelType.entries.map { IntelPacketFixture(arbVersion, it, arbId, arbText) }
 
         private fun normalize(str: String) =
             str.replace('_', ' ').let { it[0] + it.substring(1).lowercase() }

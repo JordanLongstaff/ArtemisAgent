@@ -27,21 +27,24 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
     private val binding: MiscFragmentBinding by fragmentViewBinding()
 
     private val listeningForAudio: Flow<Boolean?> by lazy {
-        viewModel.jumping.combine(viewModel.showingAudio) { jump, show -> if (jump) null else show }
+        viewModel.jumping.combine(viewModel.miscManager.showingAudio) { jump, show ->
+            if (jump) null else show
+        }
     }
 
     private val miscOptions: Flow<Pair<Boolean, Boolean>> by lazy {
-        viewModel.miscActionsExist.combine(viewModel.miscAudioExists, ::Pair)
+        val miscManager = viewModel.miscManager
+        miscManager.actionsExist.combine(miscManager.audioExists, ::Pair)
     }
 
     private val updatedMiscActions: Flow<List<CommsActionEntry>?> by lazy {
-        viewModel.miscActions.combine(listeningForAudio) { list, listen ->
+        viewModel.miscManager.actions.combine(listeningForAudio) { list, listen ->
             if (listen == false) list else null
         }
     }
 
     private val updatedMiscAudio: Flow<List<AudioEntry>?> by lazy {
-        viewModel.miscAudio.combine(listeningForAudio) { list, listen ->
+        viewModel.miscManager.audio.combine(listeningForAudio) { list, listen ->
             if (listen == true) list else null
         }
     }
@@ -58,7 +61,7 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
                     layoutManager = LinearLayoutManager(binding.root.context)
                     adapter = actionsAdapter
                 }
-                viewModel.showingAudio.value = false
+                viewModel.miscManager.showingAudio.value = false
             }
         }
 
@@ -75,7 +78,7 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
                         GridLayoutManager(context, context.resources.configuration.orientation)
                     adapter = audioAdapter
                 }
-                viewModel.showingAudio.value = true
+                viewModel.miscManager.showingAudio.value = true
             }
         }
 
@@ -87,13 +90,13 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
                     View.VISIBLE
                 } else {
                     if (actions || audio) {
-                        viewModel.showingAudio.value = audio
+                        viewModel.miscManager.showingAudio.value = audio
                     }
                     View.GONE
                 }
         }
 
-        if (viewModel.showingAudio.value) {
+        if (viewModel.miscManager.showingAudio.value) {
                 binding.audioButton
             } else {
                 binding.actionsButton
@@ -123,13 +126,19 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         fun bind(entry: AudioEntry, viewModel: AgentViewModel) {
             entryBinding.messageLabel.text = entry.title
             entryBinding.playButton.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(entry.playPacket)
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(entry.playPacket)
+                }
             }
             entryBinding.deleteButton.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(entry.dismissPacket)
-                viewModel.dismissAudio(entry)
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(entry.dismissPacket)
+                    miscManager.dismissAudio(entry)
+                }
             }
         }
     }
@@ -180,8 +189,11 @@ class MiscFragment : Fragment(R.layout.misc_fragment) {
         fun bind(entry: CommsActionEntry, viewModel: AgentViewModel) {
             button.text = entry.label
             button.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(entry.clickPacket)
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    sendToServer(entry.clickPacket)
+                }
             }
         }
     }

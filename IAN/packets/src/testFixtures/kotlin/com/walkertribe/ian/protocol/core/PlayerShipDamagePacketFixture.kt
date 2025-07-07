@@ -37,7 +37,8 @@ class PlayerShipDamagePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int(), Arb.numericFloat(), ::Data)
+    override val generator: Gen<Data> =
+        Arb.bind(genA = arbVersion, genB = Arb.int(), genC = Arb.numericFloat(), bindFn = ::Data)
 
     override suspend fun testType(packet: Packet.Server): PlayerShipDamagePacket =
         packet.shouldBeInstanceOf()

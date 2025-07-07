@@ -6,7 +6,7 @@ import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.ext.list.withParentOf
 import com.lemonappdev.konsist.api.verify.assertTrue
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.collections.shouldBeSingleton
 
 class ViewModelKonsistTest :
     DescribeSpec({
@@ -15,7 +15,7 @@ class ViewModelKonsistTest :
                 .classes()
                 .withParentOf(ViewModel::class, AndroidViewModel::class)
 
-        it("Only one ViewModel class exists") { viewModelClasses.size shouldBeEqual 1 }
+        it("Only one ViewModel class exists") { viewModelClasses.shouldBeSingleton() }
 
         it("ViewModel class names end with ViewModel") {
             viewModelClasses.assertTrue { it.hasNameEndingWith("ViewModel") }

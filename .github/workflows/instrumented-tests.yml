@@ -9,13 +9,29 @@ on:
     branches: [ "main" ]
 
 jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      api-level: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - name: Generate API version matrix
+        id: generate
+        run: echo matrix=[$(sed s/,$//g <<< $(seq -s ", " 21 35))] >> $GITHUB_OUTPUT
+
   test:
     runs-on: ubuntu-latest
+    needs: test-matrix
     strategy:
+      fail-fast: false
       matrix:
-        api-level: [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 ]
+        api-level: ${{ fromJSON(needs.test-matrix.outputs.api-level) }}
+    timeout-minutes: 20
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ github.ref }}
+      cancel-in-progress: true
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Generate secret files
         run: |
@@ -30,21 +46,21 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Android SDK Tools
-        uses: android-actions/setup-android@v3.2.2
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4
 
       - name: Run tests on API ${{ matrix.api-level }}
-        uses: reactivecircus/android-emulator-runner@v2.33.0
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
@@ -54,7 +70,7 @@ jobs:
           script: ./gradlew connectedCheck
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: "Instrumented Test Results (API ${{ matrix.api-level }})"
@@ -69,12 +85,12 @@ jobs:
       pull-requests: write
     steps:
       - name: Download Test Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          path: artifacts
+          path: tests
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2.18.0
+        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
         with:
           check_name: Instrumented Test Results
-          files: artifacts/**/*.xml
+          files: tests/**/*.xml

@@ -10,13 +10,15 @@ import io.kotest.property.checkAll
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
-import kotlinx.datetime.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class TimerTextTest :
     DescribeSpec({
         describe("TimerText") {
@@ -39,13 +41,9 @@ class TimerTextTest :
                 val minutes = totalMinutes % minutesPerHour
 
                 val hoursPrefix =
-                    if (includeHours) {
-                        val hours = totalMinutes / minutesPerHour
-                        val minutePadding = if (minutes < 10) "0" else ""
-                        "$hours:$minutePadding"
-                    } else {
-                        ""
-                    }
+                    if (includeHours)
+                        "${totalMinutes / minutesPerHour}:${if (minutes < 10) "0" else ""}"
+                    else ""
 
                 val secondPadding = if (seconds < 10) "0" else ""
                 return "$hoursPrefix$minutes:$secondPadding$seconds"
@@ -64,11 +62,11 @@ class TimerTextTest :
                                 Triple("Under", underOneHour, false),
                                 Triple("Over", overOneHour, true),
                             )
-                            .forEach {
-                                it("${it.first} one hour") {
-                                    it.second.checkAll { duration ->
+                            .forEach { (overUnder, durationArb, includeHours) ->
+                                it("$overUnder one hour") {
+                                    durationArb.checkAll { duration ->
                                         duration.timerString(roundUp) shouldBeEqual
-                                            duration.expectedTimerString(roundUp, it.third)
+                                            duration.expectedTimerString(roundUp, includeHours)
                                     }
                                 }
                             }
@@ -85,12 +83,12 @@ class TimerTextTest :
 
                 describe("Later time") {
                     listOf(Triple("Under", underOneHour, false), Triple("Over", overOneHour, true))
-                        .forEach {
-                            it("${it.first} one hour") {
-                                it.second.checkAll { duration ->
+                        .forEach { (overUnder, durationArb, includeHours) ->
+                            it("$overUnder one hour") {
+                                durationArb.checkAll { duration ->
                                     TimerText.getTimeUntil(
                                         (now + duration).toEpochMilliseconds()
-                                    ) shouldBeEqual duration.expectedTimerString(true, it.third)
+                                    ) shouldBeEqual duration.expectedTimerString(true, includeHours)
                                 }
                             }
                         }
@@ -99,12 +97,12 @@ class TimerTextTest :
 
             describe("Time since") {
                 listOf(Triple("Under", underOneHour, false), Triple("Over", overOneHour, true))
-                    .forEach {
-                        it("${it.first} one hour") {
-                            it.second.checkAll { duration ->
+                    .forEach { (overUnder, durationArb, includeHours) ->
+                        it("$overUnder one hour") {
+                            durationArb.checkAll { duration ->
                                 TimerText.getTimeSince(
                                     (now - duration).toEpochMilliseconds()
-                                ) shouldBeEqual duration.expectedTimerString(false, it.third)
+                                ) shouldBeEqual duration.expectedTimerString(false, includeHours)
                             }
                         }
                     }

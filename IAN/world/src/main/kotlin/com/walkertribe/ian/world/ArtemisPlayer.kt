@@ -13,6 +13,8 @@ import com.walkertribe.ian.util.BoolState
  * @author dhleong
  */
 class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(id, timestamp) {
+    override val type: ObjectType = ObjectType.PLAYER_SHIP
+
     /** Returns whether this player ship has activated a double agent. */
     val doubleAgentActive = Property.BoolProperty(timestamp)
 
@@ -70,26 +72,8 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
     val ordnanceCounts =
         OrdnanceType.entries.map { Property.ByteProperty(timestamp) }.toTypedArray()
 
-    fun getTotalOrdnanceCount(ordnanceType: OrdnanceType): Int {
-        return ordnanceCounts[ordnanceType.ordinal].value +
-            tubes.count { it.contents == ordnanceType }
-    }
-
     /** Weapons tubes. */
     val tubes = Array(Artemis.MAX_TUBES) { WeaponsTube(timestamp) }
-
-    override val type: ObjectType = ObjectType.PLAYER_SHIP
-
-    init {
-        impulse.addListener {
-            if (!it.isNaN() && it > 0f) {
-                docked = BoolState.False
-            }
-        }
-    }
-
-    override val hasData: Boolean
-        get() = hasPlayerData || hasWeaponsData || hasUpgradeData
 
     /** Returns true if this object contains any data that is not upgrades data. */
     val hasPlayerData: Boolean
@@ -111,6 +95,17 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
             doubleAgentActive.hasValue ||
                 doubleAgentCount.hasValue ||
                 doubleAgentSecondsLeft.hasValue
+
+    override val hasData: Boolean
+        get() = hasPlayerData || hasWeaponsData || hasUpgradeData
+
+    init {
+        impulse.addListener {
+            if (!it.isNaN() && it > 0f) {
+                docked = BoolState.False
+            }
+        }
+    }
 
     override fun updates(other: ArtemisPlayer) {
         super.updates(other)
@@ -153,7 +148,12 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
         doubleAgentSecondsLeft updates plr.doubleAgentSecondsLeft
     }
 
-    sealed class Dsl private constructor() : BaseArtemisShip.Dsl<ArtemisPlayer>() {
+    fun getTotalOrdnanceCount(ordnanceType: OrdnanceType): Int {
+        return ordnanceCounts[ordnanceType.ordinal].value +
+            tubes.count { it.contents == ordnanceType }
+    }
+
+    sealed class Dsl : BaseArtemisShip.Dsl<ArtemisPlayer>() {
         data object Player : Dsl() {
             var shipIndex: Byte = Byte.MIN_VALUE
             var capitalShipID: Int = -1

@@ -57,17 +57,19 @@ class VesselTest :
 
                         it("Invalid code") {
                             Arb.string(size = 4, codepoints = Codepoint.alphanumeric()).checkAll {
+                                code ->
                                 val xml =
                                     """
                                 <vessel uniqueID="0" side="0" classname="A">
-                                    <torpedo_storage type="$it" amount="0" />
+                                    <torpedo_storage type="$code" amount="0" />
                                 </vessel>
                             """
                                         .trimIndent()
+
                                 val exception =
                                     shouldThrow<IllegalArgumentException> { Vessel(Xml(xml)) }
                                 exception.message.shouldNotBeNull() shouldBeEqual
-                                    "Invalid ordnance type code: $it"
+                                    "Invalid ordnance type code: $code"
                             }
                         }
                     }
@@ -86,7 +88,7 @@ class VesselTest :
                             side = 0,
                             name = "",
                             broadType = broadType,
-                            ordnanceStorage = mapOf(),
+                            ordnanceStorage = emptyMap(),
                             productionCoefficient = 0f,
                             bayCount = 0,
                             description = null,

@@ -7,9 +7,15 @@ import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.vesseldata.Faction
 import com.walkertribe.ian.vesseldata.Taunt
 import com.walkertribe.ian.vesseldata.Vessel
+import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.ArtemisNpc
 
-data class EnemyEntry(val enemy: ArtemisNpc, val vessel: Vessel, val faction: Faction) {
+class EnemyEntry(
+    val enemy: ArtemisNpc,
+    val vessel: Vessel,
+    val faction: Faction,
+    vesselData: VesselData,
+) {
     var heading: String = ""
     var range: Float = 0f
 
@@ -21,6 +27,8 @@ data class EnemyEntry(val enemy: ArtemisNpc, val vessel: Vessel, val faction: Fa
     var captainStatus: EnemyCaptainStatus = EnemyCaptainStatus.NO_INTEL
 
     val tauntStatuses = Array(Taunt.COUNT) { TauntStatus.UNUSED }
+
+    val fullName: String by lazy { enemy.getFullName(vesselData) }
 
     fun getTauntCountText(context: Context): String =
         when {
@@ -41,7 +49,7 @@ data class EnemyEntry(val enemy: ArtemisNpc, val vessel: Vessel, val faction: Fa
             },
         )
 
-    private companion object {
+    internal companion object {
         val TAUNT_COUNT_STRINGS =
             intArrayOf(R.string.taunts_zero, R.string.taunts_one, R.string.taunts_two)
     }

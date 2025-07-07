@@ -1,12 +1,12 @@
 [versions]
-androidx-activity = "1.10.0"
+androidx-activity = "1.10.1"
 androidx-annotation = "1.9.1"
-androidx-appcompat = "1.7.0"
-androidx-constraintlayout = "2.2.0"
-androidx-core = "1.15.0"
-androidx-datastore = "1.1.2"
-androidx-fragment = "1.8.5"
-androidx-lifecycle = "2.8.7"
+androidx-appcompat = "1.7.1"
+androidx-constraintlayout = "2.2.1"
+androidx-core = "1.16.0"
+androidx-datastore = "1.1.7"
+androidx-fragment = "1.8.8"
+androidx-lifecycle = "2.9.1"
 androidx-multidex = "2.0.1"
 androidx-recyclerview = "1.4.0"
 androidx-test-core = "1.6.1"
@@ -15,47 +15,54 @@ androidx-test-monitor = "1.7.2"
 androidx-test-runner = "1.6.2"
 androidx-test-orchestrator = "1.5.1"
 app-review = "2.0.2"
-arcmutate-base = "1.3.2"
-arcmutate-kotlin = "1.3.0"
-barista = "4.3.0"
-crashlytics-plugin = "3.0.2"
-dependency-analysis = "2.8.0"
-desugar = "2.1.4"
-detekt = "1.23.7"
-firebase-bom = "33.8.0"
+app-update = "2.1.0"
+arcmutate-base = "1.5.0"
+arcmutate-kotlin = "1.4.3"
+crashlytics-plugin = "3.0.4"
+dependency-analysis = "2.19.0"
+desugar = "2.1.5"
+detekt = "1.23.8"
+espresso = "3.6.1"
+firebase-bom = "33.16.0"
 git-hooks = "0.0.2"
-google-services = "4.4.2"
-gradle = "8.8.0"
+google-services = "4.4.3"
+gradle = "8.11.0"
 gradle-pitest = "1.15.0"
+hamcrest = "3.0"
+jspecify = "1.0.0"
 junit4 = "4.13.2"
-koin = "4.0.2"
-koin-annotations = "1.4.0"
-konnection = "1.4.3"
+kakao = "3.6.5"
+kaspresso = "1.6.0"
+koin = "4.1.0"
+koin-annotations = "2.1.0"
+konnection = "1.4.4"
 konsist = "0.17.3"
 korlibs = "6.0.0-alpha2"
 kotest = "5.9.1"
 kotest-arbs = "2.1.2"
 kotest-koin = "1.3.0"
 kotest-pitest = "1.2.0"
-kotlin = "2.1.10"
-kotlin-coroutines = "1.10.1"
-kotlin-datetime = "0.6.1"
-kotlin-io = "0.6.0"
-kotlin-serialization = "1.8.0"
-kotlinpoet = "2.0.0"
+kotlin = "2.2.0"
+kotlin-coroutines = "1.10.2"
+kotlin-io = "0.8.0"
+kotlin-serialization = "1.9.0"
+kotlinpoet = "2.2.0"
 kover = "0.9.1"
-ksp = "2.1.10-1.0.29"
-ktfmt = "0.21.0"
-ktor = "3.0.3"
+ksp = "2.2.0-2.0.2"
+ktfmt = "0.23.0"
+ktor = "3.2.1"
 leakcanary = "2.14"
-mockk = "1.13.16"
-okio = "3.10.2"
-pitest = "1.16.1"
-pitest-junit5 = "1.2.1"
-play-services-tasks = "18.2.0"
-protobuf = "4.29.3"
-protobuf-plugin = "0.9.4"
-task-tree = "4.0.0"
+material = "1.12.0"
+mockk = "1.14.4"
+okio = "3.15.0"
+perf-plugin = "1.4.2"
+pitest = "1.20.0"
+pitest-junit5 = "1.2.2"
+play-services-tasks = "18.3.0"
+process-phoenix = "3.0.0"
+protobuf = "4.31.1"
+protobuf-plugin = "0.9.5"
+task-tree = "4.0.1"
 
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
@@ -65,8 +72,8 @@ gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+kotlinx-coroutines-play = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlin-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlin-coroutines" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlin-datetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlin-io" }
 
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
@@ -108,29 +115,45 @@ lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", versi
 multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidx-recyclerview" }
 
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
 app-review = { module = "com.google.android.play:review", version.ref = "app-review" }
+app-update = { module = "com.google.android.play:app-update", version.ref = "app-update" }
 play-services-tasks = { module = "com.google.android.gms:play-services-tasks", version.ref = "play-services-tasks" }
 
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-config = { module = "com.google.firebase:firebase-config" }
+firebase-perf = { module = "com.google.firebase:firebase-perf" }
 
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
 
 protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 
+process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "process-phoenix" }
+
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+
+material = { module = "com.google.android.material:material", version.ref = "material" }
 
 test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
+test-junit-ktx = { module = "androidx.test.ext:junit-ktx", version.ref = "androidx-test-junit" }
 test-monitor = { module = "androidx.test:monitor", version.ref = "androidx-test-monitor" }
 test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidx-test-orchestrator" }
 test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 
-barista = { module = "com.adevinta.android:barista", version.ref = "barista" }
+espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+uiautomator = "androidx.test.uiautomator:uiautomator:2.3.0"
+
+hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
+
+kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref = "kaspresso" }
+kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 
 kotest-assertions-api = { module = "io.kotest:kotest-assertions-api", version.ref = "kotest" }
@@ -162,7 +185,7 @@ bouncycastle = { module = "org.bouncycastle:bcpkix-jdk18on", version = "latest.r
 commons-compress = { module = "org.apache.commons:commons-compress", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
-netty = { module = "io.netty:netty-codec-http2", version = "4.1.+" }
+netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 
 [bundles]
 classpath = [
@@ -174,7 +197,7 @@ classpath = [
 app = [
     "kotlin-stdlib",
     "kotlinx-coroutines",
-    "kotlinx-datetime",
+    "kotlinx-coroutines-play",
     "activity",
     "annotation",
     "appcompat",
@@ -197,33 +220,48 @@ app = [
     "protobuf-javalite",
     "protobuf-kotlin-lite",
     "app-review",
+    "app-update",
     "play-services-tasks",
+    "process-phoenix",
+    "jspecify",
 ]
 app-debug = [
-    "leakcanary",
     "konnection-android-debug",
+    "material",
+]
+app-debug-runtime = [
+    "leakcanary",
 ]
 app-test = [
+    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-framework-api",
     "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "kotest-property-arbs-jvm",
     "mockk",
     "mockk-dsl",
+    "kotlinx-io",
     "kotlinx-serialization-core",
     "kotlinx-serialization-json",
+    "ktor-io",
 ]
 app-test-runtime = [
     "kotest-runner-junit5-jvm",
 ]
 app-androidTest = [
     "kotlinx-coroutines-test",
-    "barista",
+    "espresso",
+    "uiautomator",
     "junit4",
+    "hamcrest",
+    "kaspresso",
+    "kakao",
     "test-core",
     "test-junit",
+    "test-junit-ktx",
     "test-monitor",
     "test-runner",
     "konnection-android-debug",
@@ -231,7 +269,6 @@ app-androidTest = [
 
 ian = [
     "kotlinx-coroutines",
-    "kotlinx-datetime",
     "ktor-io",
     "ktor-network",
 ]
@@ -273,7 +310,6 @@ ian-listener-test = [
 ian-packets-api = [
     "kotlin-stdlib",
     "kotlinx-coroutines",
-    "kotlinx-datetime",
     "koin-annotations",
     "koin-core",
     "korlibs-charset",
@@ -326,6 +362,7 @@ ian-util = [
     "okio",
 ]
 ian-util-test = [
+    "kotlinx-coroutines",
     "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
@@ -374,6 +411,7 @@ ian-vesseldata-test-fixtures = [
 ]
 
 ian-world-test = [
+    "kotlinx-coroutines",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
@@ -415,6 +453,8 @@ konsist-runtime = [
 firebase = [
     "firebase-analytics",
     "firebase-crashlytics",
+    "firebase-config",
+    "firebase-perf",
 ]
 
 arcmutate = [
@@ -426,6 +466,7 @@ arcmutate = [
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "perf-plugin" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

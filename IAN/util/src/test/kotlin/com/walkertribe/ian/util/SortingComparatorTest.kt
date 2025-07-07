@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope
 import io.kotest.datatest.withData
 import io.kotest.matchers.equals.shouldBeEqual
+import kotlinx.coroutines.launch
 
 class SortingComparatorTest :
     DescribeSpec({
@@ -24,12 +25,12 @@ class SortingComparatorTest :
         val thirdComparator = compareBy<Triple<String, Int, Boolean>> { it.third }
 
         describe("buildSortingComparator") {
-            suspend fun ContainerScope.testSortingComparators(
+            fun ContainerScope.testSortingComparators(
                 name: String,
                 testCases: Collection<SortingTestCase>,
                 partitionFn: (SortingTestCase) -> Boolean,
                 testFn: suspend ContainerScope.(List<SortingTestCase>) -> Unit,
-            ) {
+            ) = launch {
                 withData(
                     nameFn = { it.first },
                     listOf("Sort $name", "Don't sort $name")

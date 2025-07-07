@@ -17,8 +17,10 @@ import io.ktor.utils.io.core.buildPacket
 import kotlinx.io.Source
 import kotlinx.io.writeIntLe
 
-class BiomechRagePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
-    PacketTestFixture.Server<BiomechRagePacket>(TestPacketTypes.SIMPLE_EVENT) {
+class BiomechRagePacketFixture(
+    arbVersion: Arb<Version> = Arb.version(),
+    arbRage: Arb<Int> = Arb.int(),
+) : PacketTestFixture.Server<BiomechRagePacket>(TestPacketTypes.SIMPLE_EVENT) {
     class Data internal constructor(override val version: Version, private val rage: Int) :
         PacketTestData.Server<BiomechRagePacket> {
         override fun buildPayload(): Source = buildPacket {
@@ -31,7 +33,7 @@ class BiomechRagePacketFixture(arbVersion: Arb<Version> = Arb.version()) :
         }
     }
 
-    override val generator: Gen<Data> = Arb.bind(arbVersion, Arb.int(), ::Data)
+    override val generator: Gen<Data> = Arb.bind(arbVersion, arbRage, ::Data)
 
     override suspend fun testType(packet: Packet.Server): BiomechRagePacket =
         packet.shouldBeInstanceOf()
