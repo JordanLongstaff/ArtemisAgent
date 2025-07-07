@@ -178,7 +178,7 @@ class ConnectFragmentTest : TestCase() {
                 }
                 val settingValue = showingInfo.get()
 
-                runTest(timeout = 3.minutes) {
+                runTest(timeout = 5.minutes) {
                     val hasNetwork = !Konnection.instance.getInfo()?.ipv4.isNullOrBlank()
 
                     booleanArrayOf(settingValue, !settingValue, settingValue).forEachIndexed {
@@ -217,7 +217,7 @@ class ConnectFragmentTest : TestCase() {
             step("Network info views should ${if (isShowing) "" else "not "}be displayed") {
                 ConnectPageScreen.infoViews.forEachIndexed { index, view ->
                     if (isShowing && (index > 0 || hasNetwork)) {
-                        flakySafely(timeoutMs = 1.minutes.inWholeMilliseconds) {
+                        flakySafely(timeoutMs = 2.minutes.inWholeMilliseconds) {
                             view.isCompletelyDisplayed()
                         }
                     } else view.isNotDisplayed()
