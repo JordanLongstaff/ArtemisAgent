@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.annotation.StringRes
 
 sealed interface EnemySortCategory {
-    data class Res(@StringRes val resId: Int, override val scrollIndex: Int) : EnemySortCategory {
+    data class Res(@all:StringRes val resId: Int, override val scrollIndex: Int) :
+        EnemySortCategory {
         override fun getString(context: Context): String = context.getString(resId)
 
         override fun hashCode(): Int = resId

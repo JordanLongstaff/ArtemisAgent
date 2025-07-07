@@ -1,6 +1,6 @@
 package artemis.agent.help
 
-import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.MainActivity
@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class HelpFragmentTest : TestCase() {
-    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
     fun menuOptionsTest() {
@@ -27,6 +27,30 @@ class HelpFragmentTest : TestCase() {
     @Test
     fun backButtonTest() {
         testHelpFragment { pressBack() }
+    }
+
+    @Test
+    fun checkForUpdatesTest() {
+        run {
+            mainScreenTest(false) {
+                step("Navigate to About page in Help") {
+                    helpPageButton.click()
+                    HelpPageScreen { openTopicAtIndex(helpTopics.lastIndex) }
+                }
+
+                step("Press update button") { updateButton.click() }
+
+                step("Check for alert dialog saying no updates") {
+                    alertDialog {
+                        isCompletelyDisplayed()
+                        title.isDisplayedWithText(R.string.app_version)
+                        message.isDisplayedWithText(R.string.no_updates)
+                        positiveButton.isRemoved()
+                        negativeButton.isRemoved()
+                    }
+                }
+            }
+        }
     }
 
     private fun testHelpFragment(goBack: HelpPageScreen.() -> Unit) {

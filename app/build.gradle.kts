@@ -1,6 +1,8 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.android.application")
@@ -40,8 +42,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 34
-        versionName = "1.2.1"
+        versionCode = 37
+        versionName = "1.3.2"
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
@@ -54,7 +56,13 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xannotation-target-all")
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
     testOptions.unitTests.all { it.useJUnitPlatform() }
@@ -114,6 +122,7 @@ dependencies {
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
+    debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
     testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.packets))

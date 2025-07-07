@@ -24,7 +24,8 @@ import korlibs.io.lang.UTF16_LE
 import korlibs.io.lang.toString
 import kotlin.enums.enumEntries
 import kotlin.reflect.full.isSubclassOf
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
 import kotlinx.io.readFloatLe
@@ -83,6 +84,7 @@ class PacketReader(
         private set
 
     /** Reads a single packet and returns it. */
+    @OptIn(ExperimentalTime::class)
     @Throws(PacketException::class)
     suspend fun readPacket(): ParseResult {
         objectId = 0
