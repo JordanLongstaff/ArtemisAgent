@@ -14,24 +14,25 @@ import io.mockk.mockk
 
 class EnemySortCategoryTest :
     DescribeSpec({
-        val stringCount = 10000
-        val strings = Arb.list(Arb.string(), stringCount..stringCount).next()
-        val arbScrollIndex = Arb.int()
-
-        val context = mockk<Context> { every { getString(any()) } answers { strings[firstArg()] } }
-
-        afterSpec { clearMocks(context) }
-
-        fun testCategoryType(create: (String, Int, Int) -> EnemySortCategory) {
-            strings.forEachIndexed { index, string ->
-                val scrollIndex = arbScrollIndex.next()
-                val sortCategory = create(string, index, scrollIndex)
-                sortCategory.getString(context) shouldBeEqual string
-                sortCategory.scrollIndex shouldBeEqual scrollIndex
-            }
-        }
-
         describe("EnemySortCategory") {
+            val stringCount = 10000
+            val strings = Arb.list(Arb.string(), stringCount..stringCount).next()
+            val arbScrollIndex = Arb.int()
+
+            val context =
+                mockk<Context> { every { getString(any()) } answers { strings[firstArg()] } }
+
+            afterSpec { clearMocks(context) }
+
+            fun testCategoryType(create: (String, Int, Int) -> EnemySortCategory) {
+                strings.forEachIndexed { index, string ->
+                    val scrollIndex = arbScrollIndex.next()
+                    val sortCategory = create(string, index, scrollIndex)
+                    sortCategory.getString(context) shouldBeEqual string
+                    sortCategory.scrollIndex shouldBeEqual scrollIndex
+                }
+            }
+
             it("Res") {
                 testCategoryType { _, index, scrollIndex ->
                     EnemySortCategory.Res(index, scrollIndex)
