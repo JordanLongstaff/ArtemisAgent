@@ -52,16 +52,18 @@ private constructor(
 
     override val generator: Gen<Data> =
         Arb.bind(
-            versionArb,
-            Arb.string(),
-            Arb.string(),
-            if (isUsingCommFilters) {
-                Arb.short().map(Short::toInt)
-            } else {
-                Arb.int()
-            },
+            genA = versionArb,
+            genB = Arb.string(),
+            genC = Arb.string(),
+            genD = if (isUsingCommFilters) Arb.short().map(Short::toInt) else Arb.int(),
         ) { version, from, contents, channelValue ->
-            Data(version, from, contents, isUsingCommFilters, channelValue)
+            Data(
+                version = version,
+                sender = from,
+                message = contents,
+                isUsingCommFilters = isUsingCommFilters,
+                channel = channelValue,
+            )
         }
 
     override suspend fun testType(packet: Packet.Server): CommsIncomingPacket =

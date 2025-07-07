@@ -9,6 +9,9 @@
     <dimen name="directionButtonWidth">60dip</dimen>
     <dimen name="routeEntryMinimumHeight">47dp</dimen>
 
+    <dimen name="horizontalInset">4dp</dimen>
+    <dimen name="verticalInset">6dp</dimen>
+
     <dimen name="baseTextSize">16sp</dimen>
     <dimen name="mediumTextSize">22sp</dimen>
 </resources>

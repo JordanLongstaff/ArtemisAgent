@@ -18,6 +18,8 @@ import com.walkertribe.ian.util.BoolState
  * @author dhleong
  */
 class ArtemisNpc(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisNpc>(id, timestamp) {
+    override val type = ObjectType.NPC_SHIP
+
     /**
      * Is the NPC understood to be an enemy? Always true in PvP and scripted games. Unspecified:
      * BoolState.Unknown
@@ -33,14 +35,6 @@ class ArtemisNpc(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisNpc>(id, tim
     /** A bitmask indicating which sides have scanned this NPC at least once. Unspecified: null */
     val scanBits = Property.ObjectProperty<Int>(timestamp)
 
-    fun hasBeenScannedBy(side: Byte): BoolState =
-        BoolState(scanBits.value?.let { it and (1 shl side.toInt()) != 0 })
-
-    fun hasBeenScannedBy(ship: BaseArtemisShip<*>): BoolState =
-        if (ship.side.hasValue) hasBeenScannedBy(ship.side.value) else BoolState.Unknown
-
-    override val type = ObjectType.NPC_SHIP
-
     override val hasData
         get() =
             super.hasData ||
@@ -48,6 +42,12 @@ class ArtemisNpc(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisNpc>(id, tim
                 isSurrendered.hasValue ||
                 isInNebula.hasValue ||
                 scanBits.hasValue
+
+    fun hasBeenScannedBy(side: Byte): BoolState =
+        BoolState(scanBits.value?.let { it and (1 shl side.toInt()) != 0 })
+
+    fun hasBeenScannedBy(ship: BaseArtemisShip<*>): BoolState =
+        if (ship.side.hasValue) hasBeenScannedBy(ship.side.value) else BoolState.Unknown
 
     override fun updates(other: ArtemisNpc) {
         super.updates(other)

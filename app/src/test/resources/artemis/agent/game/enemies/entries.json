@@ -1,0 +1,955 @@
+{
+  "entries": [
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "DUPLICITOUS",
+      "distance": 1
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "SURRENDERED",
+      "distance": 0
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "HOSTILE",
+      "distance": 1
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "DUPLICITOUS",
+      "distance": 1
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "SURRENDERED",
+      "distance": 0
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "HOSTILE",
+      "distance": 1
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "DUPLICITOUS",
+      "distance": 0
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "SURRENDERED",
+      "distance": 1
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "DUPLICITOUS",
+      "distance": 0
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "DUPLICITOUS",
+      "distance": 1
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "HOSTILE",
+      "distance": 0
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "HOSTILE",
+      "distance": 1
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "SURRENDERED",
+      "distance": 0
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "HOSTILE",
+      "distance": 0
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "SURRENDERED",
+      "distance": 1
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "DUPLICITOUS",
+      "distance": 0
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "HOSTILE",
+      "distance": 0
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "SURRENDERED",
+      "distance": 1
+    },
+    {
+      "name": "A",
+      "hullId": 2,
+      "status": "DUPLICITOUS",
+      "distance": 0
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "SURRENDERED",
+      "distance": 1
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "HOSTILE",
+      "distance": 0
+    },
+    {
+      "name": "B",
+      "hullId": 2,
+      "status": "DUPLICITOUS",
+      "distance": 1
+    },
+    {
+      "name": "A",
+      "hullId": 1,
+      "status": "SURRENDERED",
+      "distance": 0
+    },
+    {
+      "name": "B",
+      "hullId": 1,
+      "status": "HOSTILE",
+      "distance": 1
+    }
+  ],
+  "sortingTests": [
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "NONE",
+      "sortByName": false,
+      "sortByDistance": false,
+      "sortedIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "categories": []
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "NONE",
+      "sortByName": false,
+      "sortByDistance": true,
+      "sortedIndices": [
+        1,
+        4,
+        6,
+        8,
+        10,
+        12,
+        13,
+        15,
+        16,
+        18,
+        20,
+        22,
+        0,
+        2,
+        3,
+        5,
+        7,
+        9,
+        11,
+        14,
+        17,
+        19,
+        21,
+        23
+      ],
+      "categories": []
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "NONE",
+      "sortByName": true,
+      "sortByDistance": false,
+      "sortedIndices": [
+        1,
+        3,
+        5,
+        6,
+        9,
+        11,
+        14,
+        16,
+        18,
+        19,
+        20,
+        22,
+        0,
+        2,
+        4,
+        7,
+        8,
+        10,
+        12,
+        13,
+        15,
+        17,
+        21,
+        23
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "A",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "B",
+          "scrollIndex": 12
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "FORWARD",
+      "sortByName": false,
+      "sortByDistance": false,
+      "sortedIndices": [
+        0,
+        4,
+        5,
+        6,
+        9,
+        13,
+        15,
+        17,
+        19,
+        20,
+        22,
+        23,
+        1,
+        2,
+        3,
+        7,
+        8,
+        10,
+        11,
+        12,
+        14,
+        16,
+        18,
+        21
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 12
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "REVERSE",
+      "sortByName": false,
+      "sortByDistance": false,
+      "sortedIndices": [
+        1,
+        2,
+        3,
+        7,
+        8,
+        10,
+        11,
+        12,
+        14,
+        16,
+        18,
+        21,
+        0,
+        4,
+        5,
+        6,
+        9,
+        13,
+        15,
+        17,
+        19,
+        20,
+        22,
+        23
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 12
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "NONE",
+      "sortByName": false,
+      "sortByDistance": false,
+      "sortedIndices": [
+        2,
+        5,
+        10,
+        11,
+        13,
+        16,
+        20,
+        23,
+        0,
+        3,
+        6,
+        8,
+        9,
+        15,
+        18,
+        21,
+        1,
+        4,
+        7,
+        12,
+        14,
+        17,
+        19,
+        22
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Active",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "FORWARD",
+      "sortByName": false,
+      "sortByDistance": true,
+      "sortedIndices": [
+        4,
+        6,
+        13,
+        15,
+        20,
+        22,
+        0,
+        5,
+        9,
+        17,
+        19,
+        23,
+        1,
+        8,
+        10,
+        12,
+        16,
+        18,
+        2,
+        3,
+        7,
+        11,
+        14,
+        21
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 12
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "REVERSE",
+      "sortByName": false,
+      "sortByDistance": true,
+      "sortedIndices": [
+        1,
+        8,
+        10,
+        12,
+        16,
+        18,
+        2,
+        3,
+        7,
+        11,
+        14,
+        21,
+        4,
+        6,
+        13,
+        15,
+        20,
+        22,
+        0,
+        5,
+        9,
+        17,
+        19,
+        23
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 12
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "NONE",
+      "sortByName": false,
+      "sortByDistance": true,
+      "sortedIndices": [
+        10,
+        13,
+        16,
+        20,
+        2,
+        5,
+        11,
+        23,
+        6,
+        8,
+        15,
+        18,
+        0,
+        3,
+        9,
+        21,
+        1,
+        4,
+        12,
+        22,
+        7,
+        14,
+        17,
+        19
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Active",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "FORWARD",
+      "sortByName": true,
+      "sortByDistance": false,
+      "sortedIndices": [
+        5,
+        6,
+        9,
+        19,
+        20,
+        22,
+        0,
+        4,
+        13,
+        15,
+        17,
+        23,
+        1,
+        3,
+        11,
+        14,
+        16,
+        18,
+        2,
+        7,
+        8,
+        10,
+        12,
+        21
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 12
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": false,
+      "sortByFaction": "REVERSE",
+      "sortByName": true,
+      "sortByDistance": false,
+      "sortedIndices": [
+        1,
+        3,
+        11,
+        14,
+        16,
+        18,
+        2,
+        7,
+        8,
+        10,
+        12,
+        21,
+        5,
+        6,
+        9,
+        19,
+        20,
+        22,
+        0,
+        4,
+        13,
+        15,
+        17,
+        23
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 12
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "NONE",
+      "sortByName": true,
+      "sortByDistance": false,
+      "sortedIndices": [
+        5,
+        11,
+        16,
+        20,
+        2,
+        10,
+        13,
+        23,
+        3,
+        6,
+        9,
+        18,
+        0,
+        8,
+        15,
+        21,
+        1,
+        14,
+        19,
+        22,
+        4,
+        7,
+        12,
+        17
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "A",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "B",
+          "scrollIndex": 4
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "FORWARD",
+      "sortByName": false,
+      "sortByDistance": false,
+      "sortedIndices": [
+        5,
+        13,
+        20,
+        23,
+        2,
+        10,
+        11,
+        16,
+        0,
+        6,
+        9,
+        15,
+        3,
+        8,
+        18,
+        21,
+        4,
+        17,
+        19,
+        22,
+        1,
+        7,
+        12,
+        14
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 4
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "REVERSE",
+      "sortByName": false,
+      "sortByDistance": false,
+      "sortedIndices": [
+        2,
+        10,
+        11,
+        16,
+        5,
+        13,
+        20,
+        23,
+        3,
+        8,
+        18,
+        21,
+        0,
+        6,
+        9,
+        15,
+        1,
+        7,
+        12,
+        14,
+        4,
+        17,
+        19,
+        22
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 4
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "FORWARD",
+      "sortByName": false,
+      "sortByDistance": true,
+      "sortedIndices": [
+        13,
+        20,
+        5,
+        23,
+        10,
+        16,
+        2,
+        11,
+        6,
+        15,
+        0,
+        9,
+        8,
+        18,
+        3,
+        21,
+        4,
+        22,
+        17,
+        19,
+        1,
+        12,
+        7,
+        14
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 4
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "REVERSE",
+      "sortByName": false,
+      "sortByDistance": true,
+      "sortedIndices": [
+        10,
+        16,
+        2,
+        11,
+        13,
+        20,
+        5,
+        23,
+        8,
+        18,
+        3,
+        21,
+        6,
+        15,
+        0,
+        9,
+        1,
+        12,
+        7,
+        14,
+        4,
+        22,
+        17,
+        19
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 4
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "FORWARD",
+      "sortByName": true,
+      "sortByDistance": false,
+      "sortedIndices": [
+        5,
+        20,
+        13,
+        23,
+        11,
+        16,
+        2,
+        10,
+        6,
+        9,
+        0,
+        15,
+        3,
+        18,
+        8,
+        21,
+        19,
+        22,
+        4,
+        17,
+        1,
+        14,
+        7,
+        12
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 4
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    },
+    {
+      "sortBySurrendered": true,
+      "sortByFaction": "REVERSE",
+      "sortByName": true,
+      "sortByDistance": false,
+      "sortedIndices": [
+        11,
+        16,
+        2,
+        10,
+        5,
+        20,
+        13,
+        23,
+        3,
+        18,
+        8,
+        21,
+        6,
+        9,
+        0,
+        15,
+        1,
+        14,
+        7,
+        12,
+        19,
+        22,
+        4,
+        17
+      ],
+      "categories": [
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Kralien",
+          "scrollIndex": 0
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Text",
+          "text": "Terran",
+          "scrollIndex": 4
+        },
+        {
+          "type": "artemis.agent.game.enemies.TestSortCategory.Res",
+          "res": "Surrendered",
+          "scrollIndex": 8
+        }
+      ]
+    }
+  ]
+}

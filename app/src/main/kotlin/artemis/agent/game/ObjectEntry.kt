@@ -23,15 +23,19 @@ import kotlin.time.Duration.Companion.minutes
 
 sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     val obj: Obj,
-    @PluralsRes private val missionsTextRes: Int,
+    vesselData: VesselData,
+    @all:PluralsRes private val missionsTextRes: Int,
 ) {
-    class Ally(npc: ArtemisNpc, val vesselName: String, private val isDeepStrikeShip: Boolean) :
-        ObjectEntry<ArtemisNpc>(npc, R.plurals.side_missions_for_ally) {
+    class Ally(npc: ArtemisNpc, vesselData: VesselData, private val isDeepStrikeShip: Boolean) :
+        ObjectEntry<ArtemisNpc>(npc, vesselData, R.plurals.side_missions_for_ally) {
+        val vesselName: String by lazy { npc.getVessel(vesselData)?.name ?: "" }
         var status: AllyStatus = AllyStatus.NORMAL
             set(value) {
                 field = value
                 isHailed = true
             }
+
+        var latestHailMessage: String = ""
 
         var hasEnergy: Boolean = false
         var destination: String? = null
@@ -47,7 +51,7 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
             get() = status.sortIndex == AllySortIndex.NORMAL
 
         val isDamaged: Boolean
-            get() = obj.shieldsFront < obj.shieldsFrontMax || obj.shieldsRear < obj.shieldsRearMax
+            get() = obj.shieldsFront.isDamaged || obj.shieldsRear.isDamaged
 
         val isInstructable: Boolean
             get() = isHailed && (isNormal || status == AllyStatus.FLYING_BLIND)
@@ -63,11 +67,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
         override fun getBackgroundColor(context: Context): Int =
             ContextCompat.getColor(
                 context,
-                if (isDeepStrikeShip && isDamaged) {
-                    R.color.allyStatusBackgroundYellow
-                } else {
-                    status.backgroundColor
-                },
+                if (isDeepStrikeShip && isDamaged) R.color.allyStatusBackgroundYellow
+                else status.backgroundColor,
             )
 
         fun checkNebulaStatus() {
@@ -81,14 +82,31 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
     }
 
     class Station(station: ArtemisBase, vesselData: VesselData) :
-        ObjectEntry<ArtemisBase>(station, R.plurals.side_missions) {
+        ObjectEntry<ArtemisBase>(station, vesselData, R.plurals.side_missions) {
         var fighters: Int = 0
         var isDocking: Boolean = false
         var isDocked: Boolean = false
         var isStandingBy: Boolean = false
         var speedFactor: Int = 1
+
+        private var startTime = 0L
+        private var endTime = 0L
+        private var firstMissile = false
+        private var setMissile = false
+        private var midBuild = false
+
+        var isPaused: Boolean = false
+            set(paused) {
+                if (paused) {
+                    field = true
+                } else if (endTime >= System.currentTimeMillis()) {
+                    field = false
+                }
+            }
+
         private val normalProductionCoefficient: Int =
             station.getVessel(vesselData)?.run { (productionCoefficient * 2).toInt() } ?: 2
+
         var builtOrdnanceType: OrdnanceType = OrdnanceType.TORPEDO
             set(type) {
                 if (setMissile) return
@@ -107,32 +125,21 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
         override val missionStatus: SideMissionStatus
             get() =
-                if (obj.shieldsFront < obj.shieldsFrontMax) {
-                    SideMissionStatus.DAMAGED
-                } else {
-                    SideMissionStatus.ALL_CLEAR
+                if (obj.shieldsFront.isDamaged) SideMissionStatus.DAMAGED
+                else SideMissionStatus.ALL_CLEAR
+
+        @get:StringRes
+        val statusString: Int?
+            get() =
+                when {
+                    isDocked -> R.string.docked
+                    isDocking -> R.string.docking
+                    isStandingBy -> R.string.standby
+                    else -> null
                 }
 
-        override fun getBackgroundColor(context: Context): Int {
-            val shields = obj.shieldsFront.value
-            val shieldsMax = obj.shieldsFrontMax.value
-            return getStationColorForShieldPercent(shields / shieldsMax, context)
-        }
-
-        private var startTime = 0L
-        private var endTime = 0L
-        private var firstMissile = false
-        private var setMissile = false
-        private var midBuild = false
-
-        var isPaused: Boolean = false
-            set(paused) {
-                if (paused) {
-                    field = true
-                } else if (endTime >= System.currentTimeMillis()) {
-                    field = false
-                }
-            }
+        override fun getBackgroundColor(context: Context): Int =
+            getStationColorForShieldPercent(obj.shieldsFront.percentage, context)
 
         fun setBuildMinutes(minutes: Int) {
             if (firstMissile || setMissile) return
@@ -194,38 +201,54 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
         fun getFightersText(context: Context): String =
             context.resources.getQuantityString(R.plurals.replacement_fighters, fighters, fighters)
 
-        @get:StringRes
-        val statusString: Int?
-            get() =
-                when {
-                    isDocked -> R.string.docked
-                    isDocking -> R.string.docking
-                    isStandingBy -> R.string.standby
-                    else -> null
-                }
-
         fun getOrdnanceText(
             viewModel: AgentViewModel,
             context: Context,
             ordnanceType: OrdnanceType,
         ): String =
-            if (ordnanceStock.containsKey(ordnanceType)) {
+            if (ordnanceStock.containsKey(ordnanceType))
                 context.getString(
                     R.string.stock_of_ordnance,
                     ordnanceStock[ordnanceType],
                     ordnanceType.getLabelFor(viewModel.version),
                 )
-            } else {
-                ""
-            }
+            else ""
 
         fun getTimerText(context: Context): String =
             context.getString(R.string.build_timer, TimerText.getTimeUntil(endTime))
+
+        companion object {
+            private val CALLSIGN_REGEX = Regex("DS\\d+")
+            private val ENEMY_REGEX = Regex("^[A-Z][a-z]+ Base \\d+")
+
+            val FRIENDLY_COMPARATOR =
+                buildStationNameComparator(CALLSIGN_REGEX) { it.substring(2).toInt() }
+
+            val ENEMY_COMPARATOR =
+                buildStationNameComparator(ENEMY_REGEX) { it.substringAfterLast(' ').toInt() }
+
+            private fun buildStationNameComparator(
+                regex: Regex,
+                selector: (String) -> Comparable<*>,
+            ) =
+                Comparator<String> { first, second ->
+                    val firstName = first.orEmpty()
+                    val secondName = second.orEmpty()
+
+                    if (regex matches firstName && regex matches secondName)
+                        compareValuesBy(firstName, secondName, selector)
+                    else compareValues(firstName, secondName)
+                }
+        }
     }
 
     var missions: Int = 0
     var heading: String = ""
     var range: Float = 0f
+
+    val fullName: String by lazy { obj.getFullName(vesselData) }
+
+    abstract val missionStatus: SideMissionStatus
 
     fun getMissionsText(context: Context): String =
         context.resources.getQuantityString(missionsTextRes, missions, missions)
@@ -238,14 +261,8 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
 
     @ColorInt abstract fun getBackgroundColor(context: Context): Int
 
-    abstract val missionStatus: SideMissionStatus
-
     companion object {
         private const val BASE_SPEED = 0.5f
-
-        fun getStationColorForShieldPercent(percent: Float, context: Context): Int =
-            GRADIENT.find { percent >= it.first }
-                ?.let { ContextCompat.getColor(context, it.second) } ?: Color.TRANSPARENT
 
         private val GRADIENT =
             arrayOf(
@@ -255,5 +272,9 @@ sealed class ObjectEntry<Obj : ArtemisShielded<Obj>>(
                 Pair(0.2f, R.color.stationShieldSevere),
                 Pair(0.0f, R.color.stationShieldCritical),
             )
+
+        fun getStationColorForShieldPercent(percent: Float, context: Context): Int =
+            GRADIENT.find { percent >= it.first }
+                ?.let { ContextCompat.getColor(context, it.second) } ?: Color.TRANSPARENT
     }
 }

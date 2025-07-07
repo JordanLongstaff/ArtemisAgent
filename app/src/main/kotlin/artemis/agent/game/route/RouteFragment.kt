@@ -44,6 +44,7 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
 
                 val selectorButton = binding.routeSuppliesSelector
                 selectorButton.setOnClickListener {
+                    viewModel.activateHaptic()
                     viewModel.playSound(SoundEffect.BEEP_2)
                     root.measure(
                         View.MeasureSpec.makeMeasureSpec(
@@ -78,8 +79,8 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         prepareRouteListView()
-        bindRouteSelectorViews()
-        bindRouteObjectiveData()
+        setupRouteSelectionHandlers()
+        setupRouteObjectiveCollectors()
 
         suppliesSelectorPopup.isFocusable = true
 
@@ -118,61 +119,54 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             )
     }
 
-    private fun bindRouteSelectorViews() {
+    private fun setupRouteSelectionHandlers() {
         val routeTasksButton = binding.routeTasksButton
         val routeSuppliesButton = binding.routeSuppliesButton
         val routeSuppliesSelector = binding.routeSuppliesSelector
         val fighterSupplyIndex = ordnanceTypes.size
 
-        routeTasksButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        arrayOf(routeTasksButton, routeSuppliesButton).forEach { button ->
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
+        }
 
         routeTasksButton.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                routeSuppliesSelector.apply {
-                    visibility = View.GONE / resources.configuration.orientation
-                }
-                if (viewModel.routeObjective.value != RouteObjective.Tasks) {
-                    viewModel.routeObjective.value = RouteObjective.Tasks
-                }
-            }
-        }
+            if (!isChecked) return@setOnCheckedChangeListener
 
-        routeSuppliesButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            routeSuppliesSelector.visibility =
+                View.GONE / routeSuppliesSelector.resources.configuration.orientation
+            viewModel.routeObjective.value = RouteObjective.Tasks
+        }
 
         routeSuppliesButton.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                routeSuppliesSelector.visibility = View.VISIBLE
+            if (!isChecked) return@setOnCheckedChangeListener
 
-                val position = viewModel.routeSuppliesIndex
-                val newObjective =
-                    if (position == fighterSupplyIndex) {
-                        RouteObjective.ReplacementFighters
-                    } else {
-                        RouteObjective.Ordnance(OrdnanceType.entries[position])
-                    }
-                if (viewModel.routeObjective.value != newObjective) {
-                    viewModel.routeObjective.value = newObjective
-                }
-            }
-        }
+            routeSuppliesSelector.visibility = View.VISIBLE
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.routeObjective) {
-            if (it is RouteObjective.Tasks) {
-                routeTasksButton.isChecked = true
-            } else {
-                routeSuppliesSelector.text =
-                    if (it is RouteObjective.Ordnance) {
-                        it.ordnanceType.getLabelFor(viewModel.version)
-                    } else {
-                        routeSuppliesSelector.context.getString(R.string.fighters)
-                    }
-                routeSuppliesButton.isChecked = true
-            }
-            binding.routeSuppliesData.text = it.getDataFrom(viewModel)
+            val position = viewModel.routeSuppliesIndex
+            val newObjective =
+                if (position == fighterSupplyIndex) RouteObjective.ReplacementFighters
+                else RouteObjective.Ordnance(OrdnanceType.entries[position])
+            viewModel.routeObjective.value = newObjective
         }
     }
 
-    private fun bindRouteObjectiveData() {
+    private fun setupRouteObjectiveCollectors() {
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.routeObjective) { objective ->
+            if (objective is RouteObjective.Tasks) {
+                binding.routeTasksButton.isChecked = true
+            } else {
+                binding.routeSuppliesSelector.text =
+                    if (objective is RouteObjective.Ordnance)
+                        objective.ordnanceType.getLabelFor(viewModel.version)
+                    else binding.routeSuppliesSelector.context.getString(R.string.fighters)
+                binding.routeSuppliesButton.isChecked = true
+            }
+            binding.routeSuppliesData.text = objective.getDataFrom(viewModel)
+        }
+
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.totalFighters) {
             val routeObjective = viewModel.routeObjective.value
             if (routeObjective is RouteObjective.ReplacementFighters) {
@@ -182,13 +176,13 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.ordnanceUpdated) {
-            if (it) {
-                val routeObjective = viewModel.routeObjective.value
-                if (routeObjective is RouteObjective.Ordnance) {
-                    binding.routeSuppliesData.text = routeObjective.getDataFrom(viewModel)
-                }
-                routeSuppliesAdapter.notifyItemRangeChanged(0, ordnanceTypes.size)
+            if (!it) return@collectLatestWhileStarted
+
+            val routeObjective = viewModel.routeObjective.value
+            if (routeObjective is RouteObjective.Ordnance) {
+                binding.routeSuppliesData.text = routeObjective.getDataFrom(viewModel)
             }
+            routeSuppliesAdapter.notifyItemRangeChanged(0, ordnanceTypes.size)
         }
     }
 
@@ -200,11 +194,8 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
 
         override fun getNewListSize(): Int = newRoute.size
 
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            val oldEntry = oldRoute[oldItemPosition]
-            val newEntry = newRoute[newItemPosition]
-            return oldEntry.pathKey == newEntry.pathKey
-        }
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            oldRoute[oldItemPosition].pathKey == newRoute[newItemPosition].pathKey
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean = false
     }
@@ -221,13 +212,10 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             entryBinding.destRangeLabel.text = getString(R.string.range, objEntry.range)
 
             entryBinding.destReasonsLabel.text = entry.getReasonText(objective, context, viewModel)
-            entryBinding.destNameLabel.text = viewModel.getFullNameForShip(objEntry.obj)
+            entryBinding.destNameLabel.text = objEntry.fullName
 
-            if (objEntry is ObjectEntry.Station) {
-                bindStation(entry, objEntry)
-            } else if (objEntry is ObjectEntry.Ally) {
-                bindAlly(objEntry)
-            }
+            if (objEntry is ObjectEntry.Station) bindStation(entry, objEntry)
+            else if (objEntry is ObjectEntry.Ally) bindAlly(objEntry)
         }
 
         private fun bindStation(entry: RouteEntry, objEntry: ObjectEntry.Station) {
@@ -242,14 +230,7 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             destStandbyButton.visibility = View.VISIBLE
             destStandbyButton.isEnabled = !objEntry.isStandingBy
             destStandbyButton.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.sendToServer(
-                    CommsOutgoingPacket(
-                        objEntry.obj,
-                        BaseMessage.StandByForDockingOrCeaseOperation,
-                        viewModel.vesselData,
-                    )
-                )
+                sendToStation(objEntry, BaseMessage.StandByForDockingOrCeaseOperation)
             }
 
             destBuildTimeLabel.visibility =
@@ -263,14 +244,7 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
                 } else {
                     destBuildButton.visibility = View.VISIBLE
                     destBuildButton.setOnClickListener {
-                        viewModel.playSound(SoundEffect.BEEP_2)
-                        viewModel.sendToServer(
-                            CommsOutgoingPacket(
-                                objEntry.obj,
-                                BaseMessage.Build(ordnanceObjective.ordnanceType),
-                                viewModel.vesselData,
-                            )
-                        )
+                        sendToStation(objEntry, BaseMessage.Build(ordnanceObjective.ordnanceType))
                     }
 
                     View.GONE
@@ -279,12 +253,23 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             destAllyCommandButton.visibility = View.INVISIBLE
 
             root.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_1)
-                objEntry.obj.name.value?.also {
-                    viewModel.stationName.value = it
-                    viewModel.stationPage.value = StationsFragment.Page.FRIENDLY
-                    viewModel.currentGamePage.value = GameFragment.Page.STATIONS
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_1)
+                    objEntry.obj.name.value?.also {
+                        stationName.value = it
+                        stationPage.value = StationsFragment.Page.FRIENDLY
+                        currentGamePage.value = GameFragment.Page.STATIONS
+                    }
                 }
+            }
+        }
+
+        private fun sendToStation(objEntry: ObjectEntry.Station, message: BaseMessage) {
+            with(viewModel) {
+                activateHaptic()
+                playSound(SoundEffect.BEEP_2)
+                sendToServer(CommsOutgoingPacket(objEntry.obj, message, vesselData))
             }
         }
 
@@ -302,11 +287,14 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             destAllyCommandButton.visibility =
                 if (objEntry.isInstructable) {
                     destAllyCommandButton.setOnClickListener {
-                        viewModel.playSound(SoundEffect.BEEP_1)
-                        viewModel.showingDestroyedAllies.value = false
-                        viewModel.scrollToAlly = objEntry
-                        viewModel.focusedAlly.value = objEntry
-                        viewModel.currentGamePage.value = GameFragment.Page.ALLIES
+                        with(viewModel) {
+                            activateHaptic()
+                            playSound(SoundEffect.BEEP_1)
+                            showingDestroyedAllies.value = false
+                            scrollToAlly = objEntry
+                            focusedAlly.value = objEntry
+                            currentGamePage.value = GameFragment.Page.ALLIES
+                        }
                     }
                     View.VISIBLE
                 } else {
@@ -314,10 +302,13 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
                 }
 
             root.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_1)
-                viewModel.showingDestroyedAllies.value = false
-                viewModel.scrollToAlly = objEntry
-                viewModel.currentGamePage.value = GameFragment.Page.ALLIES
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_1)
+                    showingDestroyedAllies.value = false
+                    scrollToAlly = objEntry
+                    currentGamePage.value = GameFragment.Page.ALLIES
+                }
             }
         }
     }
@@ -353,23 +344,26 @@ class RouteFragment : Fragment(R.layout.route_fragment) {
             GenericDataViewHolder(parent)
 
         override fun onBindViewHolder(holder: GenericDataViewHolder, position: Int) {
-            val routeObjective: RouteObjective
+            val boundObjective: RouteObjective
             val routeObjectiveLabel: String =
                 if (position == ordnanceTypes.size) {
-                    routeObjective = RouteObjective.ReplacementFighters
+                    boundObjective = RouteObjective.ReplacementFighters
                     holder.itemView.context.getString(R.string.fighters)
                 } else {
                     val ordnance = ordnanceTypes[position]
-                    routeObjective = RouteObjective.Ordnance(ordnance)
+                    boundObjective = RouteObjective.Ordnance(ordnance)
                     ordnance.getLabelFor(viewModel.version)
                 }
 
             holder.name = routeObjectiveLabel
-            holder.data = routeObjective.getDataFrom(viewModel)
+            holder.data = boundObjective.getDataFrom(viewModel)
             holder.itemView.setOnClickListener {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                viewModel.routeObjective.value = routeObjective
-                viewModel.routeSuppliesIndex = position
+                with(viewModel) {
+                    activateHaptic()
+                    playSound(SoundEffect.BEEP_2)
+                    routeObjective.value = boundObjective
+                    routeSuppliesIndex = position
+                }
                 suppliesSelectorPopup.dismiss()
             }
         }

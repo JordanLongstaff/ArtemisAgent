@@ -5,8 +5,17 @@ import com.walkertribe.ian.util.Version
 
 /** Interface for objects which can connect to an Artemis server and send and receive packets. */
 interface ArtemisNetworkInterface {
-    /** Returns the version of Artemis supported by this interface. */
+    /** Returns true if currently connected to the remote machine; false otherwise. */
+    val isConnected: Boolean
+
+    /** Returns the version of Artemis used by this interface. */
     val version: Version
+
+    /**
+     * Returns the max version of Artemis supported by this interface. If null, there is no upper
+     * bound.
+     */
+    val maxVersion: Version?
 
     fun addListenerModule(module: ListenerModule)
 
@@ -39,9 +48,6 @@ interface ArtemisNetworkInterface {
     /** Opens the send/receive streams to the remote machine. */
     fun start()
 
-    /** Returns true if currently connected to the remote machine; false otherwise. */
-    val isConnected: Boolean
-
     /** Enqueues a packet to be transmitted to the remote machine. */
     fun sendPacket(packet: Packet.Client)
 
@@ -56,7 +62,4 @@ interface ArtemisNetworkInterface {
 
     /** Disposes of all resources used by the interface. */
     fun dispose()
-
-    /** Returns whether the interface is in debug mode. */
-    val debugMode: Boolean
 }

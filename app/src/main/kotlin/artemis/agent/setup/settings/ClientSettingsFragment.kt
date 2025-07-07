@@ -67,6 +67,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
 
         binding.updateIntervalField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -76,11 +77,8 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
                 view.context.userSettings.updateData {
                     it.copy {
                         updateInterval =
-                            if (text.isNullOrBlank()) {
-                                0
-                            } else {
-                                text.toInt().coerceIn(0, MAX_UPDATE_INTERVAL)
-                            }
+                            if (text.isNullOrBlank()) 0
+                            else text.toInt().coerceIn(0, MAX_UPDATE_INTERVAL)
                     }
                 }
             }
@@ -93,11 +91,12 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     }
 
     private fun prepareVesselDataSettingButtons(vesselDataOptionButtons: Array<RadioButton>) {
-        val numAvailableOptions = viewModel.storageDirectories.size + 1
+        val numAvailableOptions = viewModel.vesselDataManager.count
         vesselDataOptionButtons.forEachIndexed { index, button ->
             button.visibility =
                 if (index < numAvailableOptions) {
                     button.setOnClickListener {
+                        viewModel.activateHaptic()
                         viewModel.playSound(SoundEffect.BEEP_2)
                         clearFocus()
                     }
@@ -124,10 +123,14 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             }
         }
 
-        binding.serverPortField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.serverPortField.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.serverPortField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -147,7 +150,10 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     }
 
     private fun prepareShowNetworkInfoSettingToggle() {
-        binding.showNetworkInfoButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.showNetworkInfoButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.showNetworkInfoButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
@@ -165,10 +171,14 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             }
         }
 
-        binding.addressLimitField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.addressLimitField.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.addressLimitField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -176,19 +186,13 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             val text = binding.addressLimitField.text?.toString()
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
-                    it.copy {
-                        recentAddressLimit =
-                            if (text.isNullOrBlank()) {
-                                0
-                            } else {
-                                text.toInt()
-                            }
-                    }
+                    it.copy { recentAddressLimit = if (text.isNullOrBlank()) 0 else text.toInt() }
                 }
             }
         }
 
         binding.addressLimitEnableButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             clearFocus()
         }

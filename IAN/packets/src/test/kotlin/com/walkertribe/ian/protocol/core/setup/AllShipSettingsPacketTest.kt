@@ -33,11 +33,11 @@ class AllShipSettingsPacketTest :
                     override val payloadGen: Gen<Source> =
                         Arb.list(
                                 Arb.bind(
-                                    Arb.int(),
-                                    Arb.string(),
-                                    Arb.int(),
-                                    arbAccentColor,
-                                    Arb.enum<DriveType>(),
+                                    genA = Arb.int(),
+                                    genB = Arb.string(),
+                                    genC = Arb.int(),
+                                    genD = arbAccentColor,
+                                    genE = Arb.enum<DriveType>(),
                                 ) { hasName, name, shipType, accentColor, drive ->
                                     Pair(
                                         hasName to name.takeIf { hasName != 0 },

@@ -113,8 +113,8 @@ class CompositeListenerModuleTest :
                 var onArtemisObjectCalled = false
                 val module =
                     CompositeListenerModule(
-                        connectionEventListeners = listOf(),
-                        packetListeners = listOf(),
+                        connectionEventListeners = emptyList(),
+                        packetListeners = emptyList(),
                         artemisObjectListeners =
                             listOf(
                                 ListenerFunction(ArtemisObject::class) {
