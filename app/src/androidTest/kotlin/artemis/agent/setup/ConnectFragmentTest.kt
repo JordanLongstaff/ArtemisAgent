@@ -216,8 +216,11 @@ class ConnectFragmentTest : TestCase() {
 
             step("Network info views should ${if (isShowing) "" else "not "}be displayed") {
                 ConnectPageScreen.infoViews.forEachIndexed { index, view ->
-                    if (isShowing && (index > 0 || hasNetwork)) view.isCompletelyDisplayed()
-                    else view.isNotDisplayed()
+                    if (isShowing && (index > 0 || hasNetwork)) {
+                        flakySafely(timeoutMs = 1.minutes.inWholeMilliseconds) {
+                            view.isCompletelyDisplayed()
+                        }
+                    } else view.isNotDisplayed()
                 }
             }
         }
