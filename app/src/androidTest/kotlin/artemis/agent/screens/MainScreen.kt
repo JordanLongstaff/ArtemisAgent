@@ -24,7 +24,7 @@ object MainScreen : KScreen<MainScreen>() {
 
     val updateButton = KButton { withId(R.id.updateButton) }
 
-    val permissionRationaleDialog = KAlertDialog()
+    val alertDialog = KAlertDialog()
 
     private val isTiramisu by lazy { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
 
@@ -64,7 +64,7 @@ object MainScreen : KScreen<MainScreen>() {
     }
 
     fun assertPermissionRationaleDialogOpen() {
-        permissionRationaleDialog {
+        alertDialog {
             isCompletelyDisplayed()
             title.isRemoved()
             message.isDisplayedWithText(R.string.permission_rationale)

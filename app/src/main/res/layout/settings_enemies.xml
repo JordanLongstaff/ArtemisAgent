@@ -36,48 +36,33 @@
     </RadioGroup>
     <ToggleButton
         android:id="@+id/enemySortingSurrenderButton"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/surrender"
-        app:layout_constraintEnd_toStartOf="@id/enemySortingRaceButton"
-        app:layout_constraintHorizontal_weight="11"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/enemySortingRaceButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/enemySortingDefaultButtonGroup" />
+        android:text="@string/surrender" />
     <ToggleButton
         android:id="@+id/enemySortingRaceButton"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/sort_by_race"
-        app:layout_constraintEnd_toStartOf="@id/enemySortingNameButton"
-        app:layout_constraintHorizontal_weight="6"
-        app:layout_constraintLeft_toRightOf="@id/enemySortingSurrenderButton"
-        app:layout_constraintRight_toLeftOf="@id/enemySortingNameButton"
-        app:layout_constraintStart_toEndOf="@id/enemySortingSurrenderButton"
-        app:layout_constraintTop_toTopOf="@id/enemySortingSurrenderButton" />
+        android:text="@string/sort_by_race" />
     <ToggleButton
         android:id="@+id/enemySortingNameButton"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/sort_by_name"
-        app:layout_constraintEnd_toStartOf="@id/enemySortingRangeButton"
-        app:layout_constraintHorizontal_weight="6"
-        app:layout_constraintLeft_toRightOf="@id/enemySortingRaceButton"
-        app:layout_constraintRight_toLeftOf="@id/enemySortingRangeButton"
-        app:layout_constraintStart_toEndOf="@id/enemySortingRaceButton"
-        app:layout_constraintTop_toTopOf="@id/enemySortingSurrenderButton" />
+        android:text="@string/sort_by_name" />
     <ToggleButton
         android:id="@+id/enemySortingRangeButton"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/sort_by_range"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="7"
-        app:layout_constraintLeft_toRightOf="@id/enemySortingNameButton"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintStart_toEndOf="@id/enemySortingNameButton"
-        app:layout_constraintTop_toTopOf="@id/enemySortingSurrenderButton" />
+        android:text="@string/sort_by_range" />
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/enemySortingFlow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="enemySortingSurrenderButton,enemySortingRaceButton,enemySortingNameButton,enemySortingRangeButton"
+        app:flow_horizontalBias="0"
+        app:flow_horizontalStyle="packed"
+        app:flow_wrapMode="chain"
+        app:layout_constraintTop_toBottomOf="@id/enemySortingDefaultButtonGroup" />
     <TextView
         android:id="@+id/reverseRaceSortTitle"
         android:layout_width="0dp"
@@ -100,7 +85,7 @@
         android:textOn="@string/on"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/enemySortingSurrenderButton" />
+        app:layout_constraintTop_toBottomOf="@id/enemySortingFlow" />
     <View
         android:id="@+id/enemySortingDivider"
         android:layout_width="match_parent"

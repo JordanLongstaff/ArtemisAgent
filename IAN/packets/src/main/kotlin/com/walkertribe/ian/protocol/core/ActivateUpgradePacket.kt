@@ -7,8 +7,7 @@ import com.walkertribe.ian.util.Version
  *
  * @author rjwut
  */
-sealed class ActivateUpgradePacket private constructor(subtype: Byte) :
-    ValueIntPacket(subtype, DOUBLE_AGENT_VALUE) {
+sealed class ActivateUpgradePacket(subtype: Byte) : ValueIntPacket(subtype, DOUBLE_AGENT_VALUE) {
     data object Current : ActivateUpgradePacket(Subtype.ACTIVATE_UPGRADE_CURRENT)
 
     data object Old : ActivateUpgradePacket(Subtype.ACTIVATE_UPGRADE_OLD)

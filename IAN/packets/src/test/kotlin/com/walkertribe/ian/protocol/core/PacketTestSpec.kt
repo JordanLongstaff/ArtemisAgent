@@ -30,8 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.io.Source
 
 @Ignored
-sealed class PacketTestSpec<T : Packet>
-private constructor(
+sealed class PacketTestSpec<T : Packet>(
     val specName: String,
     open val fixtures: List<PacketTestFixture<T>>,
     autoIncludeTests: Boolean = true,
@@ -112,13 +111,6 @@ private constructor(
 
         override fun tests(): TestFactory = describeSpec {
             describe(specName) {
-                val expectedBehaviour = if (isRequired) "parse even" else "skip"
-                val emptyListenerRegistry = ListenerRegistry()
-                val testListenerRegistry =
-                    ListenerRegistry().apply { register(PacketTestListenerModule) }
-                val objectListenerRegistry =
-                    ListenerRegistry().apply { register(ArtemisObjectTestModule) }
-
                 organizeTests(fixtures) { fixture ->
                     PacketTestListenerModule.packets.clear()
 

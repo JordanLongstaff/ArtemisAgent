@@ -38,8 +38,7 @@ import io.kotest.property.exhaustive.of
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-sealed class CommsOutgoingPacketFixture
-private constructor(
+sealed class CommsOutgoingPacketFixture(
     val recipientGen: Gen<ArtemisObject<*>>,
     val messageGen: Gen<CommsMessage>,
     protected val vesselDataGen: Gen<VesselData>,

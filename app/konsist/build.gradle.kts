@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -36,7 +39,12 @@ android {
         targetCompatibility = javaVersion
     }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
     tasks.withType<Test>().configureEach { useJUnitPlatform() }
 }
