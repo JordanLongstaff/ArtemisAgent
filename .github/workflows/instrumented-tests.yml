@@ -4,7 +4,7 @@ name: Android Instrumented Tests
 
 on:
   workflow_run:
-    name: "Java CI with Gradle"
+    workflows: ["Java CI with Gradle"]
     types: [ completed ]
 
 jobs:

@@ -10,7 +10,7 @@
 name: 'Dependency review'
 on:
   workflow_run:
-    name: "Java CI with Gradle"
+    workflows: ["Java CI with Gradle"]
     types: [completed]
 
 # If using a dependency submission action in this workflow this permission will need to be set to:
