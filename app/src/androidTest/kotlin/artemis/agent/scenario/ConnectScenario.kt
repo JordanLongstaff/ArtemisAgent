@@ -27,7 +27,7 @@ class ConnectScenario(ip: String, activityScenario: ActivityScenario<MainActivit
             }
 
             step("Attempt connection") {
-                addressBar.typeText(ip)
+                addressBar.replaceText(ip)
                 connectButton.click()
             }
 

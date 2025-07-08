@@ -58,7 +58,7 @@ okio = "3.15.0"
 perf-plugin = "1.4.2"
 pitest = "1.20.0"
 pitest-junit5 = "1.2.2"
-play-services-tasks = "18.3.0"
+play-services-tasks = "18.3.1"
 process-phoenix = "3.0.0"
 protobuf = "4.31.1"
 protobuf-plugin = "0.9.5"
@@ -88,6 +88,7 @@ ksp-koin = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-an
 
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 
 konnection = { module = "dev.tmapps:konnection", version.ref = "konnection" }
 konnection-android-debug = { module = "dev.tmapps:konnection-android-debug", version.ref = "konnection" }
@@ -283,6 +284,7 @@ ian-test = [
     "kotest-property",
     "mockk",
     "mockk-dsl",
+    "ktor-utils",
 ]
 ian-test-runtime = [
     "kotest-extensions-pitest",

@@ -1,9 +1,13 @@
 #!/bin/sh
 
 API_LEVEL=$1
+ORIENTATION=$2
 
 set -x
 set +e
+echo "Setting device orientation..."
+adb shell settings put system accelerometer_rotation 0
+adb shell settings put system user_rotation $ORIENTATION
 echo "Starting instrumented tests..."
 ./gradlew connectedCheck &
 sleep 10
