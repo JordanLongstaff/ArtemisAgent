@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         api-level: ${{ fromJSON(needs.test-matrix.outputs.api-level) }}
-        orientation: [ {name: portrait, rotation: 0, skin: HVGA-P}, {name: landscape, rotation: 1, skin: HVGA-L} ]
+        orientation: [ {name: portrait, rotation: 0, skin: P}, {name: landscape, rotation: 1, skin: L} ]
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
     timeout-minutes: 20
     concurrency:
@@ -74,7 +74,7 @@ jobs:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           force-avd-creation: true
-          emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.orientation.skin }}
+          emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin WVGA854-${{ matrix.orientation.skin }}
           disable-animations: true
           script: .github/workflows/instrumented-test-recording.sh ${{ matrix.api-level }} ${{ matrix.orientation.rotation }}
 
