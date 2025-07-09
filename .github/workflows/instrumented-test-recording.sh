@@ -5,9 +5,10 @@ ORIENTATION=$2
 
 set -x
 set +e
-echo "Setting device orientation..."
-adb shell content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0
-adb shell content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:$ORIENTATION
+if [ ! -z $ORIENTATION ]; then
+  echo "Rotating device..."
+  xdotool keydown Ctrl key F12 keyup Ctrl
+fi
 echo "Starting instrumented tests..."
 ./gradlew connectedCheck &
 sleep 10
