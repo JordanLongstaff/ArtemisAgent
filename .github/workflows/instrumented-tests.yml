@@ -74,7 +74,7 @@ jobs:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           force-avd-creation: true
-          emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin WVGA854-${{ matrix.orientation.skin }}
+          emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin WVGA-${{ matrix.orientation.skin }}
           disable-animations: true
           script: .github/workflows/instrumented-test-recording.sh ${{ matrix.api-level }} ${{ matrix.orientation.rotation }}
 
