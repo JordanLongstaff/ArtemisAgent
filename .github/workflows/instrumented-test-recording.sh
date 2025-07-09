@@ -2,19 +2,18 @@
 
 API_LEVEL=$1
 ORIENTATION=$2
-ROTATE=$([ -z $2 ] && ' ' || '--rotate')
 
 set -x
 set +e
 echo "Setting device orientation..."
-adb shell settings put system accelerometer_rotation 0
-adb shell settings put system user_rotation $ORIENTATION
+adb shell content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0
+adb shell content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:$ORIENTATION
 echo "Starting instrumented tests..."
 ./gradlew connectedCheck &
 sleep 10
 TEST_PID=$!
 echo "Starting the screen recording..."
-adb exec-out "while true; do screenrecord $ROTATE --bugreport --output-format=h264 -; done" | ffmpeg -i - testRecording-$API_LEVEL-$ORIENTATION.mp4 &
+adb exec-out "while true; do screenrecord --bugreport --output-format=h264 -; done" | ffmpeg -i - testRecording-$API_LEVEL-$ORIENTATION.mp4 &
 sleep 1
 echo "Waiting for instrumented tests to finish..."
 wait $TEST_PID
