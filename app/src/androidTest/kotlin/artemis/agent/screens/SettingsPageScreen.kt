@@ -28,6 +28,7 @@ import io.github.kakaocup.kakao.image.KImageView
 import io.github.kakaocup.kakao.progress.KSeekBar
 import io.github.kakaocup.kakao.recycler.KRecyclerItem
 import io.github.kakaocup.kakao.recycler.KRecyclerView
+import io.github.kakaocup.kakao.scroll.KScrollView
 import io.github.kakaocup.kakao.text.KButton
 import io.github.kakaocup.kakao.text.KTextView
 import org.hamcrest.Matcher
@@ -40,6 +41,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
     val settingsPageTitle = KTextView { withId(R.id.settingsPageTitle) }
     val settingsBack = KImageView { withId(R.id.settingsBack) }
     val settingsOnOff = KCheckBox { withId(R.id.settingsOnOff) }
+    val settingsScroll = KScrollView { withId(R.id.settingsScroll) }
 
     fun assertMainMenuDisplayed() {
         settingsPageTitle.isDisplayedWithText(R.string.settings)

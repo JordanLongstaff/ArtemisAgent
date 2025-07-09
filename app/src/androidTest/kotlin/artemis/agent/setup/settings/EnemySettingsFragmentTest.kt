@@ -204,7 +204,7 @@ class EnemySettingsFragmentTest : TestCase() {
 
             SettingsPageScreen.Enemies {
                 step("First line components displayed") {
-                    sortDivider.scrollTo()
+                    SettingsPageScreen.settingsScroll.scrollToStart()
                     sortTitle.isDisplayedWithText(R.string.sort_methods)
                     sortDefaultButton.isDisplayedWithText(R.string.default_setting)
                 }
