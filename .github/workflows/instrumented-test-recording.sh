@@ -2,6 +2,7 @@
 
 API_LEVEL=$1
 ORIENTATION=$2
+ROTATE=$([ -z $2 ] && ' ' || '--rotate')
 
 set -x
 set +e
@@ -13,7 +14,7 @@ echo "Starting instrumented tests..."
 sleep 10
 TEST_PID=$!
 echo "Starting the screen recording..."
-adb exec-out "while true; do screenrecord --bugreport --output-format=h264 -; done" | ffmpeg -i - testRecording-$API_LEVEL-$ORIENTATION.mp4 &
+adb exec-out "while true; do screenrecord $ROTATE --bugreport --output-format=h264 -; done" | ffmpeg -i - testRecording-$API_LEVEL-$ORIENTATION.mp4 &
 sleep 1
 echo "Waiting for instrumented tests to finish..."
 wait $TEST_PID
