@@ -65,6 +65,9 @@ jobs:
       - name: Setup FFmpeg
         uses: AnimMouse/setup-ffmpeg@v1
 
+      - name: Setup xdotool
+        run: sudo apt install -y xdotool
+
       - name: Enable script execution
         run: chmod +x .github/workflows/instrumented-test-recording.sh
 
