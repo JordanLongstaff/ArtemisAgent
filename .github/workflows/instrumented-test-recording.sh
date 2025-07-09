@@ -9,10 +9,6 @@ echo "Starting instrumented tests..."
 ./gradlew connectedCheck &
 sleep 10
 TEST_PID=$!
-if [ ! -z $ORIENTATION ]; then
-  echo "Rotating device..."
-  xdotool key "Ctrl+L"
-fi
 echo "Starting the screen recording..."
 adb exec-out "while true; do screenrecord --bugreport --output-format=h264 -; done" | ffmpeg -i - testRecording-$API_LEVEL-$ORIENTATION.mp4 &
 sleep 1
