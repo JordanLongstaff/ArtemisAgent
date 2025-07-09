@@ -89,8 +89,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: "Instrumented Test Recording (API ${{ matrix.api-level }})"
-          path: testRecording-${{ matrix.api-level }}.mp4
+          name: "Instrumented Test Recording (API ${{ matrix.api-level }}, ${{ matrix.orientation.name }})"
+          path: testRecording-${{ matrix.api-level }}-${{ matrix.orientation.rotation }}.mp4
 
   publish:
     needs: test
