@@ -7,7 +7,7 @@ set -x
 set +e
 if [ ! -z $ORIENTATION ]; then
   echo "Rotating device..."
-  xdotool keydown Ctrl key F12 keyup Ctrl
+  xdotool keydown Ctrl key L keyup Ctrl
 fi
 echo "Starting instrumented tests..."
 ./gradlew connectedCheck &
