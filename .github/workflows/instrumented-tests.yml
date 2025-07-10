@@ -59,10 +59,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.orientation.skin }}
           disable-animations: true
-          script: |
-            adb shell settings put system accelerometer_rotation 0
-            adb shell settings put system user_rotation ${{ matrix.orientation.rotation }}
-            ./gradlew connectedCheck
+          script: ./gradlew connectedCheck
 
       - name: Upload Test Results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
