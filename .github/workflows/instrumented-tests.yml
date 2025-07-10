@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         api-level: ${{ fromJSON(needs.test-matrix.outputs.api-level) }}
-        orientation: [ {name: portrait, rotation: 0, skin: 1080x1920}, {name: landscape, rotation: 1, skin: 1920x1080} ]
+        orientation: [ {name: portrait, rotation: 0, skin: 720x1280}, {name: landscape, rotation: 1, skin: 1280x720} ]
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
     timeout-minutes: 20
     concurrency:
