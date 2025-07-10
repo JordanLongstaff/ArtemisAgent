@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         api-level: ${{ fromJSON(needs.test-matrix.outputs.api-level) }}
-        orientation: [ {name: portrait, rotation: 0}, {name: landscape, rotation: 1} ]
+        orientation: [ {name: portrait, rotation: 0, skin: 480x800}, {name: landscape, rotation: 1, skin: 800x480} ]
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
     timeout-minutes: 20
     concurrency:
@@ -68,7 +68,7 @@ jobs:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           force-avd-creation: true
-          emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.orientation.skin }}
           disable-animations: true
           script: |
             adb shell settings put system accelerometer_rotation 0
