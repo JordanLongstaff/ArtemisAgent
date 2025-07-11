@@ -175,7 +175,7 @@ class TimeInputTestScenario(
     }
 
     private fun testChangingOnes(change: () -> Unit) {
-        repeat(TEN - minimumSeconds) {
+        repeat(TEN) {
             change()
             testCurrentTime()
         }

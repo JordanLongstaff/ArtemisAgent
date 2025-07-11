@@ -15,7 +15,11 @@ class VesselNameTest :
     DescribeSpec({
         describe("Vessel full name") {
             it("No vessel") {
-                checkAll<Int> { TestObject(it).getVessel(VesselData.Empty).shouldBeNull() }
+                checkAll<Int> {
+                    val obj = TestObject(it)
+                    obj.getVessel(VesselData.Empty).shouldBeNull()
+                    obj.getFullName(VesselData.Empty).shouldBeNull()
+                }
             }
 
             describe("Vessel found") {

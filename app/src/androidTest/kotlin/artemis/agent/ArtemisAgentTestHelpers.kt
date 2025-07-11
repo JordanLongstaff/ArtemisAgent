@@ -27,12 +27,12 @@ fun BaseAssertions.isRemoved() {
 }
 
 fun TextViewAssertions.isDisplayedWithText(text: String) {
-    isDisplayed()
+    isCompletelyDisplayed()
     hasText(text)
 }
 
 fun TextViewAssertions.isDisplayedWithText(@StringRes text: Int) {
-    isDisplayed()
+    isCompletelyDisplayed()
     hasText(text)
 }
 

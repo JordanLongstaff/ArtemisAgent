@@ -7,7 +7,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.remoteConfig
 import com.walkertribe.ian.util.Version
 
-sealed class UpdateAlert(@StringRes val title: Int, @StringRes val message: Int) {
+sealed class UpdateAlert(@all:StringRes val title: Int, @all:StringRes val message: Int) {
     sealed class ArtemisVersion(@StringRes message: Int, internal val newVersion: String) :
         UpdateAlert(R.string.new_version_title, message) {
         class Restart(newVersion: String) :
@@ -39,11 +39,11 @@ sealed class UpdateAlert(@StringRes val title: Int, @StringRes val message: Int)
             val updateRange = nextVersion..latestVersionCode
 
             val securityUpdate =
-                remoteConfig.getLong(RemoteConfigKey.RequiredVersion.security).toInt()
+                remoteConfig.getLong(RemoteConfigKey.RequiredVersion.SECURITY).toInt()
             val artemisUpdate =
-                remoteConfig.getLong(RemoteConfigKey.RequiredVersion.artemis).toInt()
+                remoteConfig.getLong(RemoteConfigKey.RequiredVersion.ARTEMIS).toInt()
             val artemisVersion =
-                VersionString(remoteConfig.getString(RemoteConfigKey.artemisLatestVersion))
+                VersionString(remoteConfig.getString(RemoteConfigKey.ARTEMIS_LATEST_VERSION))
 
             return when {
                 securityUpdate in updateRange -> Immediate

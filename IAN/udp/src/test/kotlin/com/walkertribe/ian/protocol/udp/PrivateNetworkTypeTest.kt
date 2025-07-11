@@ -74,7 +74,7 @@ class PrivateNetworkTypeTest :
                 )
 
             allTestSuites.forEachIndexed { suiteIndex, suite ->
-                val first = suite.firstByte
+                val leading = suite.firstByte
                 describe(suite.testName) {
                     withData(
                         nameFn = {
@@ -84,15 +84,17 @@ class PrivateNetworkTypeTest :
                             otherSuite to (index == suiteIndex)
                         },
                     ) { (testSuite, shouldMatch) ->
-                        suite.arbBytes.checkAll { (second, third, fourth) ->
-                            val address = intArrayOf(first, second, third, fourth).joinToString(".")
+                        suite.arbBytes.checkAll { (first, second, third) ->
+                            val address =
+                                intArrayOf(leading, first, second, third).joinToString(".")
                             testSuite.expectedType.match(address) shouldBeEqual shouldMatch
                         }
                     }
 
                     it("Defines correct network type") {
-                        suite.arbBytes.checkAll { (second, third, fourth) ->
-                            val address = intArrayOf(first, second, third, fourth).joinToString(".")
+                        suite.arbBytes.checkAll { (first, second, third) ->
+                            val address =
+                                intArrayOf(leading, first, second, third).joinToString(".")
                             PrivateNetworkType.of(address).shouldNotBeNull() shouldBeEqual
                                 suite.expectedType
                         }

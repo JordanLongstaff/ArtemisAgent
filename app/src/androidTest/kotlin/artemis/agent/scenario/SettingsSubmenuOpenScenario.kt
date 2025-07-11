@@ -1,12 +1,15 @@
 package artemis.agent.scenario
 
+import artemis.agent.isRemoved
 import artemis.agent.screens.SettingsPageScreen
 import artemis.agent.screens.SettingsPageScreen.Menu
 import com.kaspersky.kaspresso.testcases.api.scenario.Scenario
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 
-sealed class SettingsSubmenuOpenScenario
-private constructor(page: SettingsPageScreen.Page, usingToggle: Boolean = false) : Scenario() {
+sealed class SettingsSubmenuOpenScenario(
+    page: SettingsPageScreen.Page,
+    usingToggle: Boolean = false,
+) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
         val name = device.targetContext.getString(page.title)
         step("Open $name submenu") {
@@ -19,10 +22,10 @@ private constructor(page: SettingsPageScreen.Page, usingToggle: Boolean = false)
 
                 settingsOnOff {
                     if (page.toggleDisplayed) {
-                        isDisplayed()
+                        isCompletelyDisplayed()
                         isChecked()
                     } else {
-                        isNotDisplayed()
+                        isRemoved()
                     }
                 }
             }

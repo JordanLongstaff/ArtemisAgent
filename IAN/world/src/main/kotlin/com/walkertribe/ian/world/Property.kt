@@ -3,8 +3,11 @@ package com.walkertribe.ian.world
 import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.util.isKnown
 
-sealed class Property<V, P : Property<V, P>>
-private constructor(initialValue: V, initialTimestamp: Long, private var onSet: (V) -> Unit = {}) {
+sealed class Property<V, P : Property<V, P>>(
+    initialValue: V,
+    initialTimestamp: Long,
+    private var onSet: (V) -> Unit = {},
+) {
     class FloatProperty(timestamp: Long, onSet: (Float) -> Unit = {}) :
         Property<Float, FloatProperty>(Float.NaN, timestamp, onSet), Comparable<FloatProperty> {
         override val hasValue: Boolean

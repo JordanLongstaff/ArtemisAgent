@@ -24,7 +24,7 @@ data class RadioButtonsTestCase(
 ) {
     fun testChecked() {
         button.isChecked()
-        testView.isDisplayed()
+        testView.isCompletelyDisplayed()
     }
 
     fun testUnchecked() {

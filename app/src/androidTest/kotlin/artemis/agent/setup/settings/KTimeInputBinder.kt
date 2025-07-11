@@ -49,9 +49,9 @@ class KTimeInputBinder(@IdRes parentId: Int) {
     }
 
     fun isDisplayed(withMinutes: Boolean) {
-        root.isDisplayed()
-        minutesChildren.forEach { if (withMinutes) it.isDisplayed() else it.isRemoved() }
-        secondsChildren.forEach { it.isDisplayed() }
+        root.isCompletelyDisplayed()
+        minutesChildren.forEach { if (withMinutes) it.isCompletelyDisplayed() else it.isRemoved() }
+        secondsChildren.forEach { it.isCompletelyDisplayed() }
     }
 
     fun isHidden() {

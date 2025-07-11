@@ -1,7 +1,7 @@
 package artemis.agent.setup.settings
 
 import androidx.activity.viewModels
-import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class EnemySettingsFragmentTest : TestCase() {
-    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
     fun enemySettingsMutableTest() {
@@ -204,7 +204,7 @@ class EnemySettingsFragmentTest : TestCase() {
 
             SettingsPageScreen.Enemies {
                 step("First line components displayed") {
-                    sortDivider.scrollTo()
+                    SettingsPageScreen.settingsScroll.scrollToStart()
                     sortTitle.isDisplayedWithText(R.string.sort_methods)
                     sortDefaultButton.isDisplayedWithText(R.string.default_setting)
                 }
@@ -307,7 +307,7 @@ class EnemySettingsFragmentTest : TestCase() {
                     step("Toggle components displayed") {
                         surrenderRangeDivider.scrollTo()
                         surrenderRangeTitle.isDisplayedWithText(R.string.surrender_range)
-                        surrenderRangeEnableButton.isDisplayed()
+                        surrenderRangeEnableButton.isCompletelyDisplayed()
                     }
                 }
 
@@ -340,7 +340,7 @@ class EnemySettingsFragmentTest : TestCase() {
                         surrenderRangeEnableButton.isChecked()
                         surrenderRangeInfinity.isRemoved()
                         surrenderRangeKm.isDisplayedWithText(R.string.kilometres)
-                        surrenderRangeField.isDisplayed()
+                        surrenderRangeField.isCompletelyDisplayed()
                         if (surrenderRange != null) {
                             surrenderRangeField.showsFormattedDistance(surrenderRange)
                         }

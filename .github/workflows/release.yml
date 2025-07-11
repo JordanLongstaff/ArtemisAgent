@@ -20,8 +20,7 @@ on:
         type: boolean
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}
 
 jobs:
   wait-for-prerequisites:
@@ -69,7 +68,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4
 
       - name: Get app version code and name
         id: version
@@ -83,7 +82,7 @@ jobs:
 
       - name: Bump app version name
         id: nextVersionName
-        uses: cbrgm/semver-bump-action@51e241fb790d15c91371376c9aac14ea87533fa8 # v1
+        uses: cbrgm/semver-bump-action@34f295619c23f0f7ab875ba79fec5fc07df394c6 # v1
         with:
           current-version: ${{ steps.version.outputs.versionName }}
           bump-level: ${{ inputs.versionBump }}
@@ -111,13 +110,13 @@ jobs:
 
       - name: Set Firebase Project
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@fc92c58f44c093471d92bf9b9177a193e1e48fb2 # v14.4.0
+        uses: w9jds/firebase-action@1990ec7c96fa6182718b4e2862c24a43ee5501d6 # v14.9.0
         with:
           args: use ${{ secrets.FIREBASE_SA_PROJECT }}
 
       - name: Get Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@fc92c58f44c093471d92bf9b9177a193e1e48fb2 # v14.4.0
+        uses: w9jds/firebase-action@1990ec7c96fa6182718b4e2862c24a43ee5501d6 # v14.9.0
         with:
           args: remoteconfig:get -o app/remote-config.json
 
@@ -151,7 +150,7 @@ jobs:
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@fc92c58f44c093471d92bf9b9177a193e1e48fb2 # v14.4.0
+        uses: w9jds/firebase-action@1990ec7c96fa6182718b4e2862c24a43ee5501d6 # v14.9.0
         with:
           args: deploy --only remoteconfig
 
@@ -164,7 +163,8 @@ jobs:
           sed -i "1s/.*/# Artemis Agent $var/" ${{ github.workspace }}/README.md
 
       - name: Commit
-        uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5
+        id: commit
+        uses: stefanzweifel/git-auto-commit-action@778341af668090896ca464160c2def5d1d1a3eb0 # v6
         with:
           commit_message: Release version ${{ steps.nextVersionName.outputs.new_version }}
           commit_options: "--no-verify --signoff"
@@ -178,10 +178,11 @@ jobs:
         uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
         with:
           github_token: ${{ secrets.RELEASE_PAT }}
-          default_bump: ${{ inputs.versionBump }}
+          custom_tag: ${{ steps.nextVersionName.outputs.new_version }}
+          commit_sha: ${{ steps.commit.outputs.commit_hash }}
 
       - name: Release
-        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1
+        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1
         with:
           tag: ${{ steps.tag.outputs.new_tag }}
           name: ${{ steps.tag.outputs.new_tag }}
