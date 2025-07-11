@@ -164,6 +164,7 @@ class PersonalSettingsFragmentTest : TestCase() {
             themeYellowButton.doesNotExist()
             themeBlueButton.doesNotExist()
             themePurpleButton.doesNotExist()
+            themeOrangeButton.doesNotExist()
             themeDivider.doesNotExist()
             threeDigitDirectionsTitle.doesNotExist()
             threeDigitDirectionsButton.doesNotExist()

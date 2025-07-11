@@ -30,6 +30,11 @@
     <color name="backgroundPurple">#2B0230</color>
     <color name="textPurple">#FF89F1</color>
 
+    <color name="colorPrimaryOrange">#D75500</color>
+    <color name="colorAccentOrange">#F4761F</color>
+    <color name="backgroundOrange">#301C02</color>
+    <color name="textOrange">#FFB28B</color>
+
     <color name="colorPrimaryDisabled">#A4A4B8</color>
     <color name="colorAccentDisabled">#B0B2C5</color>
 
