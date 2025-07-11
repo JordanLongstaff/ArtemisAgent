@@ -43,7 +43,6 @@ import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
-import com.google.android.play.core.install.InstallException
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.ActivityResult
 import com.google.android.play.core.install.model.AppUpdateType
@@ -62,7 +61,7 @@ import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -879,20 +878,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkForUpdates(alertForNoUpdates: Boolean) {
-        viewModel.viewModelScope.launch {
+        viewModel.viewModelScope.launch(
+            CoroutineExceptionHandler { _, _ ->
+                if (alertForNoUpdates) {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.app_version)
+                        .setMessage(R.string.no_updates)
+                        .show()
+                }
+            }
+        ) {
             val results =
                 awaitAll(
                     Firebase.remoteConfig
                         .fetchAndActivate()
                         .continueWith { fetchArtemisLatestVersion() }
                         .asDeferred(),
-                    async {
-                        try {
-                            updateManager.appUpdateInfo.asDeferred().await()
-                        } catch (_: InstallException) {
-                            null
-                        }
-                    },
+                    updateManager.appUpdateInfo.asDeferred(),
                 )
 
             val maxVersion = results[0] as Version
@@ -901,16 +903,7 @@ class MainActivity : AppCompatActivity() {
             val updateInfo = results[1] as? AppUpdateInfo
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
 
-            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)
-            if (updateAlert == null) {
-                if (alertForNoUpdates) {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.app_version)
-                        .setMessage(R.string.no_updates)
-                        .show()
-                }
-                return@launch
-            }
+            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)!!
 
             val context = this@MainActivity
 
