@@ -65,6 +65,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                 }
 
                 private fun onBackEnded() {
+                    viewModel.activateHaptic()
                     viewModel.playSound(SoundEffect.BEEP_1)
                     binding.backPressAlpha.visibility = View.GONE
                 }
@@ -111,8 +112,8 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private class HelpTopic(
-        @StringRes val buttonLabel: Int,
-        @ArrayRes private val paragraphs: Int,
+        @all:StringRes val buttonLabel: Int,
+        @all:ArrayRes private val paragraphs: Int,
         private val insert: MutableList<HelpTopicContent>.(Resources) -> Unit,
     ) : ViewProvider {
         override val viewType: Int = MENU
@@ -132,7 +133,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private sealed interface HelpTopicContent : ViewProvider {
-        data class Image(@DrawableRes val imageSrcId: Int) : HelpTopicContent {
+        data class Image(@all:DrawableRes val imageSrcId: Int) : HelpTopicContent {
             override val viewType: Int = IMAGE
         }
 
@@ -179,6 +180,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     with(holder.itemView as Button) {
                         setText(helpTopics[position].buttonLabel)
                         setOnClickListener {
+                            viewModel.activateHaptic()
                             viewModel.playSound(SoundEffect.BEEP_2)
                             viewModel.helpTopicIndex.value = position
                         }

@@ -2,7 +2,7 @@ package artemis.agent.setup.settings
 
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
-import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class ConnectionSettingsFragmentTest : TestCase() {
-    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
     fun connectionSettingsTimeInputTest() {
@@ -58,6 +58,8 @@ class ConnectionSettingsFragmentTest : TestCase() {
 
                 scenario(SettingsMenuScenario)
                 scenario(SettingsSubmenuOpenScenario.Connection)
+
+                step("Scroll to top") { SettingsPageScreen.settingsScroll.scrollToStart() }
 
                 SettingsPageScreen.Connection {
                     val timeInputSettings =
@@ -105,7 +107,7 @@ class ConnectionSettingsFragmentTest : TestCase() {
     private data class TimeInputSetting(
         val divider: KView,
         val title: KTextView,
-        @StringRes val text: Int,
+        @all:StringRes val text: Int,
         val timeInput: KTimeInputBinder,
         val secondsLabel: KTextView,
         val initialSeconds: Int,

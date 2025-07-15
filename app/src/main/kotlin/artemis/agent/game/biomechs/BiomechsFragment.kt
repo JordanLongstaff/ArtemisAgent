@@ -77,7 +77,10 @@ class BiomechsFragment : Fragment(R.layout.biomechs_fragment) {
     private class BiomechViewHolder(val entryBinding: BiomechEntryBinding) :
         RecyclerView.ViewHolder(entryBinding.root) {
         fun bind(entry: BiomechEntry, viewModel: AgentViewModel) {
-            entryBinding.root.setOnClickListener { entry.freeze(viewModel) }
+            entryBinding.root.setOnClickListener {
+                viewModel.activateHaptic()
+                entry.freeze(viewModel)
+            }
             entryBinding.biomechNameLabel.text = entry.getFullName(viewModel)
             entryBinding.biomechStatusLabel.text =
                 entry.getFrozenStatusText(viewModel.biomechManager, entryBinding.root.context)

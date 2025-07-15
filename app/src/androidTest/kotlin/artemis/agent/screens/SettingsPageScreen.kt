@@ -28,6 +28,7 @@ import io.github.kakaocup.kakao.image.KImageView
 import io.github.kakaocup.kakao.progress.KSeekBar
 import io.github.kakaocup.kakao.recycler.KRecyclerItem
 import io.github.kakaocup.kakao.recycler.KRecyclerView
+import io.github.kakaocup.kakao.scroll.KScrollView
 import io.github.kakaocup.kakao.text.KButton
 import io.github.kakaocup.kakao.text.KTextView
 import org.hamcrest.Matcher
@@ -40,6 +41,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
     val settingsPageTitle = KTextView { withId(R.id.settingsPageTitle) }
     val settingsBack = KImageView { withId(R.id.settingsBack) }
     val settingsOnOff = KCheckBox { withId(R.id.settingsOnOff) }
+    val settingsScroll = KScrollView { withId(R.id.settingsScroll) }
 
     fun assertMainMenuDisplayed() {
         settingsPageTitle.isDisplayedWithText(R.string.settings)
@@ -50,7 +52,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
             pageEntries.forEach { entry ->
                 childAt<Menu.Entry>(entry.ordinal) {
                     title.isDisplayedWithText(entry.title)
-                    if (entry.toggleDisplayed) toggle.isDisplayed() else toggle.isHidden()
+                    if (entry.toggleDisplayed) toggle.isCompletelyDisplayed() else toggle.isHidden()
                 }
             }
         }
@@ -58,7 +60,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
 
     fun assertSubmenuDisplayed(page: Page) {
         settingsPageTitle.isDisplayedWithText(page.title)
-        settingsBack.isDisplayed()
+        settingsBack.isCompletelyDisplayed()
         Menu.settingsPageMenu.doesNotExist()
     }
 
@@ -77,7 +79,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         assertMainMenuDisplayed()
     }
 
-    enum class Page(@StringRes val title: Int, val toggleDisplayed: Boolean) {
+    enum class Page(@all:StringRes val title: Int, val toggleDisplayed: Boolean) {
         CLIENT(R.string.settings_menu_client, false),
         CONNECTION(R.string.settings_menu_connection, false),
         MISSIONS(R.string.settings_menu_missions, true),
@@ -475,7 +477,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
 
         data class AvoidanceSetting(
             val label: KTextView,
-            @StringRes val text: Int,
+            @all:StringRes val text: Int,
             val input: KEditText,
             val kmLabel: KTextView,
             val button: KCheckBox,
@@ -500,14 +502,22 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val themeYellowButton = KCheckBox { withId(R.id.themeYellowButton) }
         val themeBlueButton = KCheckBox { withId(R.id.themeBlueButton) }
         val themePurpleButton = KCheckBox { withId(R.id.themePurpleButton) }
+        val themeOrangeButton = KCheckBox { withId(R.id.themeOrangeButton) }
+        val themeDivider = KView { withId(R.id.themeDivider) }
 
         val threeDigitDirectionsTitle = KTextView { withId(R.id.threeDigitDirectionsTitle) }
         val threeDigitDirectionsButton = KCheckBox { withId(R.id.threeDigitDirectionsButton) }
         val threeDigitDirectionsLabel = KTextView { withId(R.id.threeDigitDirectionsLabel) }
+        val threeDigitDirectionsDivider = KView { withId(R.id.threeDigitDirectionsDivider) }
 
         val soundVolumeTitle = KTextView { withId(R.id.soundVolumeTitle) }
         val soundVolumeBar = KSeekBar { withId(R.id.soundVolumeBar) }
         val soundVolumeLabel = KTextView { withId(R.id.soundVolumeLabel) }
+        val soundVolumeDivider = KView { withId(R.id.soundVolumeDivider) }
+
+        val enableHapticsTitle = KTextView { withId(R.id.enableHapticsTitle) }
+        val enableHapticsButton = KCheckBox { withId(R.id.enableHapticsButton) }
+        val enableHapticsDivider = KView { withId(R.id.enableHapticsDivider) }
 
         val themeButtons by lazy {
             listOf(
@@ -517,6 +527,16 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
                 themeYellowButton,
                 themeBlueButton,
                 themePurpleButton,
+                themeOrangeButton,
+            )
+        }
+
+        val enableHapticsToggleSetting by lazy {
+            SingleToggleButtonSetting(
+                divider = enableHapticsDivider,
+                label = enableHapticsTitle,
+                text = R.string.enable_haptics,
+                button = enableHapticsButton,
             )
         }
     }

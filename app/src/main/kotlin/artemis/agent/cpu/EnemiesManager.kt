@@ -121,8 +121,7 @@ class EnemiesManager {
                 sortByName = settings.enemySortName,
                 sortByDistance = settings.enemySortDistance,
             )
-        maxSurrenderDistance =
-            settings.surrenderRange.toFloat().takeIf { settings.surrenderRangeEnabled }
+        maxSurrenderDistance = settings.surrenderRange.takeIf { settings.surrenderRangeEnabled }
         showTauntStatuses = settings.showTauntStatuses
         showIntel = settings.showEnemyIntel
         disableIneffectiveTaunts = settings.disableIneffectiveTaunts
@@ -136,7 +135,7 @@ class EnemiesManager {
         settings.enemySortName = sorter.sortByName
         settings.enemySortDistance = sorter.sortByDistance
         settings.surrenderRangeEnabled =
-            maxSurrenderDistance?.also { settings.surrenderRange = it.toInt() } != null
+            maxSurrenderDistance?.also { settings.surrenderRange = it } != null
         settings.showTauntStatuses = showTauntStatuses
         settings.showEnemyIntel = showIntel
         settings.disableIneffectiveTaunts = disableIneffectiveTaunts

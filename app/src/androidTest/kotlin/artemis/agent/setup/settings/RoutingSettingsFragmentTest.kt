@@ -1,7 +1,7 @@
 package artemis.agent.setup.settings
 
 import androidx.activity.viewModels
-import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
@@ -14,6 +14,7 @@ import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.showsFormattedDistance
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
@@ -25,7 +26,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class RoutingSettingsFragmentTest : TestCase() {
-    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
     fun routingSettingsMutableTest() {
@@ -88,7 +89,7 @@ class RoutingSettingsFragmentTest : TestCase() {
                                 mineClearance to viewModel.mineClearance,
                                 typhonClearance to viewModel.typhonClearance,
                             )
-                            .forEach { (holder, value) -> holder.lazySet(value.toInt()) }
+                            .forEach { (holder, value) -> holder.lazySet(value.toRawBits()) }
 
                         viewModel.routeIncentives.forEach { incentive ->
                             incentives[incentive.ordinal].lazySet(true)
@@ -116,11 +117,11 @@ class RoutingSettingsFragmentTest : TestCase() {
                 val avoidanceData =
                     AvoidanceData(
                         blackHolesEnabled = blackHoleAvoidance.get(),
-                        blackHolesClearance = blackHoleClearance.get(),
+                        blackHolesClearance = Float.fromBits(blackHoleClearance.get()),
                         minesEnabled = mineAvoidance.get(),
-                        minesClearance = mineClearance.get(),
+                        minesClearance = Float.fromBits(mineClearance.get()),
                         typhonsEnabled = typhonAvoidance.get(),
-                        typhonsClearance = typhonClearance.get(),
+                        typhonsClearance = Float.fromBits(typhonClearance.get()),
                     )
 
                 test(Data(enabled, incentivesData, avoidanceData))
@@ -162,14 +163,16 @@ class RoutingSettingsFragmentTest : TestCase() {
 
     private data class AvoidanceData(
         val blackHolesEnabled: Boolean,
-        val blackHolesClearance: Int,
+        val blackHolesClearance: Float,
         val minesEnabled: Boolean,
-        val minesClearance: Int,
+        val minesClearance: Float,
         val typhonsEnabled: Boolean,
-        val typhonsClearance: Int,
+        val typhonsClearance: Float,
     ) {
         val arrayEnabled by lazy { booleanArrayOf(blackHolesEnabled, minesEnabled, typhonsEnabled) }
-        val clearances by lazy { intArrayOf(blackHolesClearance, minesClearance, typhonsClearance) }
+        val clearances by lazy {
+            floatArrayOf(blackHolesClearance, minesClearance, typhonsClearance)
+        }
     }
 
     private companion object {
@@ -297,14 +300,14 @@ class RoutingSettingsFragmentTest : TestCase() {
         fun TestContext<Unit>.testRoutingSubMenuAvoidanceSetting(
             setting: SettingsPageScreen.Routing.AvoidanceSetting,
             isEnabled: Boolean,
-            clearance: Int,
+            clearance: Float,
             shouldTest: Boolean,
         ) {
             val title = device.targetContext.getString(setting.text)
             step(title) {
                 step("Base components displayed") {
                     setting.label.isDisplayedWithText(title)
-                    setting.button.isDisplayed()
+                    setting.button.isCompletelyDisplayed()
                 }
 
                 testRoutingSubMenuAvoidanceSettingState(setting, isEnabled, clearance)
@@ -326,12 +329,15 @@ class RoutingSettingsFragmentTest : TestCase() {
         fun TestContext<Unit>.testRoutingSubMenuAvoidanceSettingState(
             setting: SettingsPageScreen.Routing.AvoidanceSetting,
             isEnabled: Boolean,
-            clearance: Int,
+            clearance: Float,
         ) {
             step("Clearance input ${if (isEnabled) "" else "not "}displayed") {
                 if (isEnabled) {
                     setting.button.isChecked()
-                    setting.input.isDisplayedWithText(clearance.toString())
+                    setting.input {
+                        isCompletelyDisplayed()
+                        showsFormattedDistance(clearance)
+                    }
                     setting.kmLabel.isDisplayedWithText(R.string.kilometres)
                 } else {
                     setting.button.isNotChecked()

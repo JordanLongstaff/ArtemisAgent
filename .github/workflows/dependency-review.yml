@@ -58,12 +58,12 @@ jobs:
       # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
       # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
       - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/dependency-submission@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4
         with:
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
       - name: Download and submit Gradle dependency graph
-        uses: gradle/actions/dependency-submission@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/dependency-submission@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4
         with:
           dependency-graph: download-and-submit
 
@@ -75,7 +75,7 @@ jobs:
       - name: 'Checkout repository'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: 'Dependency Review'
-        uses: actions/dependency-review-action@67d4f4bd7a9b17a0db54d2a7519187c65e339de8 # v4
+        uses: actions/dependency-review-action@da24556b548a50705dd671f47852072ea4c105d9 # v4
         # Commonly enabled options, see https://github.com/actions/dependency-review-action#configuration-options for all available options.
         with:
           comment-summary-in-pr: always

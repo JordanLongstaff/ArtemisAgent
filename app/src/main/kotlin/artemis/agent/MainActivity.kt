@@ -3,7 +3,6 @@ package artemis.agent
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PendingIntent
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -44,8 +43,6 @@ import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
-import com.google.android.play.core.install.InstallException
-import com.google.android.play.core.install.InstallState
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.ActivityResult
 import com.google.android.play.core.install.model.AppUpdateType
@@ -64,7 +61,7 @@ import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -75,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: AgentViewModel by viewModels()
 
     /** UI sections selected by the three buttons at the bottom of the screen. */
-    enum class Section(val sectionClass: Class<out Fragment>, @IdRes val buttonId: Int) {
+    enum class Section(val sectionClass: Class<out Fragment>, @all:IdRes val buttonId: Int) {
         SETUP(SetupFragment::class.java, R.id.setupPageButton),
         GAME(GameFragment::class.java, R.id.gamePageButton),
         HELP(HelpFragment::class.java, R.id.helpPageButton),
@@ -99,9 +96,27 @@ class MainActivity : AppCompatActivity() {
 
     val updateManager: AppUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
+    private val installStateListener: InstallStateUpdatedListener by lazy {
+        InstallStateUpdatedListener { state ->
+            when (state.installStatus()) {
+                InstallStatus.DOWNLOADED -> onUpdateReady()
+                InstallStatus.INSTALLED -> updateManager.unregisterListener(installStateListener)
+                else -> {}
+            }
+        }
+    }
+
     private val updateResultLauncher: ActivityResultLauncher<IntentSenderRequest> =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             when (result.resultCode) {
+                RESULT_OK -> {
+                    if (updateType == AppUpdateType.FLEXIBLE) {
+                        updateManager.registerListener(installStateListener)
+                    }
+
+                    null
+                }
+
                 RESULT_CANCELED -> {
                     R.string.update_declined_title to R.string.update_declined_message
                 }
@@ -127,7 +142,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private var isUpdateReady: Boolean = false
     @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
 
     private val completeUpdateCallback by lazy {
@@ -516,18 +530,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setupTheme()
         setupWindowInsets()
         setupFirebase()
         setupTiramisu()
         setupBackPressedCallbacks()
-        setupTheme()
         setupConnectionObservers()
         setupUserSettingsObserver()
 
         collectLatestWhileStarted(viewModel.gameOverReason) {
             if (shouldAskForReview) askForReview()
             shouldAskForReview = !shouldAskForReview
-            checkForUpdates()
+            checkForUpdates(false)
         }
 
         collectLatestWhileStarted(viewModel.jumping) {
@@ -539,10 +553,17 @@ class MainActivity : AppCompatActivity() {
                 if (it == HelpFragment.ABOUT_TOPIC_INDEX) View.VISIBLE else View.GONE
         }
 
-        binding.updateButton.setOnClickListener { checkForUpdates() }
+        binding.updateButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+            checkForUpdates(true)
+        }
 
         binding.mainPageSelector.children.forEach { view ->
-            view.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            view.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
         }
 
         binding.mainPageSelector.setOnCheckedChangeListener { _, checkedId ->
@@ -562,7 +583,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        checkForUpdates()
+        checkForUpdates(false)
     }
 
     /**
@@ -573,18 +594,22 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         Intent(this, NotificationService::class.java).also {
             startService(it)
-            bindService(it, connection, Context.BIND_AUTO_CREATE)
+            bindService(it, connection, BIND_AUTO_CREATE)
+        }
+    }
+
+    /** When the activity is stopped, write the current theme to disk. */
+    override fun onStop() {
+        super.onStop()
+        openFileOutput(THEME_RES_FILE_NAME, MODE_PRIVATE).use {
+            it.write(byteArrayOf(viewModel.themeIndex.toByte()))
         }
     }
 
     /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         destroyServiceConnection()
-
-        openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
-            it.write(byteArrayOf(viewModel.themeIndex.toByte()))
-        }
     }
 
     /**
@@ -686,7 +711,7 @@ class MainActivity : AppCompatActivity() {
         Firebase.remoteConfig.apply {
             setConfigSettingsAsync(configSettings)
             setDefaultsAsync(
-                mapOf(RemoteConfigKey.artemisLatestVersion to Version.DEFAULT.toString())
+                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
             )
         }
     }
@@ -755,7 +780,7 @@ class MainActivity : AppCompatActivity() {
                 .setCancelable(true)
                 .apply {
                     if (suggestUpdate) {
-                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates() }
+                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates(true) }
                     }
                 }
                 .show()
@@ -852,21 +877,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForUpdates() {
-        viewModel.viewModelScope.launch {
+    private fun checkForUpdates(alertForNoUpdates: Boolean) {
+        viewModel.viewModelScope.launch(
+            CoroutineExceptionHandler { _, _ ->
+                if (alertForNoUpdates) {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(R.string.app_version)
+                        .setMessage(R.string.no_updates)
+                        .show()
+                }
+            }
+        ) {
             val results =
                 awaitAll(
                     Firebase.remoteConfig
                         .fetchAndActivate()
                         .continueWith { fetchArtemisLatestVersion() }
                         .asDeferred(),
-                    async {
-                        try {
-                            updateManager.appUpdateInfo.asDeferred().await()
-                        } catch (_: InstallException) {
-                            null
-                        }
-                    },
+                    updateManager.appUpdateInfo.asDeferred(),
                 )
 
             val maxVersion = results[0] as Version
@@ -875,7 +903,7 @@ class MainActivity : AppCompatActivity() {
             val updateInfo = results[1] as? AppUpdateInfo
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
 
-            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode) ?: return@launch
+            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)!!
 
             val context = this@MainActivity
 
@@ -912,9 +940,9 @@ class MainActivity : AppCompatActivity() {
         try {
                 openFileInput(MAX_VERSION_FILE_NAME).use { it.readBytes().decodeToString() }
             } catch (_: FileNotFoundException) {
-                Firebase.remoteConfig.getString(RemoteConfigKey.artemisLatestVersion).also { ver ->
-                    openFileOutput(MAX_VERSION_FILE_NAME, Context.MODE_PRIVATE).use {
-                        it.write(ver.encodeToByteArray())
+                Firebase.remoteConfig.getString(RemoteConfigKey.ARTEMIS_LATEST_VERSION).also { v ->
+                    openFileOutput(MAX_VERSION_FILE_NAME, MODE_PRIVATE).use {
+                        it.write(v.encodeToByteArray())
                     }
                 }
             }
@@ -924,35 +952,20 @@ class MainActivity : AppCompatActivity() {
         val appUpdateInfoTask = updateManager.appUpdateInfo
 
         appUpdateInfoTask.addOnSuccessListener { updateInfo ->
-            if (updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                if (updateType == AppUpdateType.FLEXIBLE) {
-                    val listener =
-                        object : InstallStateUpdatedListener {
-                            override fun onStateUpdate(installState: InstallState) {
-                                when (installState.installStatus()) {
-                                    InstallStatus.DOWNLOADED -> onUpdateReady()
-                                    InstallStatus.INSTALLED ->
-                                        updateManager.unregisterListener(this)
-                                    else -> {}
-                                }
-                            }
-                        }
-                    updateManager.registerListener(listener)
-                }
-
-                if (updateInfo.isUpdateTypeAllowed(updateType)) {
-                    updateManager.startUpdateFlowForResult(
-                        updateInfo,
-                        updateResultLauncher,
-                        AppUpdateOptions.newBuilder(updateType).build(),
-                    )
-                }
+            if (
+                updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                    updateInfo.isUpdateTypeAllowed(updateType)
+            ) {
+                updateManager.startUpdateFlowForResult(
+                    updateInfo,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(updateType).build(),
+                )
             }
         }
     }
 
     private fun onUpdateReady() {
-        isUpdateReady = true
         completeUpdateCallback.isEnabled = true
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.update_ready_title)
@@ -963,7 +976,6 @@ class MainActivity : AppCompatActivity() {
             }
             .setPositiveButton(R.string.update_now) { _, _ ->
                 viewModel.playSound(SoundEffect.BEEP_2)
-                isUpdateReady = false
                 updateManager.completeUpdate()
             }
             .show()

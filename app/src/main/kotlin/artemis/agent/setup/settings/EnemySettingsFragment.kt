@@ -95,6 +95,7 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
 
     private fun prepareDefaultSortMethodButton(enemySortMethodButtons: ToggleButtonMap) {
         binding.enemySortingDefaultButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
         }
 
@@ -116,7 +117,10 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         val context = binding.root.context
 
         enemySortMethodButtons.keys.forEach { button ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
         }
 
         binding.enemySortingSurrenderButton.setOnCheckedChangeListener { _, isChecked ->
@@ -159,7 +163,10 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
     }
 
     private fun prepareReverseRaceSortButton() {
-        binding.reverseRaceSortButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.reverseRaceSortButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.reverseRaceSortButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
@@ -177,10 +184,14 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
             }
         }
 
-        binding.surrenderRangeField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.surrenderRangeField.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.surrenderRangeField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -188,12 +199,13 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
             val text = binding.surrenderRangeField.text?.toString()
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
-                    it.copy { surrenderRange = if (text.isNullOrBlank()) 0 else text.toInt() }
+                    it.copy { surrenderRange = if (text.isNullOrBlank()) 0f else text.toFloat() }
                 }
             }
         }
 
         binding.surrenderRangeEnableButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             clearFocus()
         }
@@ -209,7 +221,10 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
 
     private fun bindToggleSettingButtons(enemyToggleButtons: ToggleButtonMap) {
         enemyToggleButtons.entries.forEach { (button, setting) ->
-            button.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
 
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {

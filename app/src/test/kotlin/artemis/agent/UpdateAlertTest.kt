@@ -137,7 +137,7 @@ class UpdateAlertTest :
 
                 describe("Update for Artemis version") {
                     every {
-                        mockRemoteConfig.getLong(RemoteConfigKey.RequiredVersion.artemis)
+                        mockRemoteConfig.getLong(RemoteConfigKey.RequiredVersion.ARTEMIS)
                     } returns latestVersionCode.toLong()
 
                     it("Triggers in range") {
@@ -154,7 +154,7 @@ class UpdateAlertTest :
 
                 describe("Immediate update") {
                     every {
-                        mockRemoteConfig.getLong(RemoteConfigKey.RequiredVersion.security)
+                        mockRemoteConfig.getLong(RemoteConfigKey.RequiredVersion.SECURITY)
                     } returns latestVersionCode.toLong()
 
                     it("Triggers in range") {

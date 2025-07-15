@@ -42,7 +42,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4
         with:
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
@@ -51,7 +51,9 @@ jobs:
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew build koverXmlReport
+        uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3
+        with:
+          arguments: build koverXmlReport
 
       # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
       # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
@@ -110,13 +112,13 @@ jobs:
           path: konsist
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@afb2984f4d89672b2f9d9c13ae23d53779671984 # v2
+        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
         with:
           check_name: Unit Test Results
           files: tests/**/*.xml
 
       - name: Publish Konsist Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@afb2984f4d89672b2f9d9c13ae23d53779671984 # v2
+        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
         if: always()
         with:
           check_name: Konsist Test Results
