@@ -23,13 +23,20 @@ buildscript {
     }
 }
 
-val sdkVersion: Int by extra(36)
-val minimumSdkVersion: Int by extra(21)
-val javaVersion: JavaVersion by extra(JavaVersion.VERSION_21)
+val javaVersion = JavaVersion.VERSION_21
 
-val pitestTimeoutFactor: BigDecimal by extra(BigDecimal(100))
-val pitestMutators: Set<String> by
-    extra(
+extra.apply {
+    set("sdkVersion", 36)
+    set("minimumSdkVersion", 21)
+    set("javaVersion", javaVersion)
+
+    set("kotlinMainPath", "src/main/kotlin")
+    set("kotlinTestPath", "src/test/kotlin")
+    set("kotlinTestFixturesPath", "src/testFixtures/kotlin")
+
+    set("pitestTimeoutFactor", BigDecimal(100))
+    set(
+        "pitestMutators",
         setOf(
             "STRONGER",
             "EXTENDED",
@@ -39,12 +46,9 @@ val pitestMutators: Set<String> by
             "REMOVE_INCREMENTS",
             "EXPERIMENTAL_MEMBER_VARIABLE",
             "EXPERIMENTAL_NAKED_RECEIVER",
-        )
+        ),
     )
-
-val kotlinMainPath: String by extra("src/main/kotlin")
-val kotlinTestPath: String by extra("src/test/kotlin")
-val kotlinTestFixturesPath: String by extra("src/testFixtures/kotlin")
+}
 
 plugins {
     base
@@ -63,11 +67,7 @@ tasks.detekt { jvmTarget = javaVersion.toString() }
 tasks.detektBaseline { jvmTarget = javaVersion.toString() }
 
 dependencyAnalysis {
-    usage {
-        analysis {
-            checkSuperClasses(true)
-        }
-    }
+    usage { analysis { checkSuperClasses(true) } }
     useTypesafeProjectAccessors(true)
 }
 
