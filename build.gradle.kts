@@ -7,6 +7,9 @@ buildscript {
             classpath(libs.commons.compress) {
                 because("Version 1.26 patches two high-level security vulnerabilities")
             }
+            classpath(libs.commons.lang3) {
+                because("Version 3.18 fixes an uncontrolled recursion error")
+            }
             classpath(libs.netty) {
                 because("Version 4.1.100.Final patches a high-level security vulnerability")
             }
