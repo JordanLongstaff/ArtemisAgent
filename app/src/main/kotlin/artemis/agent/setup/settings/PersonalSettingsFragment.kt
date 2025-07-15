@@ -42,6 +42,7 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 binding.themeYellowButton,
                 binding.themeBlueButton,
                 binding.themePurpleButton,
+                binding.themeOrangeButton,
             )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {

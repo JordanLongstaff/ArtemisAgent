@@ -63,6 +63,7 @@ message UserSettings {
         THEME_YELLOW = 3;
         THEME_BLUE = 4;
         THEME_PURPLE = 5;
+        THEME_ORANGE = 6;
     }
 
     Theme theme = 43;

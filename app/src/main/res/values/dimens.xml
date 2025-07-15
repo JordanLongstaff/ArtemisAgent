@@ -14,4 +14,9 @@
 
     <dimen name="baseTextSize">16sp</dimen>
     <dimen name="mediumTextSize">22sp</dimen>
+
+    <dimen name="buttonPaddingHorizontal">8dp</dimen>
+    <dimen name="buttonPaddingVertical">4dp</dimen>
+    <dimen name="buttonInsetHorizontal">4dp</dimen>
+    <dimen name="buttonInsetVertical">6dp</dimen>
 </resources>

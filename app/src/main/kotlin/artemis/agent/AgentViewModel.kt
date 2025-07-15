@@ -1254,6 +1254,7 @@ class AgentViewModel(application: Application) :
                 R.style.Theme_ArtemisAgent_Yellow,
                 R.style.Theme_ArtemisAgent_Blue,
                 R.style.Theme_ArtemisAgent_Purple,
+                R.style.Theme_ArtemisAgent_Orange,
             )
 
         fun Number.formatString(): String = toString().format(Locale.getDefault())

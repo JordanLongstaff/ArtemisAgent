@@ -502,6 +502,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val themeYellowButton = KCheckBox { withId(R.id.themeYellowButton) }
         val themeBlueButton = KCheckBox { withId(R.id.themeBlueButton) }
         val themePurpleButton = KCheckBox { withId(R.id.themePurpleButton) }
+        val themeOrangeButton = KCheckBox { withId(R.id.themeOrangeButton) }
         val themeDivider = KView { withId(R.id.themeDivider) }
 
         val threeDigitDirectionsTitle = KTextView { withId(R.id.threeDigitDirectionsTitle) }
@@ -526,6 +527,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
                 themeYellowButton,
                 themeBlueButton,
                 themePurpleButton,
+                themeOrangeButton,
             )
         }
 
