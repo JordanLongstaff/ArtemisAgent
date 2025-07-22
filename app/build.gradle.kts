@@ -48,8 +48,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 37
-        versionName = "1.3.2"
+        versionCode = 38
+        versionName = "1.4.0"
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
