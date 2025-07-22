@@ -34,6 +34,7 @@ object MainScreen : KScreen<MainScreen>() {
     ) {
         this@MainScreen {
             step("Accept permissions") { acceptPermissions(device) }
+            step("Dismiss changelog") { pressBack() }
             test()
             if (backButtonShouldCloseApp)
                 step("Back button should close the app") { assertCloseOnBackButton() }
@@ -49,7 +50,7 @@ object MainScreen : KScreen<MainScreen>() {
         }
     }
 
-    private fun acceptPermissions(device: Device) {
+    fun acceptPermissions(device: Device) {
         if (!isTiramisu) return
         device.permissions.allowViaDialog()
     }
