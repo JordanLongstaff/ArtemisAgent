@@ -30,6 +30,12 @@ val release = "release"
 val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
+val changelog =
+    rootProject
+        .file("fastlane/metadata/android/en-US/changelogs/default.txt")
+        .readLines()
+        .joinToString("\\n") { it.replaceFirst('*', '\u2022') }
+
 val kotlinMainPath: String by rootProject.extra
 val kotlinTestPath: String by rootProject.extra
 val kotlinAndroidTestPath = "src/androidTest/kotlin"
@@ -80,6 +86,7 @@ android {
         configureEach {
             resValue(stringRes, "app_name", appName)
             resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "changelog", changelog)
         }
         release {
             signingConfig = signingConfigs.getByName(release)
