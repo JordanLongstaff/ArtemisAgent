@@ -2,6 +2,7 @@ package artemis.agent
 
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
+import androidx.core.text.HtmlCompat
 import java.io.FileNotFoundException
 
 enum class UpdateCheck {
@@ -22,9 +23,15 @@ enum class UpdateCheck {
                     it.write(currentAppVersion.encodeToByteArray())
                 }
 
+                val changelog =
+                    HtmlCompat.fromHtml(
+                        context.getString(R.string.changelog),
+                        HtmlCompat.FROM_HTML_MODE_COMPACT,
+                    )
+
                 AlertDialog.Builder(context)
                     .setTitle(R.string.app_version)
-                    .setMessage(R.string.changelog)
+                    .setMessage(changelog)
                     .setCancelable(true)
                     .show()
             }
