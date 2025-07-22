@@ -74,4 +74,15 @@ object MainScreen : KScreen<MainScreen>() {
             neutralButton.isRemoved()
         }
     }
+
+    fun assertChangelogOpen() {
+        alertDialog {
+            isCompletelyDisplayed()
+            title.isDisplayedWithText(R.string.app_version)
+            message.isCompletelyDisplayed()
+            positiveButton.isRemoved()
+            negativeButton.isRemoved()
+            neutralButton.isRemoved()
+        }
+    }
 }

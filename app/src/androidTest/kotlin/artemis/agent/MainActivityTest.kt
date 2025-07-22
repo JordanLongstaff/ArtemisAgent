@@ -24,16 +24,7 @@ class MainActivityTest : TestCase() {
             MainScreen {
                 step("Accept permissions") { acceptPermissions(device) }
 
-                step("Check that dialog showing changelog is visible") {
-                    alertDialog {
-                        isCompletelyDisplayed()
-                        title.isDisplayedWithText(R.string.app_version)
-                        message.isCompletelyDisplayed()
-                        positiveButton.isRemoved()
-                        negativeButton.isRemoved()
-                        neutralButton.isRemoved()
-                    }
-                }
+                step("Check that dialog showing changelog is visible") { assertChangelogOpen() }
             }
         }
     }
