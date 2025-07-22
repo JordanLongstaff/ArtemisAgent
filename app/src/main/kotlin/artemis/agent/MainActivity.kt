@@ -1026,9 +1026,6 @@ class MainActivity : AppCompatActivity() {
         const val MAX_VERSION_FILE_NAME = "max_version.dat"
 
         val PENDING_INTENT_FLAGS =
-            PendingIntent.FLAG_UPDATE_CURRENT.or(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE
-                else 0
-            )
+            PendingIntent.FLAG_UPDATE_CURRENT.or(PendingIntent.FLAG_IMMUTABLE)
     }
 }
