@@ -27,7 +27,7 @@ val javaVersion = JavaVersion.VERSION_21
 
 extra.apply {
     set("sdkVersion", 36)
-    set("minimumSdkVersion", 21)
+    set("minimumSdkVersion", 23)
     set("javaVersion", javaVersion)
 
     set("kotlinMainPath", "src/main/kotlin")

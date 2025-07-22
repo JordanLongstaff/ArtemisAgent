@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api-level: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+        api-level: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
         orientation: [ {name: portrait, rotation: 0, skin: 480x800}, {name: landscape, rotation: 1, skin: 800x480} ]
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
     timeout-minutes: 20
