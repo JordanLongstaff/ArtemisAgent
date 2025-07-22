@@ -6,7 +6,7 @@ androidx-constraintlayout = "2.2.1"
 androidx-core = "1.16.0"
 androidx-datastore = "1.1.7"
 androidx-fragment = "1.8.8"
-androidx-lifecycle = "2.9.1"
+androidx-lifecycle = "2.9.2"
 androidx-multidex = "2.0.1"
 androidx-recyclerview = "1.4.0"
 androidx-test-core = "1.6.1"
@@ -35,7 +35,7 @@ kakao = "3.6.5"
 kaspresso = "1.6.0"
 koin = "4.1.0"
 koin-annotations = "2.1.0"
-konnection = "1.4.4"
+konnection = "1.4.5"
 konsist = "0.17.3"
 korlibs = "6.0.0-alpha2"
 kotest = "5.9.1"
@@ -50,10 +50,10 @@ kotlinpoet = "2.2.0"
 kover = "0.9.1"
 ksp = "2.2.0-2.0.2"
 ktfmt = "0.23.0"
-ktor = "3.2.1"
+ktor = "3.2.2"
 leakcanary = "2.14"
 material = "1.12.0"
-mockk = "1.14.4"
+mockk = "1.14.5"
 okio = "3.15.0"
 perf-plugin = "1.4.2"
 pitest = "1.20.0"
@@ -184,6 +184,7 @@ konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 accessibility-test-framework = { module = "com.google.android.apps.common.testing.accessibility.framework:accessibility-test-framework", version = "latest.release" }
 bouncycastle = { module = "org.bouncycastle:bcpkix-jdk18on", version = "latest.release" }
 commons-compress = { module = "org.apache.commons:commons-compress", version = "latest.release" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
 netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
