@@ -34,7 +34,7 @@ val changelog =
     rootProject
         .file("fastlane/metadata/android/en-US/changelogs/default.txt")
         .readLines()
-        .joinToString("\\n") { it.replaceFirst('*', '\u2022') }
+        .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
 
 val kotlinMainPath: String by rootProject.extra
 val kotlinTestPath: String by rootProject.extra

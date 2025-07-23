@@ -1,3 +1,3 @@
-* <b>App now requires Android 6 or later</b>
+* **App now requires Android 6 or later**
 * Dependency upgrades
 * Added orange theme

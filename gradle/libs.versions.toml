@@ -52,6 +52,7 @@ ksp = "2.2.0-2.0.2"
 ktfmt = "0.23.0"
 ktor = "3.2.2"
 leakcanary = "2.14"
+markwon = "4.6.2"
 material = "1.12.0"
 mockk = "1.14.5"
 okio = "3.15.0"
@@ -135,6 +136,7 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 
 protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 
+markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
 process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "process-phoenix" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
@@ -224,6 +226,7 @@ app = [
     "app-review",
     "app-update",
     "play-services-tasks",
+    "markwon",
     "process-phoenix",
     "jspecify",
 ]
