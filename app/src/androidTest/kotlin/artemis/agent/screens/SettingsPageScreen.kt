@@ -513,6 +513,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val soundVolumeTitle = KTextView { withId(R.id.soundVolumeTitle) }
         val soundVolumeBar = KSeekBar { withId(R.id.soundVolumeBar) }
         val soundVolumeLabel = KTextView { withId(R.id.soundVolumeLabel) }
+        val soundMuteButton = KCheckBox { withId(R.id.soundMuteButton) }
         val soundVolumeDivider = KView { withId(R.id.soundVolumeDivider) }
 
         val enableHapticsTitle = KTextView { withId(R.id.enableHapticsTitle) }
