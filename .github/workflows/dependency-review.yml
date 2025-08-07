@@ -34,6 +34,7 @@ jobs:
   wait-for-build:
     name: 'Wait for build to complete'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: ArcticLampyrid/action-wait-for-workflow@da2316a3b49eb2d2377e8ec1f94c5947b2e04deb # v1.2.0
         with:
@@ -76,6 +77,7 @@ jobs:
     needs: wait-for-build
     if: ${{ github.ref != 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: ArcticLampyrid/action-wait-for-workflow@da2316a3b49eb2d2377e8ec1f94c5947b2e04deb # v1.2.0
         with:
