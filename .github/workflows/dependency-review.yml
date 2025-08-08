@@ -75,7 +75,7 @@ jobs:
   wait-for-main:
     name: 'Wait for dependency review on main'
     needs: wait-for-build
-    if: ${{ github.ref != 'refs/heads/main' }}
+    if: ${{ github.ref != 'refs/heads/main' && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -83,6 +83,7 @@ jobs:
         with:
           workflow: dependency-review.yml
           branch: main
+          sha: ${{ github.event.pull_request.base.sha }}
           wait-interval: 5
 
   dependency-review:
