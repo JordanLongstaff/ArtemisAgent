@@ -81,7 +81,7 @@ jobs:
     steps:
       - uses: ArcticLampyrid/action-wait-for-workflow@da2316a3b49eb2d2377e8ec1f94c5947b2e04deb # v1.2.0
         with:
-          workflow: ${{ github.workflow }}
+          workflow: dependency-review.yml
           branch: main
           wait-interval: 5
 
