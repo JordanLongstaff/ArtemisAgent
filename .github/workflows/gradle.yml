@@ -88,28 +88,24 @@ jobs:
           path: |
             ${{ github.workspace }}/**/build/reports/kover/report.xml
 
-  wait-for-main:
-    name: Wait for base branch dependency review
-    needs: build
-    if: ${{ github.event_name == 'pull_request' }}
+  dependency-review:
+    name: Dependency review
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    needs: build
     steps:
-      - uses: ArcticLampyrid/action-wait-for-workflow@da2316a3b49eb2d2377e8ec1f94c5947b2e04deb # v1.2.0
+      - name: 'Wait for base branch workflow run'
+        uses: ArcticLampyrid/action-wait-for-workflow@da2316a3b49eb2d2377e8ec1f94c5947b2e04deb # v1.2.0
+        if: ${{ github.event_name == 'pull_request' }}
+        timeout-minutes: 5
         with:
           workflow: gradle.yml
           branch: ${{ github.event.pull_request.base.ref }}
           sha: ${{ github.event.pull_request.base.sha }}
           wait-interval: 5
 
-  dependency-review:
-    name: Dependency review
-    runs-on: ubuntu-latest
-    needs: [ build, wait-for-main ]
-    if: ${{ always() && needs.build.result == 'success' }}
-    steps:
       - name: 'Checkout repository'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@da24556b548a50705dd671f47852072ea4c105d9 # v4
         # Commonly enabled options, see https://github.com/actions/dependency-review-action#configuration-options for all available options.
