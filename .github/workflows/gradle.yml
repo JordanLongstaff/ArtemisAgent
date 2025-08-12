@@ -57,6 +57,7 @@ jobs:
         with:
           dependency-graph: generate-and-submit
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
+          github-token: ${{ secrets.SNAPSHOT_PAT }}
 
       - name: Build with Gradle Wrapper
         uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3
