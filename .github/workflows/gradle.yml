@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -57,7 +57,6 @@ jobs:
         with:
           dependency-graph: generate-and-submit
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
-          github-token: ${{ secrets.SNAPSHOT_PAT }}
 
       - name: Build with Gradle Wrapper
         uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3
