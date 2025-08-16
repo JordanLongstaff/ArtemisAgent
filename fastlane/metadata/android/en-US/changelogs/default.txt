@@ -1,3 +1,2 @@
-* **App now requires Android 6 or later**
+* Added mute button for sound effects in settings
 * Dependency upgrades
-* Added orange theme
