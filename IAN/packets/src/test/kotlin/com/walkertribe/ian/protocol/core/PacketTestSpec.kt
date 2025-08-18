@@ -40,7 +40,7 @@ sealed class PacketTestSpec<T : Packet>(
             @Suppress("LeakingThis") include(tests())
         }
 
-        finalizeSpec {
+        afterSpec {
             clearAllMocks()
             unmockkAll()
         }
@@ -57,7 +57,7 @@ sealed class PacketTestSpec<T : Packet>(
             val sendChannel = ByteChannel()
             val writer = PacketWriter(sendChannel)
 
-            finalizeSpec { writer.close() }
+            afterSpec { writer.close() }
 
             describe(specName) {
                 organizeTests(fixtures) { fixture ->
