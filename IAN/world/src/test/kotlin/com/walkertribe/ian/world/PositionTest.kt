@@ -2,8 +2,8 @@ package com.walkertribe.ian.world
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.engine.names.WithDataTestName
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.equals.shouldBeEqual

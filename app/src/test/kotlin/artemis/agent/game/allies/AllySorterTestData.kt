@@ -4,7 +4,7 @@ import artemis.agent.game.ObjectEntry
 import com.walkertribe.ian.vesseldata.Empty
 import com.walkertribe.ian.vesseldata.VesselData
 import com.walkertribe.ian.world.ArtemisNpc
-import io.kotest.datatest.WithDataTestName
+import io.kotest.engine.names.WithDataTestName
 import kotlinx.serialization.Serializable
 
 @Serializable
