@@ -159,14 +159,11 @@ kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref
 kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 
-kotest-assertions-api = { module = "io.kotest:kotest-assertions-api", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
 kotest-extensions-koin = { module = "io.kotest.extensions:kotest-extensions-koin", version.ref = "kotest-koin" }
 kotest-extensions-pitest = { module = "io.kotest.extensions:kotest-extensions-pitest", version.ref = "kotest-pitest" }
-kotest-framework-api = { module = "io.kotest:kotest-framework-api", version.ref = "kotest" }
-kotest-framework-datatest-jvm = { module = "io.kotest:kotest-framework-datatest-jvm", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-property-arbs-jvm = { module = "io.kotest.extensions:kotest-property-arbs-jvm", version.ref = "kotest-arbs" }
@@ -238,11 +235,8 @@ app-debug-runtime = [
     "leakcanary",
 ]
 app-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
     "kotest-framework-engine",
     "kotest-property",
     "kotest-property-arbs-jvm",
@@ -280,11 +274,9 @@ ian = [
 ian-test = [
     "kotlinx-coroutines-test",
     "kotlinx-io",
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
     "mockk-dsl",
@@ -296,19 +288,17 @@ ian-test-runtime = [
 ]
 
 ian-enums-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 
 ian-listener-test = [
     "kotest-assertions-core",
-    "kotest-framework-api",
+    "kotest-framework-engine",
     "mockk",
     "mockk-dsl",
 ]
@@ -322,24 +312,20 @@ ian-packets-api = [
     "ktor-io",
 ]
 ian-packets-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
     "kotest-extensions-koin",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "koin-test",
     "mockk",
     "mockk-dsl",
 ]
 ian-packets-test-fixtures = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
     "mockk-dsl",
@@ -356,8 +342,7 @@ ian-udp-test = [
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
@@ -369,22 +354,17 @@ ian-util = [
 ]
 ian-util-test = [
     "kotlinx-coroutines",
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 ian-util-test-fixtures = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
@@ -395,21 +375,17 @@ ian-vesseldata = [
     "okio",
 ]
 ian-vesseldata-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 ian-vesseldata-test-fixtures = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
     "kotest-framework-engine",
     "kotest-property",
     "korlibs-xml",
@@ -421,8 +397,7 @@ ian-world-test = [
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
     "mockk-dsl",
@@ -430,15 +405,13 @@ ian-world-test = [
 ian-world-test-fixtures = [
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
     "kotest-property",
     "mockk",
     "mockk-dsl",
 ]
 
 konsist-common = [
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "konsist",
 ]
 konsist-app = [

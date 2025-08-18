@@ -70,7 +70,6 @@ dependencies {
 
     runtimeOnly(libs.kotlin.reflect)
 
-    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.listener))
     testImplementation(testFixtures(projects.ian.packets))
     testImplementation(testFixtures(projects.ian.util))
