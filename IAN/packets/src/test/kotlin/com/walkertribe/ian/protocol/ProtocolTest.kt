@@ -20,7 +20,6 @@ import com.walkertribe.ian.protocol.core.world.BiomechRagePacket
 import com.walkertribe.ian.protocol.core.world.DeleteObjectPacket
 import com.walkertribe.ian.protocol.core.world.DockedPacket
 import com.walkertribe.ian.protocol.core.world.ObjectUpdatePacket
-import io.kotest.core.extensions.Extension
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.koin.KoinExtension
@@ -46,6 +45,8 @@ class ProtocolTest : DescribeSpec(), KoinTest {
     private val protocol: Protocol by inject()
 
     init {
+        extension(KoinExtension(defaultModule, mode = KoinLifecycleMode.Root))
+
         describe("Protocol") {
             describe("Has factories registered for server packets") {
                 data class ServerPacketRegistration(
@@ -226,7 +227,4 @@ class ProtocolTest : DescribeSpec(), KoinTest {
             }
         }
     }
-
-    override fun extensions(): List<Extension> =
-        listOf(KoinExtension(defaultModule, mode = KoinLifecycleMode.Root))
 }
