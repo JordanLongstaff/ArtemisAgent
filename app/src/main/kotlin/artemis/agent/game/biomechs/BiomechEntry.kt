@@ -71,7 +71,7 @@ data class BiomechEntry(val biomech: ArtemisNpc) : Comparable<BiomechEntry> {
 
     override fun compareTo(other: BiomechEntry): Int =
         when (isFrozen to other.isFrozen) {
-            true to true -> freezeStartTime.compareTo(other.freezeStartTime)
+            true to true -> compareValuesBy(this, other) { it.freezeStartTime }
             false to false -> timesFrozen - other.timesFrozen
             true to false -> UNFROZEN_COMPARE - other.timesFrozen * 2
             else -> timesFrozen * 2 - UNFROZEN_COMPARE
