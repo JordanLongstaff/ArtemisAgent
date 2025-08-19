@@ -35,9 +35,7 @@ data class Version(val major: Int, val minor: Int, val patch: Int) : Comparable<
      * number of parts, the absent parts are treated as zero (e.g.: 2.1 is the same as 2.1.0).
      */
     override operator fun compareTo(other: Version): Int =
-        major.compareTo(other.major).takeIf { it != 0 }
-            ?: minor.compareTo(other.minor).takeIf { it != 0 }
-            ?: patch.compareTo(other.patch)
+        compareValuesBy(this, other, { it.major }, { it.minor }, { it.patch })
 
     companion object {
         private const val MAJOR_MASK = 0x000F

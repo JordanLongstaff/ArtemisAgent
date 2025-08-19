@@ -311,7 +311,7 @@ data class HeadingTestCase(val expectedHeading: Float, val xDiff: Float, val zDi
     override fun dataTestName(): String = "$expectedHeading degrees"
 
     override fun compareTo(other: HeadingTestCase): Int =
-        expectedHeading.compareTo(other.expectedHeading)
+        compareValuesBy(this, other) { it.expectedHeading }
 
     companion object {
         private const val ROTATE_AMOUNT = 90f
