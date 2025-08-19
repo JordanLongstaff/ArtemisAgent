@@ -46,6 +46,7 @@ sealed class PacketTestSpec<T : Packet>(
         }
     }
 
+    @Ignored
     open class Client<T : Packet.Client>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Client<T>>,
@@ -86,6 +87,7 @@ sealed class PacketTestSpec<T : Packet>(
         }
     }
 
+    @Ignored
     abstract class Server<T : Packet.Server>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Server<T>>,
