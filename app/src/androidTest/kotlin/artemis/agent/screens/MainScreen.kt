@@ -34,6 +34,7 @@ object MainScreen : KScreen<MainScreen>() {
     ) {
         this@MainScreen {
             step("Accept permissions") { acceptPermissions(device) }
+            step("Dismiss changelog") { pressBack() }
             test()
             if (backButtonShouldCloseApp)
                 step("Back button should close the app") { assertCloseOnBackButton() }
@@ -49,7 +50,7 @@ object MainScreen : KScreen<MainScreen>() {
         }
     }
 
-    private fun acceptPermissions(device: Device) {
+    fun acceptPermissions(device: Device) {
         if (!isTiramisu) return
         device.permissions.allowViaDialog()
     }
@@ -70,6 +71,17 @@ object MainScreen : KScreen<MainScreen>() {
             message.isDisplayedWithText(R.string.permission_rationale)
             positiveButton.isDisplayedWithText(R.string.yes)
             negativeButton.isDisplayedWithText(R.string.no)
+            neutralButton.isRemoved()
+        }
+    }
+
+    fun assertChangelogOpen() {
+        alertDialog {
+            isCompletelyDisplayed()
+            title.isDisplayedWithText(R.string.app_version)
+            message.isCompletelyDisplayed()
+            positiveButton.isRemoved()
+            negativeButton.isRemoved()
             neutralButton.isRemoved()
         }
     }

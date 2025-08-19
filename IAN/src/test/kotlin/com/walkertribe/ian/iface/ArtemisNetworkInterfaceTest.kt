@@ -110,7 +110,7 @@ class ArtemisNetworkInterfaceTest :
     DescribeSpec({
         failfast = true
 
-        beforeAny { TestListener.clear() }
+        beforeTest { TestListener.clear() }
 
         afterSpec {
             TestListener.clear()

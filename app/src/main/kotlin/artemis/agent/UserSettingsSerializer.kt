@@ -105,6 +105,7 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         theme = UserSettingsOuterClass.UserSettings.Theme.THEME_DEFAULT
         threeDigitDirections = true
         soundVolume = DEFAULT_SOUND_VOLUME
+        soundMuted = false
 
         showNetworkInfo = true
         alwaysScanPublic = false
