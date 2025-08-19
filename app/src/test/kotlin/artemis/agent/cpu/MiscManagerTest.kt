@@ -77,7 +77,7 @@ class MiscManagerTest :
                             it.label shouldBeEqual "Test"
                         }
                         miscManager.hasUpdate.shouldBeTrue()
-                        miscManager.shouldFlash!!.shouldBeTrue()
+                        miscManager.shouldFlash.shouldBeTrue()
                     }
                 }
 
@@ -87,14 +87,14 @@ class MiscManagerTest :
                         miscManager.actionsExist.value.shouldBeTrue()
                         miscManager.actions.value.shouldBeEmpty()
                         miscManager.hasUpdate.shouldBeTrue()
-                        miscManager.shouldFlash!!.shouldBeTrue()
+                        miscManager.shouldFlash.shouldBeTrue()
                     }
                 }
 
                 it("Reset update") {
                     miscManager.resetUpdate()
                     miscManager.hasUpdate.shouldBeFalse()
-                    miscManager.shouldFlash!!.shouldBeFalse()
+                    miscManager.shouldFlash.shouldBeFalse()
                 }
 
                 it("Remove All") {
@@ -105,7 +105,7 @@ class MiscManagerTest :
                         miscManager.actionsExist.value.shouldBeTrue()
                         miscManager.actions.value.shouldBeEmpty()
                         miscManager.hasUpdate.shouldBeFalse()
-                        miscManager.shouldFlash!!.shouldBeFalse()
+                        miscManager.shouldFlash.shouldBeFalse()
                     }
                 }
 
@@ -142,7 +142,7 @@ class MiscManagerTest :
                             it.title shouldBeEqual audioMode.title
                         }
                         miscManager.hasUpdate.shouldBeTrue()
-                        miscManager.shouldFlash!!.shouldBeTrue()
+                        miscManager.shouldFlash.shouldBeTrue()
                     }
                 }
 

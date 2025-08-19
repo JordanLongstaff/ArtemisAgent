@@ -59,6 +59,8 @@ class ConnectionSettingsFragmentTest : TestCase() {
                 scenario(SettingsMenuScenario)
                 scenario(SettingsSubmenuOpenScenario.Connection)
 
+                step("Scroll to top") { SettingsPageScreen.settingsScroll.scrollToStart() }
+
                 SettingsPageScreen.Connection {
                     val timeInputSettings =
                         buildTimeInputSettings(

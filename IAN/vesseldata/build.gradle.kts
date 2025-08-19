@@ -50,9 +50,7 @@ dependencies {
 
     testFixturesImplementation(projects.ian.enums)
     testFixturesImplementation(libs.bundles.ian.vesseldata.test.fixtures)
-    testFixturesApi(libs.kotest.framework.datatest.jvm)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.vesseldata.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

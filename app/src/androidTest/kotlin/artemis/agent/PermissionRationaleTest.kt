@@ -1,7 +1,6 @@
 package artemis.agent
 
 import android.os.Build
-import androidx.test.espresso.NoMatchingRootException
 import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -83,14 +82,9 @@ class PermissionRationaleTest : TestCase() {
 
                 withDialog()
 
-                step("No dialogs of any kind afterwards") {
-                    try {
-                        alertDialog.isCompletelyDisplayed()
-                        Assert.fail("Expected permission rationale dialog to be gone")
-                    } catch (_: NoMatchingRootException) {
-                        // Success, but must still check that permission request dialog is gone
-                        Assert.assertFalse(device.permissions.isDialogVisible())
-                    }
+                step("Check for changelog") {
+                    assertChangelogOpen()
+                    Assert.assertFalse(device.permissions.isDialogVisible())
                 }
             }
         }

@@ -4,6 +4,16 @@
 # documentation.
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+#
+# Dependency Review Action
+#
+# This Action will scan dependency manifest files that change as part of a Pull Request,
+# surfacing known-vulnerable versions of the packages declared or updated in the PR.
+# Once installed, if the workflow run is marked as required, PRs introducing known-vulnerable
+# packages will be blocked from merging.
+#
+# Source repository: https://github.com/actions/dependency-review-action
+# Public documentation: https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review#dependency-review-enforcement
 
 name: Java CI with Gradle
 
@@ -19,13 +29,14 @@ concurrency:
 
 jobs:
   build:
+    name: Build and test
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
+      contents: write
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
       - name: Generate secret files
         run: |
@@ -42,24 +53,15 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4
+        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4
         with:
-          dependency-graph: generate-and-upload
+          dependency-graph: generate-and-submit
           dependency-graph-exclude-configurations: 'detachedConfiguration.*'
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew build koverXmlReport
-
-      # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-      # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
-      #
-      # - name: Setup Gradle
-      #   uses: gradle/actions/setup-gradle@dbbdc275be76ac10734476cc723d82dfe7ec6eda # v3.4.2
-      #   with:
-      #     gradle-version: '8.5'
-      #
-      # - name: Build with Gradle 8.5
-      #   run: gradle build
+        uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3
+        with:
+          arguments: build koverXmlReport
 
       - name: Upload Unit Test Results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -86,7 +88,35 @@ jobs:
           path: |
             ${{ github.workspace }}/**/build/reports/kover/report.xml
 
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 'Wait for base branch workflow run'
+        uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
+        if: ${{ github.event_name == 'pull_request' }}
+        timeout-minutes: 5
+        with:
+          workflow: gradle.yml
+          branch: ${{ github.event.pull_request.base.ref }}
+          sha: ${{ github.event.pull_request.base.sha }}
+          wait-interval: 5
+
+      - name: 'Checkout repository'
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@bc41886e18ea39df68b1b1245f4184881938e050 # v4
+        # Commonly enabled options, see https://github.com/actions/dependency-review-action#configuration-options for all available options.
+        with:
+          comment-summary-in-pr: always
+          fail-on-severity: moderate
+          base-ref: ${{ github.event.pull_request.base.sha || 'main' }}
+          head-ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
   test-results:
+    name: Publish test results
     needs: build
     runs-on: ubuntu-latest
     if: always()
@@ -95,13 +125,13 @@ jobs:
       pull-requests: write
     steps:
       - name: Download Unit Test Results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: Unit Test Results
           path: tests
 
       - name: Download Konsist Test Results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: Konsist Test Results
           path: konsist
@@ -111,8 +141,6 @@ jobs:
         with:
           check_name: Unit Test Results
           files: tests/**/*.xml
-          root_log_level: DEBUG
-          log_level: DEBUG
 
       - name: Publish Konsist Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2
@@ -120,10 +148,9 @@ jobs:
         with:
           check_name: Konsist Test Results
           files: konsist/**/*.xml
-          root_log_level: DEBUG
-          log_level: DEBUG
 
   coverage:
+    name: Report code coverage
     needs: build
     runs-on: ubuntu-latest
     if: always()
@@ -144,7 +171,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Download Code Coverage Reports
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: Code Coverage Reports
           path: coverage
@@ -159,6 +186,7 @@ jobs:
           min-coverage-overall: ${{ matrix.module == 'app' && 0 || 99 }}
 
   total-coverage:
+    name: Report code coverage (total)
     needs: coverage
     runs-on: ubuntu-latest
     if: always()
@@ -167,7 +195,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Download Code Coverage Reports
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: Code Coverage Reports
           path: coverage

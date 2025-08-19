@@ -411,7 +411,7 @@ class AgentViewModel(application: Application) :
 
     // Sound effects players
     private val playSounds: Boolean
-        get() = volume > 0f
+        get() = volume > 0f && !soundsMuted
 
     private val sounds: MutableList<MediaPlayer?> =
         SoundEffect.entries
@@ -421,6 +421,8 @@ class AgentViewModel(application: Application) :
         set(value) {
             field = value / VOLUME_SCALE
         }
+
+    var soundsMuted: Boolean = false
 
     /** Populates the RecyclerView in the route fragment. */
     private suspend fun calculateRoute() {
@@ -1147,6 +1149,7 @@ class AgentViewModel(application: Application) :
 
         threeDigitDirections = settings.threeDigitDirections
         volume = settings.soundVolume.toFloat()
+        soundsMuted = settings.soundMuted
         hapticsEnabled = settings.hapticsEnabled
 
         val newThemeRes = ALL_THEMES[settings.themeValue]
@@ -1207,6 +1210,7 @@ class AgentViewModel(application: Application) :
 
             threeDigitDirections = this@AgentViewModel.threeDigitDirections
             soundVolume = (volume * VOLUME_SCALE).toInt()
+            soundMuted = this@AgentViewModel.soundsMuted
             themeValue = ALL_THEMES.indexOf(themeRes)
             showNetworkInfo = showingNetworkInfo
             alwaysScanPublic = alwaysScanPublicBroadcasts
@@ -1254,6 +1258,7 @@ class AgentViewModel(application: Application) :
                 R.style.Theme_ArtemisAgent_Yellow,
                 R.style.Theme_ArtemisAgent_Blue,
                 R.style.Theme_ArtemisAgent_Purple,
+                R.style.Theme_ArtemisAgent_Orange,
             )
 
         fun Number.formatString(): String = toString().format(Locale.getDefault())

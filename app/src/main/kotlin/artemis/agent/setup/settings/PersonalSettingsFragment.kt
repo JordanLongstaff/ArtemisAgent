@@ -42,6 +42,7 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 binding.themeYellowButton,
                 binding.themeBlueButton,
                 binding.themePurpleButton,
+                binding.themeOrangeButton,
             )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
@@ -52,6 +53,9 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 getString(R.string.direction, if (it.threeDigitDirections) "000" else "0")
 
             binding.soundVolumeBar.progress = it.soundVolume
+
+            binding.soundMuteButton.isChecked = it.soundMuted
+            updateMuteButtonEnabled(it.soundVolume)
 
             binding.enableHapticsButton.isChecked = it.hapticsEnabled
         }
@@ -92,7 +96,23 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
             }
         }
 
-        binding.soundVolumeLabel.text = volume.formatString()
+        prepareSoundVolumeComponents()
+    }
+
+    private fun prepareSoundVolumeComponents() {
+        val context = binding.root.context
+
+        binding.soundMuteButton.setOnClickListener { viewModel.activateHaptic() }
+
+        binding.soundMuteButton.setOnCheckedChangeListener { view, isChecked ->
+            viewModel.viewModelScope.launch {
+                context.userSettings.updateData { it.copy { soundMuted = isChecked } }
+                updateSoundVolumeLabel(volume)
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
+        }
+
+        updateSoundVolumeLabel(volume)
 
         binding.soundVolumeBar.setOnSeekBarChangeListener(
             object : OnSeekBarChangeListener {
@@ -103,7 +123,8 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 ) {
                     if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
                     volume = progress
-                    binding.soundVolumeLabel.text = progress.formatString()
+                    updateSoundVolumeLabel(progress)
+                    updateMuteButtonEnabled(progress)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -114,10 +135,19 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
                     viewModel.playSound(SoundEffect.BEEP_2)
                     viewModel.viewModelScope.launch {
-                        view.context.userSettings.updateData { it.copy { soundVolume = volume } }
+                        context.userSettings.updateData { it.copy { soundVolume = volume } }
                     }
                 }
             }
         )
+    }
+
+    private fun updateSoundVolumeLabel(progress: Int) {
+        binding.soundVolumeLabel.text =
+            if (binding.soundMuteButton.isChecked) "0" else progress.formatString()
+    }
+
+    private fun updateMuteButtonEnabled(volume: Int) {
+        binding.soundMuteButton.isEnabled = volume > 0
     }
 }

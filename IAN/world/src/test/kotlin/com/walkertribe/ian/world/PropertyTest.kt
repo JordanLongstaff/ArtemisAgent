@@ -5,7 +5,6 @@ import com.walkertribe.ian.util.BoolState
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.core.spec.style.scopes.ContainerScope
 import io.kotest.core.spec.style.scopes.DescribeSpecContainerScope
 import io.kotest.datatest.withData
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
@@ -600,7 +599,7 @@ enum class NewOldIdentifier(private val receiverIdName: String) {
         override fun <V, P : Property<V, P>> organize(old: P, new: P): Pair<P, P> = old to new
     };
 
-    suspend fun describeScenarios(scope: ContainerScope, testCase: PropertyTestCase) {
+    suspend fun describeScenarios(scope: DescribeSpecContainerScope, testCase: PropertyTestCase) {
         val specifiedIdentifiers = SpecifiedIdentifier.entries.toList()
         scope.withData(
             nameFn = { it.name.run { this[0] + substring(1).lowercase() } },

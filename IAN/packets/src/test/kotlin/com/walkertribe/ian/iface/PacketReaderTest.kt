@@ -36,6 +36,8 @@ class PacketReaderTest :
         val listenerRegistry = mockk<ListenerRegistry>()
         val emptyBuffer = Buffer()
 
+        beforeTest { mockkStatic("io.ktor.utils.io.ByteReadChannelOperationsKt") }
+
         afterTest {
             clearAllMocks()
             unmockkAll()
@@ -43,8 +45,6 @@ class PacketReaderTest :
         }
 
         val packetReader = PacketReader(readChannel, listenerRegistry)
-
-        mockkStatic("io.ktor.utils.io.ByteReadChannelOperationsKt")
 
         describe("PacketReader") {
             it("Skips unknown packets") {
@@ -241,7 +241,7 @@ class PacketReaderTest :
 
                 packetReader.close()
 
-                coVerify { readChannel.cancel(any()) }
+                verify { readChannel.cancel(any()) }
 
                 confirmVerified(readChannel)
             }

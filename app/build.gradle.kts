@@ -30,6 +30,12 @@ val release = "release"
 val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
+val changelog =
+    rootProject
+        .file("fastlane/metadata/android/en-US/changelogs/default.txt")
+        .readLines()
+        .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
+
 val kotlinMainPath: String by rootProject.extra
 val kotlinTestPath: String by rootProject.extra
 val kotlinAndroidTestPath = "src/androidTest/kotlin"
@@ -42,8 +48,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 37
-        versionName = "1.3.2"
+        versionCode = 39
+        versionName = "1.4.1"
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
@@ -80,6 +86,7 @@ android {
         configureEach {
             resValue(stringRes, "app_name", appName)
             resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "changelog", changelog)
         }
         release {
             signingConfig = signingConfigs.getByName(release)
@@ -124,11 +131,9 @@ dependencies {
     debugImplementation(libs.bundles.app.debug)
     debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
-    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.packets))
     testImplementation(testFixtures(projects.ian.vesseldata))
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
 

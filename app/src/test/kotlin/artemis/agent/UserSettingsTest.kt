@@ -1,11 +1,13 @@
 package artemis.agent
 
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.engine.names.WithDataTestName
+import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.file.shouldNotBeEmpty
 
 class UserSettingsTest :
     DescribeSpec({
@@ -47,6 +49,10 @@ class UserSettingsTest :
                 it("Three-digit directions") { settings.threeDigitDirections.shouldBeTrue() }
 
                 it("Sound volume") { settings.soundVolume shouldBeEqual 50 }
+
+                it("Mute") { settings.soundMuted.shouldBeFalse() }
+
+                it("Haptics") { settings.hapticsEnabled.shouldBeTrue() }
 
                 describe("Missions") {
                     describe("Enabled") {
@@ -171,6 +177,98 @@ class UserSettingsTest :
                             it.test()
                         }
                     }
+                }
+            }
+
+            describe("Serialization") {
+                val tempFile = tempfile()
+
+                it("Write to stream") {
+                    val settings = UserSettingsSerializer.defaultValue
+                    tempFile.outputStream().use { UserSettingsSerializer.writeTo(settings, it) }
+                    tempFile.shouldNotBeEmpty()
+                }
+
+                it("Read from stream") {
+                    val settings =
+                        tempFile.inputStream().use { UserSettingsSerializer.readFrom(it) }
+                    val defaultSettings = UserSettingsSerializer.defaultValue
+
+                    settings.vesselDataLocation shouldBeEqual defaultSettings.vesselDataLocation
+                    settings.serverPort shouldBeEqual defaultSettings.serverPort
+                    settings.showNetworkInfo shouldBeEqual defaultSettings.showNetworkInfo
+                    settings.recentAddressLimit shouldBeEqual defaultSettings.recentAddressLimit
+                    settings.recentAddressLimitEnabled shouldBeEqual
+                        defaultSettings.recentAddressLimitEnabled
+                    settings.updateInterval shouldBeEqual defaultSettings.updateInterval
+                    settings.connectionTimeoutSeconds shouldBeEqual
+                        defaultSettings.connectionTimeoutSeconds
+                    settings.serverTimeoutSeconds shouldBeEqual defaultSettings.serverTimeoutSeconds
+                    settings.scanTimeoutSeconds shouldBeEqual defaultSettings.scanTimeoutSeconds
+                    settings.alwaysScanPublic shouldBeEqual defaultSettings.alwaysScanPublic
+                    settings.theme shouldBeEqual defaultSettings.theme
+                    settings.threeDigitDirections shouldBeEqual defaultSettings.threeDigitDirections
+                    settings.soundVolume shouldBeEqual defaultSettings.soundVolume
+                    settings.soundMuted shouldBeEqual defaultSettings.soundMuted
+                    settings.hapticsEnabled shouldBeEqual defaultSettings.hapticsEnabled
+                    settings.missionsEnabled shouldBeEqual defaultSettings.missionsEnabled
+                    settings.displayRewardBattery shouldBeEqual defaultSettings.displayRewardBattery
+                    settings.displayRewardCoolant shouldBeEqual defaultSettings.displayRewardCoolant
+                    settings.displayRewardNukes shouldBeEqual defaultSettings.displayRewardNukes
+                    settings.displayRewardProduction shouldBeEqual
+                        defaultSettings.displayRewardProduction
+                    settings.displayRewardShield shouldBeEqual defaultSettings.displayRewardShield
+                    settings.completedMissionDismissalEnabled shouldBeEqual
+                        defaultSettings.completedMissionDismissalEnabled
+                    settings.completedMissionDismissalSeconds shouldBeEqual
+                        defaultSettings.completedMissionDismissalSeconds
+                    settings.alliesEnabled shouldBeEqual defaultSettings.alliesEnabled
+                    settings.allySortClassFirst shouldBeEqual defaultSettings.allySortClassFirst
+                    settings.allySortStatus shouldBeEqual defaultSettings.allySortStatus
+                    settings.allySortClassSecond shouldBeEqual defaultSettings.allySortClassSecond
+                    settings.allySortName shouldBeEqual defaultSettings.allySortName
+                    settings.allySortEnergyFirst shouldBeEqual defaultSettings.allySortEnergyFirst
+                    settings.allyCommandManualReturn shouldBeEqual
+                        defaultSettings.allyCommandManualReturn
+                    settings.showDestroyedAllies shouldBeEqual defaultSettings.showDestroyedAllies
+                    settings.enemiesEnabled shouldBeEqual defaultSettings.enemiesEnabled
+                    settings.enemySortFaction shouldBeEqual defaultSettings.enemySortFaction
+                    settings.enemySortFactionReversed shouldBeEqual
+                        defaultSettings.enemySortFactionReversed
+                    settings.enemySortName shouldBeEqual defaultSettings.enemySortName
+                    settings.enemySortDistance shouldBeEqual defaultSettings.enemySortDistance
+                    settings.enemySortSurrendered shouldBeEqual defaultSettings.enemySortSurrendered
+                    settings.surrenderRange shouldBeEqual defaultSettings.surrenderRange
+                    settings.surrenderRangeEnabled shouldBeEqual
+                        defaultSettings.surrenderRangeEnabled
+                    settings.showEnemyIntel shouldBeEqual defaultSettings.showEnemyIntel
+                    settings.showTauntStatuses shouldBeEqual defaultSettings.showTauntStatuses
+                    settings.disableIneffectiveTaunts shouldBeEqual
+                        defaultSettings.disableIneffectiveTaunts
+                    settings.biomechsEnabled shouldBeEqual defaultSettings.biomechsEnabled
+                    settings.biomechSortClassFirst shouldBeEqual
+                        defaultSettings.biomechSortClassFirst
+                    settings.biomechSortStatus shouldBeEqual defaultSettings.biomechSortStatus
+                    settings.biomechSortClassSecond shouldBeEqual
+                        defaultSettings.biomechSortClassSecond
+                    settings.biomechSortName shouldBeEqual defaultSettings.biomechSortName
+                    settings.freezeDurationSeconds shouldBeEqual
+                        defaultSettings.freezeDurationSeconds
+                    settings.routingEnabled shouldBeEqual defaultSettings.routingEnabled
+                    settings.routeMissions shouldBeEqual defaultSettings.routeMissions
+                    settings.routeNeedsDamcon shouldBeEqual defaultSettings.routeNeedsDamcon
+                    settings.routeNeedsEnergy shouldBeEqual defaultSettings.routeNeedsEnergy
+                    settings.routeHasEnergy shouldBeEqual defaultSettings.routeHasEnergy
+                    settings.routeMalfunction shouldBeEqual defaultSettings.routeMalfunction
+                    settings.routeAmbassador shouldBeEqual defaultSettings.routeAmbassador
+                    settings.routeHostage shouldBeEqual defaultSettings.routeHostage
+                    settings.routeCommandeered shouldBeEqual defaultSettings.routeCommandeered
+                    settings.avoidBlackHoles shouldBeEqual defaultSettings.avoidBlackHoles
+                    settings.avoidMines shouldBeEqual defaultSettings.avoidMines
+                    settings.avoidTyphon shouldBeEqual defaultSettings.avoidTyphon
+                    settings.blackHoleClearance shouldBeEqual defaultSettings.blackHoleClearance
+                    settings.mineClearance shouldBeEqual defaultSettings.mineClearance
+                    settings.typhonClearance shouldBeEqual defaultSettings.typhonClearance
                 }
             }
         }

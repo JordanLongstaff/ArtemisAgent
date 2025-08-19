@@ -1,7 +1,7 @@
-#Licence file for pitest extensions
-#Fri Aug 09 15:04:07 BST 2024
-expires=09/08/2025
+#Licence file for arcmutate mutation testing https://www.arcmutate.com
+#Wed Aug 13 07:36:58 BST 2025
+expires=13/08/2028
 keyVersion=1
 packages=com.walkertribe.ian.*
-signature=Fc6UqbFDel2MWr03I9M0faVYpOqKpDuJOeSKLeJTsW+t1eLiZVpdXu0M/uD3kxDIv8l1qH9oxFKux1/VjSQN8MbB5BFT0TZ+X/S9ot59zZXpFgaa3/aO625T3IhxN5iz/wOFn1vRIIp/RLzQUqPBOZI/q3ZJv0eKBuKsKTxUA/c\=
+signature=U0T4wTbgFZ6lyCItjff7m5EZKQ8iahSO5cAFqIuAWWZlTw2tmbKi2wTMfNoggdKhgdsuALnQPJe0FsEeh07R+jeFNGreoy3shx/hJug8N9bjqBJSmuRbYTEFJqsGLnH76VoKb7bCexVaq+eLzpELn7GiJ7OqsaukvqQaqY3CrXQ\=
 type=OSSS

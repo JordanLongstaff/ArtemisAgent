@@ -70,6 +70,13 @@
             android:layout_weight="1"
             android:minWidth="0dp"
             android:theme="@style/Widget.ArtemisAgent.Button.Purple" />
+        <RadioButton
+            android:id="@+id/themeOrangeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:theme="@style/Widget.ArtemisAgent.Button.Orange" />
     </RadioGroup>
     <View
         android:id="@+id/themeDivider"
@@ -118,7 +125,10 @@
         android:layout_height="wrap_content"
         android:text="@string/sound_volume"
         android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toTopOf="@id/soundVolumeBarBarrier"
+        app:layout_constraintEnd_toStartOf="@id/soundVolumeLabel"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/soundVolumeLabel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/threeDigitDirectionsDivider" />
     <TextView
@@ -128,15 +138,31 @@
         android:gravity="center_vertical|end"
         android:minEms="2"
         android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/soundMuteButton"
+        app:layout_constraintEnd_toStartOf="@id/soundMuteButton"
+        app:layout_constraintRight_toLeftOf="@id/soundMuteButton"
+        app:layout_constraintTop_toTopOf="@id/soundMuteButton" />
+    <ToggleButton
+        android:id="@+id/soundMuteButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:text="@string/mute"
+        app:layout_constraintBottom_toTopOf="@id/soundVolumeBarBarrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/threeDigitDirectionsDivider" />
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/soundVolumeBarBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="soundVolumeTitle,soundMuteButton" />
     <SeekBar
         android:id="@+id/soundVolumeBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/paddingSmall"
-        app:layout_constraintTop_toBottomOf="@id/soundVolumeTitle" />
+        app:layout_constraintTop_toBottomOf="@id/soundVolumeBarBarrier" />
     <View
         android:id="@+id/soundVolumeDivider"
         android:layout_width="match_parent"

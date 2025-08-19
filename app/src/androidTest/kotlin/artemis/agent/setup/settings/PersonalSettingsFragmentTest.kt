@@ -9,10 +9,14 @@ import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
+import artemis.agent.isEnabledIf
 import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.screens.SettingsPageScreen.Personal.soundMuteButton
+import artemis.agent.screens.SettingsPageScreen.Personal.soundVolumeBar
+import artemis.agent.screens.SettingsPageScreen.Personal.soundVolumeLabel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
@@ -43,6 +47,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                 val themeIndex = AtomicInteger()
                 val threeDigits = AtomicBoolean()
                 val soundVolume = AtomicInteger()
+                val soundsMuted = AtomicBoolean()
                 val hapticsEnabled = AtomicBoolean()
 
                 step("Fetch settings") {
@@ -53,6 +58,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                         soundVolume.lazySet(
                             (viewModel.volume * AgentViewModel.VOLUME_SCALE).toInt()
                         )
+                        soundsMuted.lazySet(viewModel.soundsMuted)
                         hapticsEnabled.lazySet(viewModel.hapticsEnabled)
                     }
                 }
@@ -62,7 +68,7 @@ class PersonalSettingsFragmentTest : TestCase() {
 
                 testThemeSetting(themeIndex.get())
                 testThreeDigitsSetting(shouldTestSettings, threeDigits.get())
-                testSoundVolume(shouldTestSettings, soundVolume.get())
+                testSoundVolume(shouldTestSettings, soundVolume.get(), soundsMuted.get())
 
                 SettingsPageScreen.Personal {
                     step("Check haptics setting") {
@@ -132,7 +138,11 @@ class PersonalSettingsFragmentTest : TestCase() {
             }
         }
 
-        fun TestContext<*>.testSoundVolume(shouldTest: Boolean, soundVolume: Int) {
+        fun TestContext<*>.testSoundVolume(
+            shouldTest: Boolean,
+            soundVolume: Int,
+            isMuted: Boolean,
+        ) {
             SettingsPageScreen.Personal {
                 step("Check sound volume setting components") {
                     soundVolumeTitle.isDisplayedWithText(R.string.sound_volume)
@@ -140,7 +150,14 @@ class PersonalSettingsFragmentTest : TestCase() {
                         isCompletelyDisplayed()
                         hasProgress(soundVolume)
                     }
-                    soundVolumeLabel.isDisplayedWithText(soundVolume.toString())
+                    soundMuteButton {
+                        isDisplayedWithText(R.string.mute)
+                        isCheckedIf(isMuted)
+                        isEnabledIf(soundVolume > 0)
+                    }
+                    soundVolumeLabel.isDisplayedWithText(
+                        if (isMuted) "0" else soundVolume.toString()
+                    )
                 }
 
                 if (shouldTest) {
@@ -149,10 +166,71 @@ class PersonalSettingsFragmentTest : TestCase() {
                             List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume
                         volumeTests.forEach { volume ->
                             soundVolumeBar.setProgress(volume)
-                            soundVolumeLabel.hasText(volume.toString())
+                            soundVolumeLabel.hasText(if (isMuted) "0" else volume.toString())
+                            soundMuteButton {
+                                isCheckedIf(isMuted)
+                                isEnabledIf(volume > 0)
+                            }
+                        }
+                    }
+
+                    testMuteButton(soundVolume, isMuted)
+                }
+            }
+        }
+
+        fun TestContext<*>.testMuteButton(volume: Int, isMuted: Boolean) {
+            var tempVolume = volume
+            if (volume == 0) {
+                step("Temporarily increase volume") {
+                    tempVolume = MAX_VOLUME
+                    soundVolumeBar.setProgress(MAX_VOLUME)
+                    soundVolumeLabel.hasText(if (isMuted) "0" else MAX_VOLUME.toString())
+                    soundMuteButton {
+                        isCheckedIf(isMuted)
+                        isEnabled()
+                    }
+                }
+            }
+
+            step("Test mute button") {
+                listOf(!isMuted, isMuted).forEachIndexed { index, mute ->
+                    testMuteButtonState(tempVolume, mute)
+
+                    step("Disable") {
+                        soundVolumeBar.setProgress(0)
+                        soundMuteButton {
+                            isCheckedIf(mute)
+                            isDisabled()
+                        }
+                    }
+
+                    if (index == 0) {
+                        step("Enable") {
+                            soundVolumeBar.setProgress(tempVolume)
+                            soundMuteButton {
+                                isCheckedIf(mute)
+                                isEnabled()
+                            }
                         }
                     }
                 }
+            }
+
+            if (volume != 0) {
+                step("Reset volume") { soundVolumeBar.setProgress(volume) }
+            }
+        }
+
+        fun TestContext<*>.testMuteButtonState(volume: Int, isMuted: Boolean) {
+            step("Turn ${if (isMuted) "on" else "off"}") {
+                soundMuteButton.click()
+                soundMuteButton {
+                    isCheckedIf(isMuted)
+                    isEnabled()
+                }
+                soundVolumeBar.hasProgress(volume)
+                soundVolumeLabel.hasText(if (isMuted) "0" else volume.toString())
             }
         }
 
@@ -164,6 +242,7 @@ class PersonalSettingsFragmentTest : TestCase() {
             themeYellowButton.doesNotExist()
             themeBlueButton.doesNotExist()
             themePurpleButton.doesNotExist()
+            themeOrangeButton.doesNotExist()
             themeDivider.doesNotExist()
             threeDigitDirectionsTitle.doesNotExist()
             threeDigitDirectionsButton.doesNotExist()
@@ -172,6 +251,7 @@ class PersonalSettingsFragmentTest : TestCase() {
             soundVolumeTitle.doesNotExist()
             soundVolumeBar.doesNotExist()
             soundVolumeLabel.doesNotExist()
+            soundMuteButton.doesNotExist()
             soundVolumeDivider.doesNotExist()
             enableHapticsToggleSetting.testNotExist()
         }

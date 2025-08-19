@@ -29,7 +29,6 @@ ktfmt { kotlinLangStyle() }
 
 dependencies {
   testCompileOnly(projects.ian.annotations)
-  testImplementation(projects.ian.testing)
   testImplementation(libs.bundles.konsist.common)
   testImplementation(libs.bundles.konsist.ian)
   testRuntimeOnly(libs.bundles.konsist.runtime)

@@ -28,7 +28,6 @@ tasks.test { useJUnitPlatform() }
 ktfmt { kotlinLangStyle() }
 
 dependencies {
-  testImplementation(projects.ian.testing)
   testImplementation(libs.bundles.konsist.common)
   testRuntimeOnly(libs.bundles.konsist.runtime)
 }

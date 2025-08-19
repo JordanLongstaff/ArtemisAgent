@@ -43,7 +43,6 @@ import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
-import com.google.android.play.core.install.InstallException
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.ActivityResult
 import com.google.android.play.core.install.model.AppUpdateType
@@ -62,7 +61,7 @@ import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -542,7 +541,7 @@ class MainActivity : AppCompatActivity() {
         collectLatestWhileStarted(viewModel.gameOverReason) {
             if (shouldAskForReview) askForReview()
             shouldAskForReview = !shouldAskForReview
-            checkForUpdates(false)
+            checkForUpdates(UpdateCheck.GAME_END)
         }
 
         collectLatestWhileStarted(viewModel.jumping) {
@@ -557,7 +556,7 @@ class MainActivity : AppCompatActivity() {
         binding.updateButton.setOnClickListener {
             viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
-            checkForUpdates(true)
+            checkForUpdates(UpdateCheck.MANUAL)
         }
 
         binding.mainPageSelector.children.forEach { view ->
@@ -584,7 +583,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        checkForUpdates(false)
+        checkForUpdates(UpdateCheck.STARTUP)
     }
 
     /**
@@ -781,7 +780,9 @@ class MainActivity : AppCompatActivity() {
                 .setCancelable(true)
                 .apply {
                     if (suggestUpdate) {
-                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates(true) }
+                        setPositiveButton(R.string.update) { _, _ ->
+                            checkForUpdates(UpdateCheck.MANUAL)
+                        }
                     }
                 }
                 .show()
@@ -878,21 +879,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForUpdates(alertForNoUpdates: Boolean) {
-        viewModel.viewModelScope.launch {
+    private fun checkForUpdates(checkType: UpdateCheck) {
+        viewModel.viewModelScope.launch(
+            CoroutineExceptionHandler { _, _ -> checkType.showAlert(this@MainActivity) }
+        ) {
             val results =
                 awaitAll(
                     Firebase.remoteConfig
                         .fetchAndActivate()
                         .continueWith { fetchArtemisLatestVersion() }
                         .asDeferred(),
-                    async {
-                        try {
-                            updateManager.appUpdateInfo.asDeferred().await()
-                        } catch (_: InstallException) {
-                            null
-                        }
-                    },
+                    updateManager.appUpdateInfo.asDeferred(),
                 )
 
             val maxVersion = results[0] as Version
@@ -901,16 +898,7 @@ class MainActivity : AppCompatActivity() {
             val updateInfo = results[1] as? AppUpdateInfo
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
 
-            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)
-            if (updateAlert == null) {
-                if (alertForNoUpdates) {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.app_version)
-                        .setMessage(R.string.no_updates)
-                        .show()
-                }
-                return@launch
-            }
+            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)!!
 
             val context = this@MainActivity
 
@@ -989,7 +977,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun askForReview() {
-        AlertDialog.Builder(this@MainActivity)
+        AlertDialog.Builder(this)
             .setTitle(R.string.review_title)
             .setMessage(R.string.review_prompt)
             .setCancelable(true)
@@ -1011,7 +999,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showReviewErrorDialog(exception: Exception) {
         val errorCode = exception.message ?: getString(R.string.unknown)
-        AlertDialog.Builder(this@MainActivity)
+        AlertDialog.Builder(this)
             .setTitle(R.string.review_error)
             .setMessage(getString(R.string.review_error_message, errorCode))
             .setCancelable(true)
@@ -1032,10 +1020,7 @@ class MainActivity : AppCompatActivity() {
         const val THEME_RES_FILE_NAME = "theme_res.dat"
         const val MAX_VERSION_FILE_NAME = "max_version.dat"
 
-        val PENDING_INTENT_FLAGS =
-            PendingIntent.FLAG_UPDATE_CURRENT.or(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE
-                else 0
-            )
+        const val PENDING_INTENT_FLAGS =
+            PendingIntent.FLAG_UPDATE_CURRENT.or(PendingIntent.FLAG_IMMUTABLE)
     }
 }
