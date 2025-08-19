@@ -125,11 +125,11 @@ class EnemiesManagerTest :
                     enemiesManager.getEnemyByName("Test").shouldNotBeNull() shouldBe enemy
                 }
 
-                it("Active") { enemiesManager.shouldFlash!!.shouldBeFalse() }
+                it("Active") { enemiesManager.shouldFlash.shouldBeFalse() }
 
                 it("Has update") {
                     enemiesManager.hasUpdate = true
-                    enemiesManager.shouldFlash!!.shouldBeTrue()
+                    enemiesManager.shouldFlash.shouldBeTrue()
                 }
             }
 

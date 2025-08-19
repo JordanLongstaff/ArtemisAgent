@@ -1,8 +1,8 @@
 package artemis.agent
 
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.engine.names.WithDataTestName
 import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue

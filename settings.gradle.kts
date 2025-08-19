@@ -32,7 +32,6 @@ include(
     ":IAN:packets",
     ":IAN:packets:konsist",
     ":IAN:processor",
-    ":IAN:testing",
     ":IAN:udp",
     ":IAN:udp:konsist",
     ":IAN:util",

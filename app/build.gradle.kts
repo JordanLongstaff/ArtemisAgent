@@ -131,7 +131,6 @@ dependencies {
     debugImplementation(libs.bundles.app.debug)
     debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
-    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.packets))
     testImplementation(testFixtures(projects.ian.vesseldata))
 
