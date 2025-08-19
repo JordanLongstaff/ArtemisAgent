@@ -563,6 +563,7 @@
     <string name="mission_shield">Shield</string>
     <string name="mission_will_be_removed">Will be removed in %1$ds</string>
     <string name="more_commands">More commands:</string>
+    <string name="mute">Mute</string>
     <string-array name="network_type_entries">
         <item>Wi-Fi</item>
         <item>Mobile</item>
@@ -588,6 +589,7 @@
     <string name="no_ships">Connect to a server.</string>
     <string name="no_ship_selected">Select a ship.</string>
     <string name="no_stations">No stations.</string>
+    <string name="no_updates">No updates found.</string>
     <string name="none">None</string>
     <string name="not_connected">Not connected</string>
     <string name="off">Off</string>

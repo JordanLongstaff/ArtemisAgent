@@ -33,7 +33,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
     private val binding: SettingsFragmentBinding by fragmentViewBinding()
 
     enum class Page(
-        @StringRes val titleRes: Int,
+        @all:StringRes val titleRes: Int,
         val pageClass: Class<out Fragment>,
         val onToggle: (UserSettingsKt.Dsl.(Boolean) -> Unit)? = null,
     ) {
@@ -160,6 +160,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                     theme = UserSettings.Theme.THEME_DEFAULT
                     threeDigitDirections = true
                     soundVolume = UserSettingsSerializer.DEFAULT_SOUND_VOLUME
+                    soundMuted = false
                     hapticsEnabled = true
                 }
         };

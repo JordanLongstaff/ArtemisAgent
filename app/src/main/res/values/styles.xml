@@ -77,6 +77,16 @@
         <item name="colorButtonNormal">@color/colorPrimaryPurple</item>
     </style>
 
+    <style name="Theme.ArtemisAgent.Orange">
+        <item name="colorPrimary">@color/colorPrimaryOrange</item>
+        <item name="colorPrimaryDark">@color/backgroundOrange</item>
+        <item name="colorAccent">@color/colorAccentOrange</item>
+        <item name="android:colorBackground">@color/backgroundOrange</item>
+        <item name="android:windowBackground">@color/backgroundOrange</item>
+        <item name="android:textColorPrimary">@color/textOrange</item>
+        <item name="colorButtonNormal">@color/colorPrimaryOrange</item>
+    </style>
+
     <style name="ThemeOverlay.ArtemisAgent.AlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:scrollbars">none</item>
@@ -133,6 +143,11 @@
     <style name="Widget.ArtemisAgent.Button.Purple">
         <item name="colorPrimary">@color/colorPrimaryPurple</item>
         <item name="colorAccent">@color/colorAccentPurple</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.Button.Orange">
+        <item name="colorPrimary">@color/colorPrimaryOrange</item>
+        <item name="colorAccent">@color/colorAccentOrange</item>
     </style>
 
     <style name="Widget.ArtemisAgent.EditText" parent="Widget.AppCompat.EditText">

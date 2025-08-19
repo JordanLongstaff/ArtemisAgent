@@ -1,6 +1,6 @@
 package artemis.agent.setup
 
-import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.MainActivity
@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class ShipsFragmentTest : TestCase() {
-    @get:Rule val activityScenarioRule = ActivityScenarioRule(MainActivity::class.java)
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
     fun noShipsTest() {

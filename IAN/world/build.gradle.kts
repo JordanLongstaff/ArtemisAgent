@@ -1,5 +1,6 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
@@ -23,7 +24,7 @@ java {
     targetCompatibility = javaVersion
 }
 
-tasks.compileKotlin {
+tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
         javaParameters = true
@@ -54,7 +55,6 @@ dependencies {
     testFixturesApi(projects.ian.util)
     testFixturesImplementation(libs.bundles.ian.world.test.fixtures)
 
-    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)

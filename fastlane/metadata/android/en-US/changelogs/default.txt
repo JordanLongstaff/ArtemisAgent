@@ -1,2 +1,2 @@
-* Minor UI fixes
+* Added mute button for sound effects in settings
 * Dependency upgrades

@@ -1,7 +1,7 @@
 package com.walkertribe.ian.vesseldata
 
 import com.walkertribe.ian.enums.OrdnanceType
-import io.kotest.datatest.WithDataTestName
+import io.kotest.engine.names.WithDataTestName
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly

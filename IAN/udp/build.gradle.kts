@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
@@ -17,7 +18,7 @@ java {
     targetCompatibility = javaVersion
 }
 
-tasks.compileKotlin {
+tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
         javaParameters = true
@@ -35,7 +36,6 @@ dependencies {
     implementation(libs.kotlinx.io)
     api(libs.bundles.ian.udp.api)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.udp.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   id("java-library")
@@ -15,7 +16,7 @@ java {
   targetCompatibility = javaVersion
 }
 
-tasks.compileKotlin {
+tasks.withType<KotlinCompile>().configureEach {
   compilerOptions {
     jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
     javaParameters = true
@@ -28,7 +29,6 @@ ktfmt { kotlinLangStyle() }
 
 dependencies {
   testCompileOnly(projects.ian.annotations)
-  testImplementation(projects.ian.testing)
   testImplementation(libs.bundles.konsist.common)
   testImplementation(libs.bundles.konsist.ian)
   testRuntimeOnly(libs.bundles.konsist.runtime)

@@ -4,8 +4,8 @@ import android.view.View
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.engine.names.WithDataTestName
 import io.kotest.matchers.equals.shouldBeEqual
 
 class ConnectionStatusTest :
@@ -15,8 +15,8 @@ class ConnectionStatusTest :
 
 private enum class ConnectionStatusTestCase(
     private val status: ConnectionStatus,
-    @StringRes private val expectedStringId: Int,
-    @ColorRes private val expectedColor: Int,
+    @all:StringRes private val expectedStringId: Int,
+    @all:ColorRes private val expectedColor: Int,
     private val expectedSpinnerVisibility: Int,
 ) : WithDataTestName {
     NOT_CONNECTED(

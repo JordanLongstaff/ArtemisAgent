@@ -1,6 +1,8 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.android.application")
@@ -28,6 +30,12 @@ val release = "release"
 val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
+val changelog =
+    rootProject
+        .file("fastlane/metadata/android/en-US/changelogs/default.txt")
+        .readLines()
+        .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
+
 val kotlinMainPath: String by rootProject.extra
 val kotlinTestPath: String by rootProject.extra
 val kotlinAndroidTestPath = "src/androidTest/kotlin"
@@ -40,8 +48,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 35
-        versionName = "1.3.0"
+        versionCode = 39
+        versionName = "1.4.1"
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
@@ -54,7 +62,13 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xannotation-target-all")
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
     testOptions.unitTests.all { it.useJUnitPlatform() }
@@ -72,6 +86,7 @@ android {
         configureEach {
             resValue(stringRes, "app_name", appName)
             resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "changelog", changelog)
         }
         release {
             signingConfig = signingConfigs.getByName(release)
@@ -116,7 +131,6 @@ dependencies {
     debugImplementation(libs.bundles.app.debug)
     debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
-    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.packets))
     testImplementation(testFixtures(projects.ian.vesseldata))
 

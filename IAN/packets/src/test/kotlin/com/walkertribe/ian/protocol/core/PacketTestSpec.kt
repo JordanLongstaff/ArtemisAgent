@@ -30,8 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.io.Source
 
 @Ignored
-sealed class PacketTestSpec<T : Packet>
-private constructor(
+sealed class PacketTestSpec<T : Packet>(
     val specName: String,
     open val fixtures: List<PacketTestFixture<T>>,
     autoIncludeTests: Boolean = true,
@@ -41,12 +40,13 @@ private constructor(
             @Suppress("LeakingThis") include(tests())
         }
 
-        finalizeSpec {
+        afterSpec {
             clearAllMocks()
             unmockkAll()
         }
     }
 
+    @Ignored
     open class Client<T : Packet.Client>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Client<T>>,
@@ -58,7 +58,7 @@ private constructor(
             val sendChannel = ByteChannel()
             val writer = PacketWriter(sendChannel)
 
-            finalizeSpec { writer.close() }
+            afterSpec { writer.close() }
 
             describe(specName) {
                 organizeTests(fixtures) { fixture ->
@@ -87,6 +87,7 @@ private constructor(
         }
     }
 
+    @Ignored
     abstract class Server<T : Packet.Server>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Server<T>>,
@@ -112,13 +113,6 @@ private constructor(
 
         override fun tests(): TestFactory = describeSpec {
             describe(specName) {
-                val expectedBehaviour = if (isRequired) "parse even" else "skip"
-                val emptyListenerRegistry = ListenerRegistry()
-                val testListenerRegistry =
-                    ListenerRegistry().apply { register(PacketTestListenerModule) }
-                val objectListenerRegistry =
-                    ListenerRegistry().apply { register(ArtemisObjectTestModule) }
-
                 organizeTests(fixtures) { fixture ->
                     PacketTestListenerModule.packets.clear()
 

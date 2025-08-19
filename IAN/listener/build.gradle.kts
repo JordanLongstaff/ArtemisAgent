@@ -1,5 +1,6 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
@@ -22,7 +23,7 @@ java {
     targetCompatibility = javaVersion
 }
 
-tasks.compileKotlin {
+tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
         javaParameters = true
@@ -46,7 +47,6 @@ dependencies {
 
     implementation(libs.kotlin.reflect)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.listener.test)
     testFixturesImplementation(libs.kotlin.reflect)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
