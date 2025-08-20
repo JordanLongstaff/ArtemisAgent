@@ -541,7 +541,7 @@ class MainActivity : AppCompatActivity() {
         collectLatestWhileStarted(viewModel.gameOverReason) {
             if (shouldAskForReview) askForReview()
             shouldAskForReview = !shouldAskForReview
-            checkForUpdates(false)
+            checkForUpdates(UpdateCheck.GAME_END)
         }
 
         collectLatestWhileStarted(viewModel.jumping) {
@@ -556,7 +556,7 @@ class MainActivity : AppCompatActivity() {
         binding.updateButton.setOnClickListener {
             viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
-            checkForUpdates(true)
+            checkForUpdates(UpdateCheck.MANUAL)
         }
 
         binding.mainPageSelector.children.forEach { view ->
@@ -583,7 +583,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        checkForUpdates(false)
+        checkForUpdates(UpdateCheck.STARTUP)
     }
 
     /**
@@ -780,7 +780,9 @@ class MainActivity : AppCompatActivity() {
                 .setCancelable(true)
                 .apply {
                     if (suggestUpdate) {
-                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates(true) }
+                        setPositiveButton(R.string.update) { _, _ ->
+                            checkForUpdates(UpdateCheck.MANUAL)
+                        }
                     }
                 }
                 .show()
@@ -877,16 +879,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForUpdates(alertForNoUpdates: Boolean) {
+    private fun checkForUpdates(checkType: UpdateCheck) {
         viewModel.viewModelScope.launch(
-            CoroutineExceptionHandler { _, _ ->
-                if (alertForNoUpdates) {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.app_version)
-                        .setMessage(R.string.no_updates)
-                        .show()
-                }
-            }
+            CoroutineExceptionHandler { _, _ -> checkType.showAlert(this@MainActivity) }
         ) {
             val results =
                 awaitAll(
@@ -982,7 +977,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun askForReview() {
-        AlertDialog.Builder(this@MainActivity)
+        AlertDialog.Builder(this)
             .setTitle(R.string.review_title)
             .setMessage(R.string.review_prompt)
             .setCancelable(true)
@@ -1004,7 +999,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showReviewErrorDialog(exception: Exception) {
         val errorCode = exception.message ?: getString(R.string.unknown)
-        AlertDialog.Builder(this@MainActivity)
+        AlertDialog.Builder(this)
             .setTitle(R.string.review_error)
             .setMessage(getString(R.string.review_error_message, errorCode))
             .setCancelable(true)
@@ -1025,7 +1020,7 @@ class MainActivity : AppCompatActivity() {
         const val THEME_RES_FILE_NAME = "theme_res.dat"
         const val MAX_VERSION_FILE_NAME = "max_version.dat"
 
-        val PENDING_INTENT_FLAGS =
+        const val PENDING_INTENT_FLAGS =
             PendingIntent.FLAG_UPDATE_CURRENT.or(PendingIntent.FLAG_IMMUTABLE)
     }
 }

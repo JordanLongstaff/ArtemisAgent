@@ -28,13 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for build
-        uses: ArcticLampyrid/action-wait-for-workflow@da2316a3b49eb2d2377e8ec1f94c5947b2e04deb # v1.2.0
+        uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
         with:
           workflow: gradle.yml
           wait-interval: 5
 
       - name: Wait for instrumented tests
-        uses: ArcticLampyrid/action-wait-for-workflow@da2316a3b49eb2d2377e8ec1f94c5947b2e04deb # v1.2.0
+        uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
         with:
           workflow: instrumented-tests.yml
           wait-interval: 5
@@ -48,7 +48,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
           token: ${{ secrets.RELEASE_PAT }}
 
@@ -68,7 +68,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4
+        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4
 
       - name: Get app version code and name
         id: version
@@ -82,7 +82,7 @@ jobs:
 
       - name: Bump app version name
         id: nextVersionName
-        uses: cbrgm/semver-bump-action@34f295619c23f0f7ab875ba79fec5fc07df394c6 # v1
+        uses: cbrgm/semver-bump-action@6527c6613705acb087d130dba4631a9184adaaf8 # v1
         with:
           current-version: ${{ steps.version.outputs.versionName }}
           bump-level: ${{ inputs.versionBump }}
@@ -110,13 +110,13 @@ jobs:
 
       - name: Set Firebase Project
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@d7cd88a378f573faea66c1950fb1691aac2d1efa # v14.11.0
+        uses: w9jds/firebase-action@42313df1c0c98b72ffd11f8c133b7d873bd42735 # v14.12.1
         with:
           args: use ${{ secrets.FIREBASE_SA_PROJECT }}
 
       - name: Get Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@d7cd88a378f573faea66c1950fb1691aac2d1efa # v14.11.0
+        uses: w9jds/firebase-action@42313df1c0c98b72ffd11f8c133b7d873bd42735 # v14.12.1
         with:
           args: remoteconfig:get -o app/remote-config.json
 
@@ -150,7 +150,7 @@ jobs:
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@d7cd88a378f573faea66c1950fb1691aac2d1efa # v14.11.0
+        uses: w9jds/firebase-action@42313df1c0c98b72ffd11f8c133b7d873bd42735 # v14.12.1
         with:
           args: deploy --only remoteconfig
 

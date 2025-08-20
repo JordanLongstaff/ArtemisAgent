@@ -2,7 +2,7 @@ package artemis.agent.game.enemies
 
 import artemis.agent.R
 import com.walkertribe.ian.util.BoolState
-import io.kotest.datatest.WithDataTestName
+import io.kotest.engine.names.WithDataTestName
 import kotlinx.serialization.Serializable
 
 @Serializable

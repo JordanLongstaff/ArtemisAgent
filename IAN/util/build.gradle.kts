@@ -44,7 +44,6 @@ dependencies {
 
     implementation(libs.bundles.ian.util)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.util.test)
     testFixturesImplementation(libs.bundles.ian.util.test.fixtures)
     testRuntimeOnly(libs.bundles.ian.test.runtime)

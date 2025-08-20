@@ -40,12 +40,13 @@ sealed class PacketTestSpec<T : Packet>(
             @Suppress("LeakingThis") include(tests())
         }
 
-        finalizeSpec {
+        afterSpec {
             clearAllMocks()
             unmockkAll()
         }
     }
 
+    @Ignored
     open class Client<T : Packet.Client>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Client<T>>,
@@ -57,7 +58,7 @@ sealed class PacketTestSpec<T : Packet>(
             val sendChannel = ByteChannel()
             val writer = PacketWriter(sendChannel)
 
-            finalizeSpec { writer.close() }
+            afterSpec { writer.close() }
 
             describe(specName) {
                 organizeTests(fixtures) { fixture ->
@@ -86,6 +87,7 @@ sealed class PacketTestSpec<T : Packet>(
         }
     }
 
+    @Ignored
     abstract class Server<T : Packet.Server>(
         specName: String,
         final override val fixtures: List<PacketTestFixture.Server<T>>,
