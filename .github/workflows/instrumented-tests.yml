@@ -17,7 +17,7 @@ jobs:
         api-level: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
         orientation: [ {name: portrait, rotation: 0, skin: 480x800}, {name: landscape, rotation: 1, skin: 800x480} ]
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
-    timeout-minutes: 30
+    timeout-minutes: 45
     concurrency:
       group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ matrix.orientation.rotation }}-${{ github.ref }}
       cancel-in-progress: true
