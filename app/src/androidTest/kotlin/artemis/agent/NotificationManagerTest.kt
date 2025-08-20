@@ -22,7 +22,7 @@ class NotificationManagerTest {
 
     @Test
     fun channelGroupsTest() {
-        val channelGroups = notificationManager.notificationChannelGroups
+        val channelGroups = notificationManager.notificationChannelGroupsCompat
         Assert.assertEquals(groups.size, channelGroups.size)
 
         val groupMap = groups.associateBy { it.id }
@@ -38,7 +38,7 @@ class NotificationManagerTest {
 
     @Test
     fun channelsTest() {
-        val channels = notificationManager.notificationChannels
+        val channels = notificationManager.notificationChannelsCompat
         val testChannels = groups.flatMap { group -> group.channels.map { it to group.id } }
         Assert.assertEquals(testChannels.size, channels.size)
 
