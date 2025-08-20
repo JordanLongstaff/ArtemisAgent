@@ -14,10 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api-level: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+        api-level: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
         orientation: [ {name: portrait, rotation: 0, skin: 480x800}, {name: landscape, rotation: 1, skin: 800x480} ]
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
-    timeout-minutes: 20
+    timeout-minutes: 45
     concurrency:
       group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ matrix.orientation.rotation }}-${{ github.ref }}
       cancel-in-progress: true
@@ -55,6 +55,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2
         with:
           api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.api-level >= 28 && 'playstore' || 'default' }}
           arch: x86_64
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.orientation.skin }}
