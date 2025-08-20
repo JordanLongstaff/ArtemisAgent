@@ -1,13 +1,17 @@
 package artemis.agent.setup
 
+import android.app.Notification
+import android.content.Context
 import android.os.Build
 import androidx.activity.viewModels
+import androidx.core.app.NotificationManagerCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
+import artemis.agent.NotificationChannelTag
 import artemis.agent.R
 import artemis.agent.isDisplayedWithSize
 import artemis.agent.isDisplayedWithText
@@ -17,7 +21,6 @@ import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.ConnectPageScreen
 import artemis.agent.screens.MainScreen.mainScreenTest
-import artemis.agent.screens.NotificationScreen
 import artemis.agent.screens.SettingsPageScreen
 import artemis.agent.screens.SetupPageScreen
 import artemis.agent.screens.ShipsPageScreen
@@ -30,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -152,16 +156,7 @@ class ConnectFragmentTest : TestCase() {
                 step("Background app") { device.exploit.pressHome() }
 
                 step("Check connection notification") {
-                    NotificationScreen {
-                        title {
-                            isDisplayed()
-                            hasText(FAKE_SERVER_IP)
-                        }
-                        content {
-                            isDisplayed()
-                            hasText(connectedString)
-                        }
-                    }
+                    testConnectionNotification(device.targetContext)
                 }
 
                 step("Return to app") { ActivityScenario.launch(MainActivity::class.java) }
@@ -248,6 +243,27 @@ class ConnectFragmentTest : TestCase() {
                     } else view.isNotDisplayed()
                 }
             }
+        }
+
+        private fun testConnectionNotification(context: Context) {
+            val notificationManager = NotificationManagerCompat.from(context)
+            val connectedNotification =
+                notificationManager.activeNotifications.first { notification ->
+                    notification.tag == NotificationChannelTag.CONNECTION.tag
+                }
+
+            Assert.assertEquals(
+                FAKE_SERVER_IP,
+                connectedNotification.notification.extras.getCharSequence(Notification.EXTRA_TITLE),
+            )
+            Assert.assertEquals(
+                context.getString(R.string.connected),
+                connectedNotification.notification.extras.getCharSequence(Notification.EXTRA_TEXT),
+            )
+            Assert.assertEquals(
+                R.drawable.ic_stat_name,
+                connectedNotification.notification.smallIcon.resId,
+            )
         }
     }
 }

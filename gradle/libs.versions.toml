@@ -154,7 +154,6 @@ uiautomator = "androidx.test.uiautomator:uiautomator:2.3.0"
 hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
 
 kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref = "kaspresso" }
-kautomator = { module = "com.kaspersky.android-components:kautomator", version.ref = "kaspresso" }
 kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 
@@ -256,7 +255,6 @@ app-androidTest = [
     "junit4",
     "hamcrest",
     "kaspresso",
-    "kautomator",
     "kakao",
     "test-core",
     "test-junit",
