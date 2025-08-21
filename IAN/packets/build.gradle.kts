@@ -96,7 +96,7 @@ pitest {
     targetClasses = listOf("com.walkertribe.ian.protocol.*")
     threads = 8
     timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
+    outputFormats = listOf("HTML", "CSV", "XML")
     timestampedReports = false
     setWithHistory(true)
     mutators.addAll(pitestMutators)
