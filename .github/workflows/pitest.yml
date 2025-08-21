@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
       - name: Restore Pitest history file
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
         with:
           path: ${{ github.workspace }}/${{ matrix.path }}/build/pitHistory.txt
           key: pitest-history:${{ matrix.path }}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Determine Gradle module
         id: get-module
-        uses: mad9000/actions-find-and-replace-string@5
+        uses: mad9000/actions-find-and-replace-string@bce4d50390d08b67e1822bd72fb54b3cf11b0ce9 # 5
         with:
           source: ${{ matrix.path }}
           find: '/'
@@ -62,14 +62,14 @@ jobs:
         run: ./gradlew :${{ steps.get-module.outputs.value }}:pitest
 
       - name: Upload Pitest report
-        uses: Bonajo/pitest-report-action@v1.0.0
+        uses: Bonajo/pitest-report-action@67a9095d90ae1cc396bbab3211258f46cf0a7f13 # v1.0.0
         with:
           name: Pitest Report (${{ matrix.path }})
           file: ${{ github.workspace }}/${{ matrix.path }}/build/reports/pitest/mutations.xml
           annotation-types: ALL
 
       - name: Cache Pitest history file
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
         with:
           path: ${{ github.workspace }}/${{ matrix.path }}/build/pitHistory.txt
           key: pitest-history:${{ matrix.path }}-${{ hashFiles('**/build/pitHistory.txt') }}
