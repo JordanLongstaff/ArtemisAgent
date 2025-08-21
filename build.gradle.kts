@@ -34,7 +34,7 @@ extra.apply {
     set("kotlinTestPath", "src/test/kotlin")
     set("kotlinTestFixturesPath", "src/testFixtures/kotlin")
 
-    set("pitestTimeoutFactor", BigDecimal(100))
+    set("pitestTimeoutFactor", BigDecimal(10))
     set(
         "pitestMutators",
         setOf(
