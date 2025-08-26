@@ -55,8 +55,6 @@ material = "1.12.0"
 mockk = "1.14.5"
 okio = "3.16.0"
 perf-plugin = "2.0.1"
-pitest = "1.20.1"
-pitest-junit5 = "1.2.3"
 play-services-tasks = "18.3.2"
 process-phoenix = "3.0.0"
 protobuf = "4.32.0"
@@ -66,6 +64,8 @@ task-tree = "4.0.1"
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "gradle-pitest" }
 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -190,7 +190,9 @@ netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 classpath = [
     "gradle",
     "kotlin-gradle-plugin",
+    "kover-gradle-plugin",
     "gradle-pitest",
+    "detekt-gradle-plugin",
 ]
 
 app = [
@@ -442,13 +444,10 @@ arcmutate = [
 [plugins]
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "perf-plugin" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }

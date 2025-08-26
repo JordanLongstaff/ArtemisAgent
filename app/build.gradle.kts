@@ -1,3 +1,4 @@
+import artemis.agent.gradle.includeSourceSets
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.io.FileInputStream
 import java.util.Properties
@@ -12,9 +13,9 @@ plugins {
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.firebase.perf)
     alias(libs.plugins.protobuf)
-    alias(libs.plugins.detekt)
+    id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kover)
+    id("org.jetbrains.kotlinx.kover")
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -35,10 +36,6 @@ val changelog =
         .file("fastlane/metadata/android/en-US/changelogs/default.txt")
         .readLines()
         .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
-
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinAndroidTestPath = "src/androidTest/kotlin"
 
 android {
     namespace = appId
@@ -166,7 +163,7 @@ dependencies {
 ktfmt { kotlinLangStyle() }
 
 detekt {
-    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
+    includeSourceSets("androidTest")
     ignoredBuildTypes = listOf(release)
     ignoredVariants = listOf(release)
 }

@@ -1,4 +1,8 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
+import artemis.agent.gradle.configure
+import artemis.agent.gradle.dependsOnKonsist
+import artemis.agent.gradle.excludeTestFixtures
+import artemis.agent.gradle.includeSourceSets
+import com.android.build.gradle.internal.testFixtures.testFixturesFeatureName
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -7,17 +11,14 @@ plugins {
     id("java-test-fixtures")
     id("kotlin")
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kover)
+    id("org.jetbrains.kotlinx.kover")
     id("info.solidsoft.pitest")
     alias(libs.plugins.ktfmt)
-    alias(libs.plugins.detekt)
+    id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
 
 val javaVersion: JavaVersion by rootProject.extra
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinTestFixturesPath: String by rootProject.extra
 
 java {
     sourceCompatibility = javaVersion
@@ -36,11 +37,13 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.assemble.dependsOn(":IAN:world:konsist:test")
+kover.excludeTestFixtures()
+
+dependsOnKonsist()
 
 ktfmt { kotlinLangStyle() }
 
-detekt { source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinTestFixturesPath)) }
+detekt.includeSourceSets(testFixturesFeatureName)
 
 dependencies {
     api(projects.ian.enums)
@@ -63,20 +66,4 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
-
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.world.*")
-    threads = 2
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV", "XML")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
-}
+pitest.configure(rootPackage = "com.walkertribe.ian.world", threads = 2)

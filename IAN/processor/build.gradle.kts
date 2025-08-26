@@ -5,7 +5,7 @@ plugins {
     id("java-library")
     id("kotlin")
     alias(libs.plugins.ktfmt)
-    alias(libs.plugins.detekt)
+    id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
 

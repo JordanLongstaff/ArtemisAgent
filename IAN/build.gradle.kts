@@ -1,3 +1,4 @@
+import artemis.agent.gradle.configure
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -6,10 +7,10 @@ plugins {
     id("java-library")
     id("kotlin")
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kover)
+    id("org.jetbrains.kotlinx.kover")
     id("info.solidsoft.pitest")
     alias(libs.plugins.ktfmt)
-    alias(libs.plugins.detekt)
+    id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -79,18 +80,4 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.*")
-    threads = 2
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV", "XML")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
-}
+pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
