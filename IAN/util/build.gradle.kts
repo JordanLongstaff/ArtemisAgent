@@ -44,7 +44,6 @@ dependencies {
 
     implementation(libs.bundles.ian.util)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.util.test)
     testFixturesImplementation(libs.bundles.ian.util.test.fixtures)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
@@ -64,7 +63,7 @@ pitest {
     targetClasses = listOf("com.walkertribe.ian.util.*")
     threads = 2
     timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
+    outputFormats = listOf("HTML", "CSV", "XML")
     timestampedReports = false
     setWithHistory(true)
     mutators.addAll(pitestMutators)

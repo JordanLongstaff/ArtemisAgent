@@ -102,7 +102,7 @@ class NotificationManager(context: Context) {
                         R.string.channel_group_allies,
                         NotificationChannelSetup(
                             NotificationChannelTag.DEEP_STRIKE,
-                            R.string.channel_allies_deep_string,
+                            R.string.channel_allies_deep_strike,
                             NotificationManagerCompat.IMPORTANCE_LOW,
                         ),
                     ),

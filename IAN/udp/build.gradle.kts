@@ -36,7 +36,6 @@ dependencies {
     implementation(libs.kotlinx.io)
     api(libs.bundles.ian.udp.api)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.udp.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
@@ -55,7 +54,7 @@ pitest {
     targetClasses = listOf("com.walkertribe.ian.protocol.*")
     threads = 2
     timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
+    outputFormats = listOf("HTML", "CSV", "XML")
     timestampedReports = false
     setWithHistory(true)
     mutators.addAll(pitestMutators)

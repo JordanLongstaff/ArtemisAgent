@@ -1,7 +1,7 @@
 package artemis.agent.game.biomechs
 
 import com.walkertribe.ian.world.ArtemisNpc
-import io.kotest.datatest.WithDataTestName
+import io.kotest.engine.names.WithDataTestName
 import kotlinx.serialization.Serializable
 
 @Serializable

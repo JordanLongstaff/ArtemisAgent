@@ -45,7 +45,6 @@ dependencies {
     api(projects.ian.util)
     api(libs.kotlin.stdlib)
 
-    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.util))
     testImplementation(libs.bundles.ian.enums.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
@@ -65,7 +64,7 @@ pitest {
     targetClasses = listOf("com.walkertribe.ian.enums.*")
     threads = 2
     timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
+    outputFormats = listOf("HTML", "CSV", "XML")
     timestampedReports = false
     setWithHistory(true)
     mutators.addAll(pitestMutators)

@@ -50,9 +50,7 @@ dependencies {
 
     testFixturesImplementation(projects.ian.enums)
     testFixturesImplementation(libs.bundles.ian.vesseldata.test.fixtures)
-    testFixturesApi(libs.kotest.framework.datatest.jvm)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.vesseldata.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
@@ -71,7 +69,7 @@ pitest {
     targetClasses = listOf("com.walkertribe.ian.vesseldata.*")
     threads = 2
     timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
+    outputFormats = listOf("HTML", "CSV", "XML")
     timestampedReports = false
     setWithHistory(true)
     mutators.addAll(pitestMutators)

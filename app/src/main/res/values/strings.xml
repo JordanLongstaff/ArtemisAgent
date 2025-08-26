@@ -82,7 +82,7 @@
     <string name="building">Building:</string>
     <string name="cancel">Cancel</string>
     <string name="cannot_taunt">Cannot taunt</string>
-    <string name="channel_allies_deep_string">Deep Strike production</string>
+    <string name="channel_allies_deep_strike">Deep Strike production</string>
     <string name="channel_biomech_moving">Reanimation alert</string>
     <string name="channel_border_war">Border war</string>
     <string name="channel_connection">Connection</string>
@@ -563,6 +563,7 @@
     <string name="mission_shield">Shield</string>
     <string name="mission_will_be_removed">Will be removed in %1$ds</string>
     <string name="more_commands">More commands:</string>
+    <string name="mute">Mute</string>
     <string-array name="network_type_entries">
         <item>Wi-Fi</item>
         <item>Mobile</item>

@@ -47,7 +47,6 @@ dependencies {
 
     implementation(libs.kotlin.reflect)
 
-    testImplementation(projects.ian.testing)
     testImplementation(libs.bundles.ian.listener.test)
     testFixturesImplementation(libs.kotlin.reflect)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
@@ -67,7 +66,7 @@ pitest {
     targetClasses = listOf("com.walkertribe.ian.iface.*")
     threads = 2
     timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
+    outputFormats = listOf("HTML", "CSV", "XML")
     timestampedReports = false
     setWithHistory(true)
     mutators.addAll(pitestMutators)

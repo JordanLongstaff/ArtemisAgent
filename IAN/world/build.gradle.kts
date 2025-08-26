@@ -55,7 +55,6 @@ dependencies {
     testFixturesApi(projects.ian.util)
     testFixturesImplementation(libs.bundles.ian.world.test.fixtures)
 
-    testImplementation(projects.ian.testing)
     testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)
@@ -76,7 +75,7 @@ pitest {
     targetClasses = listOf("com.walkertribe.ian.world.*")
     threads = 2
     timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
+    outputFormats = listOf("HTML", "CSV", "XML")
     timestampedReports = false
     setWithHistory(true)
     mutators.addAll(pitestMutators)

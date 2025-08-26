@@ -2,7 +2,7 @@ package artemis.agent
 
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
-import androidx.core.text.HtmlCompat
+import io.noties.markwon.Markwon
 import java.io.FileNotFoundException
 
 enum class UpdateCheck {
@@ -24,10 +24,7 @@ enum class UpdateCheck {
                 }
 
                 val changelog =
-                    HtmlCompat.fromHtml(
-                        context.getString(R.string.changelog),
-                        HtmlCompat.FROM_HTML_MODE_COMPACT,
-                    )
+                    Markwon.create(context).toMarkdown(context.getString(R.string.changelog))
 
                 AlertDialog.Builder(context)
                     .setTitle(R.string.app_version)

@@ -1,1 +1,2 @@
-* Added dialog for no updates found
+* Added mute button for sound effects in settings
+* Dependency upgrades

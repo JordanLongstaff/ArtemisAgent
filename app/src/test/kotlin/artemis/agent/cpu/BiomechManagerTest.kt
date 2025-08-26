@@ -71,7 +71,7 @@ class BiomechManagerTest :
 
             it("Confirmed") {
                 biomechManager.confirmed = true
-                biomechManager.shouldFlash!!.shouldBeFalse()
+                biomechManager.shouldFlash.shouldBeFalse()
             }
 
             describe("Responds to rage packets") {
@@ -112,14 +112,14 @@ class BiomechManagerTest :
                         biomechManager.onPacket(packet)
                         biomechManager.rageStatus.value shouldBeEqual BiomechRageStatus.HOSTILE
                         biomechManager.hasUpdate.shouldBeTrue()
-                        biomechManager.shouldFlash!!.shouldBeTrue()
+                        biomechManager.shouldFlash.shouldBeTrue()
                     }
                 }
 
                 it("Reset update") {
                     biomechManager.resetUpdate()
                     biomechManager.hasUpdate.shouldBeFalse()
-                    biomechManager.shouldFlash!!.shouldBeFalse()
+                    biomechManager.shouldFlash.shouldBeFalse()
                 }
 
                 it("Back to neutral") {
@@ -133,7 +133,7 @@ class BiomechManagerTest :
                 it("Notify update") {
                     biomechManager.notifyUpdate()
                     biomechManager.hasUpdate.shouldBeTrue()
-                    biomechManager.shouldFlash!!.shouldBeTrue()
+                    biomechManager.shouldFlash.shouldBeTrue()
                 }
 
                 it("Neutral again") {

@@ -39,7 +39,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
     # Sets up the detekt cli
     - name: Setup Detekt
@@ -52,7 +52,7 @@ jobs:
         detekt-cli -i ${{ github.workspace }} -c ${{ github.workspace }}/config/detekt/detekt.yml -r sarif:${{ github.workspace }}/detekt.sarif.json
 
     # Uploads results to GitHub repository using the upload-sarif action
-    - uses: github/codeql-action/upload-sarif@d6bbdef45e766d081b84a2def353b0055f728d3e # v3
+    - uses: github/codeql-action/upload-sarif@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3
       with:
         # Path to SARIF file relative to the root of the repository
         sarif_file: ${{ github.workspace }}/detekt.sarif.json

@@ -19,7 +19,7 @@ sealed class Property<V, P : Property<V, P>>(
         override fun compareTo(other: FloatProperty): Int =
             when {
                 !other.hasValue -> if (hasValue) 1 else 0
-                hasValue -> value.compareTo(other.value)
+                hasValue -> compareValuesBy(this, other) { it.value }
                 else -> -1
             }
     }
@@ -35,7 +35,7 @@ sealed class Property<V, P : Property<V, P>>(
         override fun compareTo(other: ByteProperty): Int =
             when {
                 !other.hasValue -> if (hasValue) 1 else 0
-                hasValue -> value.compareTo(other.value)
+                hasValue -> compareValuesBy(this, other) { it.value }
                 else -> -1
             }
 
@@ -58,7 +58,7 @@ sealed class Property<V, P : Property<V, P>>(
         override fun compareTo(other: IntProperty): Int =
             when {
                 !other.hasValue -> if (hasValue) 1 else 0
-                hasValue -> value.compareTo(other.value)
+                hasValue -> compareValuesBy(this, other) { it.value }
                 else -> -1
             }
 

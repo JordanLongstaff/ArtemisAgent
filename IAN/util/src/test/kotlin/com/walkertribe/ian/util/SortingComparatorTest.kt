@@ -1,7 +1,7 @@
 package com.walkertribe.ian.util
 
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.core.spec.style.scopes.ContainerScope
+import io.kotest.core.spec.style.scopes.DescribeSpecContainerScope
 import io.kotest.datatest.withData
 import io.kotest.matchers.equals.shouldBeEqual
 import kotlinx.coroutines.launch
@@ -25,11 +25,11 @@ class SortingComparatorTest :
         val thirdComparator = compareBy<Triple<String, Int, Boolean>> { it.third }
 
         describe("buildSortingComparator") {
-            fun ContainerScope.testSortingComparators(
+            fun DescribeSpecContainerScope.testSortingComparators(
                 name: String,
                 testCases: Collection<SortingTestCase>,
                 partitionFn: (SortingTestCase) -> Boolean,
-                testFn: suspend ContainerScope.(List<SortingTestCase>) -> Unit,
+                testFn: suspend DescribeSpecContainerScope.(List<SortingTestCase>) -> Unit,
             ) = launch {
                 withData(
                     nameFn = { it.first },

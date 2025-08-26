@@ -160,6 +160,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                     theme = UserSettings.Theme.THEME_DEFAULT
                     threeDigitDirections = true
                     soundVolume = UserSettingsSerializer.DEFAULT_SOUND_VOLUME
+                    soundMuted = false
                     hapticsEnabled = true
                 }
         };
