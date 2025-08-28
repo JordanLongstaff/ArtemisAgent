@@ -9,7 +9,6 @@ plugins {
     fixtures
     alias(libs.plugins.ksp)
     id("info.solidsoft.pitest")
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -33,8 +32,6 @@ tasks.test {
 }
 
 dependsOnKonsist()
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     compileOnly(projects.ian.annotations)

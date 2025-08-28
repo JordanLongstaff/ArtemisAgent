@@ -16,7 +16,6 @@ plugins {
     id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.ksp)
     id("org.jetbrains.kotlinx.kover")
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -159,8 +158,6 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugaring)
 }
-
-ktfmt { kotlinLangStyle() }
 
 detekt {
     includeSourceSets("androidTest")

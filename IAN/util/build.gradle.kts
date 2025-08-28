@@ -8,7 +8,6 @@ plugins {
     fixtures
     id("org.jetbrains.kotlinx.kover")
     id("info.solidsoft.pitest")
-    alias(libs.plugins.ktfmt)
     id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
@@ -31,8 +30,6 @@ tasks.test {
     jvmArgs("-Xmx2g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
     useJUnitPlatform()
 }
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     api(libs.kotlin.stdlib)

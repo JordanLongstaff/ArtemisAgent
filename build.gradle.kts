@@ -1,3 +1,6 @@
+import com.ncorti.ktfmt.gradle.KtfmtExtension
+import com.ncorti.ktfmt.gradle.KtfmtPlugin
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     dependencies {
@@ -34,12 +37,19 @@ extra.apply {
 plugins {
     base
     id("io.gitlab.arturbosch.detekt")
+    alias(libs.plugins.ktfmt) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.dependency.analysis)
     alias(libs.plugins.task.tree)
     alias(libs.plugins.git.hooks)
+}
+
+allprojects {
+    apply<KtfmtPlugin>()
+
+    configure<KtfmtExtension> { kotlinLangStyle() }
 }
 
 tasks.detekt { jvmTarget = javaVersion.toString() }

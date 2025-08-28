@@ -9,7 +9,6 @@ plugins {
     fixtures
     id("org.jetbrains.kotlinx.kover")
     id("info.solidsoft.pitest")
-    alias(libs.plugins.ktfmt)
     id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
@@ -34,8 +33,6 @@ tasks.test {
 }
 
 dependsOnKonsist()
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     api(projects.ian.util)

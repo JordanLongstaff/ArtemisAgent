@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.ksp)
     id("org.jetbrains.kotlinx.kover")
     id("info.solidsoft.pitest")
-    alias(libs.plugins.ktfmt)
     id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
@@ -50,8 +49,6 @@ allprojects
     }
 
 tasks.assemble.dependsOn(konsistCollect)
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     compileOnly(projects.ian.annotations)

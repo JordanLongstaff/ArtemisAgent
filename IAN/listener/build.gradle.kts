@@ -8,7 +8,6 @@ plugins {
     id("kotlin")
     fixtures
     id("info.solidsoft.pitest")
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -32,8 +31,6 @@ tasks.test {
 }
 
 dependsOnKonsist()
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     api(libs.kotlin.stdlib)
