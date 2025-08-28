@@ -3,7 +3,6 @@ package artemis.agent.gradle
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import java.math.BigDecimal
-import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 import org.gradle.api.Project
 
 private const val PITEST_VERSION = "1.20.1"
@@ -39,10 +38,6 @@ fun Project.dependsOnKonsist() {
     tasks
         .named { it.startsWith("assemble") }
         .forEach { task -> task.dependsOn("$path:konsist:test") }
-}
-
-fun KoverProjectExtension.excludeTestFixtures() {
-    currentProject.sources.excludedSourceSets.add("testFixtures")
 }
 
 fun DetektExtension.includeSourceSets(vararg sourceSets: String) {

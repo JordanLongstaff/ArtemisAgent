@@ -1,5 +1,5 @@
 import artemis.agent.gradle.configure
-import artemis.agent.gradle.excludeTestFixtures
+import artemis.agent.gradle.dependsOnKonsist
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -32,7 +32,7 @@ tasks.test {
     useJUnitPlatform()
 }
 
-kover.excludeTestFixtures()
+dependsOnKonsist()
 
 ktfmt { kotlinLangStyle() }
 

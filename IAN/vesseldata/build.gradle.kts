@@ -1,19 +1,14 @@
 import artemis.agent.gradle.configure
 import artemis.agent.gradle.dependsOnKonsist
-import artemis.agent.gradle.excludeTestFixtures
-import artemis.agent.gradle.includeSourceSets
-import com.android.build.gradle.internal.testFixtures.testFixturesFeatureName
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
-    id("java-test-fixtures")
     id("kotlin")
-    id("org.jetbrains.kotlinx.kover")
+    fixtures
     id("info.solidsoft.pitest")
     alias(libs.plugins.ktfmt)
-    id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -36,13 +31,9 @@ tasks.test {
     useJUnitPlatform()
 }
 
-kover.excludeTestFixtures()
-
 dependsOnKonsist()
 
 ktfmt { kotlinLangStyle() }
-
-detekt.includeSourceSets(testFixturesFeatureName)
 
 dependencies {
     api(projects.ian.enums)
