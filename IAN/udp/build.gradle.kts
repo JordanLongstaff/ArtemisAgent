@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -42,7 +43,7 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
+tasks.assemble.dependsOn(":IAN:udp:konsist:test")
 
 val pitestMutators: Set<String> by rootProject.extra
 val pitestTimeoutFactor: BigDecimal by rootProject.extra
