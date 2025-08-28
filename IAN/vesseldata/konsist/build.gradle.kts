@@ -5,7 +5,6 @@ plugins {
     id("java-library")
     id("kotlin")
     alias(libs.plugins.detekt)
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
