@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java-library")
     id("kotlin")
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -25,7 +24,5 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 tasks.assemble.dependsOn(":IAN:annotations:konsist:test")
-
-ktfmt { kotlinLangStyle() }
 
 dependencies { api(libs.kotlin.stdlib) }

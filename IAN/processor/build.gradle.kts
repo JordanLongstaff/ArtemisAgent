@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java-library")
     id("kotlin")
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -22,8 +21,6 @@ tasks.withType<KotlinCompile>().configureEach {
         javaParameters = true
     }
 }
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     api(libs.kotlin.stdlib)

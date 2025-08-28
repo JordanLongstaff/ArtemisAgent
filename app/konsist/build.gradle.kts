@@ -5,7 +5,6 @@ plugins {
     id("com.android.library")
     kotlin("android")
     alias(libs.plugins.detekt)
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -56,7 +55,5 @@ dependencies {
     testImplementation(libs.bundles.konsist.common)
     testRuntimeOnly(libs.bundles.konsist.runtime)
 }
-
-ktfmt { kotlinLangStyle() }
 
 dependencyAnalysis { issues { ignoreSourceSet("androidTest") } }

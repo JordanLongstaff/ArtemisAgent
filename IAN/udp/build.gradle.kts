@@ -7,7 +7,6 @@ plugins {
     id("kotlin")
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
@@ -30,8 +29,6 @@ tasks.test {
     jvmArgs("-Xmx2g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
     useJUnitPlatform()
 }
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     implementation(libs.kotlinx.io)
