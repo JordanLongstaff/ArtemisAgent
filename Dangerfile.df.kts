@@ -1,0 +1,48 @@
+@file:DependsOn("io.github.ackeecz:danger-kotlin-detekt:0.1.4")
+
+import io.github.ackeecz.danger.detekt.DetektPlugin
+import java.io.File
+import systems.danger.kotlin.*
+
+register.plugin(DetektPlugin)
+
+danger(args) {
+    warnDetekt()
+
+    val ianSrcRegex = Regex("IAN/([A-Za-z]+/)*src/(main|test|testFixtures)/")
+    val allModifiedFiles = git.modifiedFiles + git.createdFiles
+    val ianSrcChanges =
+        allModifiedFiles
+            .filter { ianSrcRegex.containsMatchIn(it) }
+            .map { it.substringBeforeLast('/') }
+            .distinct()
+    val (ianSrcTest, ianSrcMain) = ianSrcChanges.partition { it.contains("src/test") }
+
+    val mainOnly = ianSrcMain.filter { path ->
+        val testRegex = Regex(path.replace("main", "test(Fixtures)?"))
+        ianSrcTest.any { testRegex.containsMatchIn(it) }
+    }
+
+    onGitHub {
+        warnWorkInProgress()
+
+        mainOnly.forEach { path ->
+            warn(":warning: Source files at $path were modified without also modifying tests")
+        }
+    }
+}
+
+fun warnDetekt() {
+    val detektReport = File("detekt.sarif.json")
+    if (!detektReport.exists()) {
+        warn(":see_no_evil: No detekt report found")
+        return
+    }
+    DetektPlugin.parseAndReport(detektReport)
+}
+
+fun GitHub.warnWorkInProgress() {
+    if ("WIP" in pullRequest.title) {
+        warn(":construction: PR is marked with Work in Progress (WIP)")
+    }
+}
