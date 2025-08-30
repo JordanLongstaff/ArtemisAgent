@@ -34,7 +34,7 @@ danger(args) {
 }
 
 fun warnDetekt() {
-    val detektReport = File("detekt.sarif.json")
+    val detektReport = File("build/reports/detekt/detekt.sarif")
     if (!detektReport.exists()) {
         warn(":see_no_evil: No detekt report found")
         return
