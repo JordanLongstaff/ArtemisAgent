@@ -1,11 +1,11 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
+import artemis.agent.gradle.dependsOnKonsist
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
     id("kotlin")
-    alias(libs.plugins.detekt)
+    id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -23,6 +23,6 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
-tasks.assemble.dependsOn(":IAN:annotations:konsist:test")
+dependsOnKonsist()
 
 dependencies { api(libs.kotlin.stdlib) }

@@ -1,22 +1,18 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
+import artemis.agent.gradle.configure
+import artemis.agent.gradle.dependsOnKonsist
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
-    id("java-test-fixtures")
     id("kotlin")
+    fixtures
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
-    alias(libs.plugins.detekt)
     alias(libs.plugins.dependency.analysis)
 }
 
 val javaVersion: JavaVersion by rootProject.extra
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinTestFixturesPath: String by rootProject.extra
 
 java {
     sourceCompatibility = javaVersion
@@ -35,9 +31,7 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.assemble.dependsOn(":IAN:world:konsist:test")
-
-detekt { source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinTestFixturesPath)) }
+dependsOnKonsist()
 
 dependencies {
     api(projects.ian.enums)
@@ -60,20 +54,4 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
-
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.world.*")
-    threads = 2
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV", "XML")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
-}
+pitest.configure(rootPackage = "com.walkertribe.ian.world", threads = 2)

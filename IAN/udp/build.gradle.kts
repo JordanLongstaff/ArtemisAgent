@@ -1,13 +1,14 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
+import artemis.agent.gradle.configure
+import artemis.agent.gradle.dependsOnKonsist
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
     id("kotlin")
-    alias(libs.plugins.kover)
+    id("org.jetbrains.kotlinx.kover")
     id("info.solidsoft.pitest")
-    alias(libs.plugins.detekt)
+    id("io.gitlab.arturbosch.detekt")
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -30,6 +31,8 @@ tasks.test {
     useJUnitPlatform()
 }
 
+dependsOnKonsist()
+
 dependencies {
     implementation(libs.kotlinx.io)
     api(libs.bundles.ian.udp.api)
@@ -40,20 +43,4 @@ dependencies {
     pitest(libs.bundles.arcmutate)
 }
 
-tasks.assemble.dependsOn(":IAN:udp:konsist:test")
-
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.protocol.*")
-    threads = 2
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV", "XML")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
-}
+pitest.configure(rootPackage = "com.walkertribe.ian.protocol", threads = 2)
