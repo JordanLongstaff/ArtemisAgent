@@ -37,7 +37,8 @@ koin = "4.1.0"
 koin-annotations = "2.1.0"
 konnection = "1.4.5"
 konsist = "0.17.3"
-korlibs = "6.0.0-alpha2"
+korlibs-serialization = "6.0.1"
+korlibs-string = "6.0.0"
 kotest = "6.0.1"
 kotest-arbs = "2.1.2"
 kotlin = "2.2.10"
@@ -92,8 +93,8 @@ ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 konnection = { module = "dev.tmapps:konnection", version.ref = "konnection" }
 konnection-android-debug = { module = "dev.tmapps:konnection-android-debug", version.ref = "konnection" }
 
-korlibs-charset = { module = "com.soywiz:korlibs-charset", version.ref = "korlibs" }
-korlibs-xml = { module = "com.soywiz:korlibs-serialization-xml", version.ref = "korlibs" }
+korlibs-serialization = { module = "com.soywiz:korlibs-serialization", version.ref = "korlibs-serialization" }
+korlibs-string = { module = "com.soywiz:korlibs-string", version.ref = "korlibs-string" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-assets = { module = "com.squareup.okio:okio-assetfilesystem", version.ref = "okio" }
@@ -306,7 +307,7 @@ ian-packets-api = [
     "kotlinx-coroutines",
     "koin-annotations",
     "koin-core",
-    "korlibs-charset",
+    "korlibs-string",
     "ktor-io",
 ]
 ian-packets-test = [
@@ -346,7 +347,7 @@ ian-udp-test = [
 ]
 
 ian-util = [
-    "korlibs-charset",
+    "korlibs-string",
     "ktor-io",
     "okio",
 ]
@@ -369,7 +370,7 @@ ian-util-test-fixtures = [
 ]
 
 ian-vesseldata = [
-    "korlibs-xml",
+    "korlibs-serialization",
     "okio",
 ]
 ian-vesseldata-test = [
@@ -386,7 +387,7 @@ ian-vesseldata-test-fixtures = [
     "kotest-common",
     "kotest-framework-engine",
     "kotest-property",
-    "korlibs-xml",
+    "korlibs-serialization",
     "mockk",
 ]
 
@@ -421,7 +422,7 @@ konsist-ian = [
     "kotest-assertions-core",
 ]
 konsist-vesseldata = [
-    "korlibs-xml",
+    "korlibs-serialization",
 ]
 konsist-runtime = [
     "kotest-runner-junit5-jvm",
