@@ -9,6 +9,7 @@ plugins {
 }
 
 configureTests()
+
 pitest.configure(rootPackage = "com.walkertribe.ian.iface", threads = 2)
 
 dependsOnKonsist()

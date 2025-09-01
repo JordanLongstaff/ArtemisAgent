@@ -6,9 +6,7 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("dev.panuszewski.typesafe-conventions") version "0.7.4"
-}
+plugins { id("dev.panuszewski.typesafe-conventions") version "0.7.4" }
 
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {

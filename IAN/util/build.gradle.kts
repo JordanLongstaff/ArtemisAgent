@@ -8,6 +8,7 @@ plugins {
 }
 
 configureTests()
+
 pitest.configure(rootPackage = "com.walkertribe.ian.util", threads = 2)
 
 dependencies {

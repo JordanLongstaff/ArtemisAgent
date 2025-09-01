@@ -10,6 +10,7 @@ plugins {
 }
 
 configureTests()
+
 pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
 
 val konsistCollect by

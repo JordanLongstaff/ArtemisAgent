@@ -17,4 +17,12 @@ java {
 
 kotlin { compilerOptions { jvmTarget = JvmTarget.fromTarget(javaVersion.toString()) } }
 
+ktfmt { kotlinLangStyle() }
+
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    basePath = projectDir.toString()
+    parallel = true
+}
+
 dependencies { implementation(libs.bundles.classpath) }

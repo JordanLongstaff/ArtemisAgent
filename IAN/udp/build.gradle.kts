@@ -9,6 +9,7 @@ plugins {
 }
 
 configureTests()
+
 pitest.configure(rootPackage = "com.walkertribe.ian.protocol", threads = 2)
 
 dependsOnKonsist()
