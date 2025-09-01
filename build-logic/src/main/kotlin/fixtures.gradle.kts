@@ -1,11 +1,11 @@
-import com.android.build.gradle.internal.testFixtures.testFixturesFeatureName
-
 plugins {
     id("java-test-fixtures")
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
+    id("io.gitlab.arturbosch.detekt")
+    id("org.jetbrains.kotlinx.kover")
 }
 
-detekt.source.from("src/$testFixturesFeatureName/kotlin")
+val testFixtures = "testFixtures"
 
-kover.currentProject.sources.excludedSourceSets.add(testFixturesFeatureName)
+detekt.source.from("src/$testFixtures/kotlin")
+
+kover.currentProject.sources.excludedSourceSets.add(testFixtures)

@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("java-gradle-plugin")
+    `java-gradle-plugin`
     `kotlin-dsl`
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.detekt)
@@ -28,4 +28,5 @@ detekt {
 dependencies {
     implementation(libs.bundles.build.logic)
     api(libs.bundles.build.logic.api)
+    runtimeOnly(libs.gradle)
 }

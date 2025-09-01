@@ -4,8 +4,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java-library")
     id("kotlin")
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.dependency.analysis)
+    id("io.gitlab.arturbosch.detekt")
+    id("com.autonomousapps.dependency-analysis")
 }
 
 val javaVersion: JavaVersion by rootProject.extra

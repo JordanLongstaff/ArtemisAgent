@@ -200,7 +200,6 @@ classpath = [
 ]
 
 build-logic = [
-    "gradle",
     "kotlin-gradle-plugin",
     "kotlin-gradle-plugin-api",
     "kover-gradle-plugin",
