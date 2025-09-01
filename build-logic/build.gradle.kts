@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.dependency.analysis)
 }
 
-val javaVersion = JavaVersion.VERSION_21
+val javaVersion = JavaVersion.VERSION_17
 
 java {
     sourceCompatibility = javaVersion
