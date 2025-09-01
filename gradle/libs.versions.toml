@@ -18,7 +18,6 @@ app-review = "2.0.2"
 app-update = "2.1.0"
 arcmutate-base = "1.5.3"
 arcmutate-kotlin = "1.4.3"
-byte-buddy-agent = "1.17.7"
 crashlytics-plugin = "3.0.6"
 dependency-analysis = "3.0.1"
 desugar = "2.1.5"
@@ -174,8 +173,6 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
-
-byte-buddy-agent = { module = "net.bytebuddy:byte-buddy-agent", version.ref = "byte-buddy-agent" }
 
 arcmutate-base = { module = "com.arcmutate:base", version.ref = "arcmutate-base" }
 arcmutate-kotlin = { module = "com.arcmutate:pitest-kotlin-plugin", version.ref = "arcmutate-kotlin" }

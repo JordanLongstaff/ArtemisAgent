@@ -18,8 +18,6 @@ plugins {
     alias(libs.plugins.dependency.analysis)
 }
 
-val byteBuddyAgent: Configuration by configurations.creating
-
 val appName = "Artemis Agent"
 val appId = "artemis.agent"
 val sdkVersion: Int by rootProject.extra
@@ -72,10 +70,7 @@ android {
     }
 
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
-    testOptions.unitTests.all {
-        it.jvmArgs("-javaagent:${byteBuddyAgent.asPath}")
-        it.useJUnitPlatform()
-    }
+    testOptions.unitTests.all { it.useJUnitPlatform() }
 
     signingConfigs {
         create(release) {
@@ -140,8 +135,6 @@ dependencies {
 
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
-
-    byteBuddyAgent(libs.byte.buddy.agent)
 
     androidTestImplementation(libs.bundles.app.androidTest) {
         exclude(group = "org.hamcrest", module = "hamcrest-core")
