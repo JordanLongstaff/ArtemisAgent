@@ -25,4 +25,7 @@ detekt {
     parallel = true
 }
 
-dependencies { implementation(libs.bundles.classpath) }
+dependencies {
+    implementation(libs.bundles.build.logic)
+    api(libs.bundles.build.logic.api)
+}

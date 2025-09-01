@@ -67,6 +67,13 @@ gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "gradle-pitest" }
 
+kotlin-gradle-plugin-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+dependency-analysis = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dependency-analysis" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+
+javax-inject = { module = "javax.inject:javax.inject", version = "1" }
+
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
@@ -190,6 +197,19 @@ classpath = [
     "gradle",
     "kotlin-gradle-plugin",
     "gradle-pitest",
+]
+
+build-logic = [
+    "gradle",
+    "kotlin-gradle-plugin",
+    "kotlin-gradle-plugin-api",
+    "kover-gradle-plugin",
+    "dependency-analysis",
+    "detekt-gradle-plugin",
+]
+build-logic-api = [
+    "gradle-pitest",
+    "javax-inject",
 ]
 
 app = [
