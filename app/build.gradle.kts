@@ -35,10 +35,6 @@ val changelog =
         .readLines()
         .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
 
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinAndroidTestPath = "src/androidTest/kotlin"
-
 android {
     namespace = appId
     compileSdk = sdkVersion
@@ -163,7 +159,7 @@ dependencies {
 }
 
 detekt {
-    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
+    source.from(files("src/androidTest/kotlin"))
     ignoredBuildTypes = listOf(release)
     ignoredVariants = listOf(release)
 }
