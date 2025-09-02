@@ -30,8 +30,16 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
+val byteBuddyAgent: Configuration by configurations.creating
+
 tasks.test {
-    jvmArgs("-Xmx2g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
+    jvmArgs(
+        "-Xmx2g",
+        "-Xms1g",
+        "-XX:+HeapDumpOnOutOfMemoryError",
+        "-XX:+UseParallelGC",
+        "-javaagent:${byteBuddyAgent.asPath}",
+    )
     useJUnitPlatform()
 }
 
@@ -56,6 +64,8 @@ dependencies {
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
+
+    byteBuddyAgent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
 }
