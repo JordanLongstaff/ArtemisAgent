@@ -1,43 +1,22 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import artemis.agent.gradle.configure
+import artemis.agent.gradle.configureTests
+import artemis.agent.gradle.dependsOnKonsist
 
 plugins {
-    id("java-library")
-    id("java-test-fixtures")
-    id("kotlin")
+    id("ian-library")
+    id("fixtures")
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.dependency.analysis)
 }
 
-val javaVersion: JavaVersion by rootProject.extra
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinTestFixturesPath: String by rootProject.extra
+configureTests(maxMemoryGb = 4)
 
-java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
+pitest {
+    configure(rootPackage = "com.walkertribe.ian.protocol", threads = 8)
+    jvmArgs = listOf("-Xmx8g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
-        javaParameters = true
-    }
-}
-
-tasks.test {
-    jvmArgs("-Xmx4g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
-    useJUnitPlatform()
-}
-
-tasks.assemble.dependsOn(":IAN:packets:konsist:test")
-
-detekt { source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinTestFixturesPath)) }
+dependsOnKonsist()
 
 dependencies {
     compileOnly(projects.ian.annotations)
@@ -79,23 +58,4 @@ dependencies {
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
     pitest(libs.bundles.arcmutate)
-}
-
-kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
-
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.protocol.*")
-    threads = 8
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV", "XML")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
-    jvmArgs = listOf("-Xmx8g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
 }

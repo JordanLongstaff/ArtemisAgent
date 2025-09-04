@@ -82,7 +82,7 @@ jobs:
 
       - name: Bump app version name
         id: nextVersionName
-        uses: cbrgm/semver-bump-action@6527c6613705acb087d130dba4631a9184adaaf8 # v1
+        uses: cbrgm/semver-bump-action@68c59dc138e27abddc9048003876a78155ccef75 # v1
         with:
           current-version: ${{ steps.version.outputs.versionName }}
           bump-level: ${{ inputs.versionBump }}
@@ -103,20 +103,20 @@ jobs:
 
       - name: Authenticate for Firebase
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           workload_identity_provider: projects/${{ secrets.WIF_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL }}/providers/${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
 
       - name: Set Firebase Project
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@28d7dec901271b7c26e0dbed7b37fd826aa4c15e # v14.14.0
+        uses: w9jds/firebase-action@90c848b4861dbd006c5ae9e7f23614018f5bac3e # v14.15.1
         with:
           args: use ${{ secrets.FIREBASE_SA_PROJECT }}
 
       - name: Get Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@28d7dec901271b7c26e0dbed7b37fd826aa4c15e # v14.14.0
+        uses: w9jds/firebase-action@90c848b4861dbd006c5ae9e7f23614018f5bac3e # v14.15.1
         with:
           args: remoteconfig:get -o app/remote-config.json
 
@@ -150,7 +150,7 @@ jobs:
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@28d7dec901271b7c26e0dbed7b37fd826aa4c15e # v14.14.0
+        uses: w9jds/firebase-action@90c848b4861dbd006c5ae9e7f23614018f5bac3e # v14.15.1
         with:
           args: deploy --only remoteconfig
 
