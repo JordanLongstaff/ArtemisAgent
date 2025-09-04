@@ -2,8 +2,9 @@
 
 import io.github.ackeecz.danger.detekt.DetektPlugin
 import java.io.File
-import systems.danger.kotlin.*
-import systems.danger.kotlin.models.github.*
+import systems.danger.kotlin.register
+import systems.danger.kotlin.warn
+import systems.danger.kotlin.models.github.GitHub
 
 register.plugin(DetektPlugin)
 
