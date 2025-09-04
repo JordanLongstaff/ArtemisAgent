@@ -29,4 +29,13 @@ dependencies {
     implementation(libs.bundles.build.logic)
     api(libs.bundles.build.logic.api)
     runtimeOnly(libs.gradle)
+
+    constraints {
+        runtimeOnly(libs.commons.compress) {
+            because("Version 1.26 patches two high-level security vulnerabilities")
+        }
+        runtimeOnly(libs.netty) {
+            because("Version 4.1.100.Final patches a high-level security vulnerability")
+        }
+    }
 }
