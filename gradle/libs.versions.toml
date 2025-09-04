@@ -190,7 +190,8 @@ commons-compress = { module = "org.apache.commons:commons-compress", version = "
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
-netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
+netty-codec = { module = "io.netty:netty-codec", version = "4.2.+" }
+netty-http2 = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 
 [bundles]
 classpath = [
