@@ -603,7 +603,18 @@ class ArtemisNetworkInterfaceTest :
                             val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
                             versionFixture.generator.checkAll(500) { data ->
-                                versions.add(data.packetVersion)
+                                val version = data.packetVersion
+                                versions.add(version)
+
+                                collect(
+                                    when {
+                                        version.major < 2 -> "${version.major}.*"
+                                        version.major > 2 -> ">2.*"
+                                        version.minor < 3 -> "2.${version.minor}.*"
+                                        version.minor > 8 -> "2.9+"
+                                        else -> "2.8.2+"
+                                    }
+                                )
 
                                 val connectDeferred =
                                     async(testDispatcher) {
