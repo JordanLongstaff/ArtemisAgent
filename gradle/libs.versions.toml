@@ -33,13 +33,13 @@ jspecify = "1.0.0"
 junit4 = "4.13.2"
 kakao = "3.6.5"
 kaspresso = "1.6.0"
-koin = "4.1.0"
+koin = "4.1.1"
 koin-annotations = "2.1.0"
 konnection = "1.4.5"
 konsist = "0.17.3"
 korlibs-serialization = "6.0.1"
 korlibs-string = "6.0.0"
-kotest = "6.0.1"
+kotest = "6.0.2"
 kotest-arbs = "2.1.2"
 kotlin = "2.2.10"
 kotlin-coroutines = "1.10.2"
@@ -52,7 +52,7 @@ ktfmt = "0.23.0"
 ktor = "3.2.3"
 leakcanary = "2.14"
 markwon = "4.6.2"
-material = "1.12.0"
+material = "1.13.0"
 mockk = "1.14.5"
 okio = "3.16.0"
 perf-plugin = "2.0.1"
@@ -190,7 +190,8 @@ commons-compress = { module = "org.apache.commons:commons-compress", version = "
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
-netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
+netty-codec = { module = "io.netty:netty-codec", version = "4.2.+" }
+netty-http2 = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 
 [bundles]
 classpath = [
