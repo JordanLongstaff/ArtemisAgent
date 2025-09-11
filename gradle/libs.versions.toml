@@ -246,10 +246,10 @@ app = [
 ]
 app-debug = [
     "konnection-android-debug",
-    "material",
 ]
 app-debug-runtime = [
     "leakcanary",
+    "material",
 ]
 app-test = [
     "kotest-assertions-core",
