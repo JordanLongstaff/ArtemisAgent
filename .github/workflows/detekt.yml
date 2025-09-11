@@ -26,9 +26,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  issues: write
   security-events: write
-  statuses: write
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,11 +50,6 @@ jobs:
       continue-on-error: true
       run: |
         detekt-cli -i ${{ github.workspace }} -c ${{ github.workspace }}/config/detekt/detekt.yml -r sarif:${{ github.workspace }}/detekt.sarif.json
-
-    - name: Run Danger
-      uses: danger/kotlin@1.3.3
-      env:
-        GITHUB_TOKEN: ${{ secrets.DANGER_TOKEN }}
 
     # Uploads results to GitHub repository using the upload-sarif action
     - uses: github/codeql-action/upload-sarif@192325c86100d080feab897ff886c34abd4c83a3 # v3
