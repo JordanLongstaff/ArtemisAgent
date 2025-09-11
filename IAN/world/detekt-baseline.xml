@@ -4,5 +4,6 @@
   <CurrentIssues>
     <ID>LongParameterList:ObjectTestHelpers.kt$( id: Int, type: ObjectType, name: String, x: Float, y: Float, z: Float, hullId: Int, shieldsFront: Float, shieldsFrontMax: Float, )</ID>
     <ID>LongParameterList:ObjectTestHelpers.kt$( id: Int, type: ObjectType, name: String, x: Float, y: Float, z: Float, hullId: Int, shieldsFront: Float, shieldsFrontMax: Float, shieldsRear: Float, shieldsRearMax: Float, impulse: Float, side: Byte, )</ID>
+    <ID>WildcardImport:ObjectTestHelpers.kt$import io.kotest.matchers.booleans.*</ID>
   </CurrentIssues>
 </SmellBaseline>
