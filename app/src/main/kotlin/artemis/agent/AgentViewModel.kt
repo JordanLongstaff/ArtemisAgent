@@ -43,7 +43,14 @@ import com.walkertribe.ian.iface.DisconnectCause
 import com.walkertribe.ian.iface.KtorArtemisNetworkInterface
 import com.walkertribe.ian.iface.Listener
 import com.walkertribe.ian.protocol.Packet
-import com.walkertribe.ian.protocol.core.*
+import com.walkertribe.ian.protocol.core.ActivateUpgradePacket
+import com.walkertribe.ian.protocol.core.BayStatusPacket
+import com.walkertribe.ian.protocol.core.EndGamePacket
+import com.walkertribe.ian.protocol.core.GameOverReasonPacket
+import com.walkertribe.ian.protocol.core.GameStartPacket
+import com.walkertribe.ian.protocol.core.JumpEndPacket
+import com.walkertribe.ian.protocol.core.PausePacket
+import com.walkertribe.ian.protocol.core.PlayerShipDamagePacket
 import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.protocol.core.setup.AllShipSettingsPacket
 import com.walkertribe.ian.protocol.core.setup.ReadyPacket
