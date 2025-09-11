@@ -6,11 +6,12 @@
   "autoApprove": true,
   "automerge": true,
   "branchConcurrentLimit": 10,
-  "prConcurrentLimit": 2,
+  "prConcurrentLimit": 3,
   "ignoreDeps": ["com.android.tools.build:gradle"],
   "packageRules": [
     {
       "groupName": "kotlin and ksp",
+      "matchPackageNames": ["org.jetbrains.kotlin.plugin.serialization"],
       "matchSourceUrls": [
         "https://github.com/JetBrains/kotlin",
         "https://github.com/google/ksp"
