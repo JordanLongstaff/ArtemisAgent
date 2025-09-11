@@ -13,5 +13,6 @@
     <ID>NestedBlockDepth:AgentViewModel.kt$AgentViewModel$private suspend fun updateObjects()</ID>
     <ID>ReturnCount:RoutingGraph.kt$RoutingGraph$private fun calculateAvoidanceRouteCost( sourceX: Float, sourceZ: Float, destX: Float, destZ: Float, maxCost: Float = Float.POSITIVE_INFINITY, ): Float</ID>
     <ID>TooManyFunctions:AgentViewModel.kt$AgentViewModel : AndroidViewModelListener</ID>
+    <ID>WildcardImport:AgentViewModel.kt$import com.walkertribe.ian.protocol.core.*</ID>
   </CurrentIssues>
 </SmellBaseline>
