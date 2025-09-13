@@ -43,4 +43,4 @@ main_only.each do |path|
 end
 
 # LGTM
-lgtm.check_lgtm(image_url: "https://lgtmgen.com/")
+lgtm.check_lgtm(image_url: "https://firebasestorage.googleapis.com/v0/b/lgtmgen.appspot.com/o/images%2Fd2bf6df2-a4f4-44d9-bd64-bbb048dfa5a7.jpg?alt=media&token=83b3c837-1f73-4d38-981e-13380cbf96b5")
