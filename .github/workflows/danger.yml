@@ -17,13 +17,11 @@ permissions:
 jobs:
   scan:
     name: Danger
-    # The type of runner that the job will run on
     runs-on: macos-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+    - name: Checkout repository
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
     - name: Generate secret files
       if: github.event_name == 'pull_request'
@@ -32,11 +30,9 @@ jobs:
         echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
         echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
 
-    # Sets up the detekt cli
     - name: Setup Detekt
       uses: peter-murray/setup-detekt@26449609a63e843a5b9bad8a4b63ef0ee717f7a5 # v3
 
-    # Performs static analysis using Detekt
     - name: Run Detekt
       continue-on-error: true
       run: |
@@ -44,10 +40,9 @@ jobs:
         -r xml:${{ github.workspace }}/detekt.xml \
         -r sarif:${{ github.workspace }}/detekt.sarif.json
 
-    # Uploads results to GitHub repository using the upload-sarif action
-    - uses: github/codeql-action/upload-sarif@192325c86100d080feab897ff886c34abd4c83a3 # v3
+    - name: Upload Detekt SARIF report
+      uses: github/codeql-action/upload-sarif@192325c86100d080feab897ff886c34abd4c83a3 # v3
       with:
-        # Path to SARIF file relative to the root of the repository
         sarif_file: ${{ github.workspace }}/detekt.sarif.json
         checkout_path: ${{ github.workspace }}
 
