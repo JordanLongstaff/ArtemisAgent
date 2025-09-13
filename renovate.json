@@ -11,10 +11,9 @@
   "packageRules": [
     {
       "groupName": "kotlin and ksp",
-      "matchPackageNames": ["org.jetbrains.kotlin.plugin.serialization"],
-      "matchSourceUrls": [
-        "https://github.com/JetBrains/kotlin",
-        "https://github.com/google/ksp"
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin[.:]/",
+        "/^com\\.google\\.devtools\\.ksp/"
       ]
     },
     {
