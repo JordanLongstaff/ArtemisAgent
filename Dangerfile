@@ -9,6 +9,7 @@ android_lint.report_file = "app/build/reports/lint-results-debug.xml"
 android_lint.lint(inline_mode: true)
 
 # Detekt
+kotlin_detekt.gradle_task = "detekt"
 kotlin_detekt.detekt
 
 # Custom logic for checking modified source files and corresponding tests
