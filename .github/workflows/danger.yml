@@ -5,7 +5,6 @@ on:
     branches: [ "main" ]
 
 permissions:
-  issues: write
   security-events: write
   statuses: write
 
@@ -17,6 +16,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+    - name: Generate secret files
+      run: |
+        echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
+        echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
+        echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
 
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
