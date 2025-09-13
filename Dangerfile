@@ -4,16 +4,16 @@ warn("PR is marked with Work in Progress (WIP)") if github.pr_title.include? "WI
 # Warn when there is a big PR
 warn("PR affects more than 500 lines of code") if git.lines_of_code > 500
 
-# Android lint
-android_lint.report_file = "app/build/reports/lint-results-debug.xml"
-android_lint.lint(inline_mode: true)
-
 # Detekt
 kotlin_detekt.skip_gradle_task = true
 kotlin_detekt.report_file = "detekt.xml"
 kotlin_detekt.filtering = true
 kotlin_detekt.filtering_lines = true
 kotlin_detekt.detekt
+
+# Android lint
+android_lint.report_file = "app/build/reports/lint-results-debug.xml"
+android_lint.lint(inline_mode: true)
 
 # Custom logic for checking modified source files and corresponding tests
 ian_src_regex = %r{IAN/([A-Za-z]+/)*src/(main|test|testFixtures)/}
