@@ -43,4 +43,4 @@ main_only.each do |path|
 end
 
 # LGTM
-lgtm.check_lgtm
+lgtm.check_lgtm(image_url: "https://lgtmgen.com/")
