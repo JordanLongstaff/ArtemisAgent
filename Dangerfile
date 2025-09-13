@@ -24,7 +24,7 @@ android_lint.lint(inline_mode: true)
 
 # Custom logic for checking modified source files and corresponding tests
 ian_src_regex = %r{IAN/([A-Za-z]+/)*src/(main|test|testFixtures)/}
-all_modified_files = (git.modified_files + git.created_files).uniq
+all_modified_files = (git.modified_files + git.added_files).uniq
 ian_src_changes = all_modified_files
                   .select { |f| ian_src_regex.match?(f) }
                   .map { |f| File.dirname(f) }
