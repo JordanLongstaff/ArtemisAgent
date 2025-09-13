@@ -9,10 +9,17 @@ kotlin_detekt.skip_gradle_task = true
 kotlin_detekt.report_file = "detekt.xml"
 kotlin_detekt.filtering = true
 kotlin_detekt.filtering_lines = true
-kotlin_detekt.detekt
+kotlin_detekt.detekt(inline_mode: true)
 
 # Android lint
+android_lint.filtering = true
+android_lint.filtering_lines = true
+
 android_lint.report_file = "app/build/reports/lint-results-debug.xml"
+android_lint.lint(inline_mode: true)
+
+android_lint.report_file = "app/konsist/build/reports/lint-results-debug.xml"
+android_lint.skip_gradle_task = true
 android_lint.lint(inline_mode: true)
 
 # Custom logic for checking modified source files and corresponding tests
