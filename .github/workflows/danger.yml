@@ -1,0 +1,63 @@
+name: Danger Review
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+     - cron: '15 1 * * 2'
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  security-events: write
+  statuses: write
+
+jobs:
+  scan:
+    name: Danger
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+    - name: Generate secret files
+      if: github.event_name == 'pull_request'
+      run: |
+        echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
+        echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
+        echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
+
+    - name: Setup Detekt
+      uses: peter-murray/setup-detekt@26449609a63e843a5b9bad8a4b63ef0ee717f7a5 # v3
+
+    - name: Run Detekt
+      continue-on-error: true
+      run: |
+        detekt-cli -i ${{ github.workspace }} -c ${{ github.workspace }}/config/detekt/detekt.yml \
+        -r xml:${{ github.workspace }}/detekt.xml \
+        -r sarif:${{ github.workspace }}/detekt.sarif.json
+
+    - name: Upload Detekt SARIF report
+      uses: github/codeql-action/upload-sarif@192325c86100d080feab897ff886c34abd4c83a3 # v3
+      with:
+        sarif_file: ${{ github.workspace }}/detekt.sarif.json
+        checkout_path: ${{ github.workspace }}
+
+    - name: Setup Ruby
+      if: github.event_name == 'pull_request'
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+
+    - name: Run Danger
+      if: github.event_name == 'pull_request'
+      uses: MeilCli/danger-action@v6
+      with:
+        plugins_file: "Gemfile"
+        danger_file: "Dangerfile"
+        danger_id: "danger-pr"
+      env:
+        DANGER_GITHUB_API_TOKEN: ${{ secrets.DANGER_TOKEN }}
