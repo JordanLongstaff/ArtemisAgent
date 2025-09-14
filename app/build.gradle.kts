@@ -107,6 +107,12 @@ android {
     }
 
     tasks.preBuild.dependsOn(":IAN:konsistCollect")
+
+    project.afterEvaluate {
+        tasks
+            .named { it.startsWith("ksp") && it.endsWith("Kotlin") }
+            .configureEach { mustRunAfter("generate${name.substring(3, name.length - 6)}Proto") }
+    }
 }
 
 dependencies {
