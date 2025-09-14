@@ -31,27 +31,15 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Update Pitest version in build-logic",
+      "description": "Update Pitest {{#if (containsString commitMessageTopic 'JUNIT5')}}JUnit5 plugin {{/if}} version in build-logic",
       "managerFilePatterns": [
         "build-logic/src/main/kotlin/artemis/agent/gradle/Helpers.kt"
       ],
       "matchStrings": [
-        "private const val PITEST_VERSION = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+        "private const val (?<commitMessageTopic>(PITEST|JUNIT5)_VERSION) = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
       ],
       "datasourceTemplate": "maven",
-      "depNameTemplate": "org.pitest:pitest"
-    },
-    {
-      "customType": "regex",
-      "description": "Update Pitest JUnit5 plugin version in build-logic",
-      "managerFilePatterns": [
-        "build-logic/src/main/kotlin/artemis/agent/gradle/Helpers.kt"
-      ],
-      "matchStrings": [
-        "private const val JUNIT5_VERSION = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
-      ],
-      "datasourceTemplate": "maven",
-      "depNameTemplate": "org.pitest:pitest-junit5-plugin"
+      "depNameTemplate": "org.pitest:pitest{{#if (containsString commitMessageTopic 'JUNIT5')}}-junit5-plugin{{/if}}"
     }
   ]
 }
