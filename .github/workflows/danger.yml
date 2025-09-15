@@ -23,6 +23,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
+    - name: Generate secret files
+      if: github.event_name == 'pull_request'
+      run: |
+        echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
+
     - name: Setup Detekt
       uses: peter-murray/setup-detekt@26449609a63e843a5b9bad8a4b63ef0ee717f7a5 # v3
 
