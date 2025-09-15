@@ -1,43 +1,21 @@
+import artemis.agent.gradle.configure
+import artemis.agent.gradle.configureTests
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("java-library")
-    id("kotlin")
+    id("ian-library")
     alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.dependency.analysis)
-}
-
-val javaVersion: JavaVersion by rootProject.extra
-
-java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
-        javaParameters = true
-    }
 }
 
 val byteBuddyAgent: Configuration by configurations.creating
 
-tasks.test {
-    jvmArgs(
-        "-Xmx2g",
-        "-Xms1g",
-        "-XX:+HeapDumpOnOutOfMemoryError",
-        "-XX:+UseParallelGC",
-        "-javaagent:${byteBuddyAgent.asPath}",
-    )
-    useJUnitPlatform()
-}
+configureTests()
+
+tasks.test { jvmArgs("-javaagent:${byteBuddyAgent.asPath}") }
+
+pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
 
 val konsistCollect by
     tasks.registering {
@@ -84,20 +62,4 @@ dependencies {
     byteBuddyAgent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
-}
-
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.*")
-    threads = 2
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV", "XML")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
 }

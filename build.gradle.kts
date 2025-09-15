@@ -13,8 +13,11 @@ buildscript {
             classpath(libs.commons.lang3) {
                 because("Version 3.18 fixes an uncontrolled recursion error")
             }
-            classpath(libs.netty) {
-                because("Version 4.1.100.Final patches a high-level security vulnerability")
+            classpath(libs.netty.codec) {
+                because("Version 4.1.125.Final patches a moderate security vulnerability")
+            }
+            classpath(libs.netty.http2) {
+                because("Version 4.1.124.Final patches a high-level security vulnerability")
             }
             classpath(libs.bouncycastle) {
                 because("Version 1.78 patches three moderate security vulnerabilities")
@@ -32,32 +35,12 @@ extra.apply {
     set("sdkVersion", 36)
     set("minimumSdkVersion", 23)
     set("javaVersion", javaVersion)
-
-    set("kotlinMainPath", "src/main/kotlin")
-    set("kotlinTestPath", "src/test/kotlin")
-    set("kotlinTestFixturesPath", "src/testFixtures/kotlin")
-
-    set("pitestTimeoutFactor", BigDecimal(10))
-    set(
-        "pitestMutators",
-        setOf(
-            "STRONGER",
-            "EXTENDED",
-            "EXTREME",
-            "INLINE_CONSTS",
-            "REMOVE_CONDITIONALS",
-            "REMOVE_INCREMENTS",
-            "EXPERIMENTAL_MEMBER_VARIABLE",
-            "EXPERIMENTAL_NAKED_RECEIVER",
-        ),
-    )
 }
 
 plugins {
     base
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktfmt) apply false
-    alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.crashlytics) apply false

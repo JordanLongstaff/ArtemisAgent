@@ -1,51 +1,23 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import artemis.agent.gradle.configure
+import artemis.agent.gradle.configureTests
+import artemis.agent.gradle.dependsOnKonsist
 
 plugins {
-    id("java-library")
-    id("java-test-fixtures")
-    id("kotlin")
+    id("ian-library")
+    id("fixtures")
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.dependency.analysis)
-}
-
-val javaVersion: JavaVersion by rootProject.extra
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinTestFixturesPath: String by rootProject.extra
-
-java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
-        javaParameters = true
-    }
 }
 
 val byteBuddyAgent: Configuration by configurations.creating
 
-tasks.test {
-    jvmArgs(
-        "-Xmx2g",
-        "-Xms1g",
-        "-XX:+HeapDumpOnOutOfMemoryError",
-        "-XX:+UseParallelGC",
-        "-javaagent:${byteBuddyAgent.asPath}",
-    )
-    useJUnitPlatform()
-}
+configureTests()
 
-tasks.assemble.dependsOn(":IAN:world:konsist:test")
+tasks.test { jvmArgs("-javaagent:${byteBuddyAgent.asPath}") }
 
-detekt { source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinTestFixturesPath)) }
+pitest.configure(rootPackage = "com.walkertribe.ian.world", threads = 2)
+
+dependsOnKonsist()
 
 dependencies {
     api(projects.ian.enums)
@@ -68,22 +40,4 @@ dependencies {
     byteBuddyAgent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
-}
-
-kover { currentProject.sources.excludedSourceSets.add("testFixtures") }
-
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.world.*")
-    threads = 2
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV", "XML")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
 }
