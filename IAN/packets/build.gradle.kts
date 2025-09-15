@@ -6,6 +6,7 @@ plugins {
     id("ian-library")
     id("fixtures")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.javaagent)
     id("info.solidsoft.pitest")
 }
 
@@ -64,6 +65,7 @@ dependencies {
     testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.packets.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
+    testJavaagent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
 
