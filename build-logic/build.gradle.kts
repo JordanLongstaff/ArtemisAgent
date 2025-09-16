@@ -40,5 +40,8 @@ dependencies {
         runtimeOnly(libs.netty.http2) {
             because("Version 4.1.124.Final patches a high-level security vulnerability")
         }
+        runtimeOnly(libs.jdom2) {
+            because("Version 2.0.6.1 patches a high-level security vulnerability")
+        }
     }
 }

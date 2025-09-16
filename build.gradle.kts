@@ -13,6 +13,9 @@ buildscript {
             classpath(libs.commons.lang3) {
                 because("Version 3.18 fixes an uncontrolled recursion error")
             }
+            classpath(libs.jdom2) {
+                because("Version 2.0.6.1 patches a high-level security vulnerability")
+            }
             classpath(libs.netty.codec) {
                 because("Version 4.1.125.Final patches a moderate security vulnerability")
             }
