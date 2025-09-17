@@ -14,10 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api-level: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+        api-level: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
         orientation: [ {name: portrait, rotation: 0, skin: 480x800}, {name: landscape, rotation: 1, skin: 800x480} ]
     name: Test API ${{ matrix.api-level }} emulator (${{ matrix.orientation.name }})
-    timeout-minutes: 20
+    timeout-minutes: 45
     concurrency:
       group: ${{ github.workflow }}-${{ matrix.api-level }}-${{ matrix.orientation.rotation }}-${{ github.ref }}
       cancel-in-progress: true
@@ -28,7 +28,6 @@ jobs:
       - name: Generate secret files
         run: |
           echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
-          echo ${{ secrets.KEYSTORE_FILE }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-keystore.jks
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
 
       - name: Enable KVM group perms
@@ -38,9 +37,9 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Set up JDK 21
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5
         with:
-          java-version: '21'
+          java-version-file: .tool-versions
           distribution: 'temurin'
 
       - name: Set up Android SDK Tools
@@ -49,12 +48,13 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
 
       - name: Run tests on API ${{ matrix.api-level }}
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2
         with:
           api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.api-level >= 28 && 'playstore' || 'default' }}
           arch: x86_64
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.orientation.skin }}

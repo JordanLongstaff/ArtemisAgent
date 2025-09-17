@@ -1,36 +1,17 @@
+import artemis.agent.gradle.configure
+import artemis.agent.gradle.configureTests
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("java-library")
-    id("kotlin")
+    id("ian-library")
     alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
-    alias(libs.plugins.ktfmt)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.dependency.analysis)
 }
 
-val javaVersion: JavaVersion by rootProject.extra
+configureTests()
 
-java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
-        javaParameters = true
-    }
-}
-
-tasks.test {
-    jvmArgs("-Xmx2g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
-    useJUnitPlatform()
-}
+pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
 
 val konsistCollect by
     tasks.registering {
@@ -49,8 +30,6 @@ allprojects
     }
 
 tasks.assemble.dependsOn(konsistCollect)
-
-ktfmt { kotlinLangStyle() }
 
 dependencies {
     compileOnly(projects.ian.annotations)
@@ -77,20 +56,4 @@ dependencies {
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
     pitest(libs.bundles.arcmutate)
-}
-
-val pitestMutators: Set<String> by rootProject.extra
-val pitestTimeoutFactor: BigDecimal by rootProject.extra
-
-pitest {
-    pitestVersion = libs.versions.pitest.asProvider()
-    junit5PluginVersion = libs.versions.pitest.junit5
-    verbose = true
-    targetClasses = listOf("com.walkertribe.ian.*")
-    threads = 2
-    timeoutFactor = pitestTimeoutFactor
-    outputFormats = listOf("HTML", "CSV")
-    timestampedReports = false
-    setWithHistory(true)
-    mutators.addAll(pitestMutators)
 }

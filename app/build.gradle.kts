@@ -15,7 +15,6 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -35,10 +34,6 @@ val changelog =
         .file("fastlane/metadata/android/en-US/changelogs/default.txt")
         .readLines()
         .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
-
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinAndroidTestPath = "src/androidTest/kotlin"
 
 android {
     namespace = appId
@@ -112,6 +107,12 @@ android {
     }
 
     tasks.preBuild.dependsOn(":IAN:konsistCollect")
+
+    project.afterEvaluate {
+        tasks
+            .named { it.startsWith("ksp") && it.endsWith("Kotlin") }
+            .configureEach { mustRunAfter("generate${name.substring(3, name.length - 6)}Proto") }
+    }
 }
 
 dependencies {
@@ -163,10 +164,8 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 }
 
-ktfmt { kotlinLangStyle() }
-
 detekt {
-    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
+    source.from(files("src/androidTest/kotlin"))
     ignoredBuildTypes = listOf(release)
     ignoredVariants = listOf(release)
 }
