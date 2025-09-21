@@ -26,6 +26,12 @@
       "matchDepNames": ["com.ncorti.ktfmt.gradle"],
       "sourceUrl": "https://github.com/cortinico/ktfmt-gradle",
       "changelogUrl": "https://github.com/cortinico/ktfmt-gradle/releases"
+    },
+    {
+      "groupName": "typesafe-conventions",
+      "matchDepNames": ["dev.panuszewski.typesafe-conventions"],
+      "sourceUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin",
+      "changelogUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin/releases"
     }
   ],
   "customManagers": [
