@@ -3,7 +3,6 @@ package artemis.agent
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PendingIntent
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
@@ -12,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -43,8 +43,6 @@ import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
-import com.google.android.play.core.install.InstallException
-import com.google.android.play.core.install.InstallState
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.ActivityResult
 import com.google.android.play.core.install.model.AppUpdateType
@@ -63,7 +61,7 @@ import com.walkertribe.ian.protocol.core.comm.CommsIncomingPacket
 import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -74,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: AgentViewModel by viewModels()
 
     /** UI sections selected by the three buttons at the bottom of the screen. */
-    enum class Section(val sectionClass: Class<out Fragment>, @IdRes val buttonId: Int) {
+    enum class Section(val sectionClass: Class<out Fragment>, @all:IdRes val buttonId: Int) {
         SETUP(SetupFragment::class.java, R.id.setupPageButton),
         GAME(GameFragment::class.java, R.id.gamePageButton),
         HELP(HelpFragment::class.java, R.id.helpPageButton),
@@ -98,9 +96,27 @@ class MainActivity : AppCompatActivity() {
 
     val updateManager: AppUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
 
+    private val installStateListener: InstallStateUpdatedListener by lazy {
+        InstallStateUpdatedListener { state ->
+            when (state.installStatus()) {
+                InstallStatus.DOWNLOADED -> onUpdateReady()
+                InstallStatus.INSTALLED -> updateManager.unregisterListener(installStateListener)
+                else -> {}
+            }
+        }
+    }
+
     private val updateResultLauncher: ActivityResultLauncher<IntentSenderRequest> =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             when (result.resultCode) {
+                RESULT_OK -> {
+                    if (updateType == AppUpdateType.FLEXIBLE) {
+                        updateManager.registerListener(installStateListener)
+                    }
+
+                    null
+                }
+
                 RESULT_CANCELED -> {
                     R.string.update_declined_title to R.string.update_declined_message
                 }
@@ -126,8 +142,37 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private var isUpdateReady: Boolean = false
     @AppUpdateType private var updateType: Int = AppUpdateType.FLEXIBLE
+
+    private val completeUpdateCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                updateManager.completeUpdate()
+            }
+        }
+    }
+
+    private val exitConfirmationCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                isEnabled = false
+                viewModel.playSound(SoundEffect.BEEP_2)
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(R.string.exit_message)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.no) { _, _ ->
+                        viewModel.playSound(SoundEffect.BEEP_1)
+                        isEnabled = true
+                    }
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        viewModel.playSound(SoundEffect.CONFIRMATION)
+                        viewModel.networkInterface.stop()
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                    .show()
+            }
+        }
+    }
 
     private var notificationRequests = STOP_NOTIFICATIONS
 
@@ -170,34 +215,35 @@ class MainActivity : AppCompatActivity() {
                     createStationPacketListener(
                         service,
                         viewModel.stationProductionPacket,
-                        NotificationManager.CHANNEL_PRODUCTION,
+                        NotificationChannelTag.PRODUCTION,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationAttackedPacket,
-                        NotificationManager.CHANNEL_ATTACK,
+                        NotificationChannelTag.ATTACK,
                     )
                     createStationPacketListener(
                         service,
                         viewModel.stationDestroyedPacket,
-                        NotificationManager.CHANNEL_DESTROYED,
+                        NotificationChannelTag.DESTROYED,
                         false,
                     )
 
+                    val missionManager = viewModel.missionManager
                     createMissionPacketListener(
                         service,
-                        viewModel.newMissionPacket,
-                        NotificationManager.CHANNEL_NEW_MISSION,
+                        missionManager.newMissionPacket,
+                        NotificationChannelTag.NEW_MISSION,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionProgressPacket,
-                        NotificationManager.CHANNEL_MISSION_PROGRESS,
+                        missionManager.missionProgressPacket,
+                        NotificationChannelTag.MISSION_PROGRESS,
                     )
                     createMissionPacketListener(
                         service,
-                        viewModel.missionCompletionPacket,
-                        NotificationManager.CHANNEL_MISSION_COMPLETED,
+                        missionManager.missionCompletionPacket,
+                        NotificationChannelTag.MISSION_COMPLETED,
                     )
 
                     setupOngoingNotifications(service)
@@ -231,7 +277,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_GAME_INFO,
+                                channel = NotificationChannelTag.GAME_INFO,
                                 title = viewModel.connectedUrl.value,
                                 message = strings.joinToString(),
                                 ongoing = true,
@@ -247,7 +293,7 @@ class MainActivity : AppCompatActivity() {
                         buildNotification(
                             info =
                                 NotificationInfo(
-                                    channelId = NotificationManager.CHANNEL_DEEP_STRIKE,
+                                    channel = NotificationChannelTag.DEEP_STRIKE,
                                     title = ally.fullName,
                                     message =
                                         if (viewModel.torpedoesReady)
@@ -264,15 +310,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupBiomechNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedBiomechName) {
+                val biomechManager = viewModel.biomechManager
+
+                service.collectLatestWhileStarted(biomechManager.destroyedBiomechName) {
                     notificationManager.dismissBiomechMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.nextActiveBiomech) { entry ->
+                service.collectLatestWhileStarted(biomechManager.nextActiveBiomech) { entry ->
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_REANIMATE,
+                                channel = NotificationChannelTag.REANIMATE,
                                 title = entry.getFullName(viewModel),
                                 message = getString(R.string.biomech_notification),
                             ),
@@ -306,15 +354,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             private fun setupEnemyNotifications(service: NotificationService) {
-                service.collectLatestWhileStarted(viewModel.destroyedEnemyName) {
+                val enemiesManager = viewModel.enemiesManager
+
+                service.collectLatestWhileStarted(enemiesManager.destroyedEnemyName) {
                     notificationManager.dismissPerfidyMessage(it)
                 }
 
-                service.collectLatestWhileStarted(viewModel.perfidiousEnemy) { entry ->
+                service.collectLatestWhileStarted(enemiesManager.perfidy) { entry ->
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_PERFIDY,
+                                channel = NotificationChannelTag.PERFIDY,
                                 title = entry.fullName,
                                 message = getString(R.string.enemy_perfidy_notification),
                             ),
@@ -330,7 +380,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_BORDER_WAR,
+                                channel = NotificationChannelTag.BORDER_WAR,
                                 title = packet.sender,
                                 message = packet.message,
                             ),
@@ -343,7 +393,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_GAME_OVER,
+                                channel = NotificationChannelTag.GAME_OVER,
                                 title = viewModel.connectedUrl.value,
                                 message = reason,
                             ),
@@ -369,7 +419,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_CONNECTION,
+                                channel = NotificationChannelTag.CONNECTION,
                                 title = viewModel.connectedUrl.value,
                                 message = message,
                             ),
@@ -392,7 +442,7 @@ class MainActivity : AppCompatActivity() {
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = NotificationManager.CHANNEL_CONNECTION,
+                                channel = NotificationChannelTag.CONNECTION,
                                 title = viewModel.lastAttemptedHost,
                                 message = message,
                             ),
@@ -409,13 +459,13 @@ class MainActivity : AppCompatActivity() {
             private fun createMissionPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = channelId,
+                                channel = channel,
                                 title = packet.sender,
                                 message = packet.message,
                             ),
@@ -429,14 +479,14 @@ class MainActivity : AppCompatActivity() {
             private fun createStationPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
-                channelId: String,
+                channel: NotificationChannelTag,
                 includeSenderName: Boolean = true,
             ) {
                 service.collectLatestWhileStarted(flow) { packet ->
                     buildNotification(
                         info =
                             NotificationInfo(
-                                channelId = channelId,
+                                channel = channel,
                                 title = packet.sender,
                                 message = packet.message,
                             ),
@@ -469,7 +519,7 @@ class MainActivity : AppCompatActivity() {
             )
 
         val builder =
-            NotificationCompat.Builder(this, info.channelId)
+            NotificationCompat.Builder(this, info.channel.tag)
                 .setSmallIcon(R.drawable.ic_stat_name)
                 .setLargeIcon(
                     BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
@@ -480,18 +530,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setupTheme()
         setupWindowInsets()
         setupFirebase()
         setupTiramisu()
         setupBackPressedCallbacks()
-        setupTheme()
         setupConnectionObservers()
         setupUserSettingsObserver()
 
         collectLatestWhileStarted(viewModel.gameOverReason) {
             if (shouldAskForReview) askForReview()
             shouldAskForReview = !shouldAskForReview
-            checkForUpdates()
+            checkForUpdates(UpdateCheck.GAME_END)
         }
 
         collectLatestWhileStarted(viewModel.jumping) {
@@ -503,10 +553,17 @@ class MainActivity : AppCompatActivity() {
                 if (it == HelpFragment.ABOUT_TOPIC_INDEX) View.VISIBLE else View.GONE
         }
 
-        binding.updateButton.setOnClickListener { checkForUpdates() }
+        binding.updateButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+            checkForUpdates(UpdateCheck.MANUAL)
+        }
 
         binding.mainPageSelector.children.forEach { view ->
-            view.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+            view.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+            }
         }
 
         binding.mainPageSelector.setOnCheckedChangeListener { _, checkedId ->
@@ -526,7 +583,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        checkForUpdates()
+        checkForUpdates(UpdateCheck.STARTUP)
     }
 
     /**
@@ -537,18 +594,22 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         Intent(this, NotificationService::class.java).also {
             startService(it)
-            bindService(it, connection, Context.BIND_AUTO_CREATE)
+            bindService(it, connection, BIND_AUTO_CREATE)
+        }
+    }
+
+    /** When the activity is stopped, write the current theme to disk. */
+    override fun onStop() {
+        super.onStop()
+        openFileOutput(THEME_RES_FILE_NAME, MODE_PRIVATE).use {
+            it.write(byteArrayOf(viewModel.themeIndex.toByte()))
         }
     }
 
     /** Unbind the notification service when the activity is destroyed to prevent memory leaks. */
     override fun onDestroy() {
         super.onDestroy()
-        unbindService(connection)
-
-        openFileOutput(THEME_RES_FILE_NAME, Context.MODE_PRIVATE).use {
-            it.write(byteArrayOf(viewModel.themeIndex.toByte()))
-        }
+        destroyServiceConnection()
     }
 
     /**
@@ -560,9 +621,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         if (notificationRequests != STOP_NOTIFICATIONS) {
-            unbindService(connection)
-            notificationRequests = STOP_NOTIFICATIONS
-            notificationManager.reset()
+            destroyServiceConnection()
         }
 
         updateManager.appUpdateInfo.addOnSuccessListener { updateInfo ->
@@ -649,43 +708,23 @@ class MainActivity : AppCompatActivity() {
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
         }
-        Firebase.remoteConfig.setConfigSettingsAsync(configSettings)
+        Firebase.remoteConfig.apply {
+            setConfigSettingsAsync(configSettings)
+            setDefaultsAsync(
+                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
+            )
+        }
     }
 
     private fun setupBackPressedCallbacks() {
-        val finishCallback =
-            onBackPressedDispatcher.addCallback(this) {
-                if (isUpdateReady) {
-                    updateManager.completeUpdate()
-                } else {
-                    supportFinishAfterTransition()
-                }
-            }
-
-        onBackPressedDispatcher.addCallback(this) {
-            val dialog =
-                viewModel.ifConnected {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setMessage(R.string.exit_message)
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            viewModel.playSound(SoundEffect.BEEP_1)
-                            isEnabled = true
-                        }
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            viewModel.playSound(SoundEffect.CONFIRMATION)
-                            viewModel.networkInterface.stop()
-                            finishCallback.handleOnBackPressed()
-                        }
-                }
-            if (dialog != null) {
-                viewModel.playSound(SoundEffect.BEEP_2)
-                dialog.show()
-                isEnabled = false
-            } else {
-                finishCallback.handleOnBackPressed()
-            }
+        // Some Android 10 devices leak memory if this is not called, so we need to register this
+        // callback to address it
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+            onBackPressedDispatcher.addCallback(this) { supportFinishAfterTransition() }
         }
+
+        onBackPressedDispatcher.addCallback(this, completeUpdateCallback)
+        onBackPressedDispatcher.addCallback(this, exitConfirmationCallback)
     }
 
     private fun setupTheme() {
@@ -708,7 +747,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupConnectionObservers() {
         collectLatestWhileStarted(viewModel.connectionStatus) {
-            if (viewModel.isIdle) {
+            val isConnected = viewModel.isConnected
+            exitConfirmationCallback.isEnabled = isConnected
+            if (!isConnected) {
                 viewModel.selectableShips.value = emptyList()
             }
         }
@@ -739,7 +780,9 @@ class MainActivity : AppCompatActivity() {
                 .setCancelable(true)
                 .apply {
                     if (suggestUpdate) {
-                        setPositiveButton(R.string.update) { _, _ -> checkForUpdates() }
+                        setPositiveButton(R.string.update) { _, _ ->
+                            checkForUpdates(UpdateCheck.MANUAL)
+                        }
                     }
                 }
                 .show()
@@ -836,21 +879,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForUpdates() {
-        viewModel.viewModelScope.launch {
+    private fun checkForUpdates(checkType: UpdateCheck) {
+        viewModel.viewModelScope.launch(
+            CoroutineExceptionHandler { _, _ -> checkType.showAlert(this@MainActivity) }
+        ) {
             val results =
                 awaitAll(
                     Firebase.remoteConfig
                         .fetchAndActivate()
                         .continueWith { fetchArtemisLatestVersion() }
                         .asDeferred(),
-                    async {
-                        try {
-                            updateManager.appUpdateInfo.asDeferred().await()
-                        } catch (_: InstallException) {
-                            null
-                        }
-                    },
+                    updateManager.appUpdateInfo.asDeferred(),
                 )
 
             val maxVersion = results[0] as Version
@@ -859,7 +898,7 @@ class MainActivity : AppCompatActivity() {
             val updateInfo = results[1] as? AppUpdateInfo
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
 
-            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode) ?: return@launch
+            val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)!!
 
             val context = this@MainActivity
 
@@ -896,9 +935,9 @@ class MainActivity : AppCompatActivity() {
         try {
                 openFileInput(MAX_VERSION_FILE_NAME).use { it.readBytes().decodeToString() }
             } catch (_: FileNotFoundException) {
-                Firebase.remoteConfig.getString(RemoteConfigKey.artemisLatestVersion).also { ver ->
-                    openFileOutput(MAX_VERSION_FILE_NAME, Context.MODE_PRIVATE).use {
-                        it.write(ver.encodeToByteArray())
+                Firebase.remoteConfig.getString(RemoteConfigKey.ARTEMIS_LATEST_VERSION).also { v ->
+                    openFileOutput(MAX_VERSION_FILE_NAME, MODE_PRIVATE).use {
+                        it.write(v.encodeToByteArray())
                     }
                 }
             }
@@ -908,35 +947,21 @@ class MainActivity : AppCompatActivity() {
         val appUpdateInfoTask = updateManager.appUpdateInfo
 
         appUpdateInfoTask.addOnSuccessListener { updateInfo ->
-            if (updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                if (updateType == AppUpdateType.FLEXIBLE) {
-                    val listener =
-                        object : InstallStateUpdatedListener {
-                            override fun onStateUpdate(installState: InstallState) {
-                                when (installState.installStatus()) {
-                                    InstallStatus.DOWNLOADED -> onUpdateReady()
-                                    InstallStatus.INSTALLED ->
-                                        updateManager.unregisterListener(this)
-                                    else -> {}
-                                }
-                            }
-                        }
-                    updateManager.registerListener(listener)
-                }
-
-                if (updateInfo.isUpdateTypeAllowed(updateType)) {
-                    updateManager.startUpdateFlowForResult(
-                        updateInfo,
-                        updateResultLauncher,
-                        AppUpdateOptions.newBuilder(updateType).build(),
-                    )
-                }
+            if (
+                updateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                    updateInfo.isUpdateTypeAllowed(updateType)
+            ) {
+                updateManager.startUpdateFlowForResult(
+                    updateInfo,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(updateType).build(),
+                )
             }
         }
     }
 
     private fun onUpdateReady() {
-        isUpdateReady = true
+        completeUpdateCallback.isEnabled = true
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.update_ready_title)
             .setMessage(R.string.update_ready_message)
@@ -946,14 +971,13 @@ class MainActivity : AppCompatActivity() {
             }
             .setPositiveButton(R.string.update_now) { _, _ ->
                 viewModel.playSound(SoundEffect.BEEP_2)
-                isUpdateReady = false
                 updateManager.completeUpdate()
             }
             .show()
     }
 
     private fun askForReview() {
-        AlertDialog.Builder(this@MainActivity)
+        AlertDialog.Builder(this)
             .setTitle(R.string.review_title)
             .setMessage(R.string.review_prompt)
             .setCancelable(true)
@@ -975,11 +999,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun showReviewErrorDialog(exception: Exception) {
         val errorCode = exception.message ?: getString(R.string.unknown)
-        AlertDialog.Builder(this@MainActivity)
+        AlertDialog.Builder(this)
             .setTitle(R.string.review_error)
             .setMessage(getString(R.string.review_error_message, errorCode))
             .setCancelable(true)
             .show()
+    }
+
+    private fun destroyServiceConnection() {
+        unbindService(connection)
+        notificationRequests = STOP_NOTIFICATIONS
+        notificationManager.reset()
     }
 
     private companion object {
@@ -990,10 +1020,7 @@ class MainActivity : AppCompatActivity() {
         const val THEME_RES_FILE_NAME = "theme_res.dat"
         const val MAX_VERSION_FILE_NAME = "max_version.dat"
 
-        val PENDING_INTENT_FLAGS =
-            PendingIntent.FLAG_UPDATE_CURRENT.or(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE
-                else 0
-            )
+        const val PENDING_INTENT_FLAGS =
+            PendingIntent.FLAG_UPDATE_CURRENT.or(PendingIntent.FLAG_IMMUTABLE)
     }
 }

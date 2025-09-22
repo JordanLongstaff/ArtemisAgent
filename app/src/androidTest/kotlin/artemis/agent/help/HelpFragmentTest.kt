@@ -1,79 +1,86 @@
 package artemis.agent.help
 
-import android.Manifest
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.ActivityScenarioManager
 import artemis.agent.MainActivity
 import artemis.agent.R
-import com.adevinta.android.barista.assertion.BaristaListAssertions.assertDisplayedAtPosition
-import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
-import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickBack
-import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
-import com.adevinta.android.barista.interaction.PermissionGranter
+import artemis.agent.isDisplayedWithText
+import artemis.agent.isRemoved
+import artemis.agent.screens.HelpPageScreen
+import artemis.agent.screens.MainScreen.mainScreenTest
+import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class HelpFragmentTest {
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+class HelpFragmentTest : TestCase() {
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
     fun menuOptionsTest() {
-        testHelpFragment { clickOn(R.id.backButton) }
+        testHelpFragment { backButton.click() }
     }
 
     @Test
     fun backButtonTest() {
-        testHelpFragment { clickBack() }
+        testHelpFragment { pressBack() }
     }
 
-    private companion object {
-        val helpTopics =
-            arrayOf(
-                R.string.help_topics_getting_started to 8,
-                R.string.help_topics_basics to 4,
-                R.string.help_topics_stations to 12,
-                R.string.help_topics_allies to 5,
-                R.string.help_topics_missions to 14,
-                R.string.help_topics_routing to 6,
-                R.string.help_topics_enemies to 12,
-                R.string.help_topics_biomechs to 3,
-                R.string.help_topics_notifications to 16,
-                R.string.help_topics_about to 5,
-            )
+    @Test
+    fun checkForUpdatesTest() {
+        run {
+            mainScreenTest(false) {
+                step("Navigate to About page in Help") {
+                    helpPageButton.click()
+                    HelpPageScreen { openTopicAtIndex(helpTopics.lastIndex) }
+                }
 
-        fun assertHelpMenuDisplayed() {
-            assertNotDisplayed(R.id.helpTopicTitle)
-            assertNotDisplayed(R.id.backButton)
-            assertDisplayed(R.id.helpTopicContent)
-            assertRecyclerViewItemCount(R.id.helpTopicContent, helpTopics.size)
+                step("Press update button") { updateButton.click() }
 
-            helpTopics.forEachIndexed { index, (res, _) ->
-                assertDisplayedAtPosition(R.id.helpTopicContent, index, res)
+                step("Check for alert dialog saying no updates") {
+                    alertDialog {
+                        isCompletelyDisplayed()
+                        title.isDisplayedWithText(R.string.app_version)
+                        message.isDisplayedWithText(R.string.no_updates)
+                        positiveButton.isRemoved()
+                        negativeButton.isRemoved()
+                    }
+                }
             }
         }
+    }
 
-        fun testHelpFragment(goBack: () -> Unit) {
-            PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+    private fun testHelpFragment(goBack: HelpPageScreen.() -> Unit) {
+        run {
+            mainScreenTest {
+                step("Navigate to Help page") { helpPageButton.click() }
 
-            clickOn(R.id.helpPageButton)
-            assertHelpMenuDisplayed()
+                step("Initial state: menu") { HelpPageScreen.assertMainMenuDisplayed() }
 
-            helpTopics.forEach { (stringRes, itemCount) ->
-                clickOn(stringRes)
+                HelpPageScreen {
+                    helpTopics.forEachIndexed { index, (stringRes, _) ->
+                        val pageName = device.targetContext.getString(stringRes)
+                        step("Open topic: $pageName") {
+                            openTopicAtIndex(index)
 
-                assertDisplayed(R.id.helpTopicTitle, stringRes)
-                assertDisplayed(R.id.backButton)
-                assertDisplayed(R.id.helpTopicContent)
-                assertRecyclerViewItemCount(R.id.helpTopicContent, itemCount)
+                            this@mainScreenTest.updateButton {
+                                if (index == this@HelpPageScreen.aboutHelpTopicIndex) {
+                                    isDisplayedWithText(R.string.check_for_updates)
+                                } else {
+                                    isRemoved()
+                                }
+                            }
+                        }
 
-                goBack()
-                assertHelpMenuDisplayed()
+                        step("Close topic: $pageName") {
+                            goBack()
+                            assertMainMenuDisplayed()
+                        }
+                    }
+                }
             }
         }
     }

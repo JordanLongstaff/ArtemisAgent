@@ -1,7 +1,7 @@
 package artemis.agent
 
 data class NotificationInfo(
-    val channelId: String,
+    val channel: NotificationChannelTag,
     val title: String,
     val message: String,
     val ongoing: Boolean = false,

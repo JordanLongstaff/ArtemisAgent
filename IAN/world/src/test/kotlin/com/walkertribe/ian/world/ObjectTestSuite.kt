@@ -18,8 +18,8 @@ import io.kotest.assertions.throwables.shouldThrowUnit
 import io.kotest.core.factory.TestFactory
 import io.kotest.core.spec.style.describeSpec
 import io.kotest.core.spec.style.scopes.DescribeSpecContainerScope
-import io.kotest.datatest.WithDataTestName
 import io.kotest.datatest.withData
+import io.kotest.engine.names.WithDataTestName
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly

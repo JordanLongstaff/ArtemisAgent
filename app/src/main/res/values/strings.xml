@@ -82,7 +82,7 @@
     <string name="building">Building:</string>
     <string name="cancel">Cancel</string>
     <string name="cannot_taunt">Cannot taunt</string>
-    <string name="channel_allies_deep_string">Deep Strike production</string>
+    <string name="channel_allies_deep_strike">Deep Strike production</string>
     <string name="channel_biomech_moving">Reanimation alert</string>
     <string name="channel_border_war">Border war</string>
     <string name="channel_connection">Connection</string>
@@ -143,6 +143,7 @@
     <string name="displayed_rewards">Displayed rewards</string>
     <string name="docked">Docked</string>
     <string name="docking">Docking</string>
+    <string name="enable_haptics">Enable haptics</string>
     <string name="enemy">Enemy</string>
     <string name="enemy_perfidy_notification">
         This enemy has committed perfidy. Eliminate on sight.
@@ -324,8 +325,8 @@
             the stock version of Artemis. If you need to use a different set of vessel data, you
             can specify the file\'s location in the Settings page. The location that you set will
             point to either the app\'s internal assets, your device\'s internal storage, or, if
-            applicable, an SD card. Keep in mind that changing this value while the app is connected
-            to a server will automatically terminate the connection.
+            applicable, external storage, such as an SD card. Keep in mind that changing this value
+            while the app is connected to a server will automatically terminate the connection.
         </item>
     </string-array>
     <string-array name="help_contents_missions">
@@ -562,6 +563,7 @@
     <string name="mission_shield">Shield</string>
     <string name="mission_will_be_removed">Will be removed in %1$ds</string>
     <string name="more_commands">More commands:</string>
+    <string name="mute">Mute</string>
     <string-array name="network_type_entries">
         <item>Wi-Fi</item>
         <item>Mobile</item>
@@ -587,6 +589,7 @@
     <string name="no_ships">Connect to a server.</string>
     <string name="no_ship_selected">Select a ship.</string>
     <string name="no_stations">No stations.</string>
+    <string name="no_updates">No updates found.</string>
     <string name="none">None</string>
     <string name="not_connected">Not connected</string>
     <string name="off">Off</string>
@@ -605,7 +608,6 @@
     <string name="reason_needs_energy">deliver energy</string>
     <string name="reason_pirate_boss">pick up boss</string>
     <string name="recap">Recap</string>
-    <string name="recent_address_limit">Recent address limit</string>
     <string name="refreeze">Re-freeze</string>
     <string name="rendezvous_with">Rendezvous with:</string>
     <string name="restore_default_settings">Restore defaults</string>
@@ -643,6 +645,7 @@
     <string name="seconds">sec</string>
     <string name="selected">Selected</string>
     <string name="send">Send</string>
+    <string name="server_memory_limit">Server memory limit</string>
     <string name="server_port">Server port</string>
     <string name="settings">Settings</string>
     <string name="settings_menu_client">Client settings</string>
@@ -664,7 +667,7 @@
     <string name="single_seat_craft_launched">%1$d single-seat craft launched</string>
     <string name="single_seat_craft_lost">%1$d single-seat craft lost</string>
     <string name="sort_by_class">Class</string>
-    <string name="sort_by_energy">En</string>
+    <string name="sort_by_energy">Energy</string>
     <string name="sort_by_name">Name</string>
     <string name="sort_by_race">Race</string>
     <string name="sort_by_range">Range</string>
@@ -698,7 +701,7 @@
     <string name="unknown">Unknown</string>
     <string name="unknown_error">Unknown error</string>
     <string name="update">Update</string>
-    <string name="update_available_title">Update Required</string>
+    <string name="update_available_title">Update Available</string>
     <string name="update_available_message">
         An update to Artemis Agent is available. Install it now?
     </string>

@@ -24,7 +24,7 @@ class NotificationService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.getIntExtra(EXTRA_BIOMECH_ID, -1)?.also { id ->
             binder?.viewModel?.also { viewModel ->
-                viewModel.scannedBiomechs
+                viewModel.biomechManager.scanned
                     .find { it.biomech.id == id }
                     ?.also { biomech ->
                         biomech.freeze(viewModel)

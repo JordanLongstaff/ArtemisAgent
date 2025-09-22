@@ -39,7 +39,7 @@ internal constructor(
 
     override fun equals(other: Any?): Boolean = other is Faction && id == other.id
 
-    override fun compareTo(other: Faction): Int = id.compareTo(other.id)
+    override fun compareTo(other: Faction): Int = compareValuesBy(this, other) { it.id }
 
     companion object {
         // stance

@@ -28,7 +28,7 @@ class EnemyEntry(
 
     val tauntStatuses = Array(Taunt.COUNT) { TauntStatus.UNUSED }
 
-    val fullName: String by lazy { enemy.getFullName(vesselData) ?: "" }
+    val fullName: String by lazy { enemy.getFullName(vesselData) }
 
     fun getTauntCountText(context: Context): String =
         when {

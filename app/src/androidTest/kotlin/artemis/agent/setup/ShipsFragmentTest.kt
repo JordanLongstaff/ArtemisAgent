@@ -1,78 +1,101 @@
 package artemis.agent.setup
 
-import android.Manifest
-import androidx.activity.viewModels
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import artemis.agent.ActivityScenarioManager
-import artemis.agent.AgentViewModel
 import artemis.agent.MainActivity
 import artemis.agent.R
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertChecked
-import com.adevinta.android.barista.assertion.BaristaCheckedAssertions.assertUnchecked
-import com.adevinta.android.barista.assertion.BaristaListAssertions.assertDisplayedAtPosition
-import com.adevinta.android.barista.assertion.BaristaRecyclerViewAssertions.assertRecyclerViewItemCount
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
-import com.adevinta.android.barista.assertion.BaristaVisibilityAssertions.assertNotExist
-import com.adevinta.android.barista.interaction.BaristaClickInteractions.clickOn
-import com.adevinta.android.barista.interaction.BaristaListInteractions.clickListItem
-import com.adevinta.android.barista.interaction.BaristaSleepInteractions.sleep
-import com.adevinta.android.barista.interaction.PermissionGranter
+import artemis.agent.isDisplayedWithSize
+import artemis.agent.isDisplayedWithText
+import artemis.agent.isRemoved
+import artemis.agent.scenario.ConnectScenario
+import artemis.agent.screens.GamePageScreen
+import artemis.agent.screens.MainScreen.mainScreenTest
+import artemis.agent.screens.SetupPageScreen
+import artemis.agent.screens.ShipsPageScreen
+import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.walkertribe.ian.world.Artemis
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class ShipsFragmentTest {
-    @get:Rule val activityScenarioManager = ActivityScenarioManager.forActivity<MainActivity>()
+class ShipsFragmentTest : TestCase() {
+    @get:Rule val activityScenarioRule = activityScenarioRule<MainActivity>()
 
     @Test
     fun noShipsTest() {
-        PermissionGranter.allowPermissionsIfNeeded(Manifest.permission.POST_NOTIFICATIONS)
+        run {
+            mainScreenTest {
+                step("Open Ships page") { SetupPageScreen.shipsPageButton.click() }
 
-        clickOn(R.id.shipsPageButton)
-
-        assertDisplayed(R.id.noShipsLabel, R.string.no_ships)
-        assertDisplayed(R.id.shipsList)
-        assertRecyclerViewItemCount(R.id.shipsList, 0)
+                step("No ships") {
+                    ShipsPageScreen {
+                        noShipsLabel.isDisplayedWithText(R.string.no_ships)
+                        shipsList.isDisplayedWithSize(0)
+                    }
+                }
+            }
+        }
     }
 
     @Test
     fun connectedTest() {
-        val connectTimeout = AtomicInteger()
-        activityScenarioManager.onActivity { activity ->
-            connectTimeout.lazySet(activity.viewModels<AgentViewModel>().value.connectTimeout)
+        run {
+            mainScreenTest(false) {
+                scenario(
+                    ConnectScenario(
+                        ConnectFragmentTest.FAKE_SERVER_IP,
+                        activityScenarioRule.scenario,
+                    )
+                )
+
+                step("Ships page opened") { SetupPageScreen.shipsPageButton.isChecked() }
+
+                ShipsPageScreen {
+                    step("Ships list populated") {
+                        noShipsLabel.isRemoved()
+                        shipsList {
+                            isDisplayedWithSize(Artemis.SHIP_COUNT)
+                            children<ShipsPageScreen.ShipItem> {
+                                selectedShipLabel.isRemoved()
+                                nameLabel.isCompletelyDisplayed()
+                                vesselLabel.isCompletelyDisplayed()
+                                driveTypeLabel.isCompletelyDisplayed()
+                                descriptionLabel.isCompletelyDisplayed()
+                            }
+                        }
+                    }
+                }
+
+                step("Select ship") {
+                    ShipsPageScreen.shipsList.childAt<ShipsPageScreen.ShipItem>(0) { click() }
+                }
+
+                step("Game page opened") {
+                    setupPageButton.isNotChecked()
+                    SetupPageScreen.shipsPageButton.doesNotExist()
+                    gamePageButton.isChecked()
+                    GamePageScreen.shipNumberLabel.isDisplayedWithText("Ship 1")
+                }
+
+                step("Return to Setup page") { setupPageButton.click() }
+
+                step("Ships page still open") {
+                    SetupPageScreen.shipsPageButton {
+                        isCompletelyDisplayed()
+                        isChecked()
+                    }
+                    ShipsPageScreen.shipsList.isDisplayedWithSize(Artemis.SHIP_COUNT)
+                }
+
+                step("Selected ship is marked") {
+                    ShipsPageScreen.shipsList.childAt<ShipsPageScreen.ShipItem>(0) {
+                        selectedShipLabel.isDisplayedWithText(R.string.selected)
+                    }
+                }
+            }
         }
-
-        ConnectFragmentTest.connectToServer(ConnectFragmentTest.FAKE_SERVER_IP)
-
-        sleep(connectTimeout.toLong(), TimeUnit.SECONDS)
-
-        assertNotDisplayed(R.id.noShipsLabel)
-        assertDisplayed(R.id.shipsList)
-        assertRecyclerViewItemCount(R.id.shipsList, Artemis.SHIP_COUNT)
-
-        clickOn(R.id.gamePageButton)
-        assertDisplayed(R.id.shipNumberLabel, R.string.no_ship_selected)
-
-        clickOn(R.id.setupPageButton)
-        assertChecked(R.id.shipsPageButton)
-        assertDisplayed(R.id.shipsList)
-        clickListItem(R.id.shipsList, 0)
-
-        assertUnchecked(R.id.setupPageButton)
-        assertNotExist(R.id.setupPageSelector)
-        assertChecked(R.id.gamePageButton)
-        assertDisplayed(R.id.shipNumberLabel, "Ship 1")
-
-        clickOn(R.id.setupPageButton)
-        assertChecked(R.id.shipsPageButton)
-        assertDisplayed(R.id.shipsList)
-        assertDisplayedAtPosition(R.id.shipsList, 0, R.id.selectedShipLabel, R.string.selected)
     }
 }

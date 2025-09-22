@@ -67,12 +67,13 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
             entryBinding.enemyNameLabel.text = entry.obj.name.value
             root.setOnClickListener {
                 viewModel.apply {
+                    activateHaptic()
                     playSound(SoundEffect.BEEP_2)
                     sendToServer(
                         CommsOutgoingPacket(
                             entry.obj,
                             BaseMessage.StandByForDockingOrCeaseOperation,
-                            this@apply.vesselData,
+                            vesselData,
                         )
                     )
                 }

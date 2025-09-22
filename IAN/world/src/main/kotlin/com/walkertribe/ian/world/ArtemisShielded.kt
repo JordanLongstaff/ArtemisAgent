@@ -23,6 +23,6 @@ interface ArtemisShielded<T : ArtemisShielded<T>> : ArtemisObject<T>, VesselData
     val shieldsFront: Shields
 
     /** Returns the full name for this object, including callsign, faction and vessel name. */
-    override fun getFullName(vesselData: VesselData): String? =
+    override fun getFullName(vesselData: VesselData): String =
         listOfNotNull(name.value, super.getFullName(vesselData)).joinSpaceDelimited()
 }

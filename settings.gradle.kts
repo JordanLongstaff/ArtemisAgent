@@ -2,7 +2,6 @@ pluginManagement {
     repositories {
         google()
         gradlePluginPortal()
-        mavenCentral()
     }
 }
 
@@ -19,6 +18,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "ArtemisAgent"
 
+includeBuild("build-logic")
 include(
     ":app",
     ":app:konsist",
@@ -32,7 +32,6 @@ include(
     ":IAN:packets",
     ":IAN:packets:konsist",
     ":IAN:processor",
-    ":IAN:testing",
     ":IAN:udp",
     ":IAN:udp:konsist",
     ":IAN:util",

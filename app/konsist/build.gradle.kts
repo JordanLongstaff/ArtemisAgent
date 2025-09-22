@@ -1,8 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("com.android.library")
     kotlin("android")
     alias(libs.plugins.detekt)
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -17,17 +19,12 @@ android {
     defaultConfig {
         minSdk = minimumSdkVersion
         multiDexEnabled = true
-
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
 
@@ -36,20 +33,22 @@ android {
         targetCompatibility = javaVersion
     }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
     tasks.withType<Test>().configureEach { useJUnitPlatform() }
 }
 
 dependencies {
     testImplementation(projects.app)
-    testImplementation(projects.ian.testing)
 
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)
     testRuntimeOnly(libs.bundles.konsist.runtime)
 }
-
-ktfmt { kotlinLangStyle() }
 
 dependencyAnalysis { issues { ignoreSourceSet("androidTest") } }

@@ -1,62 +1,65 @@
 [versions]
-androidx-activity = "1.10.1"
+androidx-activity = "1.11.0"
 androidx-annotation = "1.9.1"
-androidx-appcompat = "1.7.0"
+androidx-appcompat = "1.7.1"
 androidx-constraintlayout = "2.2.1"
-androidx-core = "1.15.0"
-androidx-datastore = "1.1.3"
-androidx-fragment = "1.8.6"
-androidx-lifecycle = "2.8.7"
+androidx-core = "1.17.0"
+androidx-datastore = "1.1.7"
+androidx-fragment = "1.8.9"
+androidx-lifecycle = "2.9.4"
 androidx-multidex = "2.0.1"
 androidx-recyclerview = "1.4.0"
-androidx-test-core = "1.6.1"
-androidx-test-junit = "1.2.1"
-androidx-test-monitor = "1.7.2"
-androidx-test-runner = "1.6.2"
-androidx-test-orchestrator = "1.5.1"
+androidx-test-core = "1.7.0"
+androidx-test-junit = "1.3.0"
+androidx-test-monitor = "1.8.0"
+androidx-test-runner = "1.7.0"
+androidx-test-orchestrator = "1.6.1"
 app-review = "2.0.2"
 app-update = "2.1.0"
-arcmutate-base = "1.3.2"
-arcmutate-kotlin = "1.3.0"
-barista = "4.3.0"
-crashlytics-plugin = "3.0.3"
-dependency-analysis = "2.10.1"
+arcmutate-base = "1.5.3"
+arcmutate-kotlin = "1.4.3"
+crashlytics-plugin = "3.0.6"
+dependency-analysis = "3.0.4"
 desugar = "2.1.5"
 detekt = "1.23.8"
-firebase-bom = "33.10.0"
+espresso = "3.7.0"
+firebase-bom = "34.3.0"
 git-hooks = "0.0.2"
-google-services = "4.4.2"
-gradle = "8.9.0"
-gradle-pitest = "1.15.0"
+google-services = "4.4.3"
+gradle = "8.13.0"
+gradle-pitest = "1.19.0-rc.1"
+hamcrest = "3.0"
+jspecify = "1.0.0"
 junit4 = "4.13.2"
-koin = "4.0.2"
-koin-annotations = "2.0.0"
-konnection = "1.4.3"
+kakao = "3.6.5"
+kaspresso = "1.6.0"
+koin = "4.1.1"
+koin-annotations = "2.1.0"
+konnection = "1.4.5"
 konsist = "0.17.3"
-korlibs = "6.0.0-alpha2"
-kotest = "5.9.1"
+korlibs-serialization = "6.0.1"
+korlibs-string = "6.0.0"
+kotest = "6.0.3"
 kotest-arbs = "2.1.2"
-kotest-koin = "1.3.0"
-kotest-pitest = "1.2.0"
-kotlin = "2.1.10"
-kotlin-coroutines = "1.10.1"
-kotlin-datetime = "0.6.2"
-kotlin-io = "0.7.0"
-kotlin-serialization = "1.8.0"
-kotlinpoet = "2.1.0"
-kover = "0.9.1"
-ksp = "2.1.10-1.0.31"
-ktfmt = "0.22.0"
-ktor = "3.1.1"
+kotlin = "2.2.20"
+kotlin-coroutines = "1.10.2"
+kotlin-io = "0.8.0"
+kotlin-serialization = "1.9.0"
+kotlinpoet = "2.2.0"
+kover = "0.9.2"
+ksp = "2.2.20-2.0.3"
+ktfmt = "0.24.0"
+ktor = "3.3.0"
 leakcanary = "2.14"
-mockk = "1.13.17"
-okio = "3.10.2"
-pitest = "1.16.1"
-pitest-junit5 = "1.2.1"
-play-services-tasks = "18.2.0"
+markwon = "4.6.2"
+material = "1.13.0"
+mockk = "1.14.5"
+okio = "3.16.0"
+perf-plugin = "2.0.1"
+play-services-tasks = "18.4.0"
 process-phoenix = "3.0.0"
-protobuf = "4.30.0"
-protobuf-plugin = "0.9.4"
+protobuf = "4.32.1"
+protobuf-plugin = "0.9.5"
 task-tree = "4.0.1"
 
 [libraries]
@@ -64,12 +67,18 @@ gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "gradle-pitest" }
 
+kotlin-gradle-plugin-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+dependency-analysis = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dependency-analysis" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+
+javax-inject = { module = "javax.inject:javax.inject", version = "1" }
+
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
 kotlinx-coroutines-play = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlin-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlin-coroutines" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlin-datetime" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlin-io" }
 
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
@@ -84,12 +93,13 @@ ksp-koin = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-an
 
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 
 konnection = { module = "dev.tmapps:konnection", version.ref = "konnection" }
 konnection-android-debug = { module = "dev.tmapps:konnection-android-debug", version.ref = "konnection" }
 
-korlibs-charset = { module = "com.soywiz:korlibs-charset", version.ref = "korlibs" }
-korlibs-xml = { module = "com.soywiz:korlibs-serialization-xml", version.ref = "korlibs" }
+korlibs-serialization = { module = "com.soywiz:korlibs-serialization", version.ref = "korlibs-serialization" }
+korlibs-string = { module = "com.soywiz:korlibs-string", version.ref = "korlibs-string" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-assets = { module = "com.squareup.okio:okio-assetfilesystem", version.ref = "okio" }
@@ -111,6 +121,8 @@ lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", versi
 multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-multidex" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidx-recyclerview" }
 
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
 app-review = { module = "com.google.android.play:review", version.ref = "app-review" }
@@ -121,33 +133,41 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-config = { module = "com.google.firebase:firebase-config" }
+firebase-perf = { module = "com.google.firebase:firebase-perf" }
 
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
 
 protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 
+markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
 process-phoenix = { module = "com.jakewharton:process-phoenix", version.ref = "process-phoenix" }
 
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
+material = { module = "com.google.android.material:material", version.ref = "material" }
+
 test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
+test-junit-ktx = { module = "androidx.test.ext:junit-ktx", version.ref = "androidx-test-junit" }
 test-monitor = { module = "androidx.test:monitor", version.ref = "androidx-test-monitor" }
 test-orchestrator = { module = "androidx.test:orchestrator", version.ref = "androidx-test-orchestrator" }
 test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 
-barista = { module = "com.adevinta.android:barista", version.ref = "barista" }
+espresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+uiautomator = "androidx.test.uiautomator:uiautomator:2.3.0"
+
+hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
+
+kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref = "kaspresso" }
+kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 
-kotest-assertions-api = { module = "io.kotest:kotest-assertions-api", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
-kotest-extensions-koin = { module = "io.kotest.extensions:kotest-extensions-koin", version.ref = "kotest-koin" }
-kotest-extensions-pitest = { module = "io.kotest.extensions:kotest-extensions-pitest", version.ref = "kotest-pitest" }
-kotest-framework-api = { module = "io.kotest:kotest-framework-api", version.ref = "kotest" }
-kotest-framework-datatest-jvm = { module = "io.kotest:kotest-framework-datatest-jvm", version.ref = "kotest" }
+kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin", version.ref = "kotest" }
+kotest-extensions-pitest = { module = "io.kotest:kotest-extensions-pitest", version.ref = "kotest" }
 kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-property-arbs-jvm = { module = "io.kotest.extensions:kotest-property-arbs-jvm", version.ref = "kotest-arbs" }
@@ -167,9 +187,12 @@ konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 accessibility-test-framework = { module = "com.google.android.apps.common.testing.accessibility.framework:accessibility-test-framework", version = "latest.release" }
 bouncycastle = { module = "org.bouncycastle:bcpkix-jdk18on", version = "latest.release" }
 commons-compress = { module = "org.apache.commons:commons-compress", version = "latest.release" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
+jdom2 = { module = "org.jdom:jdom2", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
-netty = { module = "io.netty:netty-codec-http2", version = "4.1.+" }
+netty-codec = { module = "io.netty:netty-codec", version = "4.2.+" }
+netty-http2 = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 
 [bundles]
 classpath = [
@@ -178,11 +201,22 @@ classpath = [
     "gradle-pitest",
 ]
 
+build-logic = [
+    "kotlin-gradle-plugin",
+    "kotlin-gradle-plugin-api",
+    "kover-gradle-plugin",
+    "dependency-analysis",
+    "detekt-gradle-plugin",
+]
+build-logic-api = [
+    "gradle-pitest",
+    "javax-inject",
+]
+
 app = [
     "kotlin-stdlib",
     "kotlinx-coroutines",
     "kotlinx-coroutines-play",
-    "kotlinx-datetime",
     "activity",
     "annotation",
     "appcompat",
@@ -207,33 +241,44 @@ app = [
     "app-review",
     "app-update",
     "play-services-tasks",
+    "markwon",
     "process-phoenix",
+    "jspecify",
 ]
 app-debug = [
-    "leakcanary",
     "konnection-android-debug",
+]
+app-debug-runtime = [
+    "leakcanary",
+    "material",
 ]
 app-test = [
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "kotest-property-arbs-jvm",
     "mockk",
     "mockk-dsl",
+    "kotlinx-io",
     "kotlinx-serialization-core",
     "kotlinx-serialization-json",
+    "ktor-io",
 ]
 app-test-runtime = [
     "kotest-runner-junit5-jvm",
 ]
 app-androidTest = [
     "kotlinx-coroutines-test",
-    "barista",
+    "espresso",
+    "uiautomator",
     "junit4",
+    "hamcrest",
+    "kaspresso",
+    "kakao",
     "test-core",
     "test-junit",
+    "test-junit-ktx",
     "test-monitor",
     "test-runner",
     "konnection-android-debug",
@@ -241,21 +286,20 @@ app-androidTest = [
 
 ian = [
     "kotlinx-coroutines",
-    "kotlinx-datetime",
     "ktor-io",
     "ktor-network",
 ]
 ian-test = [
     "kotlinx-coroutines-test",
     "kotlinx-io",
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-common",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
     "mockk-dsl",
+    "ktor-utils",
 ]
 ian-test-runtime = [
     "kotest-extensions-pitest",
@@ -263,19 +307,17 @@ ian-test-runtime = [
 ]
 
 ian-enums-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 
 ian-listener-test = [
     "kotest-assertions-core",
-    "kotest-framework-api",
+    "kotest-framework-engine",
     "mockk",
     "mockk-dsl",
 ]
@@ -283,31 +325,26 @@ ian-listener-test = [
 ian-packets-api = [
     "kotlin-stdlib",
     "kotlinx-coroutines",
-    "kotlinx-datetime",
     "koin-annotations",
     "koin-core",
-    "korlibs-charset",
+    "korlibs-string",
     "ktor-io",
 ]
 ian-packets-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
     "kotest-extensions-koin",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "koin-test",
     "mockk",
     "mockk-dsl",
 ]
 ian-packets-test-fixtures = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
     "mockk-dsl",
@@ -324,71 +361,62 @@ ian-udp-test = [
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 
 ian-util = [
-    "korlibs-charset",
+    "korlibs-string",
     "ktor-io",
     "okio",
 ]
 ian-util-test = [
-    "kotest-assertions-api",
+    "kotlinx-coroutines",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 ian-util-test-fixtures = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 
 ian-vesseldata = [
-    "korlibs-xml",
+    "korlibs-serialization",
     "okio",
 ]
 ian-vesseldata-test = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
 ]
 ian-vesseldata-test-fixtures = [
-    "kotest-assertions-api",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
     "kotest-framework-engine",
     "kotest-property",
-    "korlibs-xml",
+    "korlibs-serialization",
     "mockk",
 ]
 
 ian-world-test = [
+    "kotlinx-coroutines",
     "kotest-assertions-core",
     "kotest-assertions-shared",
     "kotest-common",
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "kotest-property",
     "mockk",
     "mockk-dsl",
@@ -396,15 +424,13 @@ ian-world-test = [
 ian-world-test-fixtures = [
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-framework-api",
     "kotest-property",
     "mockk",
     "mockk-dsl",
 ]
 
 konsist-common = [
-    "kotest-framework-api",
-    "kotest-framework-datatest-jvm",
+    "kotest-framework-engine",
     "konsist",
 ]
 konsist-app = [
@@ -416,7 +442,7 @@ konsist-ian = [
     "kotest-assertions-core",
 ]
 konsist-vesseldata = [
-    "korlibs-xml",
+    "korlibs-serialization",
 ]
 konsist-runtime = [
     "kotest-runner-junit5-jvm",
@@ -426,6 +452,7 @@ firebase = [
     "firebase-analytics",
     "firebase-crashlytics",
     "firebase-config",
+    "firebase-perf",
 ]
 
 arcmutate = [
@@ -437,9 +464,9 @@ arcmutate = [
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "perf-plugin" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

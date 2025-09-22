@@ -5,8 +5,10 @@ import androidx.core.content.ContextCompat
 import artemis.agent.R
 import com.walkertribe.ian.util.BoolState
 import com.walkertribe.ian.vesseldata.Faction
+import com.walkertribe.ian.vesseldata.TestVessel
 import com.walkertribe.ian.vesseldata.Vessel
 import com.walkertribe.ian.vesseldata.VesselData
+import com.walkertribe.ian.vesseldata.vesselData
 import com.walkertribe.ian.world.ArtemisNpc
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -14,9 +16,14 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.floats.shouldBeZero
 import io.kotest.matchers.ints.shouldBeZero
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldBeEmpty
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.flatMap
 import io.kotest.property.arbitrary.int
+import io.kotest.property.arbitrary.of
+import io.kotest.property.arbitrary.pair
+import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -118,6 +125,26 @@ class EnemyEntryTest :
                 it("Duplicitous: orange") {
                     enemy.captainStatus = EnemyCaptainStatus.DUPLICITOUS
                     enemy.getBackgroundColor(mockContext) shouldBeEqual R.color.duplicitousOrange
+                }
+            }
+
+            it("Full name") {
+                checkAll(
+                    TestVessel.arbitrary().flatMap { vessel ->
+                        Arb.pair(
+                            Arb.vesselData(vessels = Arb.of(vessel), numVessels = 1..1),
+                            Arb.of(vessel.id),
+                        )
+                    },
+                    Arb.string(),
+                ) { (vesselData, hullId), name ->
+                    val npc = ArtemisNpc(0, 0L)
+                    npc.name.value = name
+                    npc.hullId.value = hullId
+                    val vessel = npc.getVessel(vesselData).shouldNotBeNull()
+                    val faction = vessel.getFaction(vesselData).shouldNotBeNull()
+                    val enemy = EnemyEntry(npc, vessel, faction, vesselData)
+                    enemy.fullName shouldBeEqual "$name ${faction.name} ${vessel.name}"
                 }
             }
         }

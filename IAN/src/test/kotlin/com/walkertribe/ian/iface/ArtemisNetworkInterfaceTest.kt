@@ -59,12 +59,14 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.retry
 import io.kotest.assertions.throwables.shouldNotThrowAnyUnit
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
@@ -84,7 +86,7 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
-import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.util.cio.use
 import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.buildPacket
@@ -102,15 +104,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalKotest::class)
 class ArtemisNetworkInterfaceTest :
     DescribeSpec({
         failfast = true
 
-        beforeAny { TestListener.clear() }
+        beforeTest { TestListener.clear() }
 
         afterSpec {
             TestListener.clear()
@@ -118,10 +119,11 @@ class ArtemisNetworkInterfaceTest :
             unmockkAll()
         }
 
-        describe("ArtemisNetworkInterface") {
+        describe("ArtemisNetworkInterface").config(timeout = 15.minutes) {
             val loopbackAddress = "127.0.0.1"
             val port = 2010
             val testTimeout = 1.minutes
+            val connectionTimeoutMs = 2000L
             val client =
                 KtorArtemisNetworkInterface(maxVersion = Version.DEFAULT).apply {
                     addListenerModule(TestListener.module)
@@ -145,7 +147,7 @@ class ArtemisNetworkInterfaceTest :
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
@@ -175,7 +177,7 @@ class ArtemisNetworkInterfaceTest :
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
@@ -186,7 +188,7 @@ class ArtemisNetworkInterfaceTest :
                         }
                     }
 
-                    val sendChannel = socket.openWriteChannel(autoFlush = false)
+                    val sendChannel = socket.openWriteChannel()
                     val readChannel = socket.openReadChannel()
 
                     suspend fun PacketTestFixture.Server<*>.testClient(
@@ -422,6 +424,7 @@ class ArtemisNetworkInterfaceTest :
                                     .shouldBeSingleton()
                             }
                         }
+                        client.setTimeout(15_000L)
                     }
 
                     it("Sends heartbeats intermittently") {
@@ -486,7 +489,7 @@ class ArtemisNetworkInterfaceTest :
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
@@ -510,41 +513,36 @@ class ArtemisNetworkInterfaceTest :
                     }
 
                     it("Closes on read exception") {
-                        var sender: ByteWriteChannel? = null
-
                         eventually(testTimeout) {
                             val connectDeferred =
                                 async(testDispatcher) {
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
+                            socket.dispose()
                             socket = server.accept()
                             connectDeferred.await().shouldBeTrue()
                             client.start()
                             TestListener.clear()
 
-                            sender?.flushAndClose()
-                            sender =
-                                socket.openWriteChannel(autoFlush = false).apply {
-                                    writePacketWithHeader(TestPacketTypes.CONNECTED, buildPacket {})
-                                }
+                            socket.openWriteChannel().use {
+                                writePacketWithHeader(TestPacketTypes.CONNECTED, buildPacket {})
 
-                            eventually(2.seconds) {
-                                assertSoftly {
-                                    TestListener.calls<ConnectionEvent.Disconnect>()
-                                        .shouldBeSingleton {
-                                            it.cause should
-                                                beInstanceOf<DisconnectCause.PacketParseError>()
-                                        }
+                                eventually(2.seconds) {
+                                    assertSoftly {
+                                        TestListener.calls<ConnectionEvent.Disconnect>()
+                                            .shouldBeSingleton {
+                                                it.cause should
+                                                    beInstanceOf<DisconnectCause.PacketParseError>()
+                                            }
+                                    }
                                 }
                             }
                         }
-
-                        sender?.flushAndClose()
                     }
 
                     withData<Triple<String, Throwable, (DisconnectCause) -> Unit>>(
@@ -566,6 +564,7 @@ class ArtemisNetworkInterfaceTest :
                                     )
                                 }
 
+                            socket.dispose()
                             socket = server.accept()
                             connectDeferred.await().shouldBeTrue()
                             client.start()
@@ -597,51 +596,68 @@ class ArtemisNetworkInterfaceTest :
                                     ),
                             )
 
+                        val versions = mutableListOf<Version>()
+
                         withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb) ->
                             val versionFixture = VersionPacketFixture(versionArb)
+                            val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
-                            versionFixture.generator.checkAll(100) { data ->
-                                eventually(testTimeout) {
-                                    var sender: ByteWriteChannel? = null
+                            versionFixture.generator.checkAll(500) { data ->
+                                val version = data.packetVersion
+                                versions.add(version)
 
-                                    val result =
-                                        withTimeoutOrNull(6.seconds) {
-                                            val connectDeferred =
-                                                async(testDispatcher) {
-                                                    client.connect(
-                                                        host = loopbackAddress,
-                                                        port = port,
-                                                        timeoutMs = 1000L,
-                                                    )
-                                                }
+                                collect(
+                                    when {
+                                        version.major < 2 -> "${version.major}.*"
+                                        version.major > 2 -> ">2.*"
+                                        version.minor < 3 -> "2.${version.minor}.*"
+                                        version.minor > 8 -> "2.9+"
+                                        else -> "2.8.2+"
+                                    }
+                                )
 
-                                            socket = server.accept()
-                                            connectDeferred.await().shouldBeTrue()
-                                            client.start()
-                                            TestListener.clear()
+                                val connectDeferred =
+                                    async(testDispatcher) {
+                                        client.connect(
+                                            host = loopbackAddress,
+                                            port = port,
+                                            timeoutMs = connectionTimeoutMs,
+                                        )
+                                    }
 
-                                            sender =
-                                                socket.openWriteChannel(autoFlush = true).apply {
-                                                    writePacketWithHeader(
-                                                        TestPacketTypes.CONNECTED,
-                                                        data.buildPayload(),
-                                                    )
-                                                }
+                                socket.dispose()
+                                socket = server.accept()
+                                connectDeferred.await().shouldBeTrue()
+                                client.start()
+                                TestListener.clear()
 
-                                            eventually(5.seconds) {
-                                                TestListener.calls<ConnectionEvent.Disconnect>()
-                                                    .shouldBeSingleton {
-                                                        it.cause.shouldBeInstanceOf<
-                                                            DisconnectCause.UnsupportedVersion
-                                                        >()
-                                                    }
-                                            }
+                                socket.openWriteChannel().use {
+                                    writePacketWithHeader(
+                                        TestPacketTypes.CONNECTED,
+                                        data.buildPayload(),
+                                    )
+
+                                    eventually(5.seconds) {
+                                        val newEvents =
+                                            TestListener.calls<ConnectionEvent.Disconnect>()
+                                        newEvents.shouldBeSingleton {
+                                            it.cause.shouldBeInstanceOf<
+                                                DisconnectCause.UnsupportedVersion
+                                            >()
                                         }
-
-                                    sender?.flushAndClose()
-                                    result.shouldNotBeNull()
+                                        disconnectEvents += newEvents
+                                    }
                                 }
                             }
+
+                            disconnectEvents shouldHaveSize versions.size
+                            disconnectEvents.forEachIndexed { index, event ->
+                                event.cause
+                                    .shouldBeInstanceOf<DisconnectCause.UnsupportedVersion>()
+                                    .version shouldBeEqual versions[index]
+                            }
+                            versions.clear()
+                            disconnectEvents.clear()
                         }
 
                         it("No upper bound in debug mode") {
@@ -653,33 +669,34 @@ class ArtemisNetworkInterfaceTest :
                                     debugClient.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
+                            socket.dispose()
                             socket = server.accept()
                             connectDeferred.await().shouldBeTrue()
                             debugClient.start()
                             TestListener.clear()
 
-                            val sender = socket.openWriteChannel(autoFlush = true)
+                            socket.openWriteChannel().use {
+                                versionFixture.generator.checkAll { data ->
+                                    writePacketWithHeader(
+                                        TestPacketTypes.CONNECTED,
+                                        data.buildPayload(),
+                                    )
+                                    versions.add(data.packetVersion)
+                                }
 
-                            var count = 0
-                            versionFixture.generator.checkAll { data ->
-                                sender.writePacketWithHeader(
-                                    TestPacketTypes.CONNECTED,
-                                    data.buildPayload(),
-                                )
-                                count++
+                                eventually(testTimeout) {
+                                    val packets = TestListener.calls<VersionPacket>()
+                                    packets.map { it.version } shouldContainExactly versions
+                                }
                             }
 
-                            eventually(testTimeout) {
-                                TestListener.calls<VersionPacket>() shouldHaveSize count
-                            }
-
-                            sender.flushAndClose()
                             debugClient.stop()
                             socket.dispose()
+                            versions.clear()
                         }
                     }
                 }

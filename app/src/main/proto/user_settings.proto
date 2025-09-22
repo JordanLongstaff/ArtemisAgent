@@ -50,11 +50,11 @@ message UserSettings {
     bool route_hostage = 35;
     bool route_commandeered = 36;
     bool avoid_black_holes = 37;
-    int32 black_hole_clearance = 38;
+    float black_hole_clearance = 38;
     bool avoid_mines = 39;
-    int32 mine_clearance = 40;
+    float mine_clearance = 40;
     bool avoid_typhon = 41;
-    int32 typhon_clearance = 42;
+    float typhon_clearance = 42;
 
     enum Theme {
         THEME_DEFAULT = 0;
@@ -63,6 +63,7 @@ message UserSettings {
         THEME_YELLOW = 3;
         THEME_BLUE = 4;
         THEME_PURPLE = 5;
+        THEME_ORANGE = 6;
     }
 
     Theme theme = 43;
@@ -80,7 +81,7 @@ message UserSettings {
     bool enemy_sort_name = 53;
     bool enemy_sort_distance = 54;
     bool enemy_sort_surrendered = 55;
-    int32 surrender_range = 56;
+    float surrender_range = 56;
     bool surrender_range_enabled = 57;
     bool show_enemy_intel = 58;
     bool show_taunt_statuses = 59;
@@ -88,4 +89,6 @@ message UserSettings {
 
     bool show_network_info = 61;
     bool always_scan_public = 62;
+    bool haptics_enabled = 63;
+    bool sound_muted = 64;
 }

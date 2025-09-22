@@ -1,6 +1,8 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.android.application")
@@ -8,11 +10,11 @@ plugins {
     kotlin("plugin.serialization")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
+    alias(libs.plugins.firebase.perf)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -27,9 +29,11 @@ val release = "release"
 val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
-val kotlinMainPath: String by rootProject.extra
-val kotlinTestPath: String by rootProject.extra
-val kotlinAndroidTestPath = "src/androidTest/kotlin"
+val changelog =
+    rootProject
+        .file("fastlane/metadata/android/en-US/changelogs/default.txt")
+        .readLines()
+        .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
 
 android {
     namespace = appId
@@ -39,11 +43,11 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 31
-        versionName = "1.1.0"
+        versionCode = 39
+        versionName = "1.4.1"
         multiDexEnabled = true
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
@@ -53,7 +57,13 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions { jvmTarget = javaVersion.toString() }
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xannotation-target-all")
+            jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+            javaParameters = true
+        }
+    }
 
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
     testOptions.unitTests.all { it.useJUnitPlatform() }
@@ -71,6 +81,7 @@ android {
         configureEach {
             resValue(stringRes, "app_name", appName)
             resValue(stringRes, "app_version", "$appName ${defaultConfig.versionName}")
+            resValue(stringRes, "changelog", changelog)
         }
         release {
             signingConfig = signingConfigs.getByName(release)
@@ -96,6 +107,12 @@ android {
     }
 
     tasks.preBuild.dependsOn(":IAN:konsistCollect")
+
+    project.afterEvaluate {
+        tasks
+            .named { it.startsWith("ksp") && it.endsWith("Kotlin") }
+            .configureEach { mustRunAfter("generate${name.substring(3, name.length - 6)}Proto") }
+    }
 }
 
 dependencies {
@@ -108,21 +125,29 @@ dependencies {
     implementation(projects.ian.util)
     implementation(projects.ian.vesseldata)
     implementation(projects.ian.world)
-    testImplementation(projects.ian.testing)
 
     ksp(projects.ian.processor)
 
     implementation(libs.bundles.app)
     debugImplementation(libs.bundles.app.debug)
+    debugRuntimeOnly(libs.bundles.app.debug.runtime)
+
+    testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.vesseldata))
 
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
 
-    androidTestImplementation(libs.bundles.app.androidTest)
+    androidTestImplementation(libs.bundles.app.androidTest) {
+        exclude(group = "org.hamcrest", module = "hamcrest-core")
+        exclude(group = "org.hamcrest", module = "hamcrest-library")
+    }
     androidTestUtil(libs.test.orchestrator)
 
     implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
+    implementation(libs.bundles.firebase) {
+        exclude(group = "com.google.firebase", module = "protolite-well-known-types")
+    }
 
     constraints {
         implementation(libs.guava) {
@@ -139,10 +164,8 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 }
 
-ktfmt { kotlinLangStyle() }
-
 detekt {
-    source.setFrom(files(kotlinMainPath, kotlinTestPath, kotlinAndroidTestPath))
+    source.from(files("src/androidTest/kotlin"))
     ignoredBuildTypes = listOf(release)
     ignoredVariants = listOf(release)
 }

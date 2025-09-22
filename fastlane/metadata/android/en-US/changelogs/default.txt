@@ -1,1 +1,2 @@
-Test Artemis update rollout
+* Added mute button for sound effects in settings
+* Dependency upgrades

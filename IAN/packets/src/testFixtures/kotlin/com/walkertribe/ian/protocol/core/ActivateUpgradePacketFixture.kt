@@ -15,8 +15,7 @@ import io.kotest.property.exhaustive.of
 import kotlinx.io.Source
 import kotlinx.io.readIntLe
 
-sealed class ActivateUpgradePacketFixture
-private constructor(
+sealed class ActivateUpgradePacketFixture(
     override val specName: String,
     private val packet: ActivateUpgradePacket,
     expectedSubtype: Byte,

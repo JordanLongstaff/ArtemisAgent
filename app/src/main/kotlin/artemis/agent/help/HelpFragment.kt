@@ -9,7 +9,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.addCallback
+import androidx.activity.BackEventCompat
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.ArrayRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -36,7 +37,43 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         viewModel.settingsPage.value = null
 
         val onBackPressedCallback =
-            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) { onBack() }
+            object : OnBackPressedCallback(false) {
+                private var currentTopicIndex: Int = MENU
+
+                override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                    currentTopicIndex = viewModel.helpTopicIndex.value
+                }
+
+                override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                    if (backEvent.progress > 0f) {
+                        viewModel.helpTopicIndex.value = MENU
+                        binding.backPressAlpha.visibility = View.VISIBLE
+                    } else {
+                        viewModel.helpTopicIndex.value = currentTopicIndex
+                        binding.backPressAlpha.visibility = View.GONE
+                    }
+                }
+
+                override fun handleOnBackCancelled() {
+                    onBackEnded()
+                }
+
+                override fun handleOnBackPressed() {
+                    viewModel.helpTopicIndex.value = MENU
+                    isEnabled = false
+                    onBackEnded()
+                }
+
+                private fun onBackEnded() {
+                    viewModel.activateHaptic()
+                    viewModel.playSound(SoundEffect.BEEP_1)
+                    binding.backPressAlpha.visibility = View.GONE
+                }
+            }
+
+        requireActivity()
+            .onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, onBackPressedCallback)
 
         val helpTopicContent = binding.helpTopicContent
 
@@ -50,7 +87,6 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
             val headerVisibility =
                 if (index == MENU) {
                     layoutManager.spanCount = 2
-                    onBackPressedCallback.isEnabled = false
                     View.GONE
                 } else {
                     helpTopics[index].initContents(resources)
@@ -64,16 +100,11 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
             @Suppress("NotifyDataSetChanged") adapter.notifyDataSetChanged()
         }
 
-        binding.backButton.setOnClickListener { onBack() }
+        binding.backButton.setOnClickListener { onBackPressedCallback.handleOnBackPressed() }
 
         helpTopicContent.itemAnimator = null
         helpTopicContent.adapter = adapter
         helpTopicContent.layoutManager = layoutManager
-    }
-
-    private fun onBack() {
-        viewModel.playSound(SoundEffect.BEEP_1)
-        viewModel.helpTopicIndex.value = MENU
     }
 
     private interface ViewProvider {
@@ -81,8 +112,8 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private class HelpTopic(
-        @StringRes val buttonLabel: Int,
-        @ArrayRes private val paragraphs: Int,
+        @all:StringRes val buttonLabel: Int,
+        @all:ArrayRes private val paragraphs: Int,
         private val insert: MutableList<HelpTopicContent>.(Resources) -> Unit,
     ) : ViewProvider {
         override val viewType: Int = MENU
@@ -102,7 +133,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     }
 
     private sealed interface HelpTopicContent : ViewProvider {
-        data class Image(@DrawableRes val imageSrcId: Int) : HelpTopicContent {
+        data class Image(@all:DrawableRes val imageSrcId: Int) : HelpTopicContent {
             override val viewType: Int = IMAGE
         }
 
@@ -149,6 +180,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     with(holder.itemView as Button) {
                         setText(helpTopics[position].buttonLabel)
                         setOnClickListener {
+                            viewModel.activateHaptic()
                             viewModel.playSound(SoundEffect.BEEP_2)
                             viewModel.helpTopicIndex.value = position
                         }

@@ -6,29 +6,21 @@
     android:layout_height="match_parent">
     <TextView
         android:id="@+id/themeTitle"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
         android:text="@string/theme"
         android:textSize="@dimen/mediumTextSize"
-        app:layout_constraintBottom_toBottomOf="@id/themeSelector"
-        app:layout_constraintEnd_toStartOf="@id/themeSelector"
-        app:layout_constraintHorizontal_weight="1"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/themeSelector"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/themeSelector" />
+        app:layout_constraintTop_toTopOf="parent" />
     <RadioGroup
         android:id="@+id/themeSelector"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/paddingSmall"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="4"
-        app:layout_constraintLeft_toRightOf="@id/themeTitle"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintStart_toEndOf="@id/themeTitle"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/themeTitle">
         <RadioButton
             android:id="@+id/themeDefaultButton"
             android:layout_width="wrap_content"
@@ -71,6 +63,13 @@
             android:layout_weight="1"
             android:minWidth="0dp"
             android:theme="@style/Widget.ArtemisAgent.Button.Purple" />
+        <RadioButton
+            android:id="@+id/themeOrangeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:theme="@style/Widget.ArtemisAgent.Button.Orange" />
     </RadioGroup>
     <View
         android:id="@+id/themeDivider"
@@ -127,7 +126,10 @@
         android:layout_height="wrap_content"
         android:text="@string/sound_volume"
         android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toTopOf="@id/soundVolumeBarBarrier"
+        app:layout_constraintEnd_toStartOf="@id/soundVolumeLabel"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/soundVolumeLabel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/threeDigitDirectionsDivider" />
     <TextView
@@ -137,15 +139,31 @@
         android:gravity="center_vertical|end"
         android:minEms="2"
         android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/soundMuteButton"
+        app:layout_constraintEnd_toStartOf="@id/soundMuteButton"
+        app:layout_constraintRight_toLeftOf="@id/soundMuteButton"
+        app:layout_constraintTop_toTopOf="@id/soundMuteButton" />
+    <ToggleButton
+        android:id="@+id/soundMuteButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/paddingSmall"
+        android:text="@string/mute"
+        app:layout_constraintBottom_toTopOf="@id/soundVolumeBarBarrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/threeDigitDirectionsDivider" />
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/soundVolumeBarBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="soundVolumeTitle,soundMuteButton" />
     <SeekBar
         android:id="@+id/soundVolumeBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/paddingSmall"
-        app:layout_constraintTop_toBottomOf="@id/soundVolumeTitle" />
+        app:layout_constraintTop_toBottomOf="@id/soundVolumeBarBarrier" />
     <View
         android:id="@+id/soundVolumeDivider"
         android:layout_width="match_parent"
@@ -153,4 +171,33 @@
         android:layout_marginTop="@dimen/paddingSmall"
         android:background="?android:attr/listDivider"
         app:layout_constraintTop_toBottomOf="@id/soundVolumeBar" />
+    <TextView
+        android:id="@+id/enableHapticsTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/enable_haptics"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/enableHapticsButton"
+        app:layout_constraintEnd_toStartOf="@id/enableHapticsButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/enableHapticsButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/enableHapticsButton" />
+    <ToggleButton
+        android:id="@+id/enableHapticsButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/soundVolumeDivider" />
+    <View
+        android:id="@+id/enableHapticsDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/enableHapticsButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -952,7 +952,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
 
     sealed class PlayerShipParser(override val specName: String, val versionArb: Arb<Version>) :
         ObjectParserTestConfig(true) {
-        sealed class Data private constructor() :
+        sealed class Data :
             ObjectParserData.Real<ArtemisPlayer>(ArtemisPlayer::class, ObjectType.PLAYER_SHIP) {
             internal abstract val flags1: PlayerFlags1
             internal abstract val flags2: PlayerFlags2
@@ -2075,6 +2075,7 @@ sealed class ObjectParserTestConfig(val recognizesObjectListeners: Boolean) {
         }
 
         data object Drone : Unobserved() {
+            @ConsistentCopyVisibility
             data class Data
             internal constructor(
                 override val objectID: Int,

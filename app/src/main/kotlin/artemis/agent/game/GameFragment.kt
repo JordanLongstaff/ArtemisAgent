@@ -82,6 +82,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
                 val gamePageSelectorButton = binding.gamePageSelectorButton
                 gamePageSelectorButton.setOnClickListener {
+                    viewModel.activateHaptic()
                     viewModel.playSound(SoundEffect.BEEP_2)
                     root.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
                     popup.showAsDropDown(gamePageSelectorButton)
@@ -200,6 +201,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
     private fun setupInventoryButton() {
         binding.inventoryButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
 
             val player = viewModel.playerShip ?: return@setOnClickListener
@@ -274,8 +276,11 @@ class GameFragment : Fragment(R.layout.game_fragment) {
 
     private fun setupAlertButton() {
         binding.redAlertButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_1)
-            viewModel.sendToServer(ToggleRedAlertPacket())
+            with(viewModel) {
+                activateHaptic()
+                playSound(SoundEffect.BEEP_1)
+                sendToServer(ToggleRedAlertPacket())
+            }
         }
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.alertStatus) {
@@ -297,8 +302,11 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         }
 
         binding.doubleAgentButton.setOnClickListener {
-            viewModel.playSound(SoundEffect.BEEP_1)
-            viewModel.activateDoubleAgent()
+            with(viewModel) {
+                activateHaptic()
+                playSound(SoundEffect.BEEP_1)
+                activateDoubleAgent()
+            }
         }
     }
 
@@ -344,6 +352,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
             pages[position].also { (page, flashing) ->
                 holder.bind(page, flashing)
                 holder.itemView.setOnClickListener {
+                    viewModel.activateHaptic()
                     viewModel.playSound(
                         if (viewModel.currentGamePage.value == page) SoundEffect.BEEP_2
                         else SoundEffect.CONFIRMATION

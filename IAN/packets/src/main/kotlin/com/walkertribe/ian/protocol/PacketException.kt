@@ -58,8 +58,4 @@ private constructor(
         this.packetType = packetType
         this.payload = payload
     }
-
-    private companion object {
-        @Suppress("ConstPropertyName") private const val serialVersionUID = 6305993950844264082L
-    }
 }

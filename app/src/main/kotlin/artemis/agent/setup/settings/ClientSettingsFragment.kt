@@ -67,6 +67,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
 
         binding.updateIntervalField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -95,6 +96,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             button.visibility =
                 if (index < numAvailableOptions) {
                     button.setOnClickListener {
+                        viewModel.activateHaptic()
                         viewModel.playSound(SoundEffect.BEEP_2)
                         clearFocus()
                     }
@@ -121,10 +123,14 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             }
         }
 
-        binding.serverPortField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.serverPortField.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.serverPortField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -144,7 +150,10 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     }
 
     private fun prepareShowNetworkInfoSettingToggle() {
-        binding.showNetworkInfoButton.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.showNetworkInfoButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.showNetworkInfoButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
@@ -162,10 +171,14 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             }
         }
 
-        binding.addressLimitField.setOnClickListener { viewModel.playSound(SoundEffect.BEEP_2) }
+        binding.addressLimitField.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
 
         binding.addressLimitField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
                 return@setOnFocusChangeListener
             }
@@ -179,6 +192,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         }
 
         binding.addressLimitEnableButton.setOnClickListener {
+            viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             clearFocus()
         }

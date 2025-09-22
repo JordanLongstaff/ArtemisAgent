@@ -3,7 +3,8 @@ package artemis.agent.setup.settings
 import android.os.Bundle
 import android.view.View
 import android.widget.ToggleButton
-import androidx.activity.addCallback
+import androidx.activity.BackEventCompat
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -32,7 +33,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
     private val binding: SettingsFragmentBinding by fragmentViewBinding()
 
     enum class Page(
-        @StringRes val titleRes: Int,
+        @all:StringRes val titleRes: Int,
         val pageClass: Class<out Fragment>,
         val onToggle: (UserSettingsKt.Dsl.(Boolean) -> Unit)? = null,
     ) {
@@ -159,6 +160,8 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                     theme = UserSettings.Theme.THEME_DEFAULT
                     threeDigitDirections = true
                     soundVolume = UserSettingsSerializer.DEFAULT_SOUND_VOLUME
+                    soundMuted = false
+                    hapticsEnabled = true
                 }
         };
 
@@ -172,10 +175,11 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             val fragmentClass =
                 if (page == null) {
                     binding.settingsPageTitle.setText(R.string.settings)
-                    binding.settingsOnOff.visibility = View.INVISIBLE
+                    binding.settingsOnOff.visibility = View.GONE
                     binding.settingsBack.visibility = View.GONE
 
                     binding.settingsReset.setOnClickListener {
+                        viewModel.activateHaptic()
                         viewModel.viewModelScope.launch {
                             binding.root.context.userSettings.updateData {
                                 defaultValue.copy {
@@ -196,9 +200,10 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                             binding.settingsOnOff.isChecked = true
 
                             View.VISIBLE
-                        } ?: View.INVISIBLE
+                        } ?: View.GONE
 
                     binding.settingsReset.setOnClickListener {
+                        viewModel.activateHaptic()
                         viewModel.settingsReset.apply { value = !value }
                         viewModel.viewModelScope.launch {
                             binding.root.context.userSettings.updateData(page::reset)
@@ -215,41 +220,79 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             }
         }
 
+    private val onBackPressedCallback by lazy {
+        object : OnBackPressedCallback(false) {
+            private var openedPage: Page? = null
+
+            override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                openedPage = currentPage
+            }
+
+            override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                if (backEvent.progress > 0f) {
+                    viewModel.settingsPage.value = null
+                    binding.backPressAlpha.visibility = View.VISIBLE
+                } else {
+                    viewModel.settingsPage.value = openedPage
+                    binding.backPressAlpha.visibility = View.GONE
+                }
+            }
+
+            override fun handleOnBackCancelled() {
+                onBackEnded()
+            }
+
+            override fun handleOnBackPressed() {
+                viewModel.settingsPage.value = null
+                isEnabled = false
+                onBackEnded()
+            }
+
+            private fun onBackEnded() {
+                viewModel.playSound(SoundEffect.BEEP_1)
+                binding.backPressAlpha.visibility = View.GONE
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val onBackPressedCallback =
-            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-                goBackToMenu()
-            }
+        requireActivity()
+            .onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, onBackPressedCallback)
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsPage) {
-            onBackPressedCallback.isEnabled = it != null
-            currentPage = it
+            currentPage = it?.also { onBackPressedCallback.isEnabled = true }
         }
 
-        binding.settingsBack.setOnClickListener { goBackToMenu() }
+        binding.settingsBack.setOnClickListener {
+            viewModel.activateHaptic()
+            goBackToMenu()
+        }
 
         binding.settingsPageTitle.setOnClickListener {
             if (currentPage != null) {
+                viewModel.activateHaptic()
                 goBackToMenu()
             }
         }
+
+        binding.settingsOnOff.setOnClickListener { viewModel.activateHaptic() }
 
         binding.settingsOnOff.setOnCheckedChangeListener { _, isChecked ->
             currentPage?.onToggle?.also { onToggle ->
                 viewModel.viewModelScope.launch {
                     view.context.userSettings.updateData { it.copy { onToggle(isChecked) } }
+                    if (!isChecked) {
+                        goBackToMenu()
+                    }
                 }
-            }
-            if (!isChecked) {
-                goBackToMenu()
             }
         }
     }
 
     private fun goBackToMenu() {
-        viewModel.playSound(SoundEffect.BEEP_1)
-        viewModel.settingsPage.value = null
+        onBackPressedCallback.handleOnBackPressed()
     }
 }

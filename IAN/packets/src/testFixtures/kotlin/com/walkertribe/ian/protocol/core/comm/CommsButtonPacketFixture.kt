@@ -62,16 +62,13 @@ private constructor(override val specName: String, override val generator: Gen<D
 
         val ALL_VALID_ACTIONS = setOf(REMOVE, CREATE, REMOVE_ALL)
 
-        fun allFixtures(arbVersion: Arb<Version> = Arb.version()): List<CommsButtonPacketFixture> =
+        fun allFixtures(
+            arbVersion: Arb<Version> = Arb.version(),
+            arbLabels: Arb<String> = Arb.string(),
+        ): List<CommsButtonPacketFixture> =
             listOf(
-                CommsButtonPacketFixture(
-                    "Remove",
-                    Arb.bind(arbVersion, Arb.string(), Data::Remove),
-                ),
-                CommsButtonPacketFixture(
-                    "Create",
-                    Arb.bind(arbVersion, Arb.string(), Data::Create),
-                ),
+                CommsButtonPacketFixture("Remove", Arb.bind(arbVersion, arbLabels, Data::Remove)),
+                CommsButtonPacketFixture("Create", Arb.bind(arbVersion, arbLabels, Data::Create)),
                 CommsButtonPacketFixture("Remove All", arbVersion.map(Data::RemoveAll)),
             )
     }

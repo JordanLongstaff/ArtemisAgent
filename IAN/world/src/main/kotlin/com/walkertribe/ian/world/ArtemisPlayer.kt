@@ -153,7 +153,7 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
             tubes.count { it.contents == ordnanceType }
     }
 
-    sealed class Dsl private constructor() : BaseArtemisShip.Dsl<ArtemisPlayer>() {
+    sealed class Dsl : BaseArtemisShip.Dsl<ArtemisPlayer>() {
         data object Player : Dsl() {
             var shipIndex: Byte = Byte.MIN_VALUE
             var capitalShipID: Int = -1
