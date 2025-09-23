@@ -16,6 +16,8 @@ import kotlin.time.Duration.Companion.seconds
 
 class ConnectScenario(ip: String, activityScenario: ActivityScenario<MainActivity>) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
+        step("Enable network connections") { device.network.enable() }
+
         ConnectPageScreen {
             val connectTimeout = AtomicInteger()
             step("Fetch connect timeout") {
