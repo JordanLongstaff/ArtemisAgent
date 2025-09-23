@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file contains the fastlane.tools configuration
 # You can find the documentation at https://docs.fastlane.tools
 #
@@ -29,13 +31,11 @@ platform :android do
         if version_name != ""
             android_set_version_name(
                 version_name: version_name,
-                gradle_file: gradle_file
+                gradle_file: gradle_file,
             )
         end
 
-        if options.fetch(:increment, true)
-            android_set_version_code(gradle_file: gradle_file)
-        end
+        android_set_version_code(gradle_file: gradle_file) if options.fetch(:increment, true)
     end
 
     desc "Build release app bundle"

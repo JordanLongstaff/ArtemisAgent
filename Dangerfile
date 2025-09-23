@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Make it more obvious that a PR is a work in progress and shouldn't be merged yet
 warn("PR is marked with Work in Progress (WIP)") if github.pr_title.include? "WIP"
 
@@ -33,13 +35,13 @@ ian_src_changes = all_modified_files
 ian_src_test, ian_src_main = ian_src_changes.partition { |path| path.include?("src/test") }
 
 main_only = ian_src_main.select do |main_path|
-  test_regex_str = main_path.gsub("main", "test(Fixtures)?")
-  test_regex = Regexp.new(test_regex_str)
-  ian_src_test.none? { |test_path| test_regex.match?(test_path) }
+    test_regex_str = main_path.gsub("main", "test(Fixtures)?")
+    test_regex = Regexp.new(test_regex_str)
+    ian_src_test.none? { |test_path| test_regex.match?(test_path) }
 end
 
 main_only.each do |path|
-  warn(":warning: Source files at #{path} were modified without also modifying tests")
+    warn(":warning: Source files at #{path} were modified without also modifying tests")
 end
 
 # LGTM

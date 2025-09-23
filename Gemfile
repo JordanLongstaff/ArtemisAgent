@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 
 gem "danger"
@@ -5,5 +7,6 @@ gem "danger-android_lint"
 gem "danger-detekt-instacart"
 gem "danger-lgtm"
 gem "fastlane"
+gem "rubocop", require: false
 
 eval_gemfile("fastlane/Pluginfile")
