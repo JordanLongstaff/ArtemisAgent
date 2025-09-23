@@ -10,6 +10,10 @@
   "ignoreDeps": ["com.android.tools.build:gradle"],
   "packageRules": [
     {
+      "matchDatasources": ["bundler"],
+      "rangeStrategy": "update-lockfile"
+    },
+    {
       "groupName": "kotlin and ksp",
       "matchPackageNames": [
         "/^org\\.jetbrains\\.kotlin[.:]/",
