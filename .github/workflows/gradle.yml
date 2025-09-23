@@ -92,6 +92,8 @@ jobs:
     name: Dependency review
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
     steps:
       - name: 'Wait for base branch workflow run'
         uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
