@@ -46,7 +46,7 @@ jobs:
         checkout_path: ${{ github.workspace }}
 
     - name: Setup Ruby
-      uses: ruby/setup-ruby@v1.263.0
+      uses: ruby/setup-ruby@0481980f17b760ef6bca5e8c55809102a0af1e5a # v1.263.0
       with:
         bundler-cache: true
 
@@ -65,7 +65,7 @@ jobs:
 
     - name: Run Danger
       if: github.event_name == 'pull_request'
-      uses: MeilCli/danger-action@v6.0.37
+      uses: MeilCli/danger-action@1502a16e733e4d58ababc00843fed8fe61b6d9b4 # v6.0.37
       with:
         plugins_file: "Gemfile"
         danger_file: "Dangerfile"
