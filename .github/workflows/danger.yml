@@ -47,13 +47,13 @@ jobs:
 
     - name: Setup Ruby
       if: github.event_name == 'pull_request'
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@v1.263.0
       with:
         bundler-cache: true
 
     - name: Run Danger
       if: github.event_name == 'pull_request'
-      uses: MeilCli/danger-action@v6
+      uses: MeilCli/danger-action@v6.0.37
       with:
         plugins_file: "Gemfile"
         danger_file: "Dangerfile"
