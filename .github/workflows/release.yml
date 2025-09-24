@@ -26,6 +26,7 @@ jobs:
   wait-for-prerequisites:
     name: 'Wait for prerequisite actions'
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Wait for build
         uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
@@ -88,7 +89,7 @@ jobs:
           bump-level: ${{ inputs.versionBump }}
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0481980f17b760ef6bca5e8c55809102a0af1e5a # v1.263.0
         with:
           bundler-cache: true
 
