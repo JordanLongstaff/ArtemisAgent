@@ -22,7 +22,6 @@ import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.protocol.udp.PrivateNetworkType
 import dev.tmapps.konnection.Konnection
-import dev.tmapps.konnection.NetworkConnection
 
 class ConnectFragment : Fragment(R.layout.connect_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -90,11 +89,12 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
             Konnection.instance.observeNetworkConnection()
         ) {
             val info = Konnection.instance.getInfo()
-            val connection = info?.connection ?: NetworkConnection.UNKNOWN_CONNECTION_TYPE
             val address = info?.ipv4
             broadcastAddress = address?.let(PrivateNetworkType::of)?.broadcastAddress
 
-            binding.networkTypeLabel.text = networkTypes[connection.ordinal]
+            binding.networkTypeLabel.text =
+                info?.let { networkTypes[it.connection.ordinal] }
+                    ?: binding.root.context.getString(R.string.network_not_found)
             binding.addressLabel.text = address
         }
     }

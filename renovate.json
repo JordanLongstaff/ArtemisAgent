@@ -11,15 +11,41 @@
   "packageRules": [
     {
       "groupName": "kotlin and ksp",
-      "matchSourceUrls": [
-        "https://github.com/JetBrains/kotlin",
-        "https://github.com/google/ksp"
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin[.:]/",
+        "/^com\\.google\\.devtools\\.ksp/"
       ]
     },
     {
       "groupName": "firebase",
       "matchPackageNames": ["/^com\\.google\\.firebase/"],
       "changelogUrl": "https://firebase.google.com/support/release-notes/android"
+    },
+    {
+      "groupName": "ktfmt",
+      "matchDepNames": ["com.ncorti.ktfmt.gradle"],
+      "sourceUrl": "https://github.com/cortinico/ktfmt-gradle",
+      "changelogUrl": "https://github.com/cortinico/ktfmt-gradle/releases"
+    },
+    {
+      "groupName": "typesafe-conventions",
+      "matchDepNames": ["dev.panuszewski.typesafe-conventions"],
+      "sourceUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin",
+      "changelogUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin/releases"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Pitest {{#if (containsString commitMessageTopic 'JUNIT5')}}JUnit5 plugin {{/if}} version in build-logic",
+      "managerFilePatterns": [
+        "build-logic/src/main/kotlin/artemis/agent/gradle/Helpers.kt"
+      ],
+      "matchStrings": [
+        "private const val (?<commitMessageTopic>(PITEST|JUNIT5)_VERSION) = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "maven",
+      "depNameTemplate": "org.pitest:pitest{{#if (containsString commitMessageTopic 'JUNIT5')}}-junit5-plugin{{/if}}"
     }
   ]
 }

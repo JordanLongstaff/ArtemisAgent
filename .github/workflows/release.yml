@@ -26,6 +26,7 @@ jobs:
   wait-for-prerequisites:
     name: 'Wait for prerequisite actions'
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Wait for build
         uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
@@ -62,13 +63,13 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5
         with:
-          java-version: '21'
+          java-version-file: .tool-versions
           distribution: 'temurin'
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
 
       - name: Get app version code and name
         id: version
@@ -82,15 +83,14 @@ jobs:
 
       - name: Bump app version name
         id: nextVersionName
-        uses: cbrgm/semver-bump-action@6527c6613705acb087d130dba4631a9184adaaf8 # v1
+        uses: cbrgm/semver-bump-action@68c59dc138e27abddc9048003876a78155ccef75 # v1
         with:
           current-version: ${{ steps.version.outputs.versionName }}
           bump-level: ${{ inputs.versionBump }}
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0481980f17b760ef6bca5e8c55809102a0af1e5a # v1.263.0
         with:
-          ruby-version: 3.2.2
           bundler-cache: true
 
       - name: Initialize Fastlane
@@ -103,20 +103,20 @@ jobs:
 
       - name: Authenticate for Firebase
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           workload_identity_provider: projects/${{ secrets.WIF_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL }}/providers/${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
 
       - name: Set Firebase Project
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@28d7dec901271b7c26e0dbed7b37fd826aa4c15e # v14.14.0
+        uses: w9jds/firebase-action@2b6efe0aa43feeba9e6b7fb7c2c89caac540d985 # v14.17.0
         with:
           args: use ${{ secrets.FIREBASE_SA_PROJECT }}
 
       - name: Get Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@28d7dec901271b7c26e0dbed7b37fd826aa4c15e # v14.14.0
+        uses: w9jds/firebase-action@2b6efe0aa43feeba9e6b7fb7c2c89caac540d985 # v14.17.0
         with:
           args: remoteconfig:get -o app/remote-config.json
 
@@ -150,7 +150,7 @@ jobs:
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: w9jds/firebase-action@28d7dec901271b7c26e0dbed7b37fd826aa4c15e # v14.14.0
+        uses: w9jds/firebase-action@2b6efe0aa43feeba9e6b7fb7c2c89caac540d985 # v14.17.0
         with:
           args: deploy --only remoteconfig
 
@@ -182,7 +182,7 @@ jobs:
           commit_sha: ${{ steps.commit.outputs.commit_hash }}
 
       - name: Release
-        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1
         with:
           tag: ${{ steps.tag.outputs.new_tag }}
           name: ${{ steps.tag.outputs.new_tag }}

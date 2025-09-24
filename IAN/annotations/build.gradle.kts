@@ -1,31 +1,7 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import artemis.agent.gradle.dependsOnKonsist
 
-plugins {
-    id("java-library")
-    id("kotlin")
-    alias(libs.plugins.ktfmt)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.dependency.analysis)
-}
+plugins { id("ian-library") }
 
-val javaVersion: JavaVersion by rootProject.extra
-
-java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
-        javaParameters = true
-    }
-}
-
-tasks.assemble.dependsOn(":IAN:annotations:konsist:test")
-
-ktfmt { kotlinLangStyle() }
+dependsOnKonsist()
 
 dependencies { api(libs.kotlin.stdlib) }

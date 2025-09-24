@@ -5,7 +5,6 @@ plugins {
     id("com.android.library")
     kotlin("android")
     alias(libs.plugins.detekt)
-    alias(libs.plugins.ktfmt)
     alias(libs.plugins.dependency.analysis)
 }
 
@@ -20,17 +19,12 @@ android {
     defaultConfig {
         minSdk = minimumSdkVersion
         multiDexEnabled = true
-
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
 
@@ -56,7 +50,5 @@ dependencies {
     testImplementation(libs.bundles.konsist.common)
     testRuntimeOnly(libs.bundles.konsist.runtime)
 }
-
-ktfmt { kotlinLangStyle() }
 
 dependencyAnalysis { issues { ignoreSourceSet("androidTest") } }

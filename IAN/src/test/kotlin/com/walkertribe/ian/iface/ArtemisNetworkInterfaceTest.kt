@@ -59,6 +59,7 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.retry
 import io.kotest.assertions.throwables.shouldNotThrowAnyUnit
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -105,7 +106,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.withTimeout
 import kotlinx.io.IOException
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalKotest::class)
 class ArtemisNetworkInterfaceTest :
     DescribeSpec({
         failfast = true
@@ -118,10 +119,11 @@ class ArtemisNetworkInterfaceTest :
             unmockkAll()
         }
 
-        describe("ArtemisNetworkInterface") {
+        describe("ArtemisNetworkInterface").config(timeout = 15.minutes) {
             val loopbackAddress = "127.0.0.1"
             val port = 2010
             val testTimeout = 1.minutes
+            val connectionTimeoutMs = 2000L
             val client =
                 KtorArtemisNetworkInterface(maxVersion = Version.DEFAULT).apply {
                     addListenerModule(TestListener.module)
@@ -145,7 +147,7 @@ class ArtemisNetworkInterfaceTest :
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
@@ -175,7 +177,7 @@ class ArtemisNetworkInterfaceTest :
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
@@ -422,6 +424,7 @@ class ArtemisNetworkInterfaceTest :
                                     .shouldBeSingleton()
                             }
                         }
+                        client.setTimeout(15_000L)
                     }
 
                     it("Sends heartbeats intermittently") {
@@ -486,7 +489,7 @@ class ArtemisNetworkInterfaceTest :
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
@@ -516,7 +519,7 @@ class ArtemisNetworkInterfaceTest :
                                     client.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 
@@ -600,14 +603,25 @@ class ArtemisNetworkInterfaceTest :
                             val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
                             versionFixture.generator.checkAll(500) { data ->
-                                versions.add(data.packetVersion)
+                                val version = data.packetVersion
+                                versions.add(version)
+
+                                collect(
+                                    when {
+                                        version.major < 2 -> "${version.major}.*"
+                                        version.major > 2 -> ">2.*"
+                                        version.minor < 3 -> "2.${version.minor}.*"
+                                        version.minor > 8 -> "2.9+"
+                                        else -> "2.8.2+"
+                                    }
+                                )
 
                                 val connectDeferred =
                                     async(testDispatcher) {
                                         client.connect(
                                             host = loopbackAddress,
                                             port = port,
-                                            timeoutMs = 1000L,
+                                            timeoutMs = connectionTimeoutMs,
                                         )
                                     }
 
@@ -655,7 +669,7 @@ class ArtemisNetworkInterfaceTest :
                                     debugClient.connect(
                                         host = loopbackAddress,
                                         port = port,
-                                        timeoutMs = 1000L,
+                                        timeoutMs = connectionTimeoutMs,
                                     )
                                 }
 

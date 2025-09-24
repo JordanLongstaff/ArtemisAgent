@@ -1,12 +1,12 @@
 [versions]
-androidx-activity = "1.10.1"
+androidx-activity = "1.11.0"
 androidx-annotation = "1.9.1"
 androidx-appcompat = "1.7.1"
 androidx-constraintlayout = "2.2.1"
 androidx-core = "1.17.0"
 androidx-datastore = "1.1.7"
 androidx-fragment = "1.8.9"
-androidx-lifecycle = "2.9.2"
+androidx-lifecycle = "2.9.4"
 androidx-multidex = "2.0.1"
 androidx-recyclerview = "1.4.0"
 androidx-test-core = "1.7.0"
@@ -19,47 +19,46 @@ app-update = "2.1.0"
 arcmutate-base = "1.5.3"
 arcmutate-kotlin = "1.4.3"
 crashlytics-plugin = "3.0.6"
-dependency-analysis = "3.0.0"
+dependency-analysis = "3.0.4"
 desugar = "2.1.5"
 detekt = "1.23.8"
 espresso = "3.7.0"
-firebase-bom = "34.1.0"
+firebase-bom = "34.3.0"
 git-hooks = "0.0.2"
 google-services = "4.4.3"
-gradle = "8.12.1"
+gradle = "8.13.0"
 gradle-pitest = "1.19.0-rc.1"
 hamcrest = "3.0"
 jspecify = "1.0.0"
 junit4 = "4.13.2"
 kakao = "3.6.5"
 kaspresso = "1.6.0"
-koin = "4.1.0"
+koin = "4.1.1"
 koin-annotations = "2.1.0"
 konnection = "1.4.5"
 konsist = "0.17.3"
-korlibs = "6.0.0-alpha2"
-kotest = "6.0.0"
+korlibs-serialization = "6.0.1"
+korlibs-string = "6.0.0"
+kotest = "6.0.3"
 kotest-arbs = "2.1.2"
-kotlin = "2.2.10"
+kotlin = "2.2.20"
 kotlin-coroutines = "1.10.2"
 kotlin-io = "0.8.0"
 kotlin-serialization = "1.9.0"
 kotlinpoet = "2.2.0"
-kover = "0.9.1"
-ksp = "2.2.10-2.0.2"
-ktfmt = "0.23.0"
-ktor = "3.2.3"
+kover = "0.9.2"
+ksp = "2.2.20-2.0.3"
+ktfmt = "0.24.0"
+ktor = "3.3.0"
 leakcanary = "2.14"
 markwon = "4.6.2"
-material = "1.12.0"
+material = "1.13.0"
 mockk = "1.14.5"
 okio = "3.16.0"
 perf-plugin = "2.0.1"
-pitest = "1.20.1"
-pitest-junit5 = "1.2.3"
-play-services-tasks = "18.3.2"
+play-services-tasks = "18.4.0"
 process-phoenix = "3.0.0"
-protobuf = "4.32.0"
+protobuf = "4.32.1"
 protobuf-plugin = "0.9.5"
 task-tree = "4.0.1"
 
@@ -67,6 +66,13 @@ task-tree = "4.0.1"
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "gradle-pitest" }
+
+kotlin-gradle-plugin-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+dependency-analysis = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dependency-analysis" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+
+javax-inject = { module = "javax.inject:javax.inject", version = "1" }
 
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -92,8 +98,8 @@ ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 konnection = { module = "dev.tmapps:konnection", version.ref = "konnection" }
 konnection-android-debug = { module = "dev.tmapps:konnection-android-debug", version.ref = "konnection" }
 
-korlibs-charset = { module = "com.soywiz:korlibs-charset", version.ref = "korlibs" }
-korlibs-xml = { module = "com.soywiz:korlibs-serialization-xml", version.ref = "korlibs" }
+korlibs-serialization = { module = "com.soywiz:korlibs-serialization", version.ref = "korlibs-serialization" }
+korlibs-string = { module = "com.soywiz:korlibs-string", version.ref = "korlibs-string" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-assets = { module = "com.squareup.okio:okio-assetfilesystem", version.ref = "okio" }
@@ -183,14 +189,28 @@ bouncycastle = { module = "org.bouncycastle:bcpkix-jdk18on", version = "latest.r
 commons-compress = { module = "org.apache.commons:commons-compress", version = "latest.release" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "latest.release" }
 guava = { module = "com.google.guava:guava", version = "latest.release" }
+jdom2 = { module = "org.jdom:jdom2", version = "latest.release" }
 jsoup = { module = "org.jsoup:jsoup", version = "latest.release" }
-netty = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
+netty-codec = { module = "io.netty:netty-codec", version = "4.2.+" }
+netty-http2 = { module = "io.netty:netty-codec-http2", version = "4.2.+" }
 
 [bundles]
 classpath = [
     "gradle",
     "kotlin-gradle-plugin",
     "gradle-pitest",
+]
+
+build-logic = [
+    "kotlin-gradle-plugin",
+    "kotlin-gradle-plugin-api",
+    "kover-gradle-plugin",
+    "dependency-analysis",
+    "detekt-gradle-plugin",
+]
+build-logic-api = [
+    "gradle-pitest",
+    "javax-inject",
 ]
 
 app = [
@@ -227,10 +247,10 @@ app = [
 ]
 app-debug = [
     "konnection-android-debug",
-    "material",
 ]
 app-debug-runtime = [
     "leakcanary",
+    "material",
 ]
 app-test = [
     "kotest-assertions-core",
@@ -274,6 +294,7 @@ ian-test = [
     "kotlinx-io",
     "kotest-assertions-core",
     "kotest-assertions-shared",
+    "kotest-common",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
@@ -306,7 +327,7 @@ ian-packets-api = [
     "kotlinx-coroutines",
     "koin-annotations",
     "koin-core",
-    "korlibs-charset",
+    "korlibs-string",
     "ktor-io",
 ]
 ian-packets-test = [
@@ -346,7 +367,7 @@ ian-udp-test = [
 ]
 
 ian-util = [
-    "korlibs-charset",
+    "korlibs-string",
     "ktor-io",
     "okio",
 ]
@@ -369,7 +390,7 @@ ian-util-test-fixtures = [
 ]
 
 ian-vesseldata = [
-    "korlibs-xml",
+    "korlibs-serialization",
     "okio",
 ]
 ian-vesseldata-test = [
@@ -386,7 +407,7 @@ ian-vesseldata-test-fixtures = [
     "kotest-common",
     "kotest-framework-engine",
     "kotest-property",
-    "korlibs-xml",
+    "korlibs-serialization",
     "mockk",
 ]
 
@@ -421,7 +442,7 @@ konsist-ian = [
     "kotest-assertions-core",
 ]
 konsist-vesseldata = [
-    "korlibs-xml",
+    "korlibs-serialization",
 ]
 konsist-runtime = [
     "kotest-runner-junit5-jvm",
@@ -446,7 +467,6 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "perf-plugin" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
