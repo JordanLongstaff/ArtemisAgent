@@ -65,7 +65,7 @@ jobs:
 
     - name: Run Danger
       if: github.event_name == 'pull_request'
-      uses: MeilCli/danger-action@1502a16e733e4d58ababc00843fed8fe61b6d9b4 # v6.0.37
+      uses: MeilCli/danger-action@d8c97f875518a1c8c953f0a90b8b4cdea56b27a2 # v6.0.38
       with:
         plugins_file: "Gemfile"
         danger_file: "Dangerfile"
