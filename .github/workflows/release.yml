@@ -49,7 +49,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           token: ${{ secrets.RELEASE_PAT }}
 
@@ -61,7 +61,7 @@ jobs:
           echo ${{ secrets.FASTLANE_JSON }} | base64 -d > ${{ github.workspace }}/app/artemis-agent-fastlane.json
 
       - name: Set up JDK 21
-        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
           java-version-file: .tool-versions
           distribution: 'temurin'
@@ -69,7 +69,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4
+        uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
 
       - name: Get app version code and name
         id: version
@@ -83,7 +83,7 @@ jobs:
 
       - name: Bump app version name
         id: nextVersionName
-        uses: cbrgm/semver-bump-action@6665fca8657b01a7cf0b4d0d8dd7e6028c716fdc # v1
+        uses: cbrgm/semver-bump-action@6665fca8657b01a7cf0b4d0d8dd7e6028c716fdc # v1.0.42
         with:
           current-version: ${{ steps.version.outputs.versionName }}
           bump-level: ${{ inputs.versionBump }}
@@ -103,7 +103,7 @@ jobs:
 
       - name: Authenticate for Firebase
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: projects/${{ secrets.WIF_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL }}/providers/${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.FIREBASE_SA_USER }}@${{ secrets.FIREBASE_SA_PROJECT }}.iam.gserviceaccount.com
@@ -164,7 +164,7 @@ jobs:
 
       - name: Commit
         id: commit
-        uses: stefanzweifel/git-auto-commit-action@778341af668090896ca464160c2def5d1d1a3eb0 # v6
+        uses: stefanzweifel/git-auto-commit-action@778341af668090896ca464160c2def5d1d1a3eb0 # v6.0.1
         with:
           commit_message: Release version ${{ steps.nextVersionName.outputs.new_version }}
           commit_options: "--no-verify --signoff"
@@ -182,7 +182,7 @@ jobs:
           commit_sha: ${{ steps.commit.outputs.commit_hash }}
 
       - name: Release
-        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         with:
           tag: ${{ steps.tag.outputs.new_tag }}
           name: ${{ steps.tag.outputs.new_tag }}
