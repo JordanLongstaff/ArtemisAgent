@@ -33,5 +33,9 @@ dependencies {
     testImplementation(libs.bundles.ian.world.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
+    pitest(projects.ian.enums)
+    pitest(projects.ian.listener)
+    pitest(projects.ian.util)
+    pitest(projects.ian.vesseldata)
     pitest(libs.bundles.arcmutate)
 }
