@@ -27,5 +27,6 @@ dependencies {
     testImplementation(libs.bundles.ian.vesseldata.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
+    pitest(projects.ian.util)
     pitest(libs.bundles.arcmutate)
 }

@@ -3,6 +3,8 @@ name: Pitest Mutation Testing
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 concurrency:
   group: ${{ github.workflow }}
