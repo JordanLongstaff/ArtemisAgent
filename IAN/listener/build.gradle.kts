@@ -8,7 +8,11 @@ plugins {
     id("info.solidsoft.pitest")
 }
 
+val byteBuddyAgent: Configuration by configurations.creating
+
 configureTests()
+
+tasks.test { jvmArgs("-javaagent:${byteBuddyAgent.asPath}") }
 
 pitest.configure(rootPackage = "com.walkertribe.ian.iface", threads = 2)
 
@@ -23,6 +27,8 @@ dependencies {
     testImplementation(libs.bundles.ian.listener.test)
     testFixturesImplementation(libs.kotlin.reflect)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
+
+    byteBuddyAgent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
 }
