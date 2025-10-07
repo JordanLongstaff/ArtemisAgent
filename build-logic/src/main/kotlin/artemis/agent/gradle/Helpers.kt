@@ -6,7 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.withType
 
-private const val PITEST_VERSION = "1.20.5"
+private const val PITEST_VERSION = "1.20.6"
 private const val JUNIT5_VERSION = "1.2.3"
 
 private const val TIMEOUT_FACTOR = 10
