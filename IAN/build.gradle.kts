@@ -43,7 +43,6 @@ dependencies {
     api(libs.kotlin.stdlib)
 
     ksp(projects.ian.processor)
-    ksp(libs.ksp.koin)
 
     implementation(libs.bundles.ian)
 
