@@ -24,6 +24,10 @@ import com.walkertribe.ian.protocol.PacketType
 import com.walkertribe.ian.util.JamCrc
 import com.walkertribe.ian.util.Util.toHex
 import kotlin.reflect.KClass
+import org.koin.core.annotation.ComponentScan
+import org.koin.core.annotation.Configuration
+import org.koin.core.annotation.KoinApplication
+import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
 
 class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcessor {
@@ -80,7 +84,18 @@ class PacketProcessor(private val codeGenerator: CodeGenerator) : SymbolProcesso
                 .addFunction(getFactoryFunBuilder.build())
                 .addType(protocolCompanionBuilder.build())
 
+        val protocolModuleBuilder =
+            TypeSpec.classBuilder("ProtocolModule")
+                .addAnnotation(Module::class)
+                .addAnnotation(ComponentScan::class)
+                .addAnnotation(Configuration::class)
+
+        val protocolApplicationBuilder =
+            TypeSpec.objectBuilder("IAN").addAnnotation(KoinApplication::class)
+
         fileSpecBuilder.addType(protocolClassBuilder.build())
+        fileSpecBuilder.addType(protocolModuleBuilder.build())
+        fileSpecBuilder.addType(protocolApplicationBuilder.build())
 
         fileSpecBuilder.build().writeTo(codeGenerator = codeGenerator, aggregating = false)
 

@@ -9,6 +9,11 @@ plugins {
     id("info.solidsoft.pitest")
 }
 
+ksp {
+    arg("KOIN_CONFIG_CHECK", true.toString())
+    arg("KOIN_LOG_TIMES", true.toString())
+}
+
 configureTests(maxMemoryGb = 4)
 
 pitest {

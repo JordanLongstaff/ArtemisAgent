@@ -2,6 +2,7 @@ package com.walkertribe.ian.iface
 
 import com.walkertribe.ian.enums.ObjectType
 import com.walkertribe.ian.enums.Origin
+import com.walkertribe.ian.protocol.IAN
 import com.walkertribe.ian.protocol.Packet
 import com.walkertribe.ian.protocol.PacketException
 import com.walkertribe.ian.protocol.Protocol
@@ -34,8 +35,7 @@ import kotlinx.io.readShortLe
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.dsl.koinApplication
-import org.koin.ksp.generated.defaultModule
+import org.koin.ksp.generated.koinApplication
 
 /**
  * Facilitates reading packets from an [ByteReadChannel]. This object may be reused to read as many
@@ -48,7 +48,7 @@ class PacketReader(
     private val channel: ByteReadChannel,
     private val listenerRegistry: ListenerRegistry,
 ) : KoinComponent {
-    private val koinApp = koinApplication { defaultModule() }
+    private val koinApp = IAN.koinApplication()
 
     private val protocol: Protocol by inject()
 
