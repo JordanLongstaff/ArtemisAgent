@@ -59,7 +59,9 @@ dependencies {
 
     pitest(libs.bundles.arcmutate)
 
+    pitest(testFixtures(projects.ian.enums))
     pitest(testFixtures(projects.ian.listener))
+    pitest(testFixtures(projects.ian.util))
     pitest(testFixtures(projects.ian.vesseldata))
     pitest(testFixtures(projects.ian.world))
 }
