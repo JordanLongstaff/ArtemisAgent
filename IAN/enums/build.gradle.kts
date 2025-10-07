@@ -22,6 +22,7 @@ dependencies {
     testImplementation(libs.bundles.ian.enums.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
-    pitest(testFixtures(projects.ian.util))
     pitest(libs.bundles.arcmutate)
+
+    pitest(testFixtures(projects.ian.util))
 }
