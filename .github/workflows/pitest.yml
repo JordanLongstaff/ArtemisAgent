@@ -4,9 +4,6 @@ on:
   push:
     branches: [ "main" ]
 
-concurrency:
-  group: ${{ github.workflow }}
-
 jobs:
   pitest:
     runs-on: ubuntu-latest
@@ -25,6 +22,8 @@ jobs:
       contents: read
       checks: write
       pull-requests: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.path }}
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
