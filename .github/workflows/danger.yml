@@ -40,7 +40,7 @@ jobs:
         -r sarif:${{ github.workspace }}/detekt.sarif.json
 
     - name: Upload Detekt SARIF report
-      uses: github/codeql-action/upload-sarif@64d10c13136e1c5bce3e5fbde8d4906eeaafc885 # v3.30.6
+      uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
       with:
         sarif_file: ${{ github.workspace }}/detekt.sarif.json
         checkout_path: ${{ github.workspace }}
@@ -58,7 +58,7 @@ jobs:
         "
 
     - name: Upload Rubocop SARIF report
-      uses: github/codeql-action/upload-sarif@64d10c13136e1c5bce3e5fbde8d4906eeaafc885 # v3.30.6
+      uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
       with:
         sarif_file: ${{ github.workspace }}/rubocop.sarif
         checkout_path: ${{ github.workspace }}
