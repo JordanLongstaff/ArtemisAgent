@@ -226,12 +226,12 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
 
             override fun handleOnBackStarted(backEvent: BackEventCompat) {
                 openedPage = currentPage
+                onBackPredict()
             }
 
             override fun handleOnBackProgressed(backEvent: BackEventCompat) {
                 if (backEvent.progress > 0f) {
-                    viewModel.settingsPage.value = null
-                    binding.backPressAlpha.visibility = View.VISIBLE
+                    onBackPredict()
                 } else {
                     viewModel.settingsPage.value = openedPage
                     binding.backPressAlpha.visibility = View.GONE
@@ -239,13 +239,18 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             }
 
             override fun handleOnBackCancelled() {
+                viewModel.settingsPage.value = openedPage
                 onBackEnded()
             }
 
             override fun handleOnBackPressed() {
-                viewModel.settingsPage.value = null
                 isEnabled = false
                 onBackEnded()
+            }
+
+            private fun onBackPredict() {
+                viewModel.settingsPage.value = null
+                binding.backPressAlpha.visibility = View.VISIBLE
             }
 
             private fun onBackEnded() {

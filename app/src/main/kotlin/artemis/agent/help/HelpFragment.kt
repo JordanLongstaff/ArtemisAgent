@@ -42,12 +42,12 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
 
                 override fun handleOnBackStarted(backEvent: BackEventCompat) {
                     currentTopicIndex = viewModel.helpTopicIndex.value
+                    onBackPredict()
                 }
 
                 override fun handleOnBackProgressed(backEvent: BackEventCompat) {
                     if (backEvent.progress > 0f) {
-                        viewModel.helpTopicIndex.value = MENU
-                        binding.backPressAlpha.visibility = View.VISIBLE
+                        onBackPredict()
                     } else {
                         viewModel.helpTopicIndex.value = currentTopicIndex
                         binding.backPressAlpha.visibility = View.GONE
@@ -55,13 +55,18 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                 }
 
                 override fun handleOnBackCancelled() {
+                    viewModel.helpTopicIndex.value = currentTopicIndex
                     onBackEnded()
                 }
 
                 override fun handleOnBackPressed() {
-                    viewModel.helpTopicIndex.value = MENU
                     isEnabled = false
                     onBackEnded()
+                }
+
+                private fun onBackPredict() {
+                    viewModel.helpTopicIndex.value = MENU
+                    binding.backPressAlpha.visibility = View.VISIBLE
                 }
 
                 private fun onBackEnded() {
