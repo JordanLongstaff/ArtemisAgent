@@ -35,7 +35,8 @@
     },
     {
       "groupName": "ruby",
-      "matchSourceUrls": ["https://github.com/ruby/*"]
+      "matchSourceUrls": ["https://github.com/ruby/*"],
+      "commitMessageExtra": "to {{newVersion}}"
     }
   ],
   "customManagers": [
