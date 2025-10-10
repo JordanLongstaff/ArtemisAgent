@@ -43,7 +43,7 @@
     {
       "groupName": "ruby",
       "matchSourceUrls": ["https://github.com/ruby/*"],
-      "commitMessageExtra": "to {{#ach upgrades}}{{#if (equals depName 'ruby')}}{{newVersion}}{{/if}}{{/each}}"
+      "commitMessageExtra": "to {{#each upgrades}}{{#if (equals depName 'ruby')}}{{newVersion}}{{/if}}{{/each}}"
     }
   ],
   "customManagers": [
