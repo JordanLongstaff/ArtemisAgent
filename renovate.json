@@ -18,8 +18,15 @@
     },
     {
       "groupName": "firebase",
-      "matchPackageNames": ["/^com\\.google\\.firebase/", "/google-services/"],
+      "matchPackageNames": ["/^com\\.google\\.firebase/"],
+      "sourceUrl": "https://github.com/firebase/firebase-android-sdk",
       "changelogUrl": "https://firebase.google.com/support/release-notes/android"
+    },
+    {
+      "groupName": "Google Services plugin",
+      "matchPackageNames": ["/google-services/"],
+      "sourceUrl": "https://github.com/google/play-services-plugins",
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android#google-services_plugin_v{{{replace '\\.' '-' newVersion}}}"
     },
     {
       "groupName": "ktfmt",
