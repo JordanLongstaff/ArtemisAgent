@@ -30,6 +30,7 @@ import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.BackPreview
 import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
@@ -150,6 +151,13 @@ class AgentViewModel(application: Application) :
     val jumping: MutableStateFlow<Boolean> by lazy { MutableStateFlow(false) }
 
     private var damageVisJob: Job? = null
+
+    private var privateBackPreview: BackPreview? = null
+    var backPreview: BackPreview?
+        get() = privateBackPreview?.takeIf { it.isEnabled }
+        set(preview) {
+            privateBackPreview = preview
+        }
 
     // Ship settings from packet
     val selectableShips: MutableStateFlow<List<Ship>> by lazy { MutableStateFlow(emptyList()) }
