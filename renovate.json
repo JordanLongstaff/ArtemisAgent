@@ -34,10 +34,15 @@
       "changelogUrl": "https://github.com/cortinico/ktfmt-gradle/releases"
     },
     {
-      "groupName": "typesafe-conventions",
+      "groupName": "typesafe conventions plugin",
       "matchDepNames": ["dev.panuszewski.typesafe-conventions"],
       "sourceUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin",
       "changelogUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin/releases"
+    },
+    {
+      "groupName": "Arcmutate plugins",
+      "matchDepNames": ["/^com\\.arcmutate:/"],
+      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{{lookup (split sharedVariableName '.') 1}}}-plugin.html"
     },
     {
       "groupName": "ruby",
