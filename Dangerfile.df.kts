@@ -1,7 +1,5 @@
-@file:DependsOn("com.gianluz:danger-kotlin-android-lint-plugin:0.1.0")
 @file:DependsOn("io.github.ackeecz:danger-kotlin-detekt:0.1.4")
 
-import com.gianluz.dangerkotlin.androidlint.AndroidLint
 import io.github.ackeecz.danger.detekt.DetektPlugin
 import java.io.File
 import systems.danger.kotlin.danger
@@ -13,13 +11,8 @@ import systems.danger.kotlin.warn
 
 register plugin DetektPlugin
 
-register plugin AndroidLint
-
 danger(args) {
     warnDetekt()
-
-    AndroidLint.report("app/build/reports/lint-results-debug.xml")
-    AndroidLint.report("app/konsist/build/reports/lint-results-debug.xml")
 
     val maxLines = 500
     if (git.linesOfCode > maxLines) {
