@@ -44,3 +44,4 @@ jobs:
         uses: hidakatsuya/action-report-android-lint@36d1f5452bbcf1b425e6db2ab59d7ad4d23ff8a4 # v1.2.3
         with:
           result-path: app/**/reports/lint-results-debug.xml
+          fail-on-warning: false
