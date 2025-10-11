@@ -38,11 +38,6 @@
       "matchDepNames": ["dev.panuszewski.typesafe-conventions"],
       "sourceUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin",
       "changelogUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin/releases"
-    },
-    {
-      "groupName": "ruby",
-      "matchSourceUrls": ["https://github.com/ruby/*"],
-      "commitMessageExtra": "to {{#each upgrades}}{{#if (equals depName 'ruby')}}{{newVersion}}{{/if}}{{/each}}"
     }
   ],
   "customManagers": [

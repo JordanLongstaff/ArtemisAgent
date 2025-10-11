@@ -8,6 +8,7 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("plugin.serialization")
+    id("com.github.alexfu.androidautoversion")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.firebase.perf)
@@ -30,10 +31,9 @@ val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
 val changelog =
-    rootProject
-        .file("fastlane/metadata/android/en-US/changelogs/default.txt")
-        .readLines()
-        .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
+    rootProject.file("changelog/whatsnew-en-US").readLines().joinToString(" \\u0020\\n") {
+        it.replaceFirst('*', '\u2022')
+    }
 
 android {
     namespace = appId
@@ -43,8 +43,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 39
-        versionName = "1.4.1"
+        versionCode = androidAutoVersion.versionCode
+        versionName = androidAutoVersion.versionName
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
