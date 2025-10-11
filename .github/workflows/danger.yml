@@ -45,6 +45,11 @@ jobs:
         sarif_file: ${{ github.workspace }}/detekt.sarif.json
         checkout_path: ${{ github.workspace }}
 
+    - name: Android Lint
+      uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3.0.1
+      with:
+        arguments: lint
+
     - name: Run Danger
       if: github.event_name == 'pull_request'
       uses: danger/kotlin@92d2ac8aae985fe162c88b02d641a9fa9bac81cf # 1.3.3

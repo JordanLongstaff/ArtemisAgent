@@ -15,16 +15,15 @@ register plugin DetektPlugin
 
 register plugin AndroidLint
 
-val MAX_LINES = 500
-
 danger(args) {
     warnDetekt()
 
     AndroidLint.report("app/build/reports/lint-results-debug.xml")
     AndroidLint.report("app/konsist/build/reports/lint-results-debug.xml")
 
-    if (git.linesOfCode > MAX_LINES) {
-        warn(":warning: affects more than $MAX_LINES lines of code")
+    val maxLines = 500
+    if (git.linesOfCode > maxLines) {
+        warn(":warning: affects more than $maxLines lines of code")
     }
 
     val ianSrcRegex = Regex("IAN/([A-Za-z]+/)*src/(main|test|testFixtures)/")
