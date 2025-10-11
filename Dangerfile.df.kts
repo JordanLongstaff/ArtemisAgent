@@ -5,6 +5,7 @@ import com.gianluz.dangerkotlin.androidlint.AndroidLint
 import io.github.ackeecz.danger.detekt.DetektPlugin
 import java.io.File
 import systems.danger.kotlin.danger
+import systems.danger.kotlin.linesOfCode
 import systems.danger.kotlin.models.github.GitHub
 import systems.danger.kotlin.onGitHub
 import systems.danger.kotlin.register
@@ -14,7 +15,7 @@ register plugin DetektPlugin
 
 register plugin AndroidLint
 
-const val MAX_LINES = 500
+val MAX_LINES = 500
 
 danger(args) {
     warnDetekt()
