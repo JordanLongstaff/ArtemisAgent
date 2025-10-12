@@ -94,9 +94,7 @@ jobs:
         with:
           operation: write
           file-path: version.properties
-          key-value-pairs:
-            versionCode: ${{ steps.nextVersionCode.outputs.versionCode }}
-            versionName: ${{ steps.nextVersionName.outputs.new_version }}
+          key-value-pairs: '{"versionCode": "${{ steps.nextVersionCode.outputs.versionCode }}", "versionName": "${{ steps.nextVersionName.outputs.new_version }}"'
 
       - name: Bundle
         uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3.0.1
