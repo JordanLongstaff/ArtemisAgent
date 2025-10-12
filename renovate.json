@@ -19,7 +19,7 @@
     {
       "groupName": "firebase",
       "matchPackageNames": ["/^com\\.google\\.firebase/"],
-      "changelogUrl": "https://firebase.google.com/support/release-notes/android#{{{lookup (toJSON (toObject ':firebase-bom' 'bom' '.crashlytics:' 'crashlytics_gradle_plugin' '.firebase-perf:' 'performance_gradle_plugin')) (lookup (split packageName 'com.google.firebase') 1)}}}_v{{{replace '\\.' '-' newVersion}}}"
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android#{{#if (containsString depName 'crashlytics')}}crashlytics_gradle_plugin{{/if}}{{#if (containsString depName 'perf')}}performance_gradle_plugin{{/if}}{{#if (containsString depName 'bom')}}bom{{/if}}_v{{{replace '\\.' '-' newVersion}}}"
     },
     {
       "groupName": "Google Services plugin",
@@ -42,7 +42,7 @@
     {
       "groupName": "Arcmutate plugins",
       "matchDepNames": ["/^com\\.arcmutate:/"],
-      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{{lookup (toJSON (toObject 'base' 'base' 'pitest-kotlin-plugin' 'kotlin')) (lookup (split depName ':') 1)}}}-plugin.html"
+      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{#if (containsString depName 'kotlin')}}kotlin{{else}}base{{/if}}-plugin.html"
     },
     {
       "groupName": "ruby",
