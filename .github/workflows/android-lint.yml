@@ -46,14 +46,14 @@ jobs:
         result-path: app/**/reports/lint-results-debug.xml
         fail-on-warning: false
 
-    - name: Group SARIF reports
-      run: |
-        mkdir lint-results
-        cp app/build/reports/lint-results-debug.sarif lint-results/app.sarif
-        cp app/konsist/build/reports/lint-results-debug.sarif lint-results/konsist.sarif
-
-    - name: Upload SARIF reports
+    - name: Upload app SARIF report
       uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
       with:
-        sarif_file: ${{ github.workspace }}/lint-results
+        sarif_file: ${{ github.workspace }}/app/build/reports/lint-results-debug.sarif
+        checkout_path: ${{ github.workspace }}
+
+    - name: Upload Konsist SARIF report
+      uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
+      with:
+        sarif_file: ${{ github.workspace }}/app/konsist/build/reports/lint-results-debug.sarif
         checkout_path: ${{ github.workspace }}
