@@ -19,7 +19,7 @@
     {
       "groupName": "firebase",
       "matchPackageNames": ["/^com\\.google\\.firebase/"],
-      "changelogUrl": "https://firebase.google.com/support/release-notes/android#{{{lookup (toJSON (toObject 'firebase.bom' 'bom' 'crashlytics.plugin' 'crashlytics_gradle_plugin' 'perf.plugin' 'performance_gradle_plugin')) sharedVariableName}}}_v{{{replace '\\.' '-' newVersion}}}"
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android#{{{lookup (toJSON (toObject ':firebase-bom' 'bom' '.crashlytics:' 'crashlytics_gradle_plugin' '.firebase-perf:' 'performance_gradle_plugin')) (lookup (split packageName 'com.google.firebase') 1)}}}_v{{{replace '\\.' '-' newVersion}}}"
     },
     {
       "groupName": "Google Services plugin",
