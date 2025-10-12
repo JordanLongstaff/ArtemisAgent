@@ -42,7 +42,7 @@
     {
       "groupName": "Arcmutate plugins",
       "matchDepNames": ["/^com\\.arcmutate:/"],
-      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{{lookup (split sharedVariableName '.') 1}}}-plugin.html"
+      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{{lookup (toJSON (toObject 'base' 'base' 'pitest-kotlin-plugin' 'kotlin')) (lookup (split depname ':') 1)}}}-plugin.html"
     },
     {
       "groupName": "ruby",
