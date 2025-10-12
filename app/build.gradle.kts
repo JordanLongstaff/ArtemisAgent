@@ -58,6 +58,7 @@ android {
     }
 
     lint.sarifReport = true
+    lintOptions.lintConfig = file("lint.xml")
 
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
