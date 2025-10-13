@@ -8,7 +8,6 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("plugin.serialization")
-    id("com.github.alexfu.androidautoversion")
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.firebase.perf)
@@ -35,6 +34,9 @@ val changelog =
         it.replaceFirst('*', '\u2022')
     }
 
+val versionProperties =
+    Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
+
 android {
     namespace = appId
     compileSdk = sdkVersion
@@ -43,8 +45,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = androidAutoVersion.versionCode
-        versionName = androidAutoVersion.versionName
+        versionCode = versionProperties.getProperty("versionCode").toInt()
+        versionName = versionProperties.getProperty("versionName")
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"

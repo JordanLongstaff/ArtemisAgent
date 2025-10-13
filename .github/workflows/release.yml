@@ -7,9 +7,9 @@ on:
         description: Version bump (remember to update changelog)
         type: choice
         options:
-          - Patch
-          - Minor
-          - Major
+          - patch
+          - minor
+          - major
       artemisSoftUpdate:
         description: Artemis SBS latest version
       artemisRequiredUpdate:
@@ -70,16 +70,36 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
-      - name: Increment version and bundle
+      - name: Read version from properties file
+        uses: kurt-code/gha-properties@a2a0b14f87e2389e7b65fced95cef9d7cea2fc20 # v0.0.2
+        id: version
+        with:
+          operation: read
+          file-path: version.properties
+          keys: 'versionCode,versionName'
+
+      - name: Increment app version code
+        id: nextVersionCode
+        run: echo "versionCode=$((${{ steps.version.outputs.versionCode }}+1))" >> "$GITHUB_OUTPUT"
+
+      - name: Bump app version name
+        id: nextVersionName
+        uses: cbrgm/semver-bump-action@6665fca8657b01a7cf0b4d0d8dd7e6028c716fdc # v1.0.42
+        with:
+          current-version: ${{ steps.version.outputs.versionName }}
+          bump-level: ${{ inputs.versionBump }}
+
+      - name: Update version properties file
+        uses: kurt-code/gha-properties@a2a0b14f87e2389e7b65fced95cef9d7cea2fc20 # v0.0.2
+        with:
+          operation: write
+          file-path: version.properties
+          key-value-pairs: '{"versionCode": "${{ steps.nextVersionCode.outputs.versionCode }}", "versionName": "${{ steps.nextVersionName.outputs.new_version }}"'
+
+      - name: Bundle
         uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3.0.1
         with:
-          arguments: clean bumpBuild bump${{inputs.versionBump}} bundleRelease
-
-      - name: Get new version code and name
-        id: nextVersion
-        uses: ltDino/android-get-version-action@a9c3f368cdb03e455540ce0e2895a19220d2efa3 # v1.0
-        with:
-          gradlePath: app/build.gradle.kts
+          arguments: clean bundleRelease
 
       - name: Update changelog
         run: |
@@ -123,7 +143,7 @@ jobs:
         with:
           file: app/remote-config.json
           field: parameterGroups.required_versions.parameters.required_version_artemis.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.nextVersion.outputs.versionCode }}
+          value: ${{ steps.nextVersionCode.outputs.versionCode}}
 
       - name: Update Version Code for Security Parameter
         if: ${{ inputs.securityRequiredUpdate }}
@@ -131,7 +151,7 @@ jobs:
         with:
           file: app/remote-config.json
           field: parameterGroups.required_versions.parameters.required_version_security.conditionalValues.Everyone.rolloutValue.value
-          value: ${{ steps.nextVersion.outputs.versionCode }}
+          value: ${{ steps.nextVersionCode.outputs.versionCode}}
 
       - name: Publish Firebase Remote Config
         if: ${{ inputs.securityRequiredUpdate || inputs.artemisRequiredUpdate || inputs.artemisSoftUpdate }}
@@ -142,7 +162,7 @@ jobs:
       - name: Upload to Google Play Store
         uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb # v1.1.3
         with:
-          releaseName: Artemis Agent v${{ steps.nextVersion.outputs.versionName }}
+          releaseName: Artemis Agent v${{ steps.nextVersionName.outputs.new_version }}
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: artemis.agent
           releaseFiles: app/release/app-release.aab
@@ -151,14 +171,14 @@ jobs:
 
       - name: Update README
         run: |
-          var="${{ steps.nextVersion.outputs.versionName }}"
+          var="${{ steps.nextVersionName.outputs.new_version }}"
           sed -i "1s/.*/# Artemis Agent $var/" ${{ github.workspace }}/README.md
 
       - name: Commit
         id: commit
         uses: stefanzweifel/git-auto-commit-action@778341af668090896ca464160c2def5d1d1a3eb0 # v6.0.1
         with:
-          commit_message: Release version ${{ steps.nextVersion.outputs.versionName }}
+          commit_message: Release version ${{ steps.nextVersionName.outputs.new_version }}
           commit_options: "--no-verify --signoff"
           commit_user_name: ${{ github.triggering_actor }}
           commit_user_email: ${{ github.triggering_actor }}@users.noreply.github.com
@@ -170,7 +190,7 @@ jobs:
         uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
         with:
           github_token: ${{ secrets.RELEASE_PAT }}
-          custom_tag: ${{ steps.nextVersion.outputs.versionName }}
+          custom_tag: ${{ steps.nextVersionName.outputs.new_version }}
           commit_sha: ${{ steps.commit.outputs.commit_hash }}
 
       - name: Release
