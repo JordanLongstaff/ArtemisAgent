@@ -214,10 +214,10 @@ build-logic = [
     "kover-gradle-plugin",
     "dependency-analysis",
     "detekt-gradle-plugin",
+    "arcmutate-github",
 ]
 build-logic-api = [
     "gradle-pitest",
-    "arcmutate-github",
     "javax-inject",
 ]
 
