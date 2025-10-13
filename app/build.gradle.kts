@@ -59,6 +59,9 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    lint.sarifReport = true
+    lintOptions.lintConfig = file("lint.xml")
+
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.add("-Xannotation-target-all")

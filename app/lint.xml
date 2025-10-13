@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="PluralsCandidate" severity="ignore" />
+    <issue id="Overdraw" severity="ignore" />
+
+    <issue id="UnusedResources">
+        <ignore path="res/anim/appear.xml" />
+    </issue>
+
+    <issue id="HardcodedText" severity="error" />
+</lint>
