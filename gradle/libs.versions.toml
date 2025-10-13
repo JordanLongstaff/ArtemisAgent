@@ -17,6 +17,8 @@ androidx-test-orchestrator = "1.6.1"
 app-review = "2.0.2"
 app-update = "2.1.0"
 arcmutate-base = "1.5.3"
+arcmutate-git = "2.2.4"
+arcmutate-github = "2.2.3"
 arcmutate-kotlin = "1.4.3"
 crashlytics-plugin = "3.0.6"
 dependency-analysis = "3.0.4"
@@ -66,6 +68,7 @@ task-tree = "4.0.1"
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "gradle-pitest" }
+arcmutate-github = { module = "com.arcmutate.github:com.arcmutate.github.gradle.plugin", version.ref = "arcmutate-github" }
 
 kotlin-gradle-plugin-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
 kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
@@ -180,6 +183,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
 
 arcmutate-base = { module = "com.arcmutate:base", version.ref = "arcmutate-base" }
+arcmutate-git = { module = "com.arcmutate:pitest-git-plugin", version.ref = "arcmutate-git" }
 arcmutate-kotlin = { module = "com.arcmutate:pitest-kotlin-plugin", version.ref = "arcmutate-kotlin" }
 
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
@@ -210,6 +214,7 @@ build-logic = [
 ]
 build-logic-api = [
     "gradle-pitest",
+    "arcmutate-github",
     "javax-inject",
 ]
 
@@ -457,6 +462,7 @@ firebase = [
 
 arcmutate = [
     "arcmutate-base",
+    "arcmutate-git",
     "arcmutate-kotlin",
 ]
 

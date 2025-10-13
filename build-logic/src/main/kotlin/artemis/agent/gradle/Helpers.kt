@@ -1,9 +1,13 @@
 package artemis.agent.gradle
 
+import com.arcmutate.gradle.github.GithubExtension
+import com.arcmutate.gradle.github.PitestGithubPlugin
 import info.solidsoft.gradle.pitest.PitestPluginExtension
 import java.math.BigDecimal
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 
 private const val PITEST_VERSION = "1.21.0"
@@ -22,17 +26,32 @@ private val MUTATORS =
         "EXPERIMENTAL_NAKED_RECEIVER",
     )
 
-fun PitestPluginExtension.configure(rootPackage: String, threads: Int) {
-    pitestVersion.set(PITEST_VERSION)
-    junit5PluginVersion.set(JUNIT5_VERSION)
-    verbose.set(true)
-    targetClasses.set(listOf("$rootPackage.*"))
-    this.threads.set(threads)
-    timeoutFactor.set(BigDecimal(TIMEOUT_FACTOR))
-    outputFormats.set(listOf("HTML", "CSV", "XML"))
-    timestampedReports.set(false)
-    setWithHistory(true)
-    mutators.addAll(MUTATORS)
+fun Project.configurePitest(
+    rootPackage: String,
+    threads: Int,
+    pitestExtraConfig: PitestPluginExtension.() -> Unit = {},
+) {
+    apply<PitestGithubPlugin>()
+
+    configure<PitestPluginExtension> {
+        pitestVersion.set(PITEST_VERSION)
+        junit5PluginVersion.set(JUNIT5_VERSION)
+        verbose.set(true)
+        targetClasses.set(listOf("$rootPackage.*"))
+        this.threads.set(threads)
+        timeoutFactor.set(BigDecimal(TIMEOUT_FACTOR))
+        outputFormats.set(listOf("HTML", "CSV", "XML"))
+        features.set(listOf("+GIT"))
+        timestampedReports.set(false)
+        setWithHistory(true)
+        mutators.addAll(MUTATORS)
+        pitestExtraConfig()
+    }
+
+    configure<GithubExtension> {
+        mutantEmoji.set(":radiation:")
+        killedEmoji.set(":skull:")
+    }
 }
 
 fun Project.configureTests(maxMemoryGb: Int = 2) {
