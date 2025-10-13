@@ -41,8 +41,8 @@
     },
     {
       "groupName": "Arcmutate plugins",
-      "matchDepNames": ["/^com\\.arcmutate:/"],
-      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{#if (containsString depName 'kotlin')}}kotlin{{else}}base{{/if}}-plugin.html"
+      "matchDepNames": ["/^com\\.arcmutate/"],
+      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{#if (containsString depName 'kotlin')}}kotlin{{else if (containsString depName 'git')}}git{{else}}base{{/if}}-{{#if (containsString depName 'github')}}gradle-plugins{{else}}plugin{{/if}}.html"
     },
     {
       "groupName": "ruby",

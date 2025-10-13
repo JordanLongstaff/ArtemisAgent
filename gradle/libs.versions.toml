@@ -73,7 +73,6 @@ kotlin-gradle-plugin-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin
 kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
 dependency-analysis = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dependency-analysis" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
-arcmutate-github = { module = "com.arcmutate.github:com.arcmutate.github.gradle.plugin", version.ref = "arcmutate-github" }
 
 javax-inject = { module = "javax.inject:javax.inject", version = "1" }
 
@@ -185,6 +184,8 @@ mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
 arcmutate-base = { module = "com.arcmutate:base", version.ref = "arcmutate-base" }
 arcmutate-git = { module = "com.arcmutate:pitest-git-plugin", version.ref = "arcmutate-git" }
 arcmutate-kotlin = { module = "com.arcmutate:pitest-kotlin-plugin", version.ref = "arcmutate-kotlin" }
+
+arcmutate-github = { module = "com.arcmutate.github:com.arcmutate.github.gradle.plugin", version.ref = "arcmutate-github" }
 
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 
