@@ -20,7 +20,6 @@ arcmutate-base = "1.5.3"
 arcmutate-git = "2.2.4"
 arcmutate-github = "2.2.3"
 arcmutate-kotlin = "1.4.3"
-auto-version = "3.3.0"
 crashlytics-plugin = "3.0.6"
 dependency-analysis = "3.0.4"
 desugar = "2.1.5"
@@ -69,7 +68,6 @@ task-tree = "4.0.1"
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-pitest = { module = "info.solidsoft.gradle.pitest:gradle-pitest-plugin", version.ref = "gradle-pitest" }
-auto-version = { module = "com.github.alexfu:androidautoversion", version.ref = "auto-version" }
 
 kotlin-gradle-plugin-api = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
 kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
@@ -205,7 +203,6 @@ classpath = [
     "gradle",
     "kotlin-gradle-plugin",
     "gradle-pitest",
-    "auto-version",
 ]
 
 build-logic = [
