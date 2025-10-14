@@ -65,7 +65,14 @@ jobs:
       - name: Run Pitest
         run: ./gradlew :${{ steps.get-module.outputs.value }}:pitest
 
+      - name: Check for any mutations
+        id: mutations-check
+        uses: thebinaryfelix/check-file-existence-action@b448944daf6428c03faa9b1974bcceb03408270d # v1.0.1
+        with:
+          files: ${{ github.workspace }}/${{ matrix.path }}/build/reports/pitest/mutations.xml
+
       - name: Upload Pitest report
+        if: steps.mutations-check.outputs.exists == 'true'
         uses: Bonajo/pitest-report-action@67a9095d90ae1cc396bbab3211258f46cf0a7f13 # v1.0.0
         with:
           name: Pitest Report (${{ matrix.path }})
