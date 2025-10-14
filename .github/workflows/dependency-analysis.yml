@@ -45,7 +45,7 @@ jobs:
           if [ -s build/reports/dependency-analysis/build-health-report.txt ]; then
             echo "check=true" >> "$GITHUB_OUTPUT"
           else
-            echo "check=false" >> $GITHUB_OUTPUT"
+            echo "check=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Report violations
