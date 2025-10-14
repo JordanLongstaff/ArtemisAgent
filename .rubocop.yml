@@ -1,9 +1,6 @@
 Layout/IndentationWidth:
   Width: 4
 
-Metrics/BlockLength:
-  Max: 32
-
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
