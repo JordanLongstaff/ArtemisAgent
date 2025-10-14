@@ -53,8 +53,6 @@ GEM
     danger-detekt-instacart (0.0.5)
       danger-plugin-api (~> 1.0)
       oga
-    danger-lgtm (1.1.1)
-      danger-plugin-api (~> 1.0)
     danger-plugin-api (1.0.0)
       danger (> 2.0)
     danger-rubocop (0.13.0)
@@ -163,7 +161,6 @@ DEPENDENCIES
   danger
   danger-android_lint
   danger-detekt-instacart
-  danger-lgtm
   danger-rubocop
   rubocop
 
