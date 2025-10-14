@@ -56,6 +56,7 @@ jobs:
           comment-tag: dependency-analysis
 
       - name: Report healthy
+        if: steps.check-build-health.outputs.check == 'false'
         uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         with:
           message: "No dependency violations found. :+1:"
