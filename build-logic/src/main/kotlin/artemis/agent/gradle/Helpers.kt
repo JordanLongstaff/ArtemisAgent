@@ -30,7 +30,7 @@ fun PitestPluginExtension.configure(rootPackage: String, threads: Int) {
     this.threads.set(threads)
     timeoutFactor.set(BigDecimal(TIMEOUT_FACTOR))
     outputFormats.set(listOf("HTML", "CSV", "XML"))
-    features.set(listOf("+GIT"))
+    features.set(listOf("+GIT(from[HEAD~1])"))
     timestampedReports.set(false)
     setWithHistory(true)
     mutators.addAll(MUTATORS)
