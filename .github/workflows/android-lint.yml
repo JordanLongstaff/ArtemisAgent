@@ -47,14 +47,14 @@ jobs:
         fail-on-warning: false
 
     - name: Upload app SARIF report
-      uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
+      uses: github/codeql-action/upload-sarif@f443b600d91635bebf5b0d9ebc620189c0d6fba5 # v4.30.8
       with:
         sarif_file: ${{ github.workspace }}/app/build/reports/lint-results-debug.sarif
         checkout_path: ${{ github.workspace }}
         category: "android-lint"
 
     - name: Upload Konsist SARIF report
-      uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
+      uses: github/codeql-action/upload-sarif@f443b600d91635bebf5b0d9ebc620189c0d6fba5 # v4.30.8
       with:
         sarif_file: ${{ github.workspace }}/app/konsist/build/reports/lint-results-debug.sarif
         checkout_path: ${{ github.workspace }}
