@@ -3,8 +3,6 @@ name: Pitest Mutation Testing
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   pitest:
@@ -21,7 +19,7 @@ jobs:
           - 'IAN/vesseldata'
           - 'IAN/world'
     permissions:
-      contents: write
+      contents: read
       checks: write
       pull-requests: write
     concurrency:
@@ -63,9 +61,7 @@ jobs:
           replace: ':'
 
       - name: Run Pitest
-        run: ./gradlew :${{ steps.get-module.outputs.value }}:pitest-github
-        env:
-          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :${{ steps.get-module.outputs.value }}:pitest
 
       - name: Upload Pitest report
         uses: Bonajo/pitest-report-action@67a9095d90ae1cc396bbab3211258f46cf0a7f13 # v1.0.0

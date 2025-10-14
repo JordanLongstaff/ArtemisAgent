@@ -1,4 +1,4 @@
-import artemis.agent.gradle.configurePitest
+import artemis.agent.gradle.configure
 import artemis.agent.gradle.configureTests
 import artemis.agent.gradle.dependsOnKonsist
 
@@ -16,7 +16,8 @@ ksp {
 
 configureTests(maxMemoryGb = 4)
 
-configurePitest(rootPackage = "com.walkertribe.ian.protocol", threads = 8) {
+pitest {
+    configure(rootPackage = "com.walkertribe.ian.protocol", threads = 8)
     jvmArgs = listOf("-Xmx8g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
 }
 

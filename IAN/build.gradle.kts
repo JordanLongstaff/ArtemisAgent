@@ -1,4 +1,4 @@
-import artemis.agent.gradle.configurePitest
+import artemis.agent.gradle.configure
 import artemis.agent.gradle.configureTests
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 
@@ -11,7 +11,7 @@ plugins {
 
 configureTests()
 
-configurePitest(rootPackage = "com.walkertribe.ian", threads = 2)
+pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
 
 val konsistCollect by
     tasks.registering {

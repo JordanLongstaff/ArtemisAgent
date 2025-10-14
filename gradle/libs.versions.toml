@@ -18,7 +18,6 @@ app-review = "2.0.2"
 app-update = "2.1.0"
 arcmutate-base = "1.6.0"
 arcmutate-git = "2.2.4"
-arcmutate-github = "2.2.3"
 arcmutate-kotlin = "1.5.0"
 crashlytics-plugin = "3.0.6"
 dependency-analysis = "3.0.4"
@@ -185,8 +184,6 @@ arcmutate-base = { module = "com.arcmutate:base", version.ref = "arcmutate-base"
 arcmutate-git = { module = "com.arcmutate:pitest-git-plugin", version.ref = "arcmutate-git" }
 arcmutate-kotlin = { module = "com.arcmutate:pitest-kotlin-plugin", version.ref = "arcmutate-kotlin" }
 
-arcmutate-github = { module = "com.arcmutate.github:com.arcmutate.github.gradle.plugin", version.ref = "arcmutate-github" }
-
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 
 accessibility-test-framework = { module = "com.google.android.apps.common.testing.accessibility.framework:accessibility-test-framework", version = "latest.release" }
@@ -212,7 +209,6 @@ build-logic = [
     "kover-gradle-plugin",
     "dependency-analysis",
     "detekt-gradle-plugin",
-    "arcmutate-github",
 ]
 build-logic-api = [
     "gradle-pitest",

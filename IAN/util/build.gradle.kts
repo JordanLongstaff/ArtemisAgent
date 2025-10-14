@@ -1,4 +1,4 @@
-import artemis.agent.gradle.configurePitest
+import artemis.agent.gradle.configure
 import artemis.agent.gradle.configureTests
 
 plugins {
@@ -9,7 +9,7 @@ plugins {
 
 configureTests()
 
-configurePitest(rootPackage = "com.walkertribe.ian.util", threads = 2)
+pitest.configure(rootPackage = "com.walkertribe.ian.util", threads = 2)
 
 dependencies {
     api(libs.kotlin.stdlib)
