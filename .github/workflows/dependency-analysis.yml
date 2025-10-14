@@ -34,8 +34,7 @@ jobs:
           arguments: buildHealth
 
       - name: Report
-        uses: machine-learning-apps/pr-comment@78e77cd435e0f9706512ea294d846058ae46f7ff # v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         with:
-          path: results/results.txt
+          file-path: build/reports/dependency-analysis/build-health-report.txt
+          comment-tag: dependency-analysis
