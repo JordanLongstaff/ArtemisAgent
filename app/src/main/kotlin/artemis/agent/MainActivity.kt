@@ -275,7 +275,7 @@ class MainActivity : AppCompatActivity() {
                 notificationManager.reset()
             }
 
-            fun setupOngoingNotifications(service: NotificationService) {
+            private fun setupOngoingNotifications(service: NotificationService) {
                 service.collectLatestWhileStarted(viewModel.inventory) { inv ->
                     if (!viewModel.gameIsRunning.value) return@collectLatestWhileStarted
 
@@ -325,7 +325,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            fun setupBiomechNotifications(service: NotificationService) {
+            private fun setupBiomechNotifications(service: NotificationService) {
                 val biomechManager = viewModel.biomechManager
 
                 service.collectLatestWhileStarted(biomechManager.destroyedBiomechName) {
@@ -369,7 +369,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            fun setupEnemyNotifications(service: NotificationService) {
+            private fun setupEnemyNotifications(service: NotificationService) {
                 val enemiesManager = viewModel.enemiesManager
 
                 service.collectLatestWhileStarted(enemiesManager.destroyedEnemyName) {
@@ -391,7 +391,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            fun setupGameNotifications(service: NotificationService) {
+            private fun setupGameNotifications(service: NotificationService) {
                 service.collectLatestWhileStarted(viewModel.borderWarMessage) { packet ->
                     buildNotification(
                         info =
@@ -418,7 +418,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            fun setupConnectionNotifications(service: NotificationService) {
+            private fun setupConnectionNotifications(service: NotificationService) {
                 service.collectLatestWhileStarted(viewModel.disconnectCause) { cause ->
                     val message =
                         when (cause) {
@@ -472,7 +472,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            fun createMissionPacketListener(
+            private fun createMissionPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
                 channel: NotificationChannelTag,
@@ -492,7 +492,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            fun createStationPacketListener(
+            private fun createStationPacketListener(
                 service: NotificationService,
                 flow: MutableSharedFlow<CommsIncomingPacket>,
                 channel: NotificationChannelTag,
@@ -518,7 +518,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    fun buildNotification(
+    private fun buildNotification(
         info: NotificationInfo,
         onIntent: Intent.() -> Unit = {},
         setBuilder: (NotificationCompat.Builder) -> Unit = {},
@@ -546,9 +546,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setupTheme()
-        setupWindowInsets()
-        setupFirebase()
+        with(viewModel) {
+            try {
+                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
+            } catch (_: FileNotFoundException) {}
+
+            theme.applyStyle(themeRes, true)
+            isThemeChanged.value = false
+
+            collectLatestWhileStarted(isThemeChanged) {
+                if (it) {
+                    isThemeChanged.value = false
+                    recreate()
+                }
+            }
+        }
+
+        enableEdgeToEdge()
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets =
+                windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                )
+            view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+
+        Firebase.crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
+        }
+        Firebase.remoteConfig.apply {
+            setConfigSettingsAsync(configSettings)
+            setDefaultsAsync(
+                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
+            )
+        }
+
         setupTiramisu()
         setupBackPressedCallbacks()
         setupConnectionObservers()
@@ -729,20 +765,11 @@ class MainActivity : AppCompatActivity() {
         return super.onKeyUp(keyCode, event)
     }
 
-    fun setupWindowInsets() {
-        enableEdgeToEdge()
+    private fun setupWindowInsets() {
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
-            val insets =
-                windowInsets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-                )
-            view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
-            WindowInsetsCompat.CONSUMED
-        }
     }
 
-    fun setupTiramisu() {
+    private fun setupTiramisu() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
 
         if (
@@ -753,21 +780,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun setupFirebase() {
-        Firebase.crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+    private fun setupFirebase() {
 
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
-        }
-        Firebase.remoteConfig.apply {
-            setConfigSettingsAsync(configSettings)
-            setDefaultsAsync(
-                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
-            )
-        }
     }
 
-    fun setupBackPressedCallbacks() {
+    private fun setupBackPressedCallbacks() {
         // Some Android 10 devices leak memory if this is not called, so we need to register this
         // callback to address it
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
@@ -778,25 +795,11 @@ class MainActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, exitConfirmationCallback)
     }
 
-    fun setupTheme() {
-        with(viewModel) {
-            try {
-                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
-            } catch (_: FileNotFoundException) {}
+    private fun setupTheme() {
 
-            theme.applyStyle(themeRes, true)
-            isThemeChanged.value = false
-
-            collectLatestWhileStarted(isThemeChanged) {
-                if (it) {
-                    isThemeChanged.value = false
-                    recreate()
-                }
-            }
-        }
     }
 
-    fun setupConnectionObservers() {
+    private fun setupConnectionObservers() {
         collectLatestWhileStarted(viewModel.connectionStatus) {
             val isConnected = viewModel.isConnected
             exitConfirmationCallback.isEnabled = isConnected
@@ -841,7 +844,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    fun getDisconnectDialogContents(cause: DisconnectCause): Pair<String, Boolean>? {
+    private fun getDisconnectDialogContents(cause: DisconnectCause): Pair<String, Boolean>? {
         val crashlytics = Firebase.crashlytics
         return when (cause) {
             is DisconnectCause.IOError -> {
@@ -878,7 +881,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun setupUserSettingsObserver() {
+    private fun setupUserSettingsObserver() {
         collectLatestWhileStarted(userSettings.data) { settings ->
             val vesselDataManager = viewModel.vesselDataManager
             var newContextIndex = vesselDataManager.reconcileIndex(settings.vesselDataLocationValue)
@@ -930,7 +933,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun checkForUpdates(checkType: UpdateCheck) {
+    private fun checkForUpdates(checkType: UpdateCheck) {
         viewModel.viewModelScope.launch(
             CoroutineExceptionHandler { _, _ -> checkType.showAlert(this@MainActivity) }
         ) {
@@ -982,7 +985,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun fetchArtemisLatestVersion(): Version =
+    private fun fetchArtemisLatestVersion(): Version =
         try {
                 openFileInput(MAX_VERSION_FILE_NAME).use { it.readBytes().decodeToString() }
             } catch (_: FileNotFoundException) {
@@ -994,7 +997,7 @@ class MainActivity : AppCompatActivity() {
             }
             .let { VersionString(it).toVersion() }
 
-    fun startUpdateFlow() {
+    private fun startUpdateFlow() {
         val appUpdateInfoTask = updateManager.appUpdateInfo
 
         appUpdateInfoTask.addOnSuccessListener { updateInfo ->
@@ -1011,7 +1014,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun onUpdateReady() {
+    private fun onUpdateReady() {
         completeUpdateCallback.isEnabled = true
         AlertDialog.Builder(this@MainActivity)
             .setTitle(R.string.update_ready_title)
@@ -1027,7 +1030,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    fun askForReview() {
+    private fun askForReview() {
         AlertDialog.Builder(this)
             .setTitle(R.string.review_title)
             .setMessage(R.string.review_prompt)
@@ -1048,7 +1051,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    fun showReviewErrorDialog(exception: Exception) {
+    private fun showReviewErrorDialog(exception: Exception) {
         val errorCode = exception.message ?: getString(R.string.unknown)
         AlertDialog.Builder(this)
             .setTitle(R.string.review_error)
@@ -1057,7 +1060,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    fun destroyServiceConnection() {
+    private fun destroyServiceConnection() {
         unbindService(connection)
         notificationRequests = STOP_NOTIFICATIONS
         notificationManager.reset()
