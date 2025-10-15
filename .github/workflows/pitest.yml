@@ -25,7 +25,7 @@ jobs:
       checks: write
       pull-requests: write
     concurrency:
-      group: ${{ github.workflow }}-${{ matrix.path }}
+      group: ${{ github.workflow }}-${{ matrix.path }}-${{ github.ref }}
 
     steps:
       - name: Checkout
