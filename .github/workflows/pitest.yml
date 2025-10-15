@@ -65,7 +65,7 @@ jobs:
 
       - name: Check for any mutations
         id: mutations-check
-        uses: thebinaryfelix/check-file-existence-action@b448944daf6428c03faa9b1974bcceb03408270d # v1.0.1
+        uses: thebinaryfelix/check-file-existence-action@b448944daf6428c03faa9b1974bcceb03408270d # 1.0.1
         with:
           files: ${{ github.workspace }}/${{ matrix.path }}/build/reports/pitest/mutations.xml
 
