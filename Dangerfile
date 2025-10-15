@@ -45,7 +45,13 @@ main_only.each do |path|
 end
 
 # Rubocop
-rubocop.lint(inline_comment: true, group_inline_comments: true, report_danger: true, include_cop_names: true, only_report_new_offenses: true)
+rubocop.lint(
+    inline_comment: true,
+    group_inline_comments: true,
+    report_danger: true,
+    include_cop_names: true,
+    only_report_new_offenses: true,
+)
 
 # LGTM
 lgtm.check_lgtm(image_url: "https://firebasestorage.googleapis.com/v0/b/lgtmgen.appspot.com/o/images%2F99644be8-cf4b-4d41-a154-6be44b3be5eb.jpg?alt=media&token=062d9425-0ed7-4328-ad65-863509059853")
