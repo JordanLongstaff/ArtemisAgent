@@ -13,6 +13,16 @@ kotlin_detekt.filtering = true
 kotlin_detekt.filtering_lines = true
 kotlin_detekt.detekt(inline_mode: true)
 
+# Detekt baselines
+baseline_regex = %r{([A-Za-z]+/)*detekt-baseline(-[A-Za-z]+)*\.xml}
+all_modified_files = (git.modified_files + git.added_files).uniq
+baseline_files = all_modified_files.select { |f| baseline_regex.match?(f) }
+
+baseline_files.each do |file|
+    info = git.info_for_file(file)
+    warn("Detekt warnings added to #{github.html_link(file)}") if info[:insertions].positive?
+end
+
 # Android lint
 android_lint.filtering = true
 android_lint.filtering_lines = true
