@@ -13,7 +13,7 @@ baseline_files = all_modified_files.select { |f| baseline_regex.match?(f) }
 
 baseline_files.each do |file|
     info = git.info_for_file(file)
-    warn("Detekt warnings added to #{file}") if info[:insertions].positive?
+    warn("Detekt warnings added to #{github.html_link(file)}") if info[:insertions].positive?
 end
 
 # Custom logic for checking modified source files and corresponding tests
