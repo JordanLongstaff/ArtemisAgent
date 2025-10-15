@@ -17,6 +17,7 @@ androidx-test-orchestrator = "1.6.1"
 app-review = "2.0.2"
 app-update = "2.1.0"
 arcmutate-base = "1.6.0"
+arcmutate-git = "2.2.4"
 arcmutate-kotlin = "1.5.0"
 crashlytics-plugin = "3.0.6"
 dependency-analysis = "3.1.0"
@@ -180,6 +181,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
 
 arcmutate-base = { module = "com.arcmutate:base", version.ref = "arcmutate-base" }
+arcmutate-git = { module = "com.arcmutate:pitest-git-plugin", version.ref = "arcmutate-git" }
 arcmutate-kotlin = { module = "com.arcmutate:pitest-kotlin-plugin", version.ref = "arcmutate-kotlin" }
 
 konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
@@ -457,6 +459,7 @@ firebase = [
 
 arcmutate = [
     "arcmutate-base",
+    "arcmutate-git",
     "arcmutate-kotlin",
 ]
 
