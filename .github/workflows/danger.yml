@@ -35,7 +35,7 @@ jobs:
     - name: Run Detekt
       continue-on-error: true
       run: |
-        detekt-cli -i ${{ github.workspace }} -c ${{ github.workspace }}/config/detekt/detekt.yml \
+        detekt-cli --parallel -i ${{ github.workspace }} -c ${{ github.workspace }}/config/detekt/detekt.yml \
         -r xml:${{ github.workspace }}/detekt.xml \
         -r sarif:${{ github.workspace }}/detekt.sarif.json
 
