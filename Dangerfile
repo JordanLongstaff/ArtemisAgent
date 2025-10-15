@@ -23,5 +23,5 @@ main_only = ian_src_main.select do |main_path|
 end
 
 main_only.each do |path|
-    warn(":warning: Source files at #{path} were modified without also modifying tests")
+    warn(':warning: Source files at #{path} were modified without also modifying tests')
 end
