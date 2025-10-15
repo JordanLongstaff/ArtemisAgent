@@ -3,6 +3,8 @@ name: Pitest Mutation Testing
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   pitest:
@@ -19,11 +21,11 @@ jobs:
           - 'IAN/vesseldata'
           - 'IAN/world'
     permissions:
-      contents: read
+      contents: write
       checks: write
       pull-requests: write
     concurrency:
-      group: ${{ github.workflow }}-${{ matrix.path }}
+      group: ${{ github.workflow }}-${{ matrix.path }}-${{ github.ref }}
 
     steps:
       - name: Checkout
@@ -61,7 +63,9 @@ jobs:
           replace: ':'
 
       - name: Run Pitest
-        run: ./gradlew :${{ steps.get-module.outputs.value }}:pitest
+        run: ./gradlew :${{ steps.get-module.outputs.value }}:pitest-github
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check for any mutations
         id: mutations-check

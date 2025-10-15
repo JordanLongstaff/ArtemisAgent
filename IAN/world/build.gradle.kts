@@ -1,4 +1,4 @@
-import artemis.agent.gradle.configure
+import artemis.agent.gradle.configurePitest
 import artemis.agent.gradle.configureTests
 import artemis.agent.gradle.dependsOnKonsist
 
@@ -11,7 +11,7 @@ plugins {
 
 configureTests()
 
-pitest.configure(rootPackage = "com.walkertribe.ian.world", threads = 2)
+configurePitest(rootPackage = "com.walkertribe.ian.world", threads = 2)
 
 dependsOnKonsist()
 
