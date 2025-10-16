@@ -101,6 +101,8 @@ android {
         }
     }
 
+    packaging.jniLibs.excludes.add("lib/*/libdatastore_shared_counter.so")
+
     applicationVariants.all {
         val variant = name.substring(0, 1).uppercase() + name.substring(1)
         tasks.named("assemble$variant").dependsOn(":app:konsist:test${variant}UnitTest")
