@@ -90,7 +90,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   android:
-    name: Android Lint
+    name: Android Lint (${{ matrix.module }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
