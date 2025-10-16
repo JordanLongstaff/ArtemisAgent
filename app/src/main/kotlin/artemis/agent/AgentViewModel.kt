@@ -251,6 +251,10 @@ class AgentViewModel(application: Application) :
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
     var manuallyReturnFromCommands: Boolean = false
+        private set
+
+    var recapsEnabled: Boolean = true
+        private set
 
     // Single-ally UI data
     val isDeepStrike: Boolean
@@ -1129,6 +1133,7 @@ class AgentViewModel(application: Application) :
             )
         showAllySelector = settings.showDestroyedAllies
         manuallyReturnFromCommands = settings.allyCommandManualReturn
+        recapsEnabled = settings.allyRecapsEnabled
 
         biomechManager.updateFromSettings(settings)
 
@@ -1187,6 +1192,7 @@ class AgentViewModel(application: Application) :
             allySortName = allySorter.sortByName
             showDestroyedAllies = showAllySelector
             allyCommandManualReturn = manuallyReturnFromCommands
+            allyRecapsEnabled = recapsEnabled
 
             biomechManager.revertSettings(this)
 

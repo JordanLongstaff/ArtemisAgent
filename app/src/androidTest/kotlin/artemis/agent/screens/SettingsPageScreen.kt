@@ -241,6 +241,10 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val showDestroyedButton = KCheckBox { withId(R.id.showDestroyedAlliesButton) }
         val showDestroyedDivider = KView { withId(R.id.showDestroyedAlliesDivider) }
 
+        val enableRecapsTitle = KTextView { withId(R.id.enableRecapsTitle) }
+        val enableRecapsButton = KCheckBox { withId(R.id.enableRecapsButton) }
+        val enableRecapsDivider = KView { withId(R.id.enableRecapsDivider) }
+
         val manuallyReturnTitle = KTextView { withId(R.id.manuallyReturnTitle) }
         val manuallyReturnButton = KCheckBox { withId(R.id.manuallyReturnButton) }
         val manuallyReturnDivider = KView { withId(R.id.manuallyReturnDivider) }
@@ -262,6 +266,12 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
                     label = showDestroyedTitle,
                     text = R.string.show_destroyed_allies,
                     button = showDestroyedButton,
+                ),
+                SingleToggleButtonSetting(
+                    divider = enableRecapsDivider,
+                    label = enableRecapsTitle,
+                    text = R.string.enable_recaps,
+                    button = enableRecapsButton,
                 ),
                 SingleToggleButtonSetting(
                     divider = manuallyReturnDivider,

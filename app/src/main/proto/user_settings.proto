@@ -91,4 +91,8 @@ message UserSettings {
     bool always_scan_public = 62;
     bool haptics_enabled = 63;
     bool sound_muted = 64;
+
+    bool ally_recaps_enabled = 65;
+
+    int32 version = 66;
 }
