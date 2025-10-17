@@ -191,7 +191,6 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
 
         isConnected = false
         startTime = null
-        socket.close()
 
         receiveJob.cancel()
         sendJob.cancel()
@@ -208,9 +207,11 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
             // Empty out connection events channel
         }
 
-        dispatchDisconnect()
-        writer.close(disconnectCauseException)
-        reader.close(disconnectCauseException)
+        listeners.offer(
+            ConnectionEvent.Disconnect(disconnectCause ?: DisconnectCause.LocalDisconnect)
+        )
+
+        closeConnections()
     }
 
     /**
@@ -256,9 +257,9 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
         listeners.clear()
     }
 
-    internal fun dispatchDisconnect() {
-        listeners.offer(
-            ConnectionEvent.Disconnect(disconnectCause ?: DisconnectCause.LocalDisconnect)
-        )
+    internal fun closeConnections() {
+        socket.close()
+        writer.close(disconnectCauseException)
+        reader.close(disconnectCauseException)
     }
 }
