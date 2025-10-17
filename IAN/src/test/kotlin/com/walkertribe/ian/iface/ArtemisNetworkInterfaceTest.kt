@@ -65,6 +65,7 @@ import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -92,6 +93,7 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.readByteArray
 import io.mockk.clearAllMocks
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -554,6 +556,9 @@ class ArtemisNetworkInterfaceTest :
                             cause.shouldBeInstanceOf<DisconnectCause.UnknownError>()
                         },
                     ) { (_, exception, testCause) ->
+                        val mockPacket =
+                            mockk<Packet.Client> { every { writeTo(any()) } throws exception }
+
                         eventually(testTimeout) {
                             val connectDeferred =
                                 async(testDispatcher) {
@@ -570,9 +575,7 @@ class ArtemisNetworkInterfaceTest :
                             client.start()
                             TestListener.clear()
 
-                            client.sendPacket(
-                                mockk<Packet.Client> { every { writeTo(any()) } throws exception }
-                            )
+                            client.sendPacket(mockPacket)
 
                             eventually(2.seconds) {
                                 assertSoftly {
@@ -581,6 +584,8 @@ class ArtemisNetworkInterfaceTest :
                                 }
                             }
                         }
+
+                        clearMocks(mockPacket)
                     }
 
                     describe("Closes on unsupported version") {
@@ -650,7 +655,7 @@ class ArtemisNetworkInterfaceTest :
                                 }
                             }
 
-                            disconnectEvents shouldHaveSize versions.size
+                            disconnectEvents shouldBeSameSizeAs versions
                             disconnectEvents.forEachIndexed { index, event ->
                                 event.cause
                                     .shouldBeInstanceOf<DisconnectCause.UnsupportedVersion>()
