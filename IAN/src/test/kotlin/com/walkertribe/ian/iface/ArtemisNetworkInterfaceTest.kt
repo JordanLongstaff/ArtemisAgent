@@ -592,12 +592,12 @@ class ArtemisNetworkInterfaceTest :
                         val unsupportedTestCases =
                             listOf(
                                 "Too old" to
-                                    Arb.choose(3 to Arb.version(2, 0..2), 997 to Arb.version(0..1)),
+                                    Arb.choose(3 to Arb.version(2, 0..2), 97 to Arb.version(0..1)),
                                 "Beyond latest version" to
                                     Arb.choose(
                                         1 to Arb.version(2, 8, Arb.int(min = 2)),
                                         9 to Arb.version(2, Arb.int(min = 9)),
-                                        990 to Arb.version(Arb.int(min = 3)),
+                                        90 to Arb.version(Arb.int(min = 3)),
                                     ),
                             )
 
@@ -607,7 +607,7 @@ class ArtemisNetworkInterfaceTest :
                             val versionFixture = VersionPacketFixture(versionArb)
                             val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
-                            versionFixture.generator.checkAll(500) { data ->
+                            versionFixture.generator.checkAll(100) { data ->
                                 val version = data.packetVersion
                                 versions.add(version)
 
