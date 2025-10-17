@@ -546,9 +546,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setupTheme()
-        setupWindowInsets()
-        setupFirebase()
+        with(viewModel) {
+            try {
+                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
+            } catch (_: FileNotFoundException) {}
+
+            theme.applyStyle(themeRes, true)
+            isThemeChanged.value = false
+
+            collectLatestWhileStarted(isThemeChanged) {
+                if (it) {
+                    isThemeChanged.value = false
+                    recreate()
+                }
+            }
+        }
+
+        enableEdgeToEdge()
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets =
+                windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                )
+            view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+
+        Firebase.crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
+
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
+        }
+        Firebase.remoteConfig.apply {
+            setConfigSettingsAsync(configSettings)
+            setDefaultsAsync(
+                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
+            )
+        }
+
         setupTiramisu()
         setupBackPressedCallbacks()
         setupConnectionObservers()
@@ -730,16 +766,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupWindowInsets() {
-        enableEdgeToEdge()
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
-            val insets =
-                windowInsets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-                )
-            view.updatePadding(insets.left, insets.top, insets.right, insets.bottom)
-            WindowInsetsCompat.CONSUMED
-        }
     }
 
     private fun setupTiramisu() {
@@ -754,17 +781,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupFirebase() {
-        Firebase.crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
 
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 1.minutes.inWholeSeconds
-        }
-        Firebase.remoteConfig.apply {
-            setConfigSettingsAsync(configSettings)
-            setDefaultsAsync(
-                mapOf(RemoteConfigKey.ARTEMIS_LATEST_VERSION to Version.DEFAULT.toString())
-            )
-        }
     }
 
     private fun setupBackPressedCallbacks() {
@@ -779,21 +796,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupTheme() {
-        with(viewModel) {
-            try {
-                openFileInput(THEME_RES_FILE_NAME).use { themeIndex = it.read().coerceAtLeast(0) }
-            } catch (_: FileNotFoundException) {}
 
-            theme.applyStyle(themeRes, true)
-            isThemeChanged.value = false
-
-            collectLatestWhileStarted(isThemeChanged) {
-                if (it) {
-                    isThemeChanged.value = false
-                    recreate()
-                }
-            }
-        }
     }
 
     private fun setupConnectionObservers() {
