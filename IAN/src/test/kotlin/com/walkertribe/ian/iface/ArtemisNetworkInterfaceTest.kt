@@ -96,6 +96,7 @@ import io.mockk.clearAllMocks
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.unmockkAll
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.minutes
@@ -592,51 +593,58 @@ class ArtemisNetworkInterfaceTest :
                         val unsupportedTestCases =
                             listOf(
                                 "Too old" to
-                                    Arb.choose(3 to Arb.version(2, 0..2), 97 to Arb.version(0..1)),
+                                    Arb.choose(3 to Arb.version(2, 0..2), 997 to Arb.version(0..1)),
                                 "Beyond latest version" to
                                     Arb.choose(
                                         1 to Arb.version(2, 8, Arb.int(min = 2)),
                                         9 to Arb.version(2, Arb.int(min = 9)),
-                                        90 to Arb.version(Arb.int(min = 3)),
+                                        990 to Arb.version(Arb.int(min = 3)),
                                     ),
                             )
 
                         val versions = mutableListOf<Version>()
 
+                        val spyClient = spyk(client)
+                        every { spyClient.stop() } answers
+                            {
+                                spyClient.dispatchDisconnect()
+                                spyClient.disconnectCause = null
+                            }
+
+                        val connectDeferred =
+                            async(testDispatcher) {
+                                spyClient.connect(
+                                    host = loopbackAddress,
+                                    port = port,
+                                    timeoutMs = connectionTimeoutMs,
+                                )
+                            }
+
+                        socket.dispose()
+                        socket = server.accept()
+                        connectDeferred.await().shouldBeTrue()
+                        spyClient.start()
+
                         withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb) ->
                             val versionFixture = VersionPacketFixture(versionArb)
                             val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
-                            versionFixture.generator.checkAll(100) { data ->
-                                val version = data.packetVersion
-                                versions.add(version)
+                            socket.openWriteChannel().use {
+                                versionFixture.generator.checkAll { data ->
+                                    val version = data.packetVersion
 
-                                collect(
-                                    when {
-                                        version.major < 2 -> "${version.major}.*"
-                                        version.major > 2 -> ">2.*"
-                                        version.minor < 3 -> "2.${version.minor}.*"
-                                        version.minor > 8 -> "2.9+"
-                                        else -> "2.8.2+"
-                                    }
-                                )
+                                    collect(
+                                        when {
+                                            version.major < 2 -> "${version.major}.*"
+                                            version.major > 2 -> ">2.*"
+                                            version.minor < 3 -> "2.${version.minor}.*"
+                                            version.minor > 8 -> "2.9+"
+                                            else -> "2.8.2+"
+                                        }
+                                    )
 
-                                val connectDeferred =
-                                    async(testDispatcher) {
-                                        client.connect(
-                                            host = loopbackAddress,
-                                            port = port,
-                                            timeoutMs = connectionTimeoutMs,
-                                        )
-                                    }
+                                    TestListener.clear()
 
-                                socket.dispose()
-                                socket = server.accept()
-                                connectDeferred.await().shouldBeTrue()
-                                client.start()
-                                TestListener.clear()
-
-                                socket.openWriteChannel().use {
                                     writePacketWithHeader(
                                         TestPacketTypes.CONNECTED,
                                         data.buildPayload(),
@@ -652,6 +660,8 @@ class ArtemisNetworkInterfaceTest :
                                         }
                                         disconnectEvents += newEvents
                                     }
+
+                                    versions.add(version)
                                 }
                             }
 
@@ -664,6 +674,9 @@ class ArtemisNetworkInterfaceTest :
                             versions.clear()
                             disconnectEvents.clear()
                         }
+
+                        clearMocks(spyClient)
+                        spyClient.stop()
 
                         it("No upper bound in debug mode") {
                             val versionFixture =
