@@ -605,11 +605,8 @@ class ArtemisNetworkInterfaceTest :
                         val versions = mutableListOf<Version>()
 
                         val spyClient = spyk(client)
-                        every { spyClient.closeConnections() } answers
-                            {
-                                spyClient.disconnectCause = null
-                                spyClient.start()
-                            }
+                        every { spyClient.isRunning } answers { spyClient.startTime != null }
+                        every { spyClient.stop() } answers { spyClient.dispatchDisconnect() }
 
                         val connectDeferred =
                             async(testDispatcher) {
