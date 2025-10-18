@@ -59,7 +59,6 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.retry
 import io.kotest.assertions.throwables.shouldNotThrowAnyUnit
-import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -109,7 +108,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.withTimeout
 import kotlinx.io.IOException
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalKotest::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class ArtemisNetworkInterfaceTest :
     DescribeSpec({
         failfast = true
@@ -122,7 +121,7 @@ class ArtemisNetworkInterfaceTest :
             unmockkAll()
         }
 
-        describe("ArtemisNetworkInterface").config(timeout = 30.minutes) {
+        describe("ArtemisNetworkInterface") {
             val loopbackAddress = "127.0.0.1"
             val port = 2010
             val testTimeout = 1.minutes
