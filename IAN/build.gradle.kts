@@ -9,7 +9,7 @@ plugins {
     id("info.solidsoft.pitest")
 }
 
-configureTests(maxMemoryGb = 4)
+configureTests(maxMemoryGb = 6)
 
 pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
 
