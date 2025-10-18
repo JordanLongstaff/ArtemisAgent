@@ -449,13 +449,18 @@ class ArtemisNetworkInterfaceTest :
                         client.parseResultDispatchJob.cancelAndJoin()
                         client.connectionListenerJob.cancelAndJoin()
 
+                        val mockPacket = mockk<WelcomePacket>()
+
                         client.sendingChannel.send(HeartbeatPacket.Client)
                         client.parseResultsChannel.send(
-                            ParseResult.Success(mockk<WelcomePacket>(), ParseResult.Skip)
+                            ParseResult.Success(mockPacket, ParseResult.Skip)
                         )
                         client.connectionEventChannel.send(ConnectionEvent.Success(""))
 
                         client.stop()
+
+                        clearMocks(mockPacket)
+                        unmockkAll()
 
                         eventually(1.seconds) {
                             TestListener.calls<ConnectionEvent.Disconnect>().shouldBeSingleton {
