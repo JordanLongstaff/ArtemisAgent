@@ -296,7 +296,6 @@ ian-test = [
     "kotlinx-io",
     "kotest-assertions-core",
     "kotest-assertions-shared",
-    "kotest-common",
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
