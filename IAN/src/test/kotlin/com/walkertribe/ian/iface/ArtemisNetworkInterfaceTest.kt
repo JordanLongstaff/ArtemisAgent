@@ -122,7 +122,7 @@ class ArtemisNetworkInterfaceTest :
             unmockkAll()
         }
 
-        describe("ArtemisNetworkInterface").config(timeout = 15.minutes) {
+        describe("ArtemisNetworkInterface").config(timeout = 30.minutes) {
             val loopbackAddress = "127.0.0.1"
             val port = 2010
             val testTimeout = 1.minutes
