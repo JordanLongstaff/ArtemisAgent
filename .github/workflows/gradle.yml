@@ -98,7 +98,7 @@ jobs:
       - name: 'Wait for base branch workflow run'
         uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
         if: ${{ github.event_name == 'pull_request' }}
-        timeout-minutes: 10
+        timeout-minutes: 1
         with:
           workflow: gradle.yml
           branch: ${{ github.event.pull_request.base.ref }}
