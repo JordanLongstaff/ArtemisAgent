@@ -622,11 +622,12 @@ class ArtemisNetworkInterfaceTest :
                         connectDeferred.await().shouldBeTrue()
                         spyClient.start()
 
-                        withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb) ->
-                            val versionFixture = VersionPacketFixture(versionArb)
-                            val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
+                        socket.openWriteChannel().use {
+                            withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb)
+                                ->
+                                val versionFixture = VersionPacketFixture(versionArb)
+                                val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
-                            socket.openWriteChannel().use {
                                 versionFixture.generator.checkAll { data ->
                                     val version = data.packetVersion
 
@@ -660,16 +661,16 @@ class ArtemisNetworkInterfaceTest :
 
                                     versions.add(version)
                                 }
-                            }
 
-                            disconnectEvents shouldBeSameSizeAs versions
-                            disconnectEvents.forEachIndexed { index, event ->
-                                event.cause
-                                    .shouldBeInstanceOf<DisconnectCause.UnsupportedVersion>()
-                                    .version shouldBeEqual versions[index]
+                                disconnectEvents shouldBeSameSizeAs versions
+                                disconnectEvents.forEachIndexed { index, event ->
+                                    event.cause
+                                        .shouldBeInstanceOf<DisconnectCause.UnsupportedVersion>()
+                                        .version shouldBeEqual versions[index]
+                                }
+                                versions.clear()
+                                disconnectEvents.clear()
                             }
-                            versions.clear()
-                            disconnectEvents.clear()
                         }
 
                         clearMocks(spyClient)
