@@ -52,7 +52,7 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
     internal var startTime: Long? = null
         private set
 
-    private var disconnectCause: DisconnectCause? = DisconnectCause.LocalDisconnect
+    internal var disconnectCause: DisconnectCause? = DisconnectCause.LocalDisconnect
     private val heartbeatManager = HeartbeatManager(this)
     private val listeners = ListenerRegistry()
     override var version: Version = Version.DEFAULT
@@ -97,7 +97,7 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
             }
 
     override var isConnected: Boolean = false
-    private val isRunning: Boolean
+    internal val isRunning: Boolean
         get() = disconnectCause == null && startTime != null
 
     init {
@@ -208,9 +208,7 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
             // Empty out connection events channel
         }
 
-        listeners.offer(
-            ConnectionEvent.Disconnect(disconnectCause ?: DisconnectCause.LocalDisconnect)
-        )
+        dispatchDisconnect()
         writer.close(disconnectCauseException)
         reader.close(disconnectCauseException)
     }
@@ -256,5 +254,11 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
         parseResultsChannel.close()
         connectionEventChannel.close()
         listeners.clear()
+    }
+
+    internal fun dispatchDisconnect() {
+        listeners.offer(
+            ConnectionEvent.Disconnect(disconnectCause ?: DisconnectCause.LocalDisconnect)
+        )
     }
 }
