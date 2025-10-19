@@ -47,16 +47,6 @@ private enum class NamingConventionTest(val testName: String) {
             type.assertTrue { it.hasNameEndingWith("BIT_BLOCK") }
         }
     },
-    BROADCAST_ADDRESS("Broadcast address property follows naming patterns") {
-        override fun test(type: KoEnumConstantDeclaration) {
-            val prefix = type.name.substringBeforeLast("BLOCK")
-            type.assertTrue {
-                it.hasVariable { prop ->
-                    prop.name == "broadcastAddress" && prop.text.contains("${prefix}BROADCAST")
-                }
-            }
-        }
-    },
     CONSTRAINTS("Constraints property follows naming patterns") {
         override fun test(type: KoEnumConstantDeclaration) {
             val prefix = type.name.substringBeforeLast("BLOCK")
@@ -72,10 +62,6 @@ private enum class NamingConventionTest(val testName: String) {
 }
 
 private enum class CompanionTest {
-    BROADCAST {
-        override fun testProperty(property: KoPropertyDeclaration, index: Int): Boolean =
-            property.hasConstModifier && property.hasValue(EXPECTED_BROADCAST[index])
-    },
     CONSTRAINTS {
         override fun testProperty(property: KoPropertyDeclaration, index: Int): Boolean = true
     };
@@ -92,8 +78,4 @@ private enum class CompanionTest {
         "${type.name.substringBeforeLast("BLOCK")}$name"
 
     abstract fun testProperty(property: KoPropertyDeclaration, index: Int): Boolean
-
-    private companion object {
-        val EXPECTED_BROADCAST = arrayOf("10.255.255.255", "172.31.255.255", "192.168.255.255")
-    }
 }

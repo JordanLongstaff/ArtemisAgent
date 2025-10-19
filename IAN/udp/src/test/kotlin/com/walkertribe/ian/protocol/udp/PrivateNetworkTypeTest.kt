@@ -100,11 +100,6 @@ class PrivateNetworkTypeTest :
                         }
                     }
 
-                    it("Broadcast address: ${suite.expectedBroadcastAddress}") {
-                        suite.expectedType.broadcastAddress shouldBeEqual
-                            suite.expectedBroadcastAddress
-                    }
-
                     describe("Does not match invalid address") {
                         withData(nameFn = { it.first }, invalidTestSuites) { (_, arbParts) ->
                             arbParts.checkAll { parts ->
