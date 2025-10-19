@@ -19,6 +19,7 @@ import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
+import com.walkertribe.ian.protocol.udp.PrivateNetworkType
 import dev.tmapps.konnection.Konnection
 import java.net.InetAddress
 import java.net.NetworkInterface
@@ -91,7 +92,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         ) {
             val info = Konnection.instance.getInfo()
             val address = info?.ipv4
-            networkAddress = address
+            networkAddress = address?.takeIf { PrivateNetworkType.of(it) != null }
             broadcastAddress = null
 
             binding.networkTypeLabel.text =
