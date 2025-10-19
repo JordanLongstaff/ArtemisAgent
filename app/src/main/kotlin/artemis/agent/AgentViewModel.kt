@@ -6,7 +6,10 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.annotation.StyleRes
+import androidx.core.content.getSystemService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
@@ -363,12 +366,10 @@ class AgentViewModel(application: Application) :
     // Haptics
     private val vibrator =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val manager =
-                application.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            manager.defaultVibrator
+            val manager = application.getSystemService<VibratorManager>()
+            manager?.defaultVibrator
         } else {
-            @Suppress("DEPRECATION")
-            application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            application.getSystemService<Vibrator>()
         }
 
     var hapticsEnabled = true
@@ -601,10 +602,16 @@ class AgentViewModel(application: Application) :
         if (!hapticsEnabled) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator.vibrate(effect.vibration)
+            vibrator?.vibrate(effect.vibration)
         } else {
-            @Suppress("DEPRECATION") vibrator.vibrate(effect.duration)
+            @Suppress("DEPRECATION") vibrator?.vibrate(effect.duration)
         }
+    }
+
+    fun hideKeyboard(rootView: View) {
+        rootView.context
+            .getSystemService<InputMethodManager>()
+            ?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
 
     /** Begins scanning for servers via UDP. */
