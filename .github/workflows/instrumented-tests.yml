@@ -72,6 +72,13 @@ jobs:
       - name: Set up Android SDK Tools
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
 
+      - name: Download AdbServer JAR
+        id: download
+        uses: suisei-cn/actions-download-file@818d6b7dc8fe73f2f924b6241f2b1134ca1377d9 # 1.6.0
+        with:
+          url: https://github.com/KasperskyLab/Kaspresso/blob/master/artifacts/adbserver-desktop.jar
+          target: ${{ github.workspace }}/app/adbserver-desktop.jar
+
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
