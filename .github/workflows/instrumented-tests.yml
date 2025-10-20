@@ -5,8 +5,33 @@ name: Android Instrumented Tests
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - .github/workflows/instrumented-tests.yml
+      - app/src/androidTest/**
+      - app/src/main/**
+      - app/build.gradle.kts
+      - build-logic/*.gradle.kts
+      - build-logic/src/**
+      - build.gradle.kts
+      - gradle/**
+      - IAN/build.gradle.kts
+      - IAN/*/build.gradle.kts
+      - IAN/src/main/**
+      - IAN/*/src/main/**
   pull_request:
     branches: [ "main" ]
+    paths:
+      - .github/workflows/instrumented-tests.yml
+      - app/src/androidTest/**
+      - app/src/main/**
+      - app/build.gradle.kts
+      - build-logic/**
+      - build.gradle.kts
+      - gradle/**
+      - IAN/build.gradle.kts
+      - IAN/*/build.gradle.kts
+      - IAN/src/main/**
+      - IAN/*/src/main/**
 
 jobs:
   test:
