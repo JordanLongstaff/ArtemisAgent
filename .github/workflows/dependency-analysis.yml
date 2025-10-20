@@ -48,21 +48,20 @@ jobs:
         run: |
           if [ -s build/reports/dependency-analysis/build-health-report.txt ]; then
             cat build/reports/dependency-analysis/build-health-report.txt >> "$GITHUB_STEP_SUMMARY"
-            echo "check=true" >> "$GITHUB_OUTPUT"
+            exit 1
           else
             echo "No dependency violations found. :+1:" >> "$GITHUB_STEP_SUMMARY"
-            echo "check=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Report violations
-        if: ${{ steps.check-build-health.outputs.check == 'true' && github.event_name == 'pull_request' }}
+        if: ${{ failure() && github.event_name == 'pull_request' }}
         uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         with:
           file-path: build/reports/dependency-analysis/build-health-report.txt
           comment-tag: dependency-analysis
 
       - name: Report healthy
-        if: ${{ steps.check-build-health.outputs.check == 'false' && github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' }}
         uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         with:
           message: "No dependency violations found. :+1:"
