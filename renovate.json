@@ -29,7 +29,7 @@
     },
     {
       "groupName": "Koin Annotations",
-      "matchPackageNames": ["/koin-annotations/", "/koin-ksp-compiler"],
+      "matchPackageNames": ["/koin-annotations/", "/koin-ksp-compiler/"],
       "sourceUrl": "https://github.com/InsertKoinIO/koin-annotations",
       "changelogUrl": "https://github.com/InsertKoinIO/koin-annotations/releases"
     },
