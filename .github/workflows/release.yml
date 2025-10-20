@@ -165,7 +165,7 @@ jobs:
           releaseName: Artemis Agent v${{ steps.nextVersionName.outputs.new_version }}
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: artemis.agent
-          releaseFiles: app/release/app-release.aab
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
           track: production
           whatsNewDirectory: changelog
 
