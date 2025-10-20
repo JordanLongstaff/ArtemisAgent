@@ -6,7 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.withType
 
-private const val PITEST_VERSION = "1.20.3"
+private const val PITEST_VERSION = "1.21.0"
 private const val JUNIT5_VERSION = "1.2.3"
 
 private const val TIMEOUT_FACTOR = 10
@@ -30,6 +30,7 @@ fun PitestPluginExtension.configure(rootPackage: String, threads: Int) {
     this.threads.set(threads)
     timeoutFactor.set(BigDecimal(TIMEOUT_FACTOR))
     outputFormats.set(listOf("HTML", "CSV", "XML"))
+    features.set(listOf("+GIT(from[HEAD~1])"))
     timestampedReports.set(false)
     setWithHistory(true)
     mutators.addAll(MUTATORS)

@@ -6,7 +6,10 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.annotation.StyleRes
+import androidx.core.content.getSystemService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsOuterClass.UserSettings
@@ -30,6 +33,7 @@ import artemis.agent.game.stations.StationsFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.setup.SetupFragment
 import artemis.agent.setup.settings.SettingsFragment
+import artemis.agent.util.BackPreview
 import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.TimerText
@@ -151,6 +155,13 @@ class AgentViewModel(application: Application) :
 
     private var damageVisJob: Job? = null
 
+    private var privateBackPreview: BackPreview? = null
+    var backPreview: BackPreview?
+        get() = privateBackPreview?.takeIf { it.isEnabled }
+        set(preview) {
+            privateBackPreview = preview
+        }
+
     // Ship settings from packet
     val selectableShips: MutableStateFlow<List<Ship>> by lazy { MutableStateFlow(emptyList()) }
 
@@ -243,6 +254,10 @@ class AgentViewModel(application: Application) :
         MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
     var manuallyReturnFromCommands: Boolean = false
+        private set
+
+    var recapsEnabled: Boolean = true
+        private set
 
     // Single-ally UI data
     val isDeepStrike: Boolean
@@ -351,12 +366,10 @@ class AgentViewModel(application: Application) :
     // Haptics
     private val vibrator =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val manager =
-                application.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            manager.defaultVibrator
+            val manager = application.getSystemService<VibratorManager>()
+            manager?.defaultVibrator
         } else {
-            @Suppress("DEPRECATION")
-            application.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            application.getSystemService<Vibrator>()
         }
 
     var hapticsEnabled = true
@@ -589,10 +602,16 @@ class AgentViewModel(application: Application) :
         if (!hapticsEnabled) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator.vibrate(effect.vibration)
+            vibrator?.vibrate(effect.vibration)
         } else {
-            @Suppress("DEPRECATION") vibrator.vibrate(effect.duration)
+            @Suppress("DEPRECATION") vibrator?.vibrate(effect.duration)
         }
+    }
+
+    fun hideKeyboard(rootView: View) {
+        rootView.context
+            .getSystemService<InputMethodManager>()
+            ?.hideSoftInputFromWindow(rootView.windowToken, 0)
     }
 
     /** Begins scanning for servers via UDP. */
@@ -1121,6 +1140,7 @@ class AgentViewModel(application: Application) :
             )
         showAllySelector = settings.showDestroyedAllies
         manuallyReturnFromCommands = settings.allyCommandManualReturn
+        recapsEnabled = settings.allyRecapsEnabled
 
         biomechManager.updateFromSettings(settings)
 
@@ -1179,6 +1199,7 @@ class AgentViewModel(application: Application) :
             allySortName = allySorter.sortByName
             showDestroyedAllies = showAllySelector
             allyCommandManualReturn = manuallyReturnFromCommands
+            allyRecapsEnabled = recapsEnabled
 
             biomechManager.revertSettings(this)
 

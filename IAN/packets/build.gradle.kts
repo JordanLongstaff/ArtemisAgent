@@ -9,6 +9,11 @@ plugins {
     id("info.solidsoft.pitest")
 }
 
+ksp {
+    arg("KOIN_CONFIG_CHECK", true.toString())
+    arg("KOIN_LOG_TIMES", true.toString())
+}
+
 configureTests(maxMemoryGb = 4)
 
 pitest {
@@ -58,4 +63,10 @@ dependencies {
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
     pitest(libs.bundles.arcmutate)
+
+    pitest(testFixtures(projects.ian.enums))
+    pitest(testFixtures(projects.ian.listener))
+    pitest(testFixtures(projects.ian.util))
+    pitest(testFixtures(projects.ian.vesseldata))
+    pitest(testFixtures(projects.ian.world))
 }

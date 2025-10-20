@@ -144,6 +144,7 @@
     <string name="docked">Docked</string>
     <string name="docking">Docking</string>
     <string name="enable_haptics">Enable haptics</string>
+    <string name="enable_recaps">Enable hail response recaps</string>
     <string name="enemy">Enemy</string>
     <string name="enemy_perfidy_notification">
         This enemy has committed perfidy. Eliminate on sight.
@@ -191,8 +192,8 @@
             \nLike stations, ally ships communicate their statuses to Artemis Agent through Comms
             messages. The app automatically sends a status requests to all ally ships when the
             simulation starts, or if the app connects to a simulation in progress. You can also
-            manually request status by pressing the Hail button, or display the latest hail response
-            received in full by pressing the Recap button.\n
+            manually request status by pressing the Hail button, or, if recaps are enabled, display
+            the latest hail response received in full by pressing the Recap button.\n
         </item>
         <item>
             \nYou can also send commands to an ally ship by pressing the Command button. Commands

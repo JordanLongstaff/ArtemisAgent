@@ -3,8 +3,6 @@ package artemis.agent.setup.settings
 import android.os.Bundle
 import android.view.View
 import android.widget.ToggleButton
-import androidx.activity.BackEventCompat
-import androidx.activity.OnBackPressedCallback
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -20,6 +18,7 @@ import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.BackPreview
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import kotlin.reflect.KMutableProperty1
@@ -91,6 +90,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
 
                     allyCommandManualReturn = false
                     showDestroyedAllies = true
+                    allyRecapsEnabled = true
                 }
         },
         ENEMIES(
@@ -220,35 +220,25 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
             }
         }
 
-    private val onBackPressedCallback by lazy {
-        object : OnBackPressedCallback(false) {
+    private val backPreview by lazy {
+        object : BackPreview(false) {
             private var openedPage: Page? = null
 
-            override fun handleOnBackStarted(backEvent: BackEventCompat) {
+            override fun beforePreview() {
                 openedPage = currentPage
             }
 
-            override fun handleOnBackProgressed(backEvent: BackEventCompat) {
-                if (backEvent.progress > 0f) {
-                    viewModel.settingsPage.value = null
-                    binding.backPressAlpha.visibility = View.VISIBLE
-                } else {
-                    viewModel.settingsPage.value = openedPage
-                    binding.backPressAlpha.visibility = View.GONE
-                }
-            }
-
-            override fun handleOnBackCancelled() {
-                onBackEnded()
-            }
-
-            override fun handleOnBackPressed() {
+            override fun preview() {
                 viewModel.settingsPage.value = null
-                isEnabled = false
-                onBackEnded()
+                binding.backPressAlpha.visibility = View.VISIBLE
             }
 
-            private fun onBackEnded() {
+            override fun revert() {
+                viewModel.settingsPage.value = openedPage
+                binding.backPressAlpha.visibility = View.GONE
+            }
+
+            override fun close() {
                 viewModel.playSound(SoundEffect.BEEP_1)
                 binding.backPressAlpha.visibility = View.GONE
             }
@@ -258,12 +248,11 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        requireActivity()
-            .onBackPressedDispatcher
-            .addCallback(viewLifecycleOwner, onBackPressedCallback)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPreview)
+        viewModel.backPreview = backPreview
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsPage) {
-            currentPage = it?.also { onBackPressedCallback.isEnabled = true }
+            currentPage = it?.also { backPreview.isEnabled = true }
         }
 
         binding.settingsBack.setOnClickListener {
@@ -293,6 +282,6 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
     }
 
     private fun goBackToMenu() {
-        onBackPressedCallback.handleOnBackPressed()
+        backPreview.handleOnBackPressed()
     }
 }

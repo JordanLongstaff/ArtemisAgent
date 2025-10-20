@@ -217,17 +217,23 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 }
             }
 
-            entryBinding.allyRecapButton.setOnClickListener {
-                viewModel.activateHaptic()
-                viewModel.playSound(SoundEffect.BEEP_2)
-                if (entry.latestHailMessage.isBlank()) return@setOnClickListener
+            entryBinding.allyRecapButton.visibility =
+                if (viewModel.recapsEnabled) {
+                    entryBinding.allyRecapButton.setOnClickListener {
+                        viewModel.activateHaptic()
+                        viewModel.playSound(SoundEffect.BEEP_2)
+                        if (entry.latestHailMessage.isBlank()) return@setOnClickListener
 
-                AlertDialog.Builder(entryBinding.root.context)
-                    .setTitle(entry.fullName)
-                    .setMessage(entry.latestHailMessage)
-                    .setCancelable(true)
-                    .show()
-            }
+                        AlertDialog.Builder(entryBinding.root.context)
+                            .setTitle(entry.fullName)
+                            .setMessage(entry.latestHailMessage)
+                            .setCancelable(true)
+                            .show()
+                    }
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
 
             bindAllyCommandButton(entry, viewModel)
             bindDescriptionLabel(entry, viewModel)

@@ -28,4 +28,7 @@ dependencies {
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
     pitest(libs.bundles.arcmutate)
+
+    pitest(projects.ian.enums)
+    pitest(projects.ian.util)
 }

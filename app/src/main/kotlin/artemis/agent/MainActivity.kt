@@ -10,7 +10,9 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.view.KeyEvent
 import android.view.View
+import android.view.ViewConfiguration
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
@@ -29,6 +31,7 @@ import androidx.core.view.children
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.databinding.ActivityMainBinding
@@ -62,8 +65,11 @@ import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.asDeferred
 
@@ -90,6 +96,16 @@ class MainActivity : AppCompatActivity() {
         }
 
     private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+
+    private val isPreBaklava: Boolean by lazy {
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA
+    }
+    private val isLongBackPressOverridden: Boolean by lazy {
+        Build.VERSION.SDK_INT in Build.VERSION_CODES.N..Build.VERSION_CODES.N_MR1 ||
+            Build.MANUFACTURER.equals(HUAWEI, ignoreCase = true)
+    }
+
+    private var longBackPress: Job? = null
 
     private val reviewManager: ReviewManager by lazy { ReviewManagerFactory.create(this) }
     private var shouldAskForReview: Boolean = false
@@ -678,6 +694,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isPreBaklava && !isLongBackPressOverridden && keyCode == KeyEvent.KEYCODE_BACK) {
+            viewModel.backPreview?.onBackStarted()
+        }
+
+        return super.onKeyLongPress(keyCode, event)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isPreBaklava && isLongBackPressOverridden && keyCode == KeyEvent.KEYCODE_BACK) {
+            viewModel.backPreview?.also { backPreview ->
+                longBackPress =
+                    lifecycleScope.launch {
+                        delay(ViewConfiguration.getLongPressTimeout().toLong())
+                        if (isActive) backPreview.onBackStarted()
+                    }
+            }
+        }
+
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isPreBaklava && isLongBackPressOverridden && keyCode == KeyEvent.KEYCODE_BACK) {
+            val backPressJob = longBackPress
+            if (backPressJob == null || backPressJob.isCompleted) {
+                viewModel.backPreview?.handleOnBackCancelled()
+            } else {
+                backPressJob.cancel()
+            }
+        }
+
+        return super.onKeyUp(keyCode, event)
+    }
+
     private fun setupWindowInsets() {
         enableEdgeToEdge()
 
@@ -1019,6 +1070,8 @@ class MainActivity : AppCompatActivity() {
 
         const val THEME_RES_FILE_NAME = "theme_res.dat"
         const val MAX_VERSION_FILE_NAME = "max_version.dat"
+
+        const val HUAWEI = "huawei"
 
         const val PENDING_INTENT_FLAGS =
             PendingIntent.FLAG_UPDATE_CURRENT.or(PendingIntent.FLAG_IMMUTABLE)

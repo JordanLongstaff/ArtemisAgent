@@ -15,6 +15,8 @@ class UserSettingsTest :
             describe("Defaults") {
                 val settings = UserSettingsSerializer.defaultValue
 
+                it("Latest version") { settings.version shouldBeEqual 1 }
+
                 it("Vessel data location") {
                     settings.vesselDataLocation shouldBeEqual
                         UserSettingsOuterClass.UserSettings.VesselDataLocation
@@ -176,6 +178,30 @@ class UserSettingsTest :
                         ) {
                             it.test()
                         }
+                    }
+                }
+            }
+
+            describe("Migrations") {
+                val settings = UserSettingsSerializer.defaultValue
+
+                describe("Newer version") {
+                    val newMigration = UserSettingsSerializer.Migration(1000) { serverPort = 3000 }
+
+                    it("Should migrate") { newMigration.shouldMigrate(settings).shouldBeTrue() }
+
+                    it("Does migrate") {
+                        val newSettings = newMigration.migrate(settings)
+                        newSettings.version shouldBeEqual 1000
+                        newSettings.serverPort shouldBeEqual 3000
+                    }
+                }
+
+                describe("Older version") {
+                    val skippedMigration = UserSettingsSerializer.Migration(-1) {}
+
+                    it("Should not migrate") {
+                        skippedMigration.shouldMigrate(settings).shouldBeFalse()
                     }
                 }
             }

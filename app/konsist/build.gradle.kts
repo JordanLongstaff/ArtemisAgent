@@ -33,6 +33,8 @@ android {
         targetCompatibility = javaVersion
     }
 
+    lint.sarifReport = true
+
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
