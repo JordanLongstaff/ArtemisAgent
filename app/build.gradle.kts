@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import com.github.psxpaul.task.ExecFork
 import java.io.FileInputStream
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -16,6 +17,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
     alias(libs.plugins.dependency.analysis)
+    alias(libs.plugins.execfork)
 }
 
 val appName = "Artemis Agent"
@@ -36,6 +38,13 @@ val changelog =
 
 val versionProperties =
     Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
+
+val startAdbServer by
+    tasks.registering(ExecFork::class) {
+        executable = "java"
+        args += listOf("-jar", "adbserver-desktop.jar")
+        workingDir = projectDir
+    }
 
 android {
     namespace = appId
@@ -107,6 +116,8 @@ android {
         val variant = name.substring(0, 1).uppercase() + name.substring(1)
         tasks.named("assemble$variant").dependsOn(":app:konsist:test${variant}UnitTest")
     }
+
+    testVariants.all { connectedInstrumentTestProvider.dependsOn(startAdbServer) }
 
     buildFeatures {
         viewBinding = true
