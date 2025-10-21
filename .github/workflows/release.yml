@@ -38,6 +38,8 @@ jobs:
       - name: Get SHA of latest run
         id: find-latest-run
         run: gh run list -b main -w "${{ matrix.workflow.name }}" -L 1 --json headSha -q ".[0].headSha" | awk '{print "headSha=" $0}' | tee -a "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Wait for action
         uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
