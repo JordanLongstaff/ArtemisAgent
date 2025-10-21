@@ -217,6 +217,8 @@ class ConnectFragmentTest : TestCase() {
                 }
 
                 ConnectPageScreen {
+                    step("Wait a bit") { Screen.idle(NO_NETWORK_IDLE) }
+
                     step("Check \"Network not found\" text") {
                         networkTypeLabel.isDisplayedWithText(R.string.network_not_found)
                     }
@@ -237,6 +239,8 @@ class ConnectFragmentTest : TestCase() {
         private val EMULATOR_DEVICES = setOf("emu64x", "emulator64_x86_64", "generic_x86_64")
 
         private val isEmulator by lazy { Build.DEVICE in EMULATOR_DEVICES }
+
+        private const val NO_NETWORK_IDLE = 2000L
 
         private fun TestContext<Unit>.toggleShowingInfo() {
             scenario(SettingsMenuScenario)
