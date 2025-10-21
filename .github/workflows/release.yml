@@ -28,14 +28,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        workflow: [gradle.yml, instrumented-tests.yml]
+        workflow:
+        - file: gradle.yml
+          name: Java CI with Gradle
+        - file: instrumented-tests.yml
+          name: Android Instrumented Tests
     permissions: {}
     steps:
+      - name: Get SHA of latest run
+        id: find-latest-run
+        run: gh run list -b main -w ${{ matrix.name }} -L 1 --json headSha | jq -r ".[0].headSha" | awk '{print "headSha=" $0}' | tee -a "$GITHUB_OUTPUT"
+
       - name: Wait for action
         uses: ArcticLampyrid/action-wait-for-workflow@ff297b23789206858260877c4b83026d90c6db8c # v1.3.0
         with:
           workflow: ${{ matrix.workflow }}
           wait-interval: 5
+          sha: ${{ steps.find-latest-run.outputs.headSha }}
 
   release:
     runs-on: ubuntu-latest
