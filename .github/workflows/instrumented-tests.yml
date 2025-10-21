@@ -93,7 +93,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.orientation.skin }}
           disable-animations: true
-          script: ./gradlew connectedAndroidTest
+          script: ./gradlew :app:startAdbServer :app:connectedAndroidTest
 
       - name: Upload Test Results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
