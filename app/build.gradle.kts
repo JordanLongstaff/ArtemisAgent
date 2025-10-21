@@ -117,7 +117,7 @@ android {
         tasks.named("assemble$variant").dependsOn(":app:konsist:test${variant}UnitTest")
     }
 
-    testVariants.all { connectedInstrumentTestProvider.dependsOn(startAdbServer) }
+    testVariants.all { assembleProvider.dependsOn(startAdbServer) }
 
     buildFeatures {
         viewBinding = true
