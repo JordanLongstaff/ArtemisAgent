@@ -28,6 +28,12 @@
       "changelogUrl": "https://firebase.google.com/support/release-notes/android#google-services_plugin_v{{{replace '\\.' '-' newVersion}}}"
     },
     {
+      "groupName": "koin.annotations",
+      "matchPackageNames": ["/koin-annotations/", "/koin-ksp-compiler/"],
+      "sourceUrl": "https://github.com/InsertKoinIO/koin-annotations",
+      "changelogUrl": "https://github.com/InsertKoinIO/koin-annotations/releases"
+    },
+    {
       "groupName": "ktfmt",
       "matchDepNames": ["com.ncorti.ktfmt.gradle"],
       "sourceUrl": "https://github.com/cortinico/ktfmt-gradle",
