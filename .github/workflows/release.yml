@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   wait-for-prerequisites:
-    name: 'Wait for prerequisite actions'
+    name: Wait for ${{ matrix.workflow.name }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
