@@ -21,4 +21,4 @@ jobs:
           name-increment-type: 'minor'
 
       - name: Output content
-        run: cat app/build.gradle.kts | grep version >> "$GITHUB_OUTPUT"
+        run: cat app/build.gradle.kts | grep versionCode >> "$GITHUB_OUTPUT"
