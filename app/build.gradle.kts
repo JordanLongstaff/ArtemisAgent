@@ -34,9 +34,6 @@ val changelog =
         it.replaceFirst('*', '\u2022')
     }
 
-val versionProperties =
-    Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
-
 android {
     namespace = appId
     compileSdk = sdkVersion
