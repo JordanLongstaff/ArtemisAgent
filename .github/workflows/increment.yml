@@ -1,0 +1,23 @@
+name: Increment Version Test
+
+on:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  increment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Increment version
+        uses: ChrisMilner/android-version-increment-action@1.1.1
+        with:
+          name-increment-type: 'minor'
+
+      - name: Output content
+        run: cat app/build.gradle.kts | grep version >> "$GITHUB_OUTPUT"

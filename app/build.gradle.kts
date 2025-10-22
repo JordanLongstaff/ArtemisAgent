@@ -45,8 +45,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = versionProperties.getProperty("versionCode").toInt()
-        versionName = versionProperties.getProperty("versionName")
+        versionCode = 40
+        versionName = "1.5.0"
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
