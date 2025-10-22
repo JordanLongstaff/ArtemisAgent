@@ -17,6 +17,7 @@ jobs:
       - name: Increment version
         uses: ChrisMilner/android-version-increment-action@1.1.1
         with:
+          build-gradle-path: app/build.gradle.kts
           name-increment-type: 'minor'
 
       - name: Output content
