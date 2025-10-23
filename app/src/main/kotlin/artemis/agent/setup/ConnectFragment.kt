@@ -3,7 +3,6 @@ package artemis.agent.setup
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Filter
 import androidx.core.content.ContextCompat
@@ -22,6 +21,8 @@ import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.protocol.udp.PrivateNetworkType
 import dev.tmapps.konnection.Konnection
+import java.net.InetAddress
+import java.net.NetworkInterface
 
 class ConnectFragment : Fragment(R.layout.connect_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
@@ -37,6 +38,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
 
     private var playSoundsOnTextChange: Boolean = false
     private var playSoundOnScanFinished: Boolean = false
+    private var networkAddress: String? = null
     private var broadcastAddress: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -90,7 +92,8 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
         ) {
             val info = Konnection.instance.getInfo()
             val address = info?.ipv4
-            broadcastAddress = address?.let(PrivateNetworkType::of)?.broadcastAddress
+            networkAddress = address?.takeIf { PrivateNetworkType.of(it) != null }
+            broadcastAddress = null
 
             binding.networkTypeLabel.text =
                 info?.let { networkTypes[it.connection.ordinal] }
@@ -167,6 +170,7 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
             viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             hideKeyboard()
+            checkForBroadcastAddress()
             viewModel.scanForServers(broadcastAddress)
         }
 
@@ -200,12 +204,19 @@ class ConnectFragment : Fragment(R.layout.connect_fragment) {
     }
 
     private fun hideKeyboard() {
-        with(
-            binding.root.context.getSystemService(Context.INPUT_METHOD_SERVICE)
-                as InputMethodManager
-        ) {
-            hideSoftInputFromWindow(binding.root.windowToken, 0)
-        }
+        viewModel.hideKeyboard(binding.root)
+    }
+
+    private fun checkForBroadcastAddress() {
+        if (broadcastAddress != null) return
+        val networkInterface =
+            NetworkInterface.getByInetAddress(InetAddress.getByName(networkAddress)) ?: return
+
+        broadcastAddress =
+            networkInterface.interfaceAddresses
+                .firstOrNull { it.address?.hostAddress == networkAddress }
+                ?.broadcast
+                ?.hostAddress
     }
 
     private class RecentServersAdapter(context: Context) :

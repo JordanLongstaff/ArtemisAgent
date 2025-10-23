@@ -31,36 +31,35 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     private val currentHelpTopicIndex: Int
         get() = viewModel.helpTopicIndex.value
 
+    private val backPreview by lazy {
+        object : BackPreview(false) {
+            private var currentTopicIndex: Int = MENU
+
+            override fun beforePreview() {
+                currentTopicIndex = viewModel.helpTopicIndex.value
+            }
+
+            override fun preview() {
+                viewModel.helpTopicIndex.value = MENU
+                binding.backPressAlpha.visibility = View.VISIBLE
+            }
+
+            override fun revert() {
+                viewModel.helpTopicIndex.value = currentTopicIndex
+                binding.backPressAlpha.visibility = View.GONE
+            }
+
+            override fun close() {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_1)
+                binding.backPressAlpha.visibility = View.GONE
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.settingsPage.value = null
-
-        val backPreview =
-            object : BackPreview(false) {
-                private var currentTopicIndex: Int = MENU
-
-                override fun beforePreview() {
-                    currentTopicIndex = viewModel.helpTopicIndex.value
-                }
-
-                override fun preview() {
-                    viewModel.helpTopicIndex.value = MENU
-                    binding.backPressAlpha.visibility = View.VISIBLE
-                }
-
-                override fun revert() {
-                    viewModel.helpTopicIndex.value = currentTopicIndex
-                    binding.backPressAlpha.visibility = View.GONE
-                }
-
-                override fun close() {
-                    viewModel.activateHaptic()
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    binding.backPressAlpha.visibility = View.GONE
-                }
-            }
-
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPreview)
         viewModel.backPreview = backPreview
 
         val helpTopicContent = binding.helpTopicContent
@@ -93,6 +92,11 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
         helpTopicContent.itemAnimator = null
         helpTopicContent.adapter = adapter
         helpTopicContent.layoutManager = layoutManager
+    }
+
+    override fun onResume() {
+        super.onResume()
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPreview)
     }
 
     private interface ViewProvider {
