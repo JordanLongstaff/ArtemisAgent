@@ -247,8 +247,6 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPreview)
         viewModel.backPreview = backPreview
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.settingsPage) {
@@ -279,6 +277,11 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPreview)
     }
 
     private fun goBackToMenu() {
