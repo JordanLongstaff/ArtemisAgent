@@ -11,8 +11,7 @@ sealed class ConnectionStatus(
 ) {
     data object NotConnected : ConnectionStatus(R.string.not_connected, R.color.notConnected)
 
-    data object Connecting :
-        ConnectionStatus(R.string.connecting, R.color.connecting, View.VISIBLE)
+    data object Connecting : ConnectionStatus(R.string.connecting, R.color.connecting, View.VISIBLE)
 
     data object Connected : ConnectionStatus(R.string.connected, R.color.connected)
 
