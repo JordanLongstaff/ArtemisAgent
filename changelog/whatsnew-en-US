@@ -1,5 +1,2 @@
-* Predictive back now works with three-button navigation
-* Added setting to enable ally hail recaps
-* Fixed UDP broadcasts over private networks
-* Better text for no network being found
-* Dependency upgrades
+* Fix back press bug in Help and Settings pages
+* Minor internal improvements
