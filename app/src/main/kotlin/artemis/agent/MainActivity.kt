@@ -932,7 +932,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkForUpdates(checkType: UpdateCheck) {
         viewModel.viewModelScope.launch(
-            CoroutineExceptionHandler { _, _ -> checkType.showAlert(this@MainActivity) }
+            CoroutineExceptionHandler { _, _ -> checkType.createAlert(this@MainActivity)?.show() }
         ) {
             val results =
                 awaitAll(
