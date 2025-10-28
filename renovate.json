@@ -53,7 +53,7 @@
     {
       "groupName": "ruby",
       "matchSourceUrls": ["https://github.com/ruby/ruby", "https://github.com/ruby/setup-ruby"],
-      "commitMessageExtra": "to {{{lookupArray (lookup upgrades 'newVersion') 0}}}"
+      "commitMessageExtra": "to {{upgrades.0.newVersion}}"
     }
   ],
   "customManagers": [
