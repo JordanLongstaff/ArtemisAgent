@@ -87,6 +87,7 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
 import io.ktor.util.cio.use
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.availableForRead
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.buildPacket
@@ -95,6 +96,7 @@ import io.mockk.clearAllMocks
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.spyk
 import io.mockk.unmockkAll
 import kotlin.reflect.KClass
@@ -138,6 +140,13 @@ class ArtemisNetworkInterfaceTest :
                 }
             val testDispatcher = UnconfinedTestDispatcher()
 
+            var readChannel = ByteChannel()
+            var sendChannel = ByteChannel()
+
+            mockkStatic("io.ktor.network.sockets.SocketsKt")
+            every { any<Socket>().openReadChannel() } answers { sendChannel }
+            every { any<Socket>().openWriteChannel() } answers { readChannel }
+
             SelectorManager(testDispatcher).use { selector ->
                 aSocket(selector).tcp().bind(loopbackAddress, port).use { server ->
                     lateinit var socket: Socket
@@ -173,6 +182,9 @@ class ArtemisNetworkInterfaceTest :
                     }
 
                     it("Can reconnect") {
+                        readChannel = ByteChannel()
+                        sendChannel = ByteChannel()
+
                         eventually(5.seconds) {
                             val connectDeferred =
                                 async(testDispatcher) {
@@ -189,9 +201,6 @@ class ArtemisNetworkInterfaceTest :
                             client.start()
                         }
                     }
-
-                    val sendChannel = socket.openWriteChannel()
-                    val readChannel = socket.openReadChannel()
 
                     suspend fun PacketTestFixture.Server<*>.testClient(
                         packetClass: KClass<out Packet.Server>,
