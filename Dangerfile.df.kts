@@ -38,9 +38,11 @@ danger(args) {
         val prSha = pullRequest.head.sha
         val baseSha = pullRequest.base.sha
 
+        val whitespace = Regex("\\s+")
+
         baselineFiles.forEach { path ->
             val stats = utils.exec("git", listOf("diff", "--numstat", baseSha, prSha, path))
-            val additions = stats.substringBefore(' ').toInt()
+            val additions = stats.split(whitespace).first().toInt()
             if (additions > 0) {
                 warn(":warning: Detekt warnings added to [$path]($repoURL/blob/$prSha/$path)")
             }
