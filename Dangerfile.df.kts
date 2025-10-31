@@ -34,12 +34,14 @@ danger(args) {
     val baselineFiles = allModifiedFiles.filter { baselineRegex.containsMatchIn(it) }.distinct()
 
     onGitHub {
+        val repoURL = pullRequest.base.repo.htmlURL
+        val prSha = pullRequest.head.sha
+        val baseSha = pullRequest.base.sha
+
         baselineFiles.forEach { path ->
-            val stats = utils.exec("git", listOf("diff", "--numstat", path))
+            val stats = utils.exec("git", listOf("diff", "--numstat", baseSha, prSha, path))
             val additions = stats.substringBefore(' ').toInt()
             if (additions > 0) {
-                val repoURL = pullRequest.base.repo.htmlURL
-                val prSha = pullRequest.head.sha
                 warn(":warning: Detekt warnings added to [$path]($repoURL/blob/$prSha/$path)")
             }
         }
