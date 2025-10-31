@@ -45,30 +45,33 @@ jobs:
         sarif_file: ${{ github.workspace }}/detekt.sarif.json
         checkout_path: ${{ github.workspace }}
 
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # v1.267.0
+    - name: Android Lint
+      uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3.0.1
       with:
-        bundler-cache: true
+        arguments: lint
 
-    - name: Run Rubocop
-      run: |
-        bash -c "
-          bundle exec rubocop --require code_scanning --format CodeScanning::SarifFormatter -o rubocop.sarif
-          [[ $? -ne 2 ]]
-        "
+    - name: Report
+      uses: hidakatsuya/action-report-android-lint@36d1f5452bbcf1b425e6db2ab59d7ad4d23ff8a4 # v1.2.3
+      with:
+        result-path: app/**/reports/lint-results-debug.xml
+        fail-on-warning: false
 
-    - name: Upload Rubocop SARIF report
+    - name: Upload app SARIF report
       uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v4.31.2
       with:
-        sarif_file: ${{ github.workspace }}/rubocop.sarif
+        sarif_file: ${{ github.workspace }}/app/build/reports/lint-results-debug.sarif
         checkout_path: ${{ github.workspace }}
+        category: "android-lint"
+
+    - name: Upload Konsist SARIF report
+      uses: github/codeql-action/upload-sarif@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
+      with:
+        sarif_file: ${{ github.workspace }}/app/konsist/build/reports/lint-results-debug.sarif
+        checkout_path: ${{ github.workspace }}
+        category: "konsist"
 
     - name: Run Danger
       if: github.event_name == 'pull_request'
-      uses: MeilCli/danger-action@e20de68db0ecc585921e2c2461c2e573642c1a4f # v6.0.39
-      with:
-        plugins_file: "Gemfile"
-        danger_file: "Dangerfile"
-        danger_id: "danger-pr"
+      uses: danger/kotlin@92d2ac8aae985fe162c88b02d641a9fa9bac81cf # 1.3.3
       env:
-        DANGER_GITHUB_API_TOKEN: ${{ secrets.DANGER_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.DANGER_TOKEN }}
