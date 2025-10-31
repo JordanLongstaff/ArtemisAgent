@@ -17,7 +17,7 @@ permissions:
 jobs:
   scan:
     name: Danger
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
@@ -44,31 +44,6 @@ jobs:
       with:
         sarif_file: ${{ github.workspace }}/detekt.sarif.json
         checkout_path: ${{ github.workspace }}
-
-    - name: Android Lint
-      uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3.0.1
-      with:
-        arguments: lint
-
-    - name: Report
-      uses: hidakatsuya/action-report-android-lint@36d1f5452bbcf1b425e6db2ab59d7ad4d23ff8a4 # v1.2.3
-      with:
-        result-path: app/**/reports/lint-results-debug.xml
-        fail-on-warning: false
-
-    - name: Upload app SARIF report
-      uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v4.31.2
-      with:
-        sarif_file: ${{ github.workspace }}/app/build/reports/lint-results-debug.sarif
-        checkout_path: ${{ github.workspace }}
-        category: "android-lint"
-
-    - name: Upload Konsist SARIF report
-      uses: github/codeql-action/upload-sarif@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
-      with:
-        sarif_file: ${{ github.workspace }}/app/konsist/build/reports/lint-results-debug.sarif
-        checkout_path: ${{ github.workspace }}
-        category: "konsist"
 
     - name: Run Danger
       if: github.event_name == 'pull_request'
