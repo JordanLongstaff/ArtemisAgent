@@ -1,17 +1,14 @@
-@file:DependsOn("com.gianluz:danger-kotlin-android-lint-plugin:0.1.0")
 @file:DependsOn("io.github.ackeecz:danger-kotlin-detekt:0.1.4")
 
-import com.gianluz.dangerkotlin.androidlint.AndroidLint
 import io.github.ackeecz.danger.detekt.DetektPlugin
 import java.io.File
 import systems.danger.kotlin.danger
+import systems.danger.kotlin.linesOfCode
 import systems.danger.kotlin.onGitHub
 import systems.danger.kotlin.register
 import systems.danger.kotlin.warn
 
 register plugin DetektPlugin
-
-register plugin AndroidLint
 
 danger(args) {
     val maxLines = 500
@@ -25,7 +22,12 @@ danger(args) {
         }
     }
 
-    warnDetekt()
+    val detektReport = File("detekt.xml")
+    if (detektReport.exists()) {
+        DetektPlugin.parseAndReport(detektReport)
+    } else {
+        warn(":see_no_evil: No detekt report found")
+    }
 
     val baselineRegex = Regex("([A-Za-z]+/)*detekt-baseline(-[A-Za-z]+)*\\.xml")
     val allModifiedFiles = git.modifiedFiles + git.createdFiles
@@ -42,9 +44,6 @@ danger(args) {
             }
         }
     }
-
-    AndroidLint.report("app/build/reports/lint-results-debug.xml")
-    AndroidLint.report("app/konsist/build/reports/lint-results-debug.xml")
 
     val ianSrcRegex = Regex("IAN/([A-Za-z]+/)*src/(main|test|testFixtures)/")
     val ianSrcChanges =
@@ -63,13 +62,4 @@ danger(args) {
     mainOnly.forEach { path ->
         warn(":test_tube: Source files at $path were modified without also modifying tests")
     }
-}
-
-fun warnDetekt() {
-    val detektReport = File("build/reports/detekt/detekt.sarif")
-    if (!detektReport.exists()) {
-        warn(":see_no_evil: No detekt report found")
-        return
-    }
-    DetektPlugin.parseAndReport(detektReport)
 }
