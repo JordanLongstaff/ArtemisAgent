@@ -235,6 +235,7 @@
         android:layout_height="wrap_content"
         android:textOff="@string/off"
         android:textOn="@string/on"
+        android:filterTouchesWhenObscured="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/showTauntStatusDivider" />

@@ -52,6 +52,7 @@ ksp = "2.3.0"
 ktfmt = "0.25.0"
 ktor = "3.3.1"
 leakcanary = "2.14"
+lint-security = "1.0.3"
 markwon = "4.6.2"
 material = "1.13.0"
 mockk = "1.14.6"
@@ -123,6 +124,8 @@ multidex = { module = "androidx.multidex:multidex", version.ref = "androidx-mult
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidx-recyclerview" }
 
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
+lint-security = { module = "com.android.security.lint:lint", version.ref = "lint-security" }
 
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
