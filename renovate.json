@@ -49,11 +49,6 @@
       "groupName": "Arcmutate plugins",
       "matchDepNames": ["/^com\\.arcmutate/"],
       "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{#if (containsString depName 'kotlin')}}kotlin{{else if (containsString depName 'git')}}git{{else}}base{{/if}}-plugin.html"
-    },
-    {
-      "groupName": "ruby",
-      "matchSourceUrls": ["https://github.com/ruby/ruby", "https://github.com/ruby/setup-ruby"],
-      "commitMessageExtra": "to {{upgrades.0.newVersion}}"
     }
   ],
   "customManagers": [
