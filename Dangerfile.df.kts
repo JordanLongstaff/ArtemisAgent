@@ -42,6 +42,7 @@ danger(args) {
 
         baselineFiles.forEach { path ->
             val stats = utils.exec("git", listOf("diff", "--numstat", baseSha, prSha, path))
+            if (stats.isBlank()) return@forEach
             val additions = stats.split(whitespace).first().toInt()
             if (additions > 0) {
                 warn(":warning: Detekt warnings added to [$path]($repoURL/blob/$prSha/$path)")
