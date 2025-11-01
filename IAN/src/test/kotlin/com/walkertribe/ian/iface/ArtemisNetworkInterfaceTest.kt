@@ -75,6 +75,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
+import io.kotest.property.PropertyTesting
 import io.kotest.property.arbitrary.Codepoint
 import io.kotest.property.arbitrary.alphanumeric
 import io.kotest.property.arbitrary.choose
@@ -594,15 +595,20 @@ class ArtemisNetworkInterfaceTest :
                     }
 
                     describe("Closes on unsupported version") {
+                        val iterations = PropertyTesting.defaultIterationCount / 2
+
                         val unsupportedTestCases =
                             listOf(
                                 "Too old" to
-                                    Arb.choose(3 to Arb.version(2, 0..2), 997 to Arb.version(0..1)),
+                                    Arb.choose(
+                                        3 to Arb.version(2, 0..2),
+                                        iterations - 3 to Arb.version(0..1),
+                                    ),
                                 "Beyond latest version" to
                                     Arb.choose(
                                         1 to Arb.version(2, 8, Arb.int(min = 2)),
                                         9 to Arb.version(2, Arb.int(min = 9)),
-                                        990 to Arb.version(Arb.int(min = 3)),
+                                        iterations - 10 to Arb.version(Arb.int(min = 3)),
                                     ),
                             )
 
@@ -632,7 +638,7 @@ class ArtemisNetworkInterfaceTest :
                                 val versionFixture = VersionPacketFixture(versionArb)
                                 val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
-                                versionFixture.generator.checkAll { data ->
+                                versionFixture.generator.checkAll(iterations = iterations) { data ->
                                     val version = data.packetVersion
 
                                     collect(
@@ -700,7 +706,7 @@ class ArtemisNetworkInterfaceTest :
                             TestListener.clear()
 
                             socket.openWriteChannel().use {
-                                versionFixture.generator.checkAll { data ->
+                                versionFixture.generator.checkAll(iterations = iterations) { data ->
                                     writePacketWithHeader(
                                         TestPacketTypes.CONNECTED,
                                         data.buildPayload(),
