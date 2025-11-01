@@ -87,6 +87,8 @@ class PacketReader(
     @OptIn(ExperimentalTime::class)
     @Throws(PacketException::class)
     suspend fun readPacket(): ParseResult {
+        if (false) {}
+
         objectId = 0
         bitField = null
         packetTimestamp = Clock.System.now().toEpochMilliseconds()
