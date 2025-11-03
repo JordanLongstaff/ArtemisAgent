@@ -5,6 +5,7 @@ import io.github.ackeecz.danger.detekt.DetektPlugin
 import java.io.File
 import systems.danger.kotlin.Danger
 import systems.danger.kotlin.danger
+import systems.danger.kotlin.rules.applyRules
 import systems.danger.kotlin.warn
 
 Danger register DetektPlugin
