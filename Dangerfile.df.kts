@@ -2,6 +2,7 @@
 
 import io.github.ackeecz.danger.detekt.DetektPlugin
 import java.io.File
+import systems.danger.kotlin.Danger
 import systems.danger.kotlin.danger
 import systems.danger.kotlin.diffForFile
 import systems.danger.kotlin.linesOfCode
@@ -9,7 +10,7 @@ import systems.danger.kotlin.onGitHub
 import systems.danger.kotlin.register
 import systems.danger.kotlin.warn
 
-register plugin DetektPlugin
+Danger register DetektPlugin
 
 danger(args) {
     val maxLines = 500
