@@ -7,7 +7,6 @@ import systems.danger.kotlin.danger
 import systems.danger.kotlin.diffForFile
 import systems.danger.kotlin.linesOfCode
 import systems.danger.kotlin.onGitHub
-import systems.danger.kotlin.register
 import systems.danger.kotlin.warn
 
 Danger register DetektPlugin
