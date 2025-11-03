@@ -1,4 +1,3 @@
-import systems.danger.kotlin.message
 import systems.danger.kotlin.rules.RuleResult
 import systems.danger.kotlin.rules.rule
 import systems.danger.kotlin.warn
@@ -6,9 +5,6 @@ import systems.danger.kotlin.warn
 rule(id = "main-no-tests") {
     val ianSrcRegex = Regex("IAN/([A-Za-z]+/)*src/(main|test|testFixtures)/")
     val allModifiedFiles = git.modifiedFiles + git.createdFiles
-
-    message("All modified files: ${allModifiedFiles.joinToString(", ")}")
-
     val ianSrcChanges =
         allModifiedFiles
             .filter { ianSrcRegex.containsMatchIn(it) }
