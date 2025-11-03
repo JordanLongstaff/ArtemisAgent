@@ -2,6 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>EmptyIfBlock:PacketReader.kt$PacketReader${}</ID>
     <ID>ReturnCount:PacketReader.kt$PacketReader$@OptIn(ExperimentalTime::class) @Throws(PacketException::class) suspend fun readPacket(): ParseResult</ID>
     <ID>TooManyFunctions:PacketReader.kt$PacketReader : KoinComponent</ID>
   </CurrentIssues>
