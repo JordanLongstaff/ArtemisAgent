@@ -3,6 +3,7 @@
 import io.github.ackeecz.danger.detekt.DetektPlugin
 import java.io.File
 import systems.danger.kotlin.danger
+import systems.danger.kotlin.diffForFile
 import systems.danger.kotlin.linesOfCode
 import systems.danger.kotlin.onGitHub
 import systems.danger.kotlin.register
@@ -36,18 +37,10 @@ danger(args) {
     onGitHub {
         val repoURL = pullRequest.base.repo.htmlURL
         val prSha = pullRequest.head.sha
-        val baseSha = pullRequest.base.sha
-
-        val whitespace = Regex("\\s+")
 
         baselineFiles.forEach { path ->
-            val stats = utils.exec("git", listOf("diff", "--numstat", baseSha, prSha, path))
-            if (stats.isBlank()) {
-                warn("Could not fetch diff stats for $path\n**git diff --numstat $baseSha $prSha $path**")
-                return@forEach
-            }
-            val additions = stats.split(whitespace).first().toInt()
-            if (additions > 0) {
+            val additions = git.diffForFile(path).additions
+            if (additions.isNotEmpty()) {
                 warn(":warning: Detekt warnings added to [$path]($repoURL/blob/$prSha/$path)")
             }
         }
