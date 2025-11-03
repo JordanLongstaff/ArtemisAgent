@@ -13,7 +13,7 @@ rule(id = "baselines") {
     message(
         """
         All modified files:
-        ${allModifiedFiles.joinToString("\n") { "$it ${git.diffForFile(it).additions.size}" }}
+        ${allModifiedFiles.joinToString("\n") { "$it ${git.diffForFile(it)}" }}
     """
             .trimIndent()
     )
@@ -23,9 +23,8 @@ rule(id = "baselines") {
         val prSha = pullRequest.head.sha
 
         baselineFiles.forEach { path ->
-            val additions = git.diffForFile(path).additions.size
-            message("Detekt baseline file: $path with $additions additions")
-            if (additions > 0) {
+            val additions = git.diffForFile(path).additions
+            if (additions.isNotEmpty()) {
                 warn(":warning: Detekt warnings added to [$path]($repoURL/blob/$prSha/$path)")
             }
         }
