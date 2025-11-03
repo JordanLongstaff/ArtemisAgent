@@ -169,6 +169,8 @@ dependencies {
     }
 
     coreLibraryDesugaring(libs.desugaring)
+
+    lintChecks(libs.lint.security)
 }
 
 detekt {
