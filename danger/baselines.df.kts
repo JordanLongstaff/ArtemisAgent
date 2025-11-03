@@ -1,4 +1,5 @@
 import systems.danger.kotlin.diffForFile
+import systems.danger.kotlin.message
 import systems.danger.kotlin.onGitHub
 import systems.danger.kotlin.rules.RuleResult
 import systems.danger.kotlin.rules.rule
@@ -14,6 +15,7 @@ rule(id = "baselines") {
         val prSha = pullRequest.head.sha
 
         baselineFiles.forEach { path ->
+            message("Detekt baseline file: $path")
             val additions = git.diffForFile(path).additions
             if (additions.isNotEmpty()) {
                 warn(":warning: Detekt warnings added to [$path]($repoURL/blob/$prSha/$path)")
