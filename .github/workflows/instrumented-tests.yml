@@ -74,7 +74,7 @@ jobs:
 
       - name: Download AdbServer JAR
         id: download
-        uses: suisei-cn/actions-download-file@818d6b7dc8fe73f2f924b6241f2b1134ca1377d9 # 1.6.0
+        uses: suisei-cn/actions-download-file@9f75b8c2dad5ccced7509c44a3b881c5613abde2 # 1.6.1
         with:
           url: https://github.com/KasperskyLab/Kaspresso/blob/master/artifacts/adbserver-desktop.jar
           target: ${{ github.workspace }}/app/adbserver-desktop.jar
@@ -84,14 +84,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
-      - name: Allow access to JAR file
-        run: chmod +x ${{ steps.download.outputs.filename }}
-
       - name: Run AdbServer
         uses: JarvusInnovations/background-action@v1.0.7
         with:
-          run: java -jar ${{ steps.download.outputs.filename }}
-          wait-on: file:${{ steps.download.outputs.filename }}
+          run: java -jar ${{ github.workspace }}/app/adbserver-desktop.jar
+          wait-on: file:${{ github.workspace }}/app/adbserver-desktop.jar
 
       - name: Run tests on API ${{ matrix.api-level }}
         uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
