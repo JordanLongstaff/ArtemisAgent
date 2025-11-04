@@ -55,6 +55,7 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
+import com.google.firebase.perf.performance
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.jakewharton.processphoenix.ProcessPhoenix
@@ -932,6 +933,10 @@ class MainActivity : AppCompatActivity() {
         viewModel.viewModelScope.launch(
             CoroutineExceptionHandler { _, _ -> checkType.createAlert(this@MainActivity)?.show() }
         ) {
+            val updateFetchTrace = Firebase.performance.newTrace("update_check")
+            updateFetchTrace.putAttribute("check_type", checkType.name)
+            updateFetchTrace.start()
+
             val maxVersionFetch =
                 Firebase.remoteConfig
                     .fetchAndActivate()
@@ -941,6 +946,14 @@ class MainActivity : AppCompatActivity() {
 
             val maxVersion = maxVersionFetch.await()
             val updateInfo = updateInfoFetch.await()
+
+            if (updateInfo != null) {
+                updateFetchTrace.incrementMetric("update_available", 1)
+            } else {
+                updateFetchTrace.incrementMetric("update_not_available", 1)
+            }
+
+            updateFetchTrace.stop()
 
             viewModel.maxVersion = maxVersion
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
