@@ -187,6 +187,7 @@
         android:id="@+id/enableHapticsButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:filterTouchesWhenObscured="true"
         android:textOff="@string/off"
         android:textOn="@string/on"
         app:layout_constraintEnd_toEndOf="parent"

@@ -64,7 +64,7 @@ jobs:
           arguments: build koverXmlReport
 
       - name: Upload Unit Test Results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: always()
         with:
           name: Unit Test Results
@@ -73,7 +73,7 @@ jobs:
             !${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
 
       - name: Upload Konsist Test Results
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: always()
         with:
           name: Konsist Test Results
@@ -81,7 +81,7 @@ jobs:
             ${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
 
       - name: Upload Code Coverage Reports
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: always()
         with:
           name: Code Coverage Reports
@@ -127,25 +127,25 @@ jobs:
       pull-requests: write
     steps:
       - name: Download Unit Test Results
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: Unit Test Results
           path: tests
 
       - name: Download Konsist Test Results
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: Konsist Test Results
           path: konsist
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2.20.0
+        uses: EnricoMi/publish-unit-test-result-action/linux@34d7c956a59aed1bfebf31df77b8de55db9bbaaf # v2.21.0
         with:
           check_name: Unit Test Results
           files: tests/**/*.xml
 
       - name: Publish Konsist Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2.20.0
+        uses: EnricoMi/publish-unit-test-result-action/linux@34d7c956a59aed1bfebf31df77b8de55db9bbaaf # v2.21.0
         if: always()
         with:
           check_name: Konsist Test Results
@@ -173,7 +173,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Download Code Coverage Reports
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: Code Coverage Reports
           path: coverage
@@ -197,7 +197,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Download Code Coverage Reports
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: Code Coverage Reports
           path: coverage

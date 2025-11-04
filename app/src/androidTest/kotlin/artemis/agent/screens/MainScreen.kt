@@ -34,7 +34,10 @@ object MainScreen : KScreen<MainScreen>() {
     ) {
         this@MainScreen {
             step("Accept permissions") { acceptPermissions(device) }
-            step("Dismiss changelog") { pressBack() }
+            step("Dismiss changelog") {
+                alertDialog.isCompletelyDisplayed()
+                pressBack()
+            }
             test()
             if (backButtonShouldCloseApp)
                 step("Back button should close the app") { assertCloseOnBackButton() }

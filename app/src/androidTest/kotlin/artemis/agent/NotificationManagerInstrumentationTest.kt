@@ -14,15 +14,15 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = Build.VERSION_CODES.O)
 @LargeTest
-class NotificationManagerTest {
+class NotificationManagerInstrumentationTest {
     @Before
     fun beforeEach() {
-        NotificationManager(context).reset()
+        notificationManager.reset()
     }
 
     @Test
     fun channelGroupsTest() {
-        val channelGroups = notificationManager.notificationChannelGroupsCompat
+        val channelGroups = notificationManager.manager.notificationChannelGroupsCompat
         Assert.assertEquals(groups.size, channelGroups.size)
 
         val groupMap = groups.associateBy { it.id }
@@ -38,7 +38,7 @@ class NotificationManagerTest {
 
     @Test
     fun channelsTest() {
-        val channels = notificationManager.notificationChannelsCompat
+        val channels = notificationManager.manager.notificationChannelsCompat
         val testChannels = groups.flatMap { group -> group.channels.map { it to group.id } }
         Assert.assertEquals(testChannels.size, channels.size)
 
@@ -62,7 +62,7 @@ class NotificationManagerTest {
             }
         }
 
-        val notificationManager by lazy { NotificationManagerCompat.from(context) }
+        val notificationManager by lazy { NotificationManager(context) }
 
         val groups by lazy {
             listOf(

@@ -77,6 +77,19 @@ class MissionManager(private val viewModel: AgentViewModel) {
         )
     }
 
+    fun purgeCompletedMissions(currentTime: Long) {
+        if (!enabled || !autoDismissCompletedMissions) return
+        allMissions.removeAll(allMissions.filter { it.completionTimestamp < currentTime }.toSet())
+    }
+
+    fun getMissionsForPlayer(playerName: String?): List<SideMissionEntry> =
+        if (!enabled) emptyList()
+        else
+            allMissions.filter { mission ->
+                displayedRewards.any { reward -> mission.rewards[reward.ordinal] > 0 } &&
+                    (!mission.isStarted || mission.associatedShipName == playerName)
+            }
+
     fun updateFromSettings(settings: UserSettings) {
         enabled = settings.missionsEnabled
         reconcile(
