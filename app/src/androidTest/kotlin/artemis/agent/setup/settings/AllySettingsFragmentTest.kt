@@ -67,6 +67,7 @@ class AllySettingsFragmentTest : TestCase() {
                 val alliesEnabled = AtomicBoolean()
                 val showingDestroyed = AtomicBoolean()
                 val manuallyReturning = AtomicBoolean()
+                val recapsEnabled = AtomicBoolean()
 
                 val sortByClassFirst = AtomicBoolean()
                 val sortByEnergy = AtomicBoolean()
@@ -88,6 +89,7 @@ class AllySettingsFragmentTest : TestCase() {
                         alliesEnabled.lazySet(viewModel.alliesEnabled)
                         showingDestroyed.lazySet(viewModel.showAllySelector)
                         manuallyReturning.lazySet(viewModel.manuallyReturnFromCommands)
+                        recapsEnabled.lazySet(viewModel.recapsEnabled)
                     }
                 }
 
@@ -96,6 +98,7 @@ class AllySettingsFragmentTest : TestCase() {
                 val enabled = alliesEnabled.get()
                 val showDestroyed = showingDestroyed.get()
                 val manualReturn = manuallyReturning.get()
+                val recaps = recapsEnabled.get()
 
                 val sortMethods =
                     SortMethods(
@@ -112,6 +115,7 @@ class AllySettingsFragmentTest : TestCase() {
                         showingDestroyed = showDestroyed,
                         manuallyReturning = manualReturn,
                         sortMethods = sortMethods,
+                        recapsEnabled = recaps,
                     )
                 )
             }
@@ -123,6 +127,7 @@ class AllySettingsFragmentTest : TestCase() {
         val showingDestroyed: Boolean,
         val manuallyReturning: Boolean,
         val sortMethods: SortMethods,
+        val recapsEnabled: Boolean,
     )
 
     private data class SortMethods(
@@ -156,6 +161,7 @@ class AllySettingsFragmentTest : TestCase() {
                 shouldTestSortMethods = testSortMethods,
                 showingDestroyed = data.showingDestroyed,
                 manuallyReturning = data.manuallyReturning,
+                recapsEnabled = data.recapsEnabled,
             )
 
             step("Close submenu") {
@@ -173,12 +179,13 @@ class AllySettingsFragmentTest : TestCase() {
             shouldTestSortMethods: Boolean,
             showingDestroyed: Boolean,
             manuallyReturning: Boolean,
+            recapsEnabled: Boolean,
         ) {
             testAllySubMenuSortMethods(sortMethods, shouldTestSortMethods)
 
             step("Test single toggle settings") {
                 SettingsPageScreen.Allies.singleToggleSettings
-                    .zip(listOf(showingDestroyed, manuallyReturning))
+                    .zip(listOf(showingDestroyed, recapsEnabled, manuallyReturning))
                     .forEach { (setting, isChecked) -> setting.testSingleToggle(isChecked) }
             }
         }

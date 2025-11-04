@@ -7,7 +7,5 @@ gem "danger"
 gem "danger-android_lint"
 gem "danger-detekt-instacart"
 gem "danger-lgtm"
-gem "fastlane"
+gem "danger-rubocop"
 gem "rubocop", require: false
-
-eval_gemfile("fastlane/Pluginfile")

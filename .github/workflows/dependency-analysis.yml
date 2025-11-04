@@ -1,0 +1,62 @@
+name: Dependency Analysis
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+
+jobs:
+  analysis:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Generate secret files
+        run: |
+          echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d > ${{ github.workspace }}/app/google-services.json
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          java-version-file: .tool-versions
+          distribution: 'temurin'
+
+      # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
+      # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+
+      - name: Run dependency analysis
+        uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3.0.1
+        with:
+          arguments: buildHealth
+
+      - name: Check report
+        id: check-build-health
+        run: |
+          echo -n "output=" >> "$GITHUB_OUTPUT"
+          if [ -s build/reports/dependency-analysis/build-health-report.txt ]; then
+            cat build/reports/dependency-analysis/build-health-report.txt | tee -a "$GITHUB_STEP_SUMMARY" | tee -a "$GITHUB_OUTPUT"
+            exit 1
+          else
+            echo "No dependency violations found. :+1:" | tee -a "$GITHUB_STEP_SUMMARY" | tee -a "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report health status
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
+        with:
+          message: ${{ steps.check-build-health.outputs.output }}
+          comment-tag: dependency-analysis

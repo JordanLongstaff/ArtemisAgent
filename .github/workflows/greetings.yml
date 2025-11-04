@@ -10,8 +10,8 @@ jobs:
       pull-requests: write
     if: ${{ !endsWith(github.actor, '[bot]') }}
     steps:
-    - uses: actions/first-interaction@753c925c8d1ac6fede23781875376600628d9b5d # v3
+    - uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: "Welcome! Thanks for logging an issue. I will attempt to resolve it as soon as possible. If you have a solution in mind, feel free to create a pull request."
-        pr-message: "Welcome! Thanks for creating a pull request. All pull requests must pass checks and be approved before merging."
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        issue_message: "Welcome! Thanks for logging an issue. I will attempt to resolve it as soon as possible. If you have a solution in mind, feel free to create a pull request."
+        pr_message: "Welcome! Thanks for creating a pull request. All pull requests must pass checks and be approved before merging."

@@ -33,12 +33,20 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
                 binding.allySortingEnergyButton to UserSettingsKt.Dsl::allySortEnergyFirst,
             )
 
-        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
-            binding.showDestroyedAlliesButton.isChecked = it.showDestroyedAllies
-            binding.manuallyReturnButton.isChecked = it.allyCommandManualReturn
+        val allyToggleButtons =
+            mapOf(
+                binding.showDestroyedAlliesButton to UserSettingsKt.Dsl::showDestroyedAllies,
+                binding.manuallyReturnButton to UserSettingsKt.Dsl::allyCommandManualReturn,
+                binding.enableRecapsButton to UserSettingsKt.Dsl::allyRecapsEnabled,
+            )
 
+        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
             it.copy {
                 allySortMethodButtons.entries.forEach { (button, setting) ->
+                    button.isChecked = setting.get(this)
+                }
+
+                allyToggleButtons.entries.forEach { (button, setting) ->
                     button.isChecked = setting.get(this)
                 }
             }
@@ -49,7 +57,7 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
 
         prepareAllySortMethodButtons(allySortMethodButtons)
         prepareDefaultSortMethodButton(allySortMethodButtons)
-        prepareOtherSettingButtons()
+        bindToggleSettingButtons(allyToggleButtons)
     }
 
     private fun prepareAllySortMethodButtons(allySortMethodButtons: ToggleButtonMap) {
@@ -113,29 +121,18 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
         }
     }
 
-    private fun prepareOtherSettingButtons() {
-        binding.showDestroyedAlliesButton.setOnClickListener {
-            viewModel.activateHaptic()
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.manuallyReturnButton.setOnClickListener {
-            viewModel.activateHaptic()
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.showDestroyedAlliesButton.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.viewModelScope.launch {
-                binding.root.context.userSettings.updateData {
-                    it.copy { showDestroyedAllies = isChecked }
-                }
+    private fun bindToggleSettingButtons(allyToggleButtons: ToggleButtonMap) {
+        allyToggleButtons.entries.forEach { (button, setting) ->
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
             }
-        }
 
-        binding.manuallyReturnButton.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.viewModelScope.launch {
-                binding.root.context.userSettings.updateData {
-                    it.copy { allyCommandManualReturn = isChecked }
+            button.setOnCheckedChangeListener { _, isChecked ->
+                viewModel.viewModelScope.launch {
+                    binding.root.context.userSettings.updateData {
+                        it.copy { setting.set(this, isChecked) }
+                    }
                 }
             }
         }

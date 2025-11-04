@@ -59,12 +59,12 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.retry
 import io.kotest.assertions.throwables.shouldNotThrowAnyUnit
-import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSameSizeAs
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -75,6 +75,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.property.Arb
+import io.kotest.property.PropertyTesting
 import io.kotest.property.arbitrary.Codepoint
 import io.kotest.property.arbitrary.alphanumeric
 import io.kotest.property.arbitrary.choose
@@ -92,8 +93,10 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.readByteArray
 import io.mockk.clearAllMocks
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.unmockkAll
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.minutes
@@ -106,7 +109,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.withTimeout
 import kotlinx.io.IOException
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalKotest::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class ArtemisNetworkInterfaceTest :
     DescribeSpec({
         failfast = true
@@ -119,7 +122,7 @@ class ArtemisNetworkInterfaceTest :
             unmockkAll()
         }
 
-        describe("ArtemisNetworkInterface").config(timeout = 15.minutes) {
+        describe("ArtemisNetworkInterface") {
             val loopbackAddress = "127.0.0.1"
             val port = 2010
             val testTimeout = 1.minutes
@@ -447,13 +450,18 @@ class ArtemisNetworkInterfaceTest :
                         client.parseResultDispatchJob.cancelAndJoin()
                         client.connectionListenerJob.cancelAndJoin()
 
+                        val mockPacket = mockk<WelcomePacket>()
+
                         client.sendingChannel.send(HeartbeatPacket.Client)
                         client.parseResultsChannel.send(
-                            ParseResult.Success(mockk<WelcomePacket>(), ParseResult.Skip)
+                            ParseResult.Success(mockPacket, ParseResult.Skip)
                         )
                         client.connectionEventChannel.send(ConnectionEvent.Success(""))
 
                         client.stop()
+
+                        clearMocks(mockPacket)
+                        unmockkAll()
 
                         eventually(1.seconds) {
                             TestListener.calls<ConnectionEvent.Disconnect>().shouldBeSingleton {
@@ -554,6 +562,9 @@ class ArtemisNetworkInterfaceTest :
                             cause.shouldBeInstanceOf<DisconnectCause.UnknownError>()
                         },
                     ) { (_, exception, testCause) ->
+                        val mockPacket =
+                            mockk<Packet.Client> { every { writeTo(any()) } throws exception }
+
                         eventually(testTimeout) {
                             val connectDeferred =
                                 async(testDispatcher) {
@@ -570,9 +581,7 @@ class ArtemisNetworkInterfaceTest :
                             client.start()
                             TestListener.clear()
 
-                            client.sendPacket(
-                                mockk<Packet.Client> { every { writeTo(any()) } throws exception }
-                            )
+                            client.sendPacket(mockPacket)
 
                             eventually(2.seconds) {
                                 assertSoftly {
@@ -581,57 +590,69 @@ class ArtemisNetworkInterfaceTest :
                                 }
                             }
                         }
+
+                        clearMocks(mockPacket)
                     }
 
                     describe("Closes on unsupported version") {
+                        val iterations = PropertyTesting.defaultIterationCount / 2
+
                         val unsupportedTestCases =
                             listOf(
                                 "Too old" to
-                                    Arb.choose(3 to Arb.version(2, 0..2), 997 to Arb.version(0..1)),
+                                    Arb.choose(
+                                        3 to Arb.version(2, 0..2),
+                                        iterations - 3 to Arb.version(0..1),
+                                    ),
                                 "Beyond latest version" to
                                     Arb.choose(
                                         1 to Arb.version(2, 8, Arb.int(min = 2)),
                                         9 to Arb.version(2, Arb.int(min = 9)),
-                                        990 to Arb.version(Arb.int(min = 3)),
+                                        iterations - 10 to Arb.version(Arb.int(min = 3)),
                                     ),
                             )
 
                         val versions = mutableListOf<Version>()
 
-                        withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb) ->
-                            val versionFixture = VersionPacketFixture(versionArb)
-                            val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
+                        val spyClient = spyk(client)
+                        every { spyClient.isRunning } answers { spyClient.startTime != null }
+                        every { spyClient.stop() } answers { spyClient.dispatchDisconnect() }
 
-                            versionFixture.generator.checkAll(500) { data ->
-                                val version = data.packetVersion
-                                versions.add(version)
-
-                                collect(
-                                    when {
-                                        version.major < 2 -> "${version.major}.*"
-                                        version.major > 2 -> ">2.*"
-                                        version.minor < 3 -> "2.${version.minor}.*"
-                                        version.minor > 8 -> "2.9+"
-                                        else -> "2.8.2+"
-                                    }
+                        val connectDeferred =
+                            async(testDispatcher) {
+                                spyClient.connect(
+                                    host = loopbackAddress,
+                                    port = port,
+                                    timeoutMs = connectionTimeoutMs,
                                 )
+                            }
 
-                                val connectDeferred =
-                                    async(testDispatcher) {
-                                        client.connect(
-                                            host = loopbackAddress,
-                                            port = port,
-                                            timeoutMs = connectionTimeoutMs,
-                                        )
-                                    }
+                        socket.dispose()
+                        socket = server.accept()
+                        connectDeferred.await().shouldBeTrue()
+                        spyClient.start()
 
-                                socket.dispose()
-                                socket = server.accept()
-                                connectDeferred.await().shouldBeTrue()
-                                client.start()
-                                TestListener.clear()
+                        socket.openWriteChannel().use {
+                            withData(nameFn = { it.first }, unsupportedTestCases) { (_, versionArb)
+                                ->
+                                val versionFixture = VersionPacketFixture(versionArb)
+                                val disconnectEvents = mutableListOf<ConnectionEvent.Disconnect>()
 
-                                socket.openWriteChannel().use {
+                                versionFixture.generator.checkAll(iterations = iterations) { data ->
+                                    val version = data.packetVersion
+
+                                    collect(
+                                        when {
+                                            version.major < 2 -> "${version.major}.*"
+                                            version.major > 2 -> ">2.*"
+                                            version.minor < 3 -> "2.${version.minor}.*"
+                                            version.minor > 8 -> "2.9+"
+                                            else -> "2.8.2+"
+                                        }
+                                    )
+
+                                    TestListener.clear()
+
                                     writePacketWithHeader(
                                         TestPacketTypes.CONNECTED,
                                         data.buildPayload(),
@@ -647,18 +668,23 @@ class ArtemisNetworkInterfaceTest :
                                         }
                                         disconnectEvents += newEvents
                                     }
-                                }
-                            }
 
-                            disconnectEvents shouldHaveSize versions.size
-                            disconnectEvents.forEachIndexed { index, event ->
-                                event.cause
-                                    .shouldBeInstanceOf<DisconnectCause.UnsupportedVersion>()
-                                    .version shouldBeEqual versions[index]
+                                    versions.add(version)
+                                }
+
+                                disconnectEvents shouldBeSameSizeAs versions
+                                disconnectEvents.forEachIndexed { index, event ->
+                                    event.cause
+                                        .shouldBeInstanceOf<DisconnectCause.UnsupportedVersion>()
+                                        .version shouldBeEqual versions[index]
+                                }
+                                versions.clear()
+                                disconnectEvents.clear()
                             }
-                            versions.clear()
-                            disconnectEvents.clear()
                         }
+
+                        clearMocks(spyClient)
+                        spyClient.stop()
 
                         it("No upper bound in debug mode") {
                             val versionFixture =
@@ -680,7 +706,7 @@ class ArtemisNetworkInterfaceTest :
                             TestListener.clear()
 
                             socket.openWriteChannel().use {
-                                versionFixture.generator.checkAll { data ->
+                                versionFixture.generator.checkAll(iterations = iterations) { data ->
                                     writePacketWithHeader(
                                         TestPacketTypes.CONNECTED,
                                         data.buildPayload(),

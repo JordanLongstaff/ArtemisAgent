@@ -1,9 +1,7 @@
 package artemis.agent.setup.settings
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.RadioButton
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -207,12 +205,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
     }
 
     private fun clearFocus() {
-        with(
-            binding.root.context.getSystemService(Context.INPUT_METHOD_SERVICE)
-                as InputMethodManager
-        ) {
-            hideSoftInputFromWindow(binding.root.windowToken, 0)
-        }
+        viewModel.hideKeyboard(binding.root)
         binding.serverPortField.clearFocus()
         binding.addressLimitField.clearFocus()
     }

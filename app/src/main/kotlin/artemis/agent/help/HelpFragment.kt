@@ -9,8 +9,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.BackEventCompat
-import androidx.activity.OnBackPressedCallback
 import androidx.annotation.ArrayRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -22,6 +20,7 @@ import artemis.agent.AgentViewModel
 import artemis.agent.R
 import artemis.agent.databinding.HelpFragmentBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.BackPreview
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 
@@ -32,48 +31,36 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
     private val currentHelpTopicIndex: Int
         get() = viewModel.helpTopicIndex.value
 
+    private val backPreview by lazy {
+        object : BackPreview(false) {
+            private var currentTopicIndex: Int = MENU
+
+            override fun beforePreview() {
+                currentTopicIndex = viewModel.helpTopicIndex.value
+            }
+
+            override fun preview() {
+                viewModel.helpTopicIndex.value = MENU
+                binding.backPressAlpha.visibility = View.VISIBLE
+            }
+
+            override fun revert() {
+                viewModel.helpTopicIndex.value = currentTopicIndex
+                binding.backPressAlpha.visibility = View.GONE
+            }
+
+            override fun close() {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_1)
+                binding.backPressAlpha.visibility = View.GONE
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.settingsPage.value = null
-
-        val onBackPressedCallback =
-            object : OnBackPressedCallback(false) {
-                private var currentTopicIndex: Int = MENU
-
-                override fun handleOnBackStarted(backEvent: BackEventCompat) {
-                    currentTopicIndex = viewModel.helpTopicIndex.value
-                }
-
-                override fun handleOnBackProgressed(backEvent: BackEventCompat) {
-                    if (backEvent.progress > 0f) {
-                        viewModel.helpTopicIndex.value = MENU
-                        binding.backPressAlpha.visibility = View.VISIBLE
-                    } else {
-                        viewModel.helpTopicIndex.value = currentTopicIndex
-                        binding.backPressAlpha.visibility = View.GONE
-                    }
-                }
-
-                override fun handleOnBackCancelled() {
-                    onBackEnded()
-                }
-
-                override fun handleOnBackPressed() {
-                    viewModel.helpTopicIndex.value = MENU
-                    isEnabled = false
-                    onBackEnded()
-                }
-
-                private fun onBackEnded() {
-                    viewModel.activateHaptic()
-                    viewModel.playSound(SoundEffect.BEEP_1)
-                    binding.backPressAlpha.visibility = View.GONE
-                }
-            }
-
-        requireActivity()
-            .onBackPressedDispatcher
-            .addCallback(viewLifecycleOwner, onBackPressedCallback)
+        viewModel.backPreview = backPreview
 
         val helpTopicContent = binding.helpTopicContent
 
@@ -92,7 +79,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     helpTopics[index].initContents(resources)
                     layoutManager.spanCount = 1
                     binding.helpTopicTitle.setText(helpTopics[index].buttonLabel)
-                    onBackPressedCallback.isEnabled = true
+                    backPreview.isEnabled = true
                     View.VISIBLE
                 }
             arrayOf(binding.backButton, binding.helpTopicTitle, binding.helpTopicHeaderDivider)
@@ -100,11 +87,16 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
             @Suppress("NotifyDataSetChanged") adapter.notifyDataSetChanged()
         }
 
-        binding.backButton.setOnClickListener { onBackPressedCallback.handleOnBackPressed() }
+        binding.backButton.setOnClickListener { backPreview.handleOnBackPressed() }
 
         helpTopicContent.itemAnimator = null
         helpTopicContent.adapter = adapter
         helpTopicContent.layoutManager = layoutManager
+    }
+
+    override fun onResume() {
+        super.onResume()
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPreview)
     }
 
     private interface ViewProvider {

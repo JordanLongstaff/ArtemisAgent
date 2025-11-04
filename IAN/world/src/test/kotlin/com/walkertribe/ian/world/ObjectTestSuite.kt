@@ -193,10 +193,6 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
     open fun DescribeSpecContainerScope.describeMore(): Job? = null
 
-    data class ShieldStrength(val strength: Float, val maxStrength: Float)
-
-    data class Location(val x: Float, val y: Float, val z: Float)
-
     companion object {
         val X = Arb.numericFloat()
         val Y = Arb.numericFloat()
@@ -400,13 +396,8 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.shouldBeKnownObject(
                     id = obj.id,
                     type = objectType,
-                    name,
-                    x = location.x,
-                    y = location.y,
-                    z = location.z,
-                    hullId,
-                    shieldsFront = shields.strength,
-                    shieldsFrontMax = shields.maxStrength,
+                    baseData = location,
+                    shieldedData = BaseArtemisShieldedData(name, hullId, shieldsFront = shields),
                 )
             }
         }
@@ -610,13 +601,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun testKnownObject(obj: ArtemisBlackHole) {
-                obj.shouldBeKnownObject(
-                    id = obj.id,
-                    type = objectType,
-                    x = location.x,
-                    y = location.y,
-                    z = location.z,
-                )
+                obj.shouldBeKnownObject(id = obj.id, type = objectType, baseData = location)
             }
         }
 
@@ -744,13 +729,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun testKnownObject(obj: ArtemisCreature) {
-                obj.shouldBeKnownObject(
-                    id = obj.id,
-                    type = objectType,
-                    x = location.x,
-                    y = location.y,
-                    z = location.z,
-                )
+                obj.shouldBeKnownObject(id = obj.id, type = objectType, baseData = location)
 
                 obj.isNotTyphon shouldContainValue isNotTyphon
             }
@@ -884,13 +863,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             }
 
             override fun testKnownObject(obj: ArtemisMine) {
-                obj.shouldBeKnownObject(
-                    id = obj.id,
-                    type = objectType,
-                    x = location.x,
-                    y = location.y,
-                    z = location.z,
-                )
+                obj.shouldBeKnownObject(id = obj.id, type = objectType, baseData = location)
             }
         }
 
@@ -1078,17 +1051,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.shouldBeKnownObject(
                     id = obj.id,
                     type = objectType,
-                    name,
-                    x = location.x,
-                    y = location.y,
-                    z = location.z,
-                    hullId,
-                    shieldsFront = shields.first.strength,
-                    shieldsFrontMax = shields.first.maxStrength,
-                    shieldsRear = shields.second.strength,
-                    shieldsRearMax = shields.second.maxStrength,
-                    impulse,
-                    side,
+                    baseData = location,
+                    shieldedData =
+                        BaseArtemisShieldedData(name, hullId, shieldsFront = shields.first),
+                    shipData = BaseArtemisShipData(shieldsRear = shields.second, impulse, side),
                 )
 
                 obj.isEnemy shouldContainValue isEnemy
@@ -1533,17 +1499,10 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.shouldBeKnownObject(
                     id = obj.id,
                     type = objectType,
-                    name,
-                    x = location.x,
-                    y = location.y,
-                    z = location.z,
-                    hullId,
-                    shieldsFront = shields.first.strength,
-                    shieldsFrontMax = shields.first.maxStrength,
-                    shieldsRear = shields.second.strength,
-                    shieldsRearMax = shields.second.maxStrength,
-                    impulse,
-                    side,
+                    baseData = location,
+                    shieldedData =
+                        BaseArtemisShieldedData(name, hullId, shieldsFront = shields.first),
+                    shipData = BaseArtemisShipData(shieldsRear = shields.second, impulse, side),
                 )
 
                 obj.shipIndex shouldContainValue shipIndex
@@ -2138,3 +2097,5 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             )
     }
 }
+
+private typealias Location = BaseArtemisObjectData
