@@ -24,7 +24,6 @@ dependency-analysis = "3.1.0"
 desugar = "2.1.5"
 detekt = "1.23.8"
 espresso = "3.7.0"
-execfork = "0.2.0"
 firebase-bom = "34.4.0"
 git-hooks = "0.0.2"
 google-services = "4.4.4"
@@ -467,7 +466,6 @@ arcmutate = [
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 dependency-analysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependency-analysis" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
-execfork = { id = "com.github.psxpaul.execfork", version.ref = "execfork" }
 firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "perf-plugin" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }

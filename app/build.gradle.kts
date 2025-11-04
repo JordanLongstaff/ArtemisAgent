@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import com.github.psxpaul.task.ExecFork
 import java.io.FileInputStream
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -17,7 +16,6 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
     alias(libs.plugins.dependency.analysis)
-    alias(libs.plugins.execfork)
 }
 
 val appName = "Artemis Agent"
@@ -38,12 +36,6 @@ val changelog =
 
 val versionProperties =
     Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
-
-tasks.register<ExecFork>("startAdbServer") {
-    executable = "java"
-    args += listOf("-jar", "adbserver-desktop.jar")
-    workingDir = projectDir
-}
 
 android {
     namespace = appId
