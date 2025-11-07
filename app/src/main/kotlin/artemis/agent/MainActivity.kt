@@ -947,11 +947,10 @@ class MainActivity : AppCompatActivity() {
             val maxVersion = maxVersionFetch.await()
             val updateInfo = updateInfoFetch.await()
 
-            if (updateInfo != null) {
-                updateFetchTrace.incrementMetric("update_available", 1)
-            } else {
-                updateFetchTrace.incrementMetric("update_not_available", 1)
-            }
+            updateFetchTrace.incrementMetric(
+                "update_${updateInfo?.let { "" } ?: "not_"}available",
+                1,
+            )
 
             updateFetchTrace.stop()
 
