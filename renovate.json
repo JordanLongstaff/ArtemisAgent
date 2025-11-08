@@ -10,13 +10,6 @@
   "ignoreDeps": ["com.android.tools.build:gradle"],
   "packageRules": [
     {
-      "groupName": "kotlin and ksp",
-      "matchPackageNames": [
-        "/^org\\.jetbrains\\.kotlin[.:]/",
-        "/^com\\.google\\.devtools\\.ksp/"
-      ]
-    },
-    {
       "groupName": "firebase",
       "matchPackageNames": ["/^com\\.google\\.firebase/"],
       "changelogUrl": "https://firebase.google.com/support/release-notes/android#{{#if (containsString depName 'crashlytics')}}crashlytics_gradle_plugin{{/if}}{{#if (containsString depName 'perf')}}performance_gradle_plugin{{/if}}{{#if (containsString depName 'bom')}}bom{{/if}}_v{{{replace '\\.' '-' newVersion}}}"
