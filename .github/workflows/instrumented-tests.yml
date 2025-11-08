@@ -84,12 +84,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
-      - name: Run AdbServer
-        uses: JarvusInnovations/background-action@2428e7b970a846423095c79d43f759abf979a635 # v1.0.7
-        with:
-          run: java -jar ${{ github.workspace }}/app/adbserver-desktop.jar
-          wait-on: tcp:localhost:5037
-
       - name: Run tests on API ${{ matrix.api-level }}
         uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b # v2.35.0
         with:
@@ -99,6 +93,7 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-snapshot-save -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -skin ${{ matrix.orientation.skin }}
           disable-animations: true
+          pre-emulator-launch-script: java -jar ${{ github.workspace }}/app/adbserver-desktop.jar &
           script: ./gradlew connectedAndroidTest
 
       - name: Upload Test Results
