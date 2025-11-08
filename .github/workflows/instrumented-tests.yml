@@ -77,7 +77,7 @@ jobs:
         uses: suisei-cn/actions-download-file@9f75b8c2dad5ccced7509c44a3b881c5613abde2 # 1.6.1
         with:
           url: https://github.com/KasperskyLab/Kaspresso/blob/master/artifacts/adbserver-desktop.jar
-          target: ${{ github.workspace }}/app/adbserver-desktop.jar
+          target: ${{ github.workspace }}/app/
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
