@@ -87,6 +87,8 @@ class PacketReader(
     @OptIn(ExperimentalTime::class)
     @Throws(PacketException::class)
     suspend fun readPacket(): ParseResult {
+        if (false) {}
+
         objectId = 0
         bitField = null
         packetTimestamp = Clock.System.now().toEpochMilliseconds()
@@ -100,9 +102,9 @@ class PacketReader(
         // IAN wants certain packet types even if the code consuming IAN isn't
         // interested in them.
         payload = payloadPacket
-        return try {
+        try {
             // We need this packet
-            factory
+            return factory
                 ?.takeIf {
                     val factoryClass = it.factoryClass
 
@@ -135,9 +137,9 @@ class PacketReader(
         } catch (ex: PacketException) {
             // an exception occurred during payload parsing
             ex.appendParsingDetails(packetType, payload.readByteArray())
-            ParseResult.Fail(ex)
+            return ParseResult.Fail(ex)
         } catch (@Suppress("TooGenericExceptionCaught") ex: Exception) {
-            ParseResult.Fail(PacketException(ex, packetType, payload.readByteArray()))
+            return ParseResult.Fail(PacketException(ex, packetType, payload.readByteArray()))
         } finally {
             payload.close()
         }
