@@ -59,8 +59,10 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    lint.sarifReport = true
-    lintOptions.lintConfig = file("lint.xml")
+    lint {
+        lintConfig = file("lint.xml")
+        sarifReport = true
+    }
 
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
@@ -104,7 +106,7 @@ android {
     packaging.jniLibs.excludes.add("lib/*/libdatastore_shared_counter.so")
 
     applicationVariants.all {
-        val variant = name.substring(0, 1).uppercase() + name.substring(1)
+        val variant = name[0].uppercase() + name.substring(1)
         tasks.named("assemble$variant").dependsOn(":app:konsist:test${variant}UnitTest")
     }
 
