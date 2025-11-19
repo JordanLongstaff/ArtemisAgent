@@ -26,8 +26,10 @@ dependencies {
 
     testFixturesApi(projects.ian.listener)
     testFixturesApi(projects.ian.util)
+    testFixturesImplementation(platform(libs.kotest.bom))
     testFixturesImplementation(libs.bundles.ian.world.test.fixtures)
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
     testImplementation(libs.bundles.ian.world.test)

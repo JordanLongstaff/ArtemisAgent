@@ -51,6 +51,8 @@ dependencies {
     testImplementation(testFixtures(projects.ian.listener))
     testImplementation(testFixtures(projects.ian.packets))
     testImplementation(testFixtures(projects.ian.util))
+
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

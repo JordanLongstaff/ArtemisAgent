@@ -167,15 +167,17 @@ kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref
 kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 
-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
-kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
-kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin", version.ref = "kotest" }
-kotest-extensions-pitest = { module = "io.kotest:kotest-extensions-pitest", version.ref = "kotest" }
-kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
-kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" }
+kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared" }
+kotest-bom = { module = "io.kotest:kotest-bom", version.ref = "kotest" }
+kotest-common = { module = "io.kotest:kotest-common" }
+kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin" }
+kotest-extensions-pitest = { module = "io.kotest:kotest-extensions-pitest" }
+kotest-framework-engine = { module = "io.kotest:kotest-framework-engine" }
+kotest-property = { module = "io.kotest:kotest-property" }
+kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm" }
+
 kotest-property-arbs-jvm = { module = "io.kotest.extensions:kotest-property-arbs-jvm", version.ref = "kotest-arbs" }
-kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlin-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
