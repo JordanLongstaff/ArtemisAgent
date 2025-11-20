@@ -9,7 +9,7 @@ plugins {
     id("info.solidsoft.pitest")
 }
 
-configureTests(maxMemoryGb = 6)
+configureTests(maxMemoryGb = 8)
 
 configurePitest(rootPackage = "com.walkertribe.ian", threads = 2)
 
@@ -51,6 +51,8 @@ dependencies {
     testImplementation(testFixtures(projects.ian.listener))
     testImplementation(testFixtures(projects.ian.packets))
     testImplementation(testFixtures(projects.ian.util))
+
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

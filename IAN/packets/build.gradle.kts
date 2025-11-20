@@ -57,7 +57,10 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.ian.vesseldata))
     testFixturesImplementation(testFixtures(projects.ian.world))
 
+    testFixturesImplementation(platform(libs.kotest.bom))
     testFixturesImplementation(libs.bundles.ian.packets.test.fixtures)
+
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.packets.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

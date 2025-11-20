@@ -7,6 +7,18 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.floats.shouldBeNaN
 import io.kotest.matchers.nulls.shouldBeNull
 
+data class ShieldStrength(val strength: Float, val maxStrength: Float)
+
+data class BaseArtemisObjectData(val x: Float, val y: Float, val z: Float)
+
+data class BaseArtemisShieldedData(
+    val name: String,
+    val hullId: Int,
+    val shieldsFront: ShieldStrength,
+)
+
+data class BaseArtemisShipData(val shieldsRear: ShieldStrength, val impulse: Float, val side: Byte)
+
 internal fun BaseArtemisObject<*>.shouldBeUnknownObject(id: Int, type: ObjectType) {
     this.id shouldBeEqual id
     this.type shouldBeEqual type
@@ -20,15 +32,13 @@ internal fun BaseArtemisObject<*>.shouldBeUnknownObject(id: Int, type: ObjectTyp
 internal fun BaseArtemisObject<*>.shouldBeKnownObject(
     id: Int,
     type: ObjectType,
-    x: Float,
-    y: Float,
-    z: Float,
+    baseData: BaseArtemisObjectData,
 ) {
     this.id shouldBeEqual id
     this.type shouldBeEqual type
-    this.x shouldContainValue x
-    this.y shouldContainValue y
-    this.z shouldContainValue z
+    this.x shouldContainValue baseData.x
+    this.y shouldContainValue baseData.y
+    this.z shouldContainValue baseData.z
     this.hasPosition.shouldBeTrue()
     this.hasData.shouldBeTrue()
 }
@@ -51,20 +61,15 @@ internal fun BaseArtemisShielded<*>.shouldBeUnknownObject(id: Int, type: ObjectT
 internal fun BaseArtemisShielded<*>.shouldBeKnownObject(
     id: Int,
     type: ObjectType,
-    name: String,
-    x: Float,
-    y: Float,
-    z: Float,
-    hullId: Int,
-    shieldsFront: Float,
-    shieldsFrontMax: Float,
+    baseData: BaseArtemisObjectData,
+    shieldedData: BaseArtemisShieldedData,
 ) {
-    shouldBeKnownObject(id, type, x, y, z)
+    shouldBeKnownObject(id, type, baseData)
 
-    this.name shouldContainValue name
-    this.hullId shouldContainValue hullId
-    this.shieldsFront.strength shouldContainValue shieldsFront
-    this.shieldsFront.maxStrength shouldContainValue shieldsFrontMax
+    this.name shouldContainValue shieldedData.name
+    this.hullId shouldContainValue shieldedData.hullId
+    this.shieldsFront.strength shouldContainValue shieldedData.shieldsFront.strength
+    this.shieldsFront.maxStrength shouldContainValue shieldedData.shieldsFront.maxStrength
 }
 
 internal fun BaseArtemisShielded.Dsl<*>.shouldBeReset() {
@@ -88,24 +93,16 @@ internal fun BaseArtemisShip<*>.shouldBeUnknownObject(id: Int, type: ObjectType)
 internal fun BaseArtemisShip<*>.shouldBeKnownObject(
     id: Int,
     type: ObjectType,
-    name: String,
-    x: Float,
-    y: Float,
-    z: Float,
-    hullId: Int,
-    shieldsFront: Float,
-    shieldsFrontMax: Float,
-    shieldsRear: Float,
-    shieldsRearMax: Float,
-    impulse: Float,
-    side: Byte,
+    baseData: BaseArtemisObjectData,
+    shieldedData: BaseArtemisShieldedData,
+    shipData: BaseArtemisShipData,
 ) {
-    shouldBeKnownObject(id, type, name, x, y, z, hullId, shieldsFront, shieldsFrontMax)
+    shouldBeKnownObject(id, type, baseData, shieldedData)
 
-    this.shieldsRear.strength shouldContainValue shieldsRear
-    this.shieldsRear.maxStrength shouldContainValue shieldsRearMax
-    this.impulse shouldContainValue impulse
-    this.side shouldContainValue side
+    this.shieldsRear.strength shouldContainValue shipData.shieldsRear.strength
+    this.shieldsRear.maxStrength shouldContainValue shipData.shieldsRear.maxStrength
+    this.impulse shouldContainValue shipData.impulse
+    this.side shouldContainValue shipData.side
 }
 
 internal fun BaseArtemisShip.Dsl<*>.shouldBeReset() {

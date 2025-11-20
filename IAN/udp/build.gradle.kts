@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.kotlinx.io)
     api(libs.bundles.ian.udp.api)
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.udp.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

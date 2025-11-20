@@ -10,6 +10,7 @@ import artemis.agent.R
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
 import artemis.agent.isEnabledIf
+import artemis.agent.isRemoved
 import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
 import artemis.agent.screens.MainScreen.mainScreenTest
@@ -19,6 +20,7 @@ import artemis.agent.screens.SettingsPageScreen.Personal.soundVolumeBar
 import artemis.agent.screens.SettingsPageScreen.Personal.soundVolumeLabel
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
+import io.github.kakaocup.kakao.text.KTextView
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
@@ -155,9 +157,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                         isCheckedIf(isMuted)
                         isEnabledIf(soundVolume > 0)
                     }
-                    soundVolumeLabel.isDisplayedWithText(
-                        if (isMuted) "0" else soundVolume.toString()
-                    )
+                    soundVolumeLabel.testVolume(soundVolume, isMuted)
                 }
 
                 if (shouldTest) {
@@ -166,7 +166,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                             List(VOLUME_TEST_COUNT) { Random.nextInt(MAX_VOLUME) } + soundVolume
                         volumeTests.forEach { volume ->
                             soundVolumeBar.setProgress(volume)
-                            soundVolumeLabel.hasText(if (isMuted) "0" else volume.toString())
+                            soundVolumeLabel.testVolume(volume, isMuted)
                             soundMuteButton {
                                 isCheckedIf(isMuted)
                                 isEnabledIf(volume > 0)
@@ -185,7 +185,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                 step("Temporarily increase volume") {
                     tempVolume = MAX_VOLUME
                     soundVolumeBar.setProgress(MAX_VOLUME)
-                    soundVolumeLabel.hasText(if (isMuted) "0" else MAX_VOLUME.toString())
+                    soundVolumeLabel.testVolume(MAX_VOLUME, isMuted)
                     soundMuteButton {
                         isCheckedIf(isMuted)
                         isEnabled()
@@ -230,7 +230,7 @@ class PersonalSettingsFragmentTest : TestCase() {
                     isEnabled()
                 }
                 soundVolumeBar.hasProgress(volume)
-                soundVolumeLabel.hasText(if (isMuted) "0" else volume.toString())
+                soundVolumeLabel.testVolume(volume, isMuted)
             }
         }
 
@@ -254,6 +254,14 @@ class PersonalSettingsFragmentTest : TestCase() {
             soundMuteButton.doesNotExist()
             soundVolumeDivider.doesNotExist()
             enableHapticsToggleSetting.testNotExist()
+        }
+
+        fun KTextView.testVolume(volume: Int, isMuted: Boolean) {
+            if (isMuted) {
+                isRemoved()
+            } else {
+                isDisplayedWithText(volume.toString())
+            }
         }
     }
 }

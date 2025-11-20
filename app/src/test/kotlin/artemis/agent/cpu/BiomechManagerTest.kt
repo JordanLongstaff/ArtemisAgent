@@ -15,6 +15,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
@@ -25,6 +26,8 @@ import io.kotest.property.arbitrary.of
 import io.kotest.property.arbitrary.positiveInt
 import io.kotest.property.checkAll
 import io.ktor.utils.io.ByteChannel
+import io.mockk.every
+import io.mockk.mockk
 
 class BiomechManagerTest :
     DescribeSpec({
@@ -39,6 +42,7 @@ class BiomechManagerTest :
                 it("No BioMechs") {
                     biomechManager.scanned.shouldBeEmpty()
                     biomechManager.unscanned.shouldBeEmpty()
+                    biomechManager.sorted.shouldBeEmpty()
                 }
 
                 it("No destroyed BioMechs") {
@@ -187,8 +191,38 @@ class BiomechManagerTest :
                 }
             }
 
+            describe("Update at timestamp") {
+                val scannedBiomechs =
+                    booleanArrayOf(true, false).map { frozen ->
+                        mockk<BiomechEntry> { every { onFreezeTimeExpired(any()) } returns frozen }
+                    }
+                biomechManager.scanned.addAll(scannedBiomechs)
+
+                it("Works when enabled") {
+                    biomechManager.updateBiomechs(0L)
+                    biomechManager.hasUpdate.shouldBeTrue()
+                }
+
+                it("Skips when disabled") {
+                    biomechManager.enabled = false
+                    biomechManager.resetUpdate()
+                    biomechManager.updateBiomechs(0L)
+                    biomechManager.hasUpdate.shouldBeFalse()
+                }
+            }
+
+            describe("Sorted list") {
+                biomechManager.scanned.removeLast()
+
+                it("Empty when disabled") { biomechManager.sorted.shouldBeEmpty() }
+
+                it("Populated when enabled") {
+                    biomechManager.enabled = true
+                    biomechManager.sorted.shouldBeSingleton()
+                }
+            }
+
             describe("Reset") {
-                biomechManager.scanned.add(BiomechEntry(ArtemisNpc(0, 0L)))
                 biomechManager.unscanned[0] = ArtemisNpc(0, 0L)
                 biomechManager.reset()
 

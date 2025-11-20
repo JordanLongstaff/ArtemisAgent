@@ -1,12 +1,12 @@
 [versions]
-androidx-activity = "1.11.0"
+androidx-activity = "1.12.0"
 androidx-annotation = "1.9.1"
 androidx-appcompat = "1.7.1"
 androidx-constraintlayout = "2.2.1"
 androidx-core = "1.17.0"
 androidx-datastore = "1.1.7"
 androidx-fragment = "1.8.9"
-androidx-lifecycle = "2.9.4"
+androidx-lifecycle = "2.10.0"
 androidx-multidex = "2.0.1"
 androidx-recyclerview = "1.4.0"
 androidx-test-core = "1.7.0"
@@ -16,51 +16,52 @@ androidx-test-runner = "1.7.0"
 androidx-test-orchestrator = "1.6.1"
 app-review = "2.0.2"
 app-update = "2.1.0"
-arcmutate-base = "1.6.0"
-arcmutate-git = "2.2.4"
+arcmutate-base = "1.7.0"
+arcmutate-git = "2.2.5"
 arcmutate-github = "2.2.4"
 arcmutate-kotlin = "1.5.0"
 crashlytics-plugin = "3.0.6"
-dependency-analysis = "3.2.0"
+dependency-analysis = "3.5.0"
 desugar = "2.1.5"
 detekt = "1.23.8"
 espresso = "3.7.0"
-firebase-bom = "34.4.0"
+firebase-bom = "34.6.0"
 git-hooks = "0.0.2"
 google-services = "4.4.4"
-gradle = "8.13.0"
+gradle = "8.13.1"
 gradle-pitest = "1.19.0-rc.2"
 hamcrest = "3.0"
 jspecify = "1.0.0"
 junit4 = "4.13.2"
-kakao = "3.6.5"
+kakao = "3.7.0"
 kaspresso = "1.6.0"
 koin = "4.1.1"
-koin-annotations = "2.3.0"
+koin-annotations = "2.3.1"
 konnection = "1.4.5"
 konsist = "0.17.3"
 korlibs-serialization = "6.0.1"
 korlibs-string = "6.0.0"
 kotest = "6.0.4"
 kotest-arbs = "2.1.2"
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 kotlin-coroutines = "1.10.2"
 kotlin-io = "0.8.0"
 kotlin-serialization = "1.9.0"
 kotlinpoet = "2.2.0"
 kover = "0.9.3"
-ksp = "2.2.20-2.0.4"
-ktfmt = "0.24.0"
-ktor = "3.3.1"
+ksp = "2.3.2"
+ktfmt = "0.25.0"
+ktor = "3.3.2"
 leakcanary = "2.14"
+lint-security = "1.0.3"
 markwon = "4.6.2"
 material = "1.13.0"
 mockk = "1.14.6"
-okio = "3.16.2"
-perf-plugin = "2.0.1"
+okio = "3.16.4"
+perf-plugin = "2.0.2"
 play-services-tasks = "18.4.0"
 process-phoenix = "3.0.0"
-protobuf = "4.33.0"
+protobuf = "4.33.1"
 protobuf-plugin = "0.9.5"
 task-tree = "4.0.1"
 
@@ -125,6 +126,8 @@ recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "a
 
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 
+lint-security = { module = "com.android.security.lint:lint", version.ref = "lint-security" }
+
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
 app-review = { module = "com.google.android.play:review", version.ref = "app-review" }
@@ -165,15 +168,17 @@ kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref
 kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 
-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared", version.ref = "kotest" }
-kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
-kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin", version.ref = "kotest" }
-kotest-extensions-pitest = { module = "io.kotest:kotest-extensions-pitest", version.ref = "kotest" }
-kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
-kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core" }
+kotest-assertions-shared = { module = "io.kotest:kotest-assertions-shared" }
+kotest-bom = { module = "io.kotest:kotest-bom", version.ref = "kotest" }
+kotest-common = { module = "io.kotest:kotest-common" }
+kotest-extensions-koin = { module = "io.kotest:kotest-extensions-koin" }
+kotest-extensions-pitest = { module = "io.kotest:kotest-extensions-pitest" }
+kotest-framework-engine = { module = "io.kotest:kotest-framework-engine" }
+kotest-property = { module = "io.kotest:kotest-property" }
+kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm" }
+
 kotest-property-arbs-jvm = { module = "io.kotest.extensions:kotest-property-arbs-jvm", version.ref = "kotest-arbs" }
-kotest-runner-junit5-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlin-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }

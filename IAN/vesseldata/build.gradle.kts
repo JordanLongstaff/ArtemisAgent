@@ -21,9 +21,11 @@ dependencies {
 
     implementation(libs.bundles.ian.vesseldata)
 
+    testFixturesImplementation(platform(libs.kotest.bom))
     testFixturesImplementation(projects.ian.enums)
     testFixturesImplementation(libs.bundles.ian.vesseldata.test.fixtures)
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.vesseldata.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 

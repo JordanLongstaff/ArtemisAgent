@@ -48,6 +48,7 @@ android {
 dependencies {
     testImplementation(projects.app)
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.konsist.app)
     testImplementation(libs.bundles.konsist.common)
     testRuntimeOnly(libs.bundles.konsist.runtime)

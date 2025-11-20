@@ -29,6 +29,9 @@ class BiomechManager {
     val scanned = CopyOnWriteArrayList<BiomechEntry>()
     val unscanned = ConcurrentHashMap<Int, ArtemisNpc>()
 
+    val sorted: List<BiomechEntry>
+        get() = if (enabled) scanned.sortedWith(sorter) else emptyList()
+
     private val rageProperty = Property.IntProperty(Long.MIN_VALUE)
     private val mutStatus: MutableStateFlow<BiomechRageStatus> by lazy {
         MutableStateFlow(BiomechRageStatus.NEUTRAL)
@@ -89,6 +92,16 @@ class BiomechManager {
                     hasUpdate = true
                 }
             }
+    }
+
+    fun updateBiomechs(currentTime: Long) {
+        if (!enabled) return
+
+        scanned.forEach { biomech ->
+            if (!biomech.onFreezeTimeExpired(currentTime - freezeTime)) return@forEach
+            nextActiveBiomech.tryEmit(biomech)
+            notifyUpdate()
+        }
     }
 
     fun updateFromSettings(settings: UserSettings) {

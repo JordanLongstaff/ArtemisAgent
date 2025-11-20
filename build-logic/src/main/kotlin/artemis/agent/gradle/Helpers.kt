@@ -10,7 +10,7 @@ import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 
-private const val PITEST_VERSION = "1.21.0"
+private const val PITEST_VERSION = "1.22.0"
 private const val JUNIT5_VERSION = "1.2.3"
 
 private const val TIMEOUT_FACTOR = 10
