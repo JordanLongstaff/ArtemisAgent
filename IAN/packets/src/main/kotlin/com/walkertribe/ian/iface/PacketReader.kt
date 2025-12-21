@@ -115,21 +115,18 @@ class PacketReader(
                 }
                 ?.build(this)
                 ?.takeIf { packet ->
-                    when (packet) {
-                        is VersionPacket -> {
-                            version = packet.version
-                            true
+                    if (packet is ObjectUpdatePacket) {
+                        packet.objectClasses.forEach {
+                            result.addListeners(listenerRegistry.listeningFor(it))
                         }
-
-                        is ObjectUpdatePacket -> {
-                            packet.objectClasses.forEach {
-                                result.addListeners(listenerRegistry.listeningFor(it))
-                            }
-                            result.isInteresting
-                        }
-
-                        else -> true
+                        return@takeIf result.isInteresting
                     }
+
+                    if (packet is VersionPacket) {
+                        version = packet.version
+                    }
+
+                    true
                 }
                 ?.let { packet -> ParseResult.Success(packet, result) } ?: ParseResult.Skip
         } catch (ex: PacketException) {
