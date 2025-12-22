@@ -216,7 +216,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     )
                 },
                 HelpTopic(R.string.help_topics_basics, R.array.help_contents_basics) {
-                    addImages(1 to R.drawable.game_header_preview)
+                    addImages(1 to R.drawable.status_preview)
                 },
                 HelpTopic(R.string.help_topics_stations, R.array.help_contents_stations) {
                     addImages(1 to R.drawable.station_entry_preview)

@@ -48,6 +48,8 @@ import com.walkertribe.ian.protocol.core.world.DeleteObjectPacket
 import com.walkertribe.ian.protocol.core.world.DeleteObjectPacketFixture
 import com.walkertribe.ian.protocol.core.world.DockedPacket
 import com.walkertribe.ian.protocol.core.world.DockedPacketFixture
+import com.walkertribe.ian.protocol.core.world.GridUpdatePacket
+import com.walkertribe.ian.protocol.core.world.GridUpdatePacketFixture
 import com.walkertribe.ian.protocol.core.world.IntelPacket
 import com.walkertribe.ian.protocol.core.world.IntelPacketFixture
 import com.walkertribe.ian.protocol.core.world.ObjectUpdatePacket
@@ -323,6 +325,11 @@ class ArtemisNetworkInterfaceTest :
                                     "GameStartPacket",
                                     GameStartPacket::class,
                                     GameStartPacketFixture.allFixtures(clientArbVersion),
+                                ),
+                                Triple(
+                                    "GridUpdatePacket",
+                                    GridUpdatePacket::class,
+                                    GridUpdatePacketFixture.ALL,
                                 ),
                                 Triple(
                                     "IncomingAudioPacket",

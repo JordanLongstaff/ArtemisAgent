@@ -38,6 +38,9 @@ internal constructor(
 
     /** Returns a short description of this Vessel. */
     val description: String?,
+
+    /** Returns the filename of the internals (.snt) files for this Vessel, if any. */
+    val internalsFilePath: String?,
 ) {
     /** Returns an array of this Vessel's attributes. */
     val attributes: Set<String> = build(broadType)
@@ -61,7 +64,8 @@ internal constructor(
             },
         productionCoefficient = xml.child("production")?.float("coeff") ?: 0f,
         bayCount = xml.child("carrierload")?.int("baycount") ?: 0,
-        description = xml.child("long_desc")?.run { str("text").caretToNewline() },
+        description = xml.child("long_desc")?.strNull("text")?.caretToNewline(),
+        internalsFilePath = xml.child("internal_data")?.strNull("file"),
     )
 
     /** Returns the Faction to which this Vessel belongs. */

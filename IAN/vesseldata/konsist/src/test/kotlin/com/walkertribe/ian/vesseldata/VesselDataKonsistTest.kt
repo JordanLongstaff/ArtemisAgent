@@ -18,8 +18,7 @@ class VesselDataKonsistTest :
             withData(nameFn = { it.name }, classes) { cls ->
                 cls.assertTrue {
                     it.hasConstructor { constr ->
-                        constr.numParameters == 1 &&
-                            constr.hasAllParameters { param -> param.hasTypeOf<Xml>() }
+                        constr.hasParameter { param -> param.hasTypeOf<Xml>() }
                     }
                 }
             }

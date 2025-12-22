@@ -18,6 +18,7 @@ object CorePacketType {
     const val OBJECT_DELETE = "objectDelete"
     const val OBJECT_TEXT = "objectText"
     const val PLAIN_TEXT_GREETING = "plainTextGreeting"
+    const val SHIP_SYSTEM_SYNC = "shipSystemSync"
     const val SIMPLE_EVENT = "simpleEvent"
     const val START_GAME = "startGame"
     const val VALUE_INT = "valueInt"

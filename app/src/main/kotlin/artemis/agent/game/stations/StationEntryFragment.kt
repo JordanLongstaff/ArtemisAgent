@@ -28,6 +28,7 @@ import artemis.agent.game.route.RouteObjective
 import artemis.agent.generic.GenericDataViewHolder
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
+import artemis.agent.util.getShieldText
 import com.walkertribe.ian.enums.BaseMessage
 import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
@@ -264,9 +265,6 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
     private fun StationEntryBinding.updateInfoLabels(entry: Station) {
         val context = root.context
 
-        val shields = entry.obj.shieldsFront.strength.value
-        val shieldsMax = entry.obj.shieldsFront.maxStrength.value
-
         if (viewModel.version < RouteObjective.ReplacementFighters.REPORT_VERSION) {
             stationFightersLabel.visibility = View.GONE
         } else {
@@ -276,7 +274,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
         stationMissionsLabel.text = entry.getMissionsText(context)
         stationShieldLabel.text =
-            context.getString(R.string.station_shield, shields.coerceAtLeast(0f), shieldsMax)
+            getShieldText(context, R.string.station_shield, entry.obj.shieldsFront)
         stationStatusLabel.text = entry.statusString?.let(context::getString).orEmpty()
         stationSpeedLabel.text = entry.getSpeedText(context)
 

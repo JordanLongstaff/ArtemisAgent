@@ -26,6 +26,7 @@ import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
+import artemis.agent.util.getShieldText
 import com.walkertribe.ian.enums.GoDefend
 import com.walkertribe.ian.enums.OtherMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
@@ -332,17 +333,9 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 context.getString(R.string.direction, entry.heading)
             entryBinding.allyRangeLabel.text = context.getString(R.string.range, entry.range)
             entryBinding.allyFrontShieldLabel.text =
-                context.getString(
-                    R.string.front_shield,
-                    entry.obj.shieldsFront.strength.value.coerceAtLeast(0f),
-                    entry.obj.shieldsFront.maxStrength.value,
-                )
+                getShieldText(context, R.string.front_shield, entry.obj.shieldsFront)
             entryBinding.allyRearShieldLabel.text =
-                context.getString(
-                    R.string.rear_shield,
-                    entry.obj.shieldsRear.strength.value.coerceAtLeast(0f),
-                    entry.obj.shieldsRear.maxStrength.value,
-                )
+                getShieldText(context, R.string.rear_shield, entry.obj.shieldsRear)
         }
     }
 

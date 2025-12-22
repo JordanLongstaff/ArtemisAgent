@@ -1,6 +1,8 @@
 package com.walkertribe.ian.vesseldata
 
 import com.walkertribe.ian.enums.OrdnanceType
+import com.walkertribe.ian.grid.Grid
+import com.walkertribe.ian.grid.arbitrary
 import io.kotest.engine.names.WithDataTestName
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -13,6 +15,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.Codepoint
+import io.kotest.property.arbitrary.alphanumeric
 import io.kotest.property.arbitrary.az
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.enum
@@ -39,7 +42,10 @@ class TestVessel(
     private val bayCount: Int?,
     private val expectedAttributes: Set<String>,
     private val description: String? = null,
+    internal val internalsFilePath: String? = null,
 ) : WithDataTestName {
+    val grid: Grid? by lazy { internalsFilePath?.let { Grid.arbitrary() } }
+
     fun build(): Vessel =
         Vessel(
             id = id,
@@ -55,6 +61,7 @@ class TestVessel(
             productionCoefficient = productionCoefficient ?: 0f,
             bayCount = bayCount ?: 0,
             description = description,
+            internalsFilePath = internalsFilePath,
         )
 
     suspend fun test(vessel: Vessel?, vesselData: VesselData?) {
@@ -78,8 +85,12 @@ class TestVessel(
         vessel.attributes shouldContainExactly expectedAttributes
 
         val desc = description
-        if (desc == null) vessel.description.shouldBeNull()
+        if (desc.isNullOrBlank()) vessel.description.shouldBeNull()
         else vessel.description.shouldNotBeNull() shouldBeEqual desc.replace('^', '\n')
+
+        val internalsFile = internalsFilePath
+        if (internalsFile.isNullOrBlank()) vessel.internalsFilePath.shouldBeNull()
+        else vessel.internalsFilePath.shouldNotBeNull() shouldBeEqual internalsFile
 
         expectedAttributes.forEach { vessel[it].shouldBeTrue() }
 
@@ -87,6 +98,9 @@ class TestVessel(
 
         if (vesselData != null) {
             vessel.getFaction(vesselData).shouldNotBeNull().id shouldBeEqual faction.ordinal
+            if (internalsFile != null) {
+                vesselData.getGrid(vessel.id).shouldNotBeNull()
+            }
         }
     }
 
@@ -108,6 +122,8 @@ class TestVessel(
             description?.let { text ->
                 if (text.isBlank()) node("long_desc") else node("long_desc", "text" to text)
             }
+
+            internalsFilePath?.let { path -> node("internal_data", "file" to path) }
 
             bayCount?.let { node("carrierload", "baycount" to it) }
         }
@@ -148,7 +164,8 @@ class TestVessel(
                 genF = arbOrdnanceCounts,
                 genG = Arb.int().orNull(),
                 genH = arbXmlString.orNull(),
-            ) { id, faction, name, broadType, prod, ordCounts, bays, desc ->
+                genI = Arb.string(minSize = 1, codepoints = Codepoint.alphanumeric()).orNull(),
+            ) { id, faction, name, broadType, prod, ordCounts, bays, desc, path ->
                 TestVessel(
                     id,
                     side = faction.ordinal,
@@ -160,6 +177,7 @@ class TestVessel(
                     bayCount = bays,
                     expectedAttributes = broadType.map { it.lowercase() }.toSet(),
                     description = desc?.trim(),
+                    internalsFilePath = path?.let { "${it.trim()}.snt" },
                 )
             }
         }
