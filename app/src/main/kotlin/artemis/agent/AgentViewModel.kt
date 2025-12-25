@@ -819,23 +819,22 @@ class AgentViewModel(application: Application) :
                 }
 
                 val shouldFlash =
-                    flashOn &&
-                        when (page) {
-                            GameFragment.Page.STATIONS -> currentFlashOn || stationFlashOn
-                            GameFragment.Page.ALLIES ->
-                                allyShips
-                                    .takeIf { includingAllies && alliesExist }
-                                    ?.values
-                                    ?.any { it.isDamaged }
-                            GameFragment.Page.MISSIONS -> missionManager.shouldFlash
-                            GameFragment.Page.ENEMIES -> enemiesManager.shouldFlash
-                            GameFragment.Page.BIOMECHS -> biomechManager.shouldFlash
-                            GameFragment.Page.ROUTE ->
-                                false.takeIf { stationsExist.value && routingEnabled }
-                            GameFragment.Page.MISC -> miscManager.shouldFlash
-                        } ?: return@forEach
+                    when (page) {
+                        GameFragment.Page.STATIONS -> currentFlashOn || stationFlashOn
+                        GameFragment.Page.ALLIES ->
+                            allyShips
+                                .takeIf { includingAllies && alliesExist }
+                                ?.values
+                                ?.any { it.isDamaged }
+                        GameFragment.Page.MISSIONS -> missionManager.shouldFlash
+                        GameFragment.Page.ENEMIES -> enemiesManager.shouldFlash
+                        GameFragment.Page.BIOMECHS -> biomechManager.shouldFlash
+                        GameFragment.Page.ROUTE ->
+                            false.takeIf { stationsExist.value && routingEnabled }
+                        GameFragment.Page.MISC -> miscManager.shouldFlash
+                    } ?: return@forEach
 
-                pagesWithFlash[page] = shouldFlash
+                pagesWithFlash[page] = shouldFlash && flashOn
             }
         }
 
