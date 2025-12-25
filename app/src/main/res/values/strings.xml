@@ -643,7 +643,6 @@
         <item>Shield Boost</item>
     </string-array>
     <string name="right">Right</string>
-    <string name="route_for_supplies">Route for supplies</string>
     <string name="route_incentive_missions">Missions</string>
     <string name="route_incentive_needs_damcon">Needs DamCon</string>
     <string name="route_incentive_needs_energy">Needs energy</string>
