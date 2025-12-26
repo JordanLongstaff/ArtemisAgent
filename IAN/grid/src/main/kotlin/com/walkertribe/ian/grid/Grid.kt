@@ -8,9 +8,6 @@ class Grid internal constructor(nodes: List<Node>) {
     internal val nodeMap: Map<Coordinate, Node> = nodes.associateBy { it.coord }
     internal val nodeSystemMap: Map<ShipSystem, List<Node>> = nodes.groupBy { it.system }
 
-    val isDamaged: Boolean
-        get() = nodeMap.values.any { it.damage > 0f }
-
     constructor(
         pathResolver: PathResolver,
         path: String,
