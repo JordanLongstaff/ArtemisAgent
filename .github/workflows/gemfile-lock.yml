@@ -1,0 +1,42 @@
+name: Update Gemfile.lock
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - .tool-versions
+      - Gemfile
+  pull_request:
+    paths:
+      - .tool-versions
+      - Gemfile
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Update
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@ae195bbe749a7cef685ac729197124a48305c1cb # v1.276.0
+      with:
+        bundler-cache: true
+
+    - name: Update lockfile
+      run: bundle update
+
+    - name: Commit
+      uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
+      with:
+        commit_message: Update Gemfile.lock
+        commit_options: "--no-verify"
+        commit_user_name: ${{ github.triggering_actor }}
+        commit_user_email: ${{ github.triggering_actor }}@users.noreply.github.com
+        add_options: "-u"
