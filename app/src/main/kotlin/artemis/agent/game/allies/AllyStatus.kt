@@ -89,7 +89,7 @@ enum class AllyStatus(
     MINE_TRAP(AllySortIndex.TRAP, R.string.ally_status_mine_trap, R.color.allyStatusBackgroundRed);
 
     fun getPirateSensitiveEquivalent(isPirate: Boolean): AllyStatus {
-        if (this < AMBASSADOR || this > PIRATE_DATA) return this
+        if (this !in AMBASSADOR..PIRATE_DATA) return this
 
         val index = ordinal - AMBASSADOR.ordinal
         return PIRATE_SENSITIVE[if (isPirate) index or PIRATE_FLAG else index and NOT_PIRATE_FLAG]

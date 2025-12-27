@@ -83,13 +83,13 @@ sealed interface StatusInfoTestCase<T : StatusInfo, TC : StatusInfoTestCase<T, T
     }
 
     data object Energy : StatusInfoTestCase<StatusInfo.Energy, Energy> {
-        private const val ENERGY = "Energy: "
+        private const val PREFIX = "Energy: "
 
         override val context: Context by lazy {
             mockk<Context> {
                 every { getString(R.string.energy_reserves, *varargAny { nArgs == 1 }) } answers
                     {
-                        ENERGY +
+                        PREFIX +
                             lastArg<Array<Any?>>().first().toString().toFloatOrNull()?.roundToInt()
                     }
             }
@@ -106,7 +106,7 @@ sealed interface StatusInfoTestCase<T : StatusInfo, TC : StatusInfoTestCase<T, T
 
         override suspend fun testText() {
             Exhaustive.ints(0..10000).checkAll { energy ->
-                StatusInfo.Energy(energy.toFloat()).getString(context) shouldBeEqual ENERGY + energy
+                StatusInfo.Energy(energy.toFloat()).getString(context) shouldBeEqual PREFIX + energy
             }
         }
 

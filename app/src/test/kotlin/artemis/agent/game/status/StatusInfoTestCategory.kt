@@ -16,7 +16,9 @@ sealed class StatusInfoTestCategory<SI : StatusInfo, TC : StatusInfoTestCase<SI,
         override suspend fun describeItemNotEqualsTests(
             scope: DescribeSpecContainerScope,
             index: Int,
-        ) {}
+        ) {
+            // No tests
+        }
     }
 
     data object Header : StatusInfoTestCategory<StatusInfo.Header, StatusInfoTestCase.Header>() {
@@ -53,7 +55,9 @@ sealed class StatusInfoTestCategory<SI : StatusInfo, TC : StatusInfoTestCase<SI,
         override suspend fun describeItemNotEqualsTests(
             scope: DescribeSpecContainerScope,
             index: Int,
-        ) {}
+        ) {
+            // No tests
+        }
     }
 
     data object Shield : StatusInfoTestCategory<StatusInfo.Shield, StatusInfoTestCase.Shield>() {
