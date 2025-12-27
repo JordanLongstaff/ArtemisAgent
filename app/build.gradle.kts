@@ -143,6 +143,7 @@ dependencies {
     debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
     testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
 
     testImplementation(platform(libs.kotest.bom))
