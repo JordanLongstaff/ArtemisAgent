@@ -2,6 +2,7 @@ package artemis.agent.game.status
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.annotation.VisibleForTesting
 import artemis.agent.R
 import artemis.agent.util.getDamageReportText
 import artemis.agent.util.getShieldText
@@ -10,26 +11,33 @@ import com.walkertribe.ian.util.Version
 import com.walkertribe.ian.world.Shields
 
 sealed interface StatusInfo {
+    fun getString(context: Context): String
+
+    fun itemEquals(other: StatusInfo): Boolean
+
     data object Empty : StatusInfo {
         override fun getString(context: Context): String = ""
 
         override fun itemEquals(other: StatusInfo): Boolean = other is Empty
     }
 
-    data class Header(@all:StringRes val headerString: Int) : StatusInfo {
+    data class Header(@all:VisibleForTesting @all:StringRes val headerString: Int) : StatusInfo {
         override fun getString(context: Context): String = context.getString(headerString)
 
         override fun itemEquals(other: StatusInfo): Boolean = this == other
     }
 
-    data class Energy(val energy: Float) : StatusInfo {
+    data class Energy(@all:VisibleForTesting val energy: Float) : StatusInfo {
         override fun getString(context: Context): String =
             context.getString(R.string.energy_reserves, energy)
 
         override fun itemEquals(other: StatusInfo): Boolean = other is Energy
     }
 
-    class Shield(val position: ShieldPosition, val shield: Shields) : StatusInfo {
+    class Shield(
+        @all:VisibleForTesting val position: ShieldPosition,
+        @all:VisibleForTesting val shield: Shields,
+    ) : StatusInfo {
         override fun getString(context: Context): String =
             getShieldText(context, position.stringId, shield)
 
@@ -38,10 +46,10 @@ sealed interface StatusInfo {
     }
 
     data class OrdnanceCount(
-        val ordnance: OrdnanceType,
-        val version: Version,
-        val count: Int,
-        val max: Int,
+        @all:VisibleForTesting val ordnance: OrdnanceType,
+        @all:VisibleForTesting val version: Version,
+        @all:VisibleForTesting val count: Int,
+        @all:VisibleForTesting val max: Int,
     ) : StatusInfo {
         override fun getString(context: Context): String =
             context.getString(R.string.ordnance_stock, ordnance.getLabelFor(version), count, max)
@@ -50,7 +58,10 @@ sealed interface StatusInfo {
             other is OrdnanceCount && ordnance == other.ordnance
     }
 
-    data class Singleseat(@all:StringRes val fighterLabel: Int, val count: Int) : StatusInfo {
+    data class Singleseat(
+        @all:VisibleForTesting @all:StringRes val fighterLabel: Int,
+        @all:VisibleForTesting val count: Int,
+    ) : StatusInfo {
         override fun getString(context: Context): String = context.getString(fighterLabel, count)
 
         override fun itemEquals(other: StatusInfo): Boolean =
@@ -58,10 +69,10 @@ sealed interface StatusInfo {
     }
 
     data class DamageReport(
-        val systemLabel: String,
-        val nodeCount: Int,
-        val damageCount: Int,
-        val damageValue: Double,
+        @all:VisibleForTesting val systemLabel: String,
+        @all:VisibleForTesting val nodeCount: Int,
+        @all:VisibleForTesting val damageCount: Int,
+        @all:VisibleForTesting val damageValue: Double,
     ) : StatusInfo {
         override fun getString(context: Context): String =
             getDamageReportText(context, systemLabel, nodeCount, damageCount, damageValue)
@@ -69,8 +80,4 @@ sealed interface StatusInfo {
         override fun itemEquals(other: StatusInfo): Boolean =
             other is DamageReport && systemLabel == other.systemLabel
     }
-
-    fun getString(context: Context): String
-
-    fun itemEquals(other: StatusInfo): Boolean
 }
