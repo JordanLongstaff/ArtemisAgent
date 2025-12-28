@@ -28,6 +28,7 @@ dependencies {
     compileOnly(projects.ian.annotations)
 
     api(projects.ian.enums)
+    api(projects.ian.grid)
     api(projects.ian.listener)
     api(projects.ian.util)
     api(projects.ian.vesseldata)

@@ -1392,16 +1392,19 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
     data object Player : ObjectTestSuite<ArtemisPlayer>(ObjectType.PLAYER_SHIP) {
         private val NAME = Arb.string()
-        private val SHIELDS_PAIR = Arb.pair(SHIELDS, SHIELDS)
+        private val ENERGY = Arb.numericFloat()
+        private val SHIELDS_ACTIVE = Arb.boolState()
+        private val SHIELDS_PROPS = Arb.triple(SHIELDS, SHIELDS, SHIELDS_ACTIVE)
         private val HULL_ID = Arb.int().filter { it != -1 }
+        private val WARP = Arb.byte(min = 0, max = Artemis.MAX_WARP)
         private val IMPULSE = Arb.numericFloat()
+        private val SPEED = Arb.pair(WARP, IMPULSE)
         private val SIDE = Arb.byte().filter { it.toInt() != -1 }
         private val SHIP_INDEX = Arb.byte().filter { it != Byte.MIN_VALUE }
         private val CAPITAL_SHIP_ID = Arb.int().filter { it != -1 }
         private val ALERT_STATUS = Arb.enum<AlertStatus>()
         private val DRIVE_TYPE = Arb.enum<DriveType>()
         private val ENUMS = Arb.pair(ALERT_STATUS, DRIVE_TYPE)
-        private val WARP = Arb.byte(min = 0, max = Artemis.MAX_WARP)
         private val DOCKING_BASE = Arb.int().filter { it != -1 }
         private val DOUBLE_AGENT_ACTIVE = Arb.boolState()
         private val DOUBLE_AGENT_COUNT = Arb.byte().filter { it.toInt() != -1 }
@@ -1418,14 +1421,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
 
         private data class Properties(
             private val name: String,
-            private val shields: Pair<ShieldStrength, ShieldStrength>,
+            private val energy: Float,
+            private val shields: Triple<ShieldStrength, ShieldStrength, BoolState>,
             private val hullId: Int,
-            private val impulse: Float,
+            private val speed: Pair<Byte, Float>,
             private val side: Byte,
             private val shipIndex: Byte,
             private val capitalShipID: Int,
             private val enumStates: Pair<AlertStatus, DriveType>,
-            private val warp: Byte,
             private val dockingBase: Int,
             private val doubleAgentStatus: Triple<BoolState, Byte, Int>,
             override val location: Location,
@@ -1435,18 +1438,20 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             override fun updateDirectly(obj: ArtemisPlayer) {
                 super.updateDirectly(obj)
                 obj.name.value = name
+                obj.energy.value = energy
                 obj.shieldsFront.strength.value = shields.first.strength
                 obj.shieldsFront.maxStrength.value = shields.first.maxStrength
                 obj.shieldsRear.strength.value = shields.second.strength
                 obj.shieldsRear.maxStrength.value = shields.second.maxStrength
+                obj.shieldsActive.value = shields.third
                 obj.hullId.value = hullId
-                obj.impulse.value = impulse
+                obj.warp.value = speed.first
+                obj.impulse.value = speed.second
                 obj.side.value = side
                 obj.shipIndex.value = shipIndex
                 obj.capitalShipID.value = capitalShipID
                 obj.alertStatus.value = enumStates.first
                 obj.driveType.value = enumStates.second
-                obj.warp.value = warp
                 obj.dockingBase.value = dockingBase
                 obj.doubleAgentActive.value = doubleAgentStatus.first
                 obj.doubleAgentCount.value = doubleAgentStatus.second
@@ -1471,12 +1476,15 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             override fun createThroughDsl(id: Int, timestamp: Long): ArtemisPlayer =
                 ArtemisPlayer.Dsl.Player.let { dsl ->
                     dsl.name = name
+                    dsl.energy = energy
                     dsl.shieldsFront = shields.first.strength
                     dsl.shieldsFrontMax = shields.first.maxStrength
                     dsl.shieldsRear = shields.second.strength
                     dsl.shieldsRearMax = shields.second.maxStrength
+                    dsl.shieldsActive = shields.third
                     dsl.hullId = hullId
-                    dsl.impulse = impulse
+                    dsl.warp = speed.first
+                    dsl.impulse = speed.second
                     dsl.side = side
                     dsl.x = location.x
                     dsl.y = location.y
@@ -1485,7 +1493,6 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     dsl.capitalShipID = capitalShipID
                     dsl.alertStatus = enumStates.first
                     dsl.driveType = enumStates.second
-                    dsl.warp = warp
                     dsl.dockingBase = dockingBase
 
                     dsl.build(id, timestamp).also { player ->
@@ -1502,9 +1509,16 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     baseData = location,
                     shieldedData =
                         BaseArtemisShieldedData(name, hullId, shieldsFront = shields.first),
-                    shipData = BaseArtemisShipData(shieldsRear = shields.second, impulse, side),
+                    shipData =
+                        BaseArtemisShipData(
+                            shieldsRear = shields.second,
+                            impulse = speed.second,
+                            side,
+                        ),
                 )
 
+                obj.energy shouldContainValue energy
+                obj.shieldsActive shouldContainValue shields.third
                 obj.shipIndex shouldContainValue shipIndex
                 obj.capitalShipID shouldContainValue capitalShipID
                 obj.doubleAgentActive shouldContainValue doubleAgentStatus.first
@@ -1512,7 +1526,7 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 obj.doubleAgentSecondsLeft shouldContainValue doubleAgentStatus.third
                 obj.alertStatus shouldContainValue enumStates.first
                 obj.driveType shouldContainValue enumStates.second
-                obj.warp shouldContainValue warp
+                obj.warp shouldContainValue speed.first
                 obj.dockingBase shouldContainValue dockingBase
 
                 val totalCounts = IntArray(OrdnanceType.size)
@@ -1546,12 +1560,15 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
             fun updateThroughPlayerDsl(player: ArtemisPlayer) {
                 ArtemisPlayer.Dsl.Player.also { dsl ->
                         dsl.name = name
+                        dsl.energy = energy
                         dsl.shieldsFront = shields.first.strength
                         dsl.shieldsFrontMax = shields.first.maxStrength
                         dsl.shieldsRear = shields.second.strength
                         dsl.shieldsRearMax = shields.second.maxStrength
+                        dsl.shieldsActive = shields.third
                         dsl.hullId = hullId
-                        dsl.impulse = impulse
+                        dsl.warp = speed.first
+                        dsl.impulse = speed.second
                         dsl.side = side
                         dsl.x = location.x
                         dsl.y = location.y
@@ -1560,7 +1577,6 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                         dsl.capitalShipID = capitalShipID
                         dsl.alertStatus = enumStates.first
                         dsl.driveType = enumStates.second
-                        dsl.warp = warp
                         dsl.dockingBase = dockingBase
 
                         dsl updates player
@@ -1614,6 +1630,13 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     it.name
                 },
                 partialPlayerUpdateTest(
+                    name = "Energy",
+                    propGen = ENERGY,
+                    dslProperty = ArtemisPlayer.Dsl.Player::energy,
+                ) {
+                    it.energy
+                },
+                partialPlayerUpdateTest(
                     name = "Front shields",
                     propGen = SHIELDS_STRENGTH,
                     dslProperty = ArtemisPlayer.Dsl.Player::shieldsFront,
@@ -1640,6 +1663,13 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                     dslProperty = ArtemisPlayer.Dsl.Player::shieldsRearMax,
                 ) {
                     it.shieldsRear.maxStrength
+                },
+                partialPlayerUpdateTest(
+                    name = "Shields active",
+                    propGen = SHIELDS_ACTIVE,
+                    dslProperty = ArtemisPlayer.Dsl.Player::shieldsActive,
+                ) {
+                    it.shieldsActive
                 },
                 partialPlayerUpdateTest(
                     name = "Hull ID",
@@ -1777,14 +1807,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 Arb.long(),
                 Arb.bind(
                     genA = NAME,
-                    genB = SHIELDS_PAIR,
-                    genC = HULL_ID,
-                    genD = IMPULSE,
-                    genE = SIDE,
-                    genF = SHIP_INDEX,
-                    genG = CAPITAL_SHIP_ID,
-                    genH = ENUMS,
-                    genI = WARP,
+                    genB = ENERGY,
+                    genC = SHIELDS_PROPS,
+                    genD = HULL_ID,
+                    genE = SPEED,
+                    genF = SIDE,
+                    genG = SHIP_INDEX,
+                    genH = CAPITAL_SHIP_ID,
+                    genI = ENUMS,
                     genJ = DOCKING_BASE,
                     genK = DOUBLE_AGENT,
                     genL = LOCATION,
@@ -1804,14 +1834,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 arbObject,
                 Arb.bind(
                     genA = NAME,
-                    genB = SHIELDS_PAIR,
-                    genC = HULL_ID,
-                    genD = IMPULSE,
-                    genE = SIDE,
-                    genF = SHIP_INDEX,
-                    genG = CAPITAL_SHIP_ID,
-                    genH = ENUMS,
-                    genI = WARP,
+                    genB = ENERGY,
+                    genC = SHIELDS_PROPS,
+                    genD = HULL_ID,
+                    genE = SPEED,
+                    genF = SIDE,
+                    genG = SHIP_INDEX,
+                    genH = CAPITAL_SHIP_ID,
+                    genI = ENUMS,
                     genJ = DOCKING_BASE,
                     genK = DOUBLE_AGENT,
                     genL = LOCATION,
@@ -1830,14 +1860,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 arbObject,
                 Arb.bind(
                     genA = NAME,
-                    genB = SHIELDS_PAIR,
-                    genC = HULL_ID,
-                    genD = IMPULSE,
-                    genE = SIDE,
-                    genF = SHIP_INDEX,
-                    genG = CAPITAL_SHIP_ID,
-                    genH = ENUMS,
-                    genI = WARP,
+                    genB = ENERGY,
+                    genC = SHIELDS_PROPS,
+                    genD = HULL_ID,
+                    genE = SPEED,
+                    genF = SIDE,
+                    genG = SHIP_INDEX,
+                    genH = CAPITAL_SHIP_ID,
+                    genI = ENUMS,
                     genJ = DOCKING_BASE,
                     genK = DOUBLE_AGENT,
                     genL = LOCATION,
@@ -1856,14 +1886,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 arbObjectPair,
                 Arb.bind(
                     genA = NAME,
-                    genB = SHIELDS_PAIR,
-                    genC = HULL_ID,
-                    genD = IMPULSE,
-                    genE = SIDE,
-                    genF = SHIP_INDEX,
-                    genG = CAPITAL_SHIP_ID,
-                    genH = ENUMS,
-                    genI = WARP,
+                    genB = ENERGY,
+                    genC = SHIELDS_PROPS,
+                    genD = HULL_ID,
+                    genE = SPEED,
+                    genF = SIDE,
+                    genG = SHIP_INDEX,
+                    genH = CAPITAL_SHIP_ID,
+                    genI = ENUMS,
                     genJ = DOCKING_BASE,
                     genK = DOUBLE_AGENT,
                     genL = LOCATION,
@@ -1883,14 +1913,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 arbObjectPair,
                 Arb.bind(
                     genA = NAME,
-                    genB = SHIELDS_PAIR,
-                    genC = HULL_ID,
-                    genD = IMPULSE,
-                    genE = SIDE,
-                    genF = SHIP_INDEX,
-                    genG = CAPITAL_SHIP_ID,
-                    genH = ENUMS,
-                    genI = WARP,
+                    genB = ENERGY,
+                    genC = SHIELDS_PROPS,
+                    genD = HULL_ID,
+                    genE = SPEED,
+                    genF = SIDE,
+                    genG = SHIP_INDEX,
+                    genH = CAPITAL_SHIP_ID,
+                    genI = ENUMS,
                     genJ = DOCKING_BASE,
                     genK = DOUBLE_AGENT,
                     genL = LOCATION,
@@ -1910,14 +1940,14 @@ internal sealed class ObjectTestSuite<T : BaseArtemisObject<T>>(
                 arbObject,
                 Arb.bind(
                     genA = NAME,
-                    genB = SHIELDS_PAIR,
-                    genC = HULL_ID,
-                    genD = IMPULSE,
-                    genE = SIDE,
-                    genF = SHIP_INDEX,
-                    genG = CAPITAL_SHIP_ID,
-                    genH = ENUMS,
-                    genI = WARP,
+                    genB = ENERGY,
+                    genC = SHIELDS_PROPS,
+                    genD = HULL_ID,
+                    genE = SPEED,
+                    genF = SIDE,
+                    genG = SHIP_INDEX,
+                    genH = CAPITAL_SHIP_ID,
+                    genI = ENUMS,
                     genJ = DOCKING_BASE,
                     genK = DOUBLE_AGENT,
                     genL = LOCATION,

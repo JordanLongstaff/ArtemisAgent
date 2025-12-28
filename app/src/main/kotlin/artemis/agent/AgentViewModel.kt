@@ -63,6 +63,7 @@ import com.walkertribe.ian.protocol.core.setup.SetShipPacket
 import com.walkertribe.ian.protocol.core.setup.Ship
 import com.walkertribe.ian.protocol.core.setup.VersionPacket
 import com.walkertribe.ian.protocol.core.world.DockedPacket
+import com.walkertribe.ian.protocol.core.world.GridUpdatePacket
 import com.walkertribe.ian.protocol.udp.Server
 import com.walkertribe.ian.protocol.udp.ServerDiscoveryRequester
 import com.walkertribe.ian.util.BoolState
@@ -205,6 +206,10 @@ class AgentViewModel(application: Application) :
     val shipIndex: MutableStateFlow<Int> by lazy { MutableStateFlow(-1) }
     val playerShip: ArtemisPlayer?
         get() = shipIndex.value.coerceAtLeast(0).let(playerIndex::get).let(players::get)
+
+    val playerUpdate: MutableSharedFlow<ArtemisPlayer> by lazy {
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
 
     val playerName: String?
         get() = playerShip?.run { name.value }
@@ -820,6 +825,7 @@ class AgentViewModel(application: Application) :
 
                 val shouldFlash =
                     when (page) {
+                        GameFragment.Page.STATUS -> false
                         GameFragment.Page.STATIONS -> currentFlashOn || stationFlashOn
                         GameFragment.Page.ALLIES ->
                             allyShips
@@ -977,6 +983,16 @@ class AgentViewModel(application: Application) :
     @Listener
     fun onPacket(packet: BayStatusPacket) {
         fightersInBays = packet.fighterCount
+    }
+
+    @Listener
+    fun onPacket(packet: GridUpdatePacket) {
+        val grid = playerShip?.let { player -> vesselData.getGrid(player.hullId.value) } ?: return
+        if (packet.isFullUpdate) {
+            grid.clearDamage()
+        }
+
+        packet.damages.forEach(grid::applyDamage)
     }
 
     @Listener

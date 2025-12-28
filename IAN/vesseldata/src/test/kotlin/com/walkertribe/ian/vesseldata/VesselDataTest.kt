@@ -1,5 +1,6 @@
 package com.walkertribe.ian.vesseldata
 
+import com.walkertribe.ian.grid.writeToSntFile
 import com.walkertribe.ian.util.FilePathResolver
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
@@ -79,7 +80,10 @@ class VesselDataTest :
                 .orEmpty()
 
         val vesselData =
-            VesselData.Loaded(TestFaction.entries.map { it.build() }, vessels.map { it.build() })
+            VesselData.Loaded(
+                TestFaction.entries.map { it.build() },
+                vessels.map { it.build() to it.grid },
+            )
 
         val tmpDir = tempdir()
         val tmpDirPath = tmpDir.toOkioPath()
@@ -109,6 +113,11 @@ class VesselDataTest :
                                 distinctVessels.forEach { node(it.serialize()) }
                             }
                         datFile.writeText(vesselDataXml.toString())
+
+                        distinctVessels.forEach { vessel ->
+                            val internalsFile = vessel.internalsFilePath ?: return@forEach
+                            vessel.grid?.writeToSntFile(File(tmpDir, internalsFile))
+                        }
 
                         val loadedData =
                             VesselData.load(FilePathResolver(tmpDirPath))
@@ -145,6 +154,10 @@ class VesselDataTest :
 
                         it("Cannot retrieve vessels") {
                             Arb.int().checkAll { id -> data[id].shouldBeNull() }
+                        }
+
+                        it("Cannot retrieve grids") {
+                            Arb.int().checkAll { hullId -> data.getGrid(hullId).shouldBeNull() }
                         }
                     }
 
