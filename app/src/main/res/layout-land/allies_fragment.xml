@@ -36,15 +36,13 @@
         android:id="@+id/allyInfoLayout"
         layout="@layout/allies_entry"
         app:layout_constraintTop_toTopOf="parent" />
-    <HorizontalScrollView
+    <ScrollView
         android:id="@+id/allyCommandsScroller"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
         android:overScrollMode="never"
         android:scrollbars="none"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintLeft_toRightOf="@id/allyInfoLayout"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintStart_toEndOf="@id/allyInfoLayout">
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
@@ -167,33 +165,33 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="@string/proceed_to_your_destination"
-                app:layout_constraintEnd_toEndOf="@id/allyAttackButton"
-                app:layout_constraintLeft_toLeftOf="@id/allyAttackButton"
-                app:layout_constraintRight_toRightOf="@id/allyAttackButton"
-                app:layout_constraintStart_toStartOf="@id/allyAttackButton"
-                app:layout_constraintTop_toBottomOf="@id/allyAttackButton" />
+                app:layout_constraintEnd_toEndOf="@id/allyTurnTo90"
+                app:layout_constraintLeft_toRightOf="@id/allyAttackButton"
+                app:layout_constraintRight_toRightOf="@id/allyTurnTo90"
+                app:layout_constraintStart_toEndOf="@id/allyAttackButton"
+                app:layout_constraintTop_toBottomOf="@id/allyMoreCommandsLabel" />
             <Button
                 android:id="@+id/allyAttackButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="@string/attack_nearest_enemy"
-                app:layout_constraintEnd_toEndOf="@id/allyMoreCommandsLabel"
-                app:layout_constraintLeft_toLeftOf="@id/allyMoreCommandsLabel"
-                app:layout_constraintRight_toRightOf="@id/allyMoreCommandsLabel"
-                app:layout_constraintStart_toStartOf="@id/allyMoreCommandsLabel"
-                app:layout_constraintTop_toTopOf="@id/allyTurnTo90" />
+                app:layout_constraintEnd_toStartOf="@id/allyProceedButton"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/allyProceedButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/allyMoreCommandsLabel" />
             <TextView
                 android:id="@+id/allyMoreCommandsLabel"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/paddingSmall"
                 android:text="@string/more_commands"
                 android:textSize="@dimen/baseTextSize"
-                app:layout_constraintLeft_toRightOf="@id/allyTurnTo90"
-                app:layout_constraintStart_toEndOf="@id/allyTurnTo90"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/allyTurnTo180" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </HorizontalScrollView>
+    </ScrollView>
     <TextView
         android:id="@+id/allyGoDefendLabel"
         android:layout_width="wrap_content"
@@ -201,9 +199,9 @@
         android:layout_marginHorizontal="@dimen/paddingSmall"
         android:text="@string/go_defend"
         android:textSize="@dimen/baseTextSize"
-        app:layout_constraintLeft_toLeftOf="@id/defendTopDivider"
-        app:layout_constraintStart_toStartOf="@id/defendTopDivider"
-        app:layout_constraintTop_toBottomOf="@id/allyCommandsScroller" />
+        app:layout_constraintLeft_toRightOf="@id/defendLeftDivider"
+        app:layout_constraintStart_toEndOf="@id/defendLeftDivider"
+        app:layout_constraintTop_toTopOf="parent" />
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/allyDefendList"
         android:layout_width="0dp"
@@ -213,18 +211,16 @@
         android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintLeft_toLeftOf="@id/defendTopDivider"
+        app:layout_constraintLeft_toRightOf="@id/defendLeftDivider"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintStart_toStartOf="@id/defendTopDivider"
+        app:layout_constraintStart_toEndOf="@id/defendLeftDivider"
         app:layout_constraintTop_toBottomOf="@id/allyGoDefendLabel" />
     <View
-        android:id="@+id/defendTopDivider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
+        android:id="@+id/defendLeftDivider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/paddingSmall"
         android:background="?android:attr/listDivider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintLeft_toLeftOf="@id/allyCommandsScroller"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintStart_toStartOf="@id/allyCommandsScroller"
-        app:layout_constraintTop_toBottomOf="@id/allyCommandsScroller" />
+        app:layout_constraintLeft_toRightOf="@id/allyCommandsScroller"
+        app:layout_constraintStart_toEndOf="@id/allyCommandsScroller" />
 </androidx.constraintlayout.widget.ConstraintLayout>

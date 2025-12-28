@@ -340,15 +340,18 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
     }
 
     private class DestinationGridLayoutManager(context: Context) :
-        GridLayoutManager(context, 1, HORIZONTAL, false) {
+        GridLayoutManager(context, 1, context.resources.configuration.orientation - 1, false) {
         private val spanDimension: Int =
-            (context.resources.displayMetrics.density * NORMAL_BUTTON_HEIGHT).toInt()
+            (context.resources.displayMetrics.density *
+                    if (orientation == HORIZONTAL) NORMAL_BUTTON_HEIGHT else NORMAL_BUTTON_WIDTH)
+                .toInt()
 
         override fun onLayoutChildren(
             recycler: RecyclerView.Recycler?,
             state: RecyclerView.State?,
         ) {
-            spanCount = 1.coerceAtLeast(height / spanDimension)
+            spanCount =
+                1.coerceAtLeast((if (orientation == HORIZONTAL) height else width) / spanDimension)
             super.onLayoutChildren(recycler, state)
         }
     }
@@ -453,6 +456,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
     }
 
     private companion object {
+        const val NORMAL_BUTTON_WIDTH = 88
         const val NORMAL_BUTTON_HEIGHT = 48
         const val NINETY = 90
 
