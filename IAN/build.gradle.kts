@@ -5,6 +5,7 @@ import com.android.build.gradle.internal.tasks.factory.dependsOn
 plugins {
     id("ian-library")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.javaagent)
     alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
 }
@@ -55,6 +56,7 @@ dependencies {
     testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
+    testJavaagent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
 
