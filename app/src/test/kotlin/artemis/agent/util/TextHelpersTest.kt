@@ -68,19 +68,30 @@ class TextHelpersTest :
             val shields = Shields(0L)
 
             withData(
-                nameFn = { it.first },
-                "Front" to R.string.front_shield,
-                "Rear" to R.string.rear_shield,
-            ) { (name, stringId) ->
-                val startChar = name[0]
-                checkAll(Arb.int(0..100), Arb.of(100, 200)) { current, max ->
-                    shields.maxStrength.value = max.toFloat()
-                    shields.strength.value = current.toFloat()
+                nameFn = { "With${if (it) "" else "out"} percentage" },
+                first = true,
+                second = false,
+            ) { includePercentage ->
+                withData(
+                    nameFn = { it.first },
+                    "Front" to R.string.front_shield,
+                    "Rear" to R.string.rear_shield,
+                ) { (name, stringId) ->
+                    val startChar = name[0]
+                    checkAll(Arb.int(0..100), Arb.of(100, 200)) { current, max ->
+                        shields.maxStrength.value = max.toFloat()
+                        shields.strength.value = current.toFloat()
 
-                    val percentage = current.toFloat() / max.toFloat() * 100f
+                        val percentage =
+                            if (includePercentage) {
+                                " ${(current.toFloat() / max.toFloat() * 100f).toInt()}%"
+                            } else {
+                                ""
+                            }
 
-                    val text = getShieldText(mockContext, stringId, shields)
-                    text shouldBeEqual "$startChar $current/$max ${percentage.toInt()}%"
+                        val text = getShieldText(mockContext, stringId, shields, includePercentage)
+                        text shouldBeEqual "$startChar $current/$max$percentage"
+                    }
                 }
             }
         }

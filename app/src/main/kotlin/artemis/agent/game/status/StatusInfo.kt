@@ -39,7 +39,7 @@ sealed interface StatusInfo {
         @all:VisibleForTesting val shield: Shields,
     ) : StatusInfo {
         override fun getString(context: Context): String =
-            getShieldText(context, position.stringId, shield)
+            getShieldText(context, position.stringId, shield, true)
 
         override fun itemEquals(other: StatusInfo): Boolean =
             other is Shield && position == other.position

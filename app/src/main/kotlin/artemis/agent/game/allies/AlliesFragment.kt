@@ -333,9 +333,9 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 context.getString(R.string.direction, entry.heading)
             entryBinding.allyRangeLabel.text = context.getString(R.string.range, entry.range)
             entryBinding.allyFrontShieldLabel.text =
-                getShieldText(context, R.string.front_shield, entry.obj.shieldsFront)
+                getShieldText(context, R.string.front_shield, entry.obj.shieldsFront, false)
             entryBinding.allyRearShieldLabel.text =
-                getShieldText(context, R.string.rear_shield, entry.obj.shieldsRear)
+                getShieldText(context, R.string.rear_shield, entry.obj.shieldsRear, false)
         }
     }
 

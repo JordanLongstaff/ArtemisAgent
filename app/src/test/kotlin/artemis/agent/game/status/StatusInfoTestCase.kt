@@ -120,7 +120,7 @@ sealed interface StatusInfoTestCase<T : StatusInfo, TC : StatusInfoTestCase<T, T
         StatusInfoTestCase<StatusInfo.Shield, Shield> {
         override val context: Context by lazy {
             mockkStatic(::getShieldText)
-            every { getShieldText(any(), shieldPosition.stringId, any()) } returns
+            every { getShieldText(any(), shieldPosition.stringId, any(), any()) } returns
                 shieldPosition.name
 
             mockk<Context>()

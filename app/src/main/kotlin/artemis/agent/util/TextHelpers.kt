@@ -7,16 +7,24 @@ import com.walkertribe.ian.world.Shields
 
 private const val PERCENT = 100
 
-fun getShieldText(context: Context, @StringRes shieldString: Int, shields: Shields): String {
+fun getShieldText(
+    context: Context,
+    @StringRes shieldString: Int,
+    shields: Shields,
+    includePercentage: Boolean,
+): String {
     val shieldText =
         context.getString(
             shieldString,
             shields.strength.value.coerceAtLeast(0f),
             shields.maxStrength.value,
         )
-    val percentageText = context.getString(R.string.percentage_paren, shields.percentage * PERCENT)
+    val percentageText =
+        if (includePercentage)
+            " " + context.getString(R.string.percentage_paren, shields.percentage * PERCENT)
+        else ""
 
-    return "$shieldText $percentageText"
+    return "$shieldText$percentageText"
 }
 
 fun getDamageReportText(
