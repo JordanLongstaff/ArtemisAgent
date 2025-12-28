@@ -15,6 +15,12 @@ import com.walkertribe.ian.util.BoolState
 class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(id, timestamp) {
     override val type: ObjectType = ObjectType.PLAYER_SHIP
 
+    /** Returns this player ship's energy reserves. */
+    val energy = Property.FloatProperty(timestamp)
+
+    /** Returns whether this player ship's shields are active. */
+    val shieldsActive = Property.BoolProperty(timestamp)
+
     /** Returns whether this player ship has activated a double agent. */
     val doubleAgentActive = Property.BoolProperty(timestamp)
 
@@ -79,6 +85,8 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
     val hasPlayerData: Boolean
         get() =
             super.hasData ||
+                energy.hasValue ||
+                shieldsActive.hasValue ||
                 alertStatus.hasValue ||
                 shipIndex.hasValue ||
                 capitalShipID.hasValue ||
@@ -120,6 +128,8 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
      * upgrades data.
      */
     private infix fun updatesPlayer(plr: ArtemisPlayer) {
+        energy updates plr.energy
+        shieldsActive updates plr.shieldsActive
         alertStatus updates plr.alertStatus
         shipIndex updates plr.shipIndex
         capitalShipID updates plr.capitalShipID
@@ -155,6 +165,8 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
 
     sealed class Dsl : BaseArtemisShip.Dsl<ArtemisPlayer>() {
         data object Player : Dsl() {
+            var energy: Float = Float.NaN
+            var shieldsActive: BoolState = BoolState.Unknown
             var shipIndex: Byte = Byte.MIN_VALUE
             var capitalShipID: Int = -1
             var alertStatus: AlertStatus? = null
@@ -167,6 +179,8 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
             override fun updates(obj: ArtemisPlayer) {
                 super.updates(obj)
 
+                obj.energy.value = energy
+                obj.shieldsActive.value = shieldsActive
                 obj.warp.value = warp
                 obj.shipIndex.value = shipIndex
                 obj.capitalShipID.value = capitalShipID
@@ -174,6 +188,8 @@ class ArtemisPlayer(id: Int, timestamp: Long) : BaseArtemisShip<ArtemisPlayer>(i
                 obj.driveType.value = driveType
                 obj.dockingBase.value = dockingBase
 
+                energy = Float.NaN
+                shieldsActive = BoolState.Unknown
                 shipIndex = Byte.MIN_VALUE
                 capitalShipID = -1
                 alertStatus = null

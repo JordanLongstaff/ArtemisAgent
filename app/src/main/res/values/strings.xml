@@ -155,6 +155,7 @@
     <string name="enemy_status_easily_offended">Easily offended</string>
     <string name="enemy_status_no_intel">No intel; second scan required</string>
     <string name="enemy_status_normal">Normal</string>
+    <string name="energy_reserves">Energy: %1$.0f</string>
     <string name="exit_message">You will be disconnected from the server. Confirm exit?</string>
     <string name="failed_to_connect">Failed to connect</string>
     <string name="fighters">Fighters</string>
@@ -208,20 +209,16 @@
             After you have selected your ship, you will be moved to the Game page. This page shows
             all of the in-game information relevant to the app. Most of it is split among multiple
             subpages, and you can choose which page is shown using the page selector located below
-            the ship\'s name.\n
+            the ship\'s name. The Status page, for example, lists information about the current
+            status of the player ship, including energy reserves, shield strengths, ordnance stocks,
+            single-seat craft, and a damage report.\n
         </item>
         <item>
-            \nAside from this information, there are three important controls on this page. The
-            first is the Inventory button, which opens a dialog showing the ship\'s current ordnance
-            stocks and single-seat craft inventory. The second is the Alert button, which toggles
-            the ship\'s \"red alert\" status. The third is the Agent button.\n
-        </item>
-        <item>
-            In order to use the Agent button, the player ship must acquire secret code cases, which
-            can be used to force an enemy ship to surrender. You can activate one of those secret
-            code cases by pressing the Agent button, and it will remain active for five minutes, or
-            until it is used to make an enemy ship surrender. Only one secret code case may be
-            active at a time.
+            \nThe Alert button toggles the ship\'s \"red alert\" status. In order to use the Agent
+            button, the player ship must acquire secret code cases, which can be used to force an
+            enemy ship to surrender. You can activate one of those secret code cases by pressing the
+            Agent button, and it will remain active for five minutes, or until it is used to make an
+            enemy ship surrender. Only one secret code case may be active at a time.
         </item>
     </string-array>
     <string-array name="help_contents_biomechs">
@@ -547,7 +544,6 @@
     <string name="help_topics_stations">Stations</string>
     <string name="included_incentives">Included incentives</string>
     <string name="infinity">\u221E</string>
-    <string name="inventory">Inv</string>
     <string name="io_parse_error">I/O parse error</string>
     <string name="io_write_error">I/O write error</string>
     <string name="kilometres">km</string>
@@ -592,11 +588,25 @@
     <string name="no_ship_selected">Select a ship.</string>
     <string name="no_stations">No stations.</string>
     <string name="no_updates">No updates found.</string>
+    <string name="node_count">%1$s: %2$d/%3$d nodes</string>
+    <string name="node_damage">Damages:</string>
+    <string-array name="node_names">
+        <item>Hallway</item>
+        <item>Beams</item>
+        <item>Torpedoes</item>
+        <item>Sensors</item>
+        <item>Maneuvering</item>
+        <item>Impulse</item>
+        <item>Warp Jump drive</item>
+        <item>Front shields</item>
+        <item>Rear shields</item>
+    </string-array>
     <string name="none">None</string>
     <string name="not_connected">Not connected</string>
     <string name="off">Off</string>
     <string name="on">On</string>
     <string name="ordnance_stock">%1$s: %2$d/%3$d</string>
+    <string name="percentage_paren">(%1$.1f%%)</string>
     <string name="play">Play</string>
     <string name="proceed_to_your_destination">Proceed</string>
     <string name="range">RANGE %1$.0f</string>
@@ -633,7 +643,6 @@
         <item>Shield Boost</item>
     </string-array>
     <string name="right">Right</string>
-    <string name="route_for_supplies">Route for supplies</string>
     <string name="route_incentive_missions">Missions</string>
     <string name="route_incentive_needs_damcon">Needs DamCon</string>
     <string name="route_incentive_needs_energy">Needs energy</string>
@@ -659,6 +668,8 @@
     <string name="settings_menu_routing">Routing settings</string>
     <string name="settings_menu_personal">Personal settings</string>
     <string name="setup">Setup</string>
+    <string name="shields_active">Shields (active):</string>
+    <string name="shields_inactive">Shields (inactive):</string>
     <string name="ship_number">Ship %1$d</string>
     <string name="ships">Ships</string>
     <string name="show_destroyed_allies">Show destroyed allies</string>

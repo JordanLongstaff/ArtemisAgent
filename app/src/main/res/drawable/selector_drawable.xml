@@ -5,11 +5,14 @@
     android:insetRight="@dimen/buttonInsetHorizontal"
     android:insetBottom="@dimen/buttonInsetVertical">
     <shape android:shape="rectangle">
-        <stroke android:width="@dimen/paddingSmall" android:color="@color/button_stroke" />
+        <stroke
+            android:width="@dimen/paddingSmall"
+            android:color="@color/button_stroke" />
         <solid android:color="@color/selector_background" />
-        <padding android:left="@dimen/buttonPaddingHorizontal"
-            android:top="@dimen/buttonPaddingVertical"
+        <padding
+            android:bottom="@dimen/buttonPaddingVertical"
+            android:left="@dimen/buttonPaddingHorizontal"
             android:right="@dimen/buttonPaddingHorizontal"
-            android:bottom="@dimen/buttonPaddingVertical" />
+            android:top="@dimen/buttonPaddingVertical" />
     </shape>
 </inset>

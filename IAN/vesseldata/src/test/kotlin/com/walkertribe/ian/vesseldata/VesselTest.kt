@@ -92,6 +92,7 @@ class VesselTest :
                             productionCoefficient = 0f,
                             bayCount = 0,
                             description = null,
+                            internalsFilePath = null,
                         )
                     testVessel.isSingleseat shouldBeEqual expectedValue
                 }

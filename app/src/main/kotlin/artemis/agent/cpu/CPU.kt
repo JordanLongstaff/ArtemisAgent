@@ -282,6 +282,8 @@ class CPU(private val viewModel: AgentViewModel) : CoroutineScope {
         if (agentUpdate) {
             viewModel.doubleAgentEnabled.value = count > 0 && !active
         }
+
+        viewModel.playerUpdate.tryEmit(update)
     }
 
     @Listener

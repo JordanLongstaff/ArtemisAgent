@@ -162,6 +162,7 @@ jobs:
           - app
           - IAN
           - IAN/enums
+          - IAN/grid
           - IAN/listener
           - IAN/packets
           - IAN/udp
@@ -210,6 +211,7 @@ jobs:
             coverage/app/build/reports/kover/report.xml
             coverage/IAN/build/reports/kover/report.xml
             coverage/IAN/enums/build/reports/kover/report.xml
+            coverage/IAN/grid/build/reports/kover/report.xml
             coverage/IAN/listener/build/reports/kover/report.xml
             coverage/IAN/packets/build/reports/kover/report.xml
             coverage/IAN/udp/build/reports/kover/report.xml

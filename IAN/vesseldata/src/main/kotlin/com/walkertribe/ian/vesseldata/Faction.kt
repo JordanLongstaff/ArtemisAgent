@@ -37,7 +37,8 @@ internal constructor(
 
     override fun hashCode(): Int = id
 
-    override fun equals(other: Any?): Boolean = other is Faction && id == other.id
+    override fun equals(other: Any?): Boolean =
+        this === other || (other is Faction && id == other.id)
 
     override fun compareTo(other: Faction): Int = compareValuesBy(this, other) { it.id }
 

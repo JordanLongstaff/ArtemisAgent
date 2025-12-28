@@ -12,6 +12,7 @@ jobs:
         path:
           - 'IAN'
           - 'IAN/enums'
+          - 'IAN/grid'
           - 'IAN/listener'
           - 'IAN/packets'
           - 'IAN/udp'

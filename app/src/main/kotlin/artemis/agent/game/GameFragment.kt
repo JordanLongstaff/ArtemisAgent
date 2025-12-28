@@ -1,6 +1,5 @@
 package artemis.agent.game
 
-import android.app.AlertDialog
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -26,15 +25,13 @@ import artemis.agent.game.enemies.EnemiesFragment
 import artemis.agent.game.misc.MiscFragment
 import artemis.agent.game.missions.MissionsFragment
 import artemis.agent.game.route.RouteFragment
-import artemis.agent.game.route.RouteObjective
 import artemis.agent.game.stations.StationsFragment
+import artemis.agent.game.status.StatusFragment
 import artemis.agent.help.HelpFragment
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import com.walkertribe.ian.enums.AlertStatus
-import com.walkertribe.ian.enums.OrdnanceType
 import com.walkertribe.ian.protocol.core.comm.ToggleRedAlertPacket
-import kotlin.math.sign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -42,6 +39,7 @@ class GameFragment : Fragment(R.layout.game_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
 
     enum class Page(val pageClass: Class<out Fragment>) {
+        STATUS(StatusFragment::class.java),
         STATIONS(StationsFragment::class.java),
         ALLIES(AlliesFragment::class.java),
         MISSIONS(MissionsFragment::class.java),
@@ -104,20 +102,12 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         }
     }
 
-    private val fighterStockStrings =
-        intArrayOf(
-            R.string.single_seat_craft_docked,
-            R.string.single_seat_craft_launched,
-            R.string.single_seat_craft_lost,
-        )
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.helpTopicIndex.value = HelpFragment.MENU
         viewModel.settingsPage.value = null
 
-        setupInventoryButton()
         setupVisibilityControllers()
         setupPageSelector()
         setupAlertButton()
@@ -186,7 +176,6 @@ class GameFragment : Fragment(R.layout.game_fragment) {
             binding.waitingForGameLabel.visibility = waitingVisibility
             binding.gamePageSelectorButton.visibility = visibility
             binding.gameFragmentContainer.visibility = visibility
-            binding.inventoryButton.visibility = visibility
             binding.redAlertButton.visibility = visibility
             binding.doubleAgentButton.visibility = visibility
 
@@ -199,78 +188,18 @@ class GameFragment : Fragment(R.layout.game_fragment) {
         }
     }
 
-    private fun setupInventoryButton() {
-        binding.inventoryButton.setOnClickListener {
-            viewModel.activateHaptic()
-            viewModel.playSound(SoundEffect.BEEP_2)
-
-            val player = viewModel.playerShip ?: return@setOnClickListener
-            val vessel = player.getVessel(viewModel.vesselData) ?: return@setOnClickListener
-
-            val ordnanceStocks =
-                OrdnanceType.getAllForVersion(viewModel.version).map {
-                    val max = vessel.ordnanceStorage[it] ?: 0
-                    val current = player.getTotalOrdnanceCount(it)
-                    Triple(it, current, max)
-                }
-
-            val ordnanceStockMessage =
-                ordnanceStocks.joinToString("\n") { (ordnanceType, current, max) ->
-                    getString(
-                        R.string.ordnance_stock,
-                        ordnanceType.getLabelFor(viewModel.version),
-                        current,
-                        max,
-                    )
-                }
-
-            val neededOrdnanceType =
-                ordnanceStocks.find { (_, current, max) -> current < max }?.first
-
-            val maxFighters =
-                viewModel.version
-                    .compareTo(RouteObjective.ReplacementFighters.SHUTTLE_VERSION)
-                    .sign
-                    .coerceAtMost(0) + 1 + vessel.bayCount
-            val launchedFighters = viewModel.fighterIDs.size
-            val lostFighters = maxFighters - viewModel.totalFighters.value
-            val dockedFighters = maxFighters - lostFighters - launchedFighters
-
-            val fighterStockMessage =
-                intArrayOf(dockedFighters, launchedFighters, lostFighters)
-                    .zip(fighterStockStrings)
-                    .filter { it.first > 0 }
-                    .joinToString("\n") { (count, id) -> getString(id, count) }
-
-            val fullMessage = "$ordnanceStockMessage\n$fighterStockMessage"
-
-            val routeObjective =
-                neededOrdnanceType?.let(RouteObjective::Ordnance)
-                    ?: RouteObjective.ReplacementFighters.takeIf { lostFighters > 0 }
-
-            AlertDialog.Builder(binding.root.context)
-                .setMessage(fullMessage)
-                .setCancelable(true)
-                .apply {
-                    if (routeObjective != null) {
-                        setPositiveButton(R.string.route_for_supplies) { _, _ ->
-                            viewModel.playSound(SoundEffect.BEEP_2)
-                            viewModel.routeObjective.value = routeObjective
-                            viewModel.currentGamePage.value = Page.ROUTE
-                        }
-                    }
-                }
-                .show()
-        }
-    }
-
     private fun setupPageSelector() {
         gamePagePopup.isFocusable = true
 
         viewLifecycleOwner.collectLatestWhileStarted(viewModel.currentGamePage) { currentPage = it }
 
-        viewLifecycleOwner.collectLatestWhileStarted(viewModel.gamePages) {
-            gamePageAdapter.update(it)
+        viewLifecycleOwner.collectLatestWhileStarted(viewModel.gamePages) { pages ->
+            if (viewModel.currentGamePage.value == null) {
+                pages.keys
+                    .firstOrNull { page -> page > Page.STATUS }
+                    ?.also { page -> viewModel.currentGamePage.value = page }
+            }
+            gamePageAdapter.update(pages)
         }
     }
 

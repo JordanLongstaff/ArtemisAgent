@@ -15,11 +15,11 @@ fun Arb.Companion.vesselData(
     Arb.set(vessels, numVessels).map { vesselSet ->
         VesselData.Loaded(
             factions = factions.map(TestFaction::build),
-            vessels = vesselSet.map(TestVessel::build),
+            vessels = vesselSet.map { it.build() to it.grid },
         )
     }
 
-val VesselData.Companion.Empty by lazy { VesselData.Loaded(emptyMap(), emptyMap()) }
+val VesselData.Companion.Empty by lazy { VesselData.Loaded(emptyMap(), emptyMap(), emptyMap()) }
 
 val VesselData.Loaded.vesselKeys
     get() = vessels.keys

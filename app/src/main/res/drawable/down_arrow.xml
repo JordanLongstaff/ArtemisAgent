@@ -3,7 +3,7 @@
     android:height="30dp"
     android:viewportWidth="16"
     android:viewportHeight="12">
-  <path
-      android:pathData="M2,2L8,8L12,4L4,4L2,2L14,2L14,10L2,10Z"
-      android:fillColor="?attr/colorButtonNormal"/>
+    <path
+        android:fillColor="?attr/colorButtonNormal"
+        android:pathData="M2,2L8,8L12,4L4,4L2,2L14,2L14,10L2,10Z" />
 </vector>

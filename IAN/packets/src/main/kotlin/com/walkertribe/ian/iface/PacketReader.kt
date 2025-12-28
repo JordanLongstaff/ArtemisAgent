@@ -234,6 +234,11 @@ class PacketReader(
     fun readString(): String =
         payload.readByteArray(payload.readIntLe() * 2).toString(UTF16_LE).substringBefore(Char(0))
 
+    /** Skips over a UTF-16LE String in the current packet's payload. */
+    fun skipString() {
+        payload.discard(payload.readIntLe() * 2L)
+    }
+
     /** Reads an ASCII String from the current packet's payload. */
     fun readUsAsciiString(): String = payload.readByteArray(payload.readIntLe()).toString(ASCII)
 

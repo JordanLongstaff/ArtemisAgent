@@ -128,6 +128,7 @@ dependencies {
     implementation(fileTree(baseDir = "libs") { include("*.jar") })
     implementation(projects.ian)
     implementation(projects.ian.enums)
+    implementation(projects.ian.grid)
     implementation(projects.ian.listener)
     implementation(projects.ian.packets)
     implementation(projects.ian.udp)
@@ -142,6 +143,7 @@ dependencies {
     debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
     testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
 
     testImplementation(platform(libs.kotest.bom))
