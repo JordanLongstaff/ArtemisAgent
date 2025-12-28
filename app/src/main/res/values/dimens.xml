@@ -2,7 +2,7 @@
 <resources>
     <dimen name="paddingSmall">5dp</dimen>
     <dimen name="paddingMedium">9dp</dimen>
-    <dimen name="horizontalAllyEntryWidth">180dip</dimen>
+    <dimen name="horizontalAllyEntryWidth">200dip</dimen>
     <dimen name="horizontalRouteEntryWidth">200dip</dimen>
     <dimen name="directionButtonWidth">60dip</dimen>
     <dimen name="routeEntryMinimumHeight">47dp</dimen>

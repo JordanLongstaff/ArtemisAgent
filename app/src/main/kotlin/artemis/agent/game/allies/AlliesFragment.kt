@@ -351,7 +351,17 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
             state: RecyclerView.State?,
         ) {
             spanCount =
-                1.coerceAtLeast((if (orientation == HORIZONTAL) height else width) / spanDimension)
+                1.coerceAtLeast(
+                    if (orientation == HORIZONTAL) {
+                        height / spanDimension
+                    } else {
+                        val crossDimension =
+                            List(childCount) { getChildAt(it)?.measuredWidth }
+                                .filterNotNull()
+                                .maxOrNull() ?: spanDimension
+                        width / crossDimension
+                    }
+                )
             super.onLayoutChildren(recycler, state)
         }
     }
