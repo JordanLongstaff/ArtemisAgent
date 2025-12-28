@@ -84,13 +84,16 @@ sealed interface StatusInfoTestCase<T : StatusInfo, TC : StatusInfoTestCase<T, T
 
     data object Energy : StatusInfoTestCase<StatusInfo.Energy, Energy> {
         private const val PREFIX = "Energy: "
+        private const val ENERGY_UNSCALE = 10
 
         override val context: Context by lazy {
             mockk<Context> {
                 every { getString(R.string.energy_reserves, *varargAny { nArgs == 1 }) } answers
                     {
                         PREFIX +
-                            lastArg<Array<Any?>>().first().toString().toFloatOrNull()?.roundToInt()
+                            lastArg<Array<Any?>>().first().toString().toFloatOrNull()?.let {
+                                (it * ENERGY_UNSCALE).roundToInt()
+                            }
                     }
             }
         }

@@ -155,7 +155,7 @@
     <string name="enemy_status_easily_offended">Easily offended</string>
     <string name="enemy_status_no_intel">No intel; second scan required</string>
     <string name="enemy_status_normal">Normal</string>
-    <string name="energy_reserves">Energy: %1$.0f</string>
+    <string name="energy_reserves">Energy: %1$.1f%%</string>
     <string name="exit_message">You will be disconnected from the server. Confirm exit?</string>
     <string name="failed_to_connect">Failed to connect</string>
     <string name="fighters">Fighters</string>
