@@ -14,6 +14,8 @@ configureTests(maxMemoryGb = 8)
 
 pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
 
+kover.currentProject.instrumentation.includedClasses.add("com.walkertribe.ian.*")
+
 val konsistCollect by
     tasks.registering {
         group = "build"
