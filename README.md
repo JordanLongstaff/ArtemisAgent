@@ -1,4 +1,4 @@
-# Artemis Agent 1.5.1
+# Artemis Agent 1.6.0
 
 ## What is Artemis Agent?
 
