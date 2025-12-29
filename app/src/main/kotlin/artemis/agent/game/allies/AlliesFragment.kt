@@ -24,6 +24,7 @@ import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.ObjectEntry.Ally
 import artemis.agent.generic.GenericDataAdapter
 import artemis.agent.generic.GenericDataEntry
+import artemis.agent.util.BackPreview
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import artemis.agent.util.getShieldText
@@ -40,6 +41,31 @@ import kotlinx.coroutines.flow.combine
 class AlliesFragment : Fragment(R.layout.allies_fragment) {
     private val viewModel: AgentViewModel by activityViewModels()
     private val binding: AlliesFragmentBinding by fragmentViewBinding()
+
+    private val backPreview by lazy {
+        object : BackPreview(false) {
+            private var focusedAlly: Ally? = null
+
+            override fun beforePreview() {
+                focusedAlly = viewModel.focusedAlly.value
+            }
+
+            override fun preview() {
+                viewModel.focusedAlly.value = null
+                binding.backPressAlpha.visibility = View.VISIBLE
+            }
+
+            override fun revert() {
+                viewModel.focusedAlly.value = focusedAlly
+                binding.backPressAlpha.visibility = View.GONE
+            }
+
+            override fun close() {
+                viewModel.playSound(SoundEffect.BEEP_1)
+                binding.backPressAlpha.visibility = View.GONE
+            }
+        }
+    }
 
     private val commandInfoBinder: AllyInfoBinder by lazy { AllyInfoBinder(binding.allyInfoLayout) }
 
@@ -68,6 +94,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.backPreview = backPreview
 
         with(binding) {
             prepareAlliesListViewAndSelector()
@@ -79,6 +106,11 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 button.text = viewModel.formattedHeading(i * NINETY)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPreview)
     }
 
     private fun AlliesFragmentBinding.prepareAlliesListViewAndSelector() {
@@ -144,7 +176,10 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
 
     private fun AlliesFragmentBinding.showAlliesListView() {
         root.setBackgroundColor(Color.TRANSPARENT)
-        root.children.forEach { child -> child.visibility = View.GONE }
+        root.children.forEach { child ->
+            if (child.id == R.id.backPressAlpha) return@forEach
+            child.visibility = View.GONE
+        }
         alliesListSelector.visibility = if (viewModel.showAllySelector) View.VISIBLE else View.GONE
         alliesListView.visibility = View.VISIBLE
         destinationAdapter = null
@@ -156,6 +191,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
     ) {
         commandInfoBinder.bind(ally, viewModel)
         root.setBackgroundColor(ally.getBackgroundColor(root.context))
+        backPreview.isEnabled = true
 
         var targetsAdapter = destinationAdapter
         if (targetsAdapter == null) {
@@ -178,7 +214,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                             playSound(SoundEffect.CONFIRMATION)
                             sendToServer(CommsOutgoingPacket(ally.obj, message, vesselData))
                             if (!manuallyReturnFromCommands && !isSingleAlly) {
-                                focusedAlly.value = null
+                                this@AlliesFragment.backPreview.handleOnBackPressed()
                             }
                         }
                     }
@@ -190,7 +226,10 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
 
         targetsAdapter.onTargetsUpdate(targets)
 
-        root.children.forEach { child -> child.visibility = View.VISIBLE }
+        root.children.forEach { child ->
+            if (child.id == R.id.backPressAlpha) return@forEach
+            child.visibility = View.VISIBLE
+        }
 
         if (ally.obj.getVessel(viewModel.vesselData)?.get(WARSHIP) != true) {
             allyAttackButton.visibility = View.GONE
@@ -249,12 +288,10 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                 root.setBackgroundColor(Color.TRANSPARENT)
                 allyCommandButton.setText(R.string.cancel)
                 allyCommandButton.setOnClickListener {
-                    with(viewModel) {
-                        activateHaptic()
-                        playSound(SoundEffect.BEEP_1)
-                        if (!isSingleAlly) {
-                            focusedAlly.value = null
-                        }
+                    viewModel.activateHaptic()
+                    viewModel.playSound(SoundEffect.BEEP_1)
+                    if (!viewModel.isSingleAlly) {
+                        viewModel.backPreview?.handleOnBackPressed()
                     }
                 }
             } else {
@@ -405,7 +442,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                     playSound(SoundEffect.CONFIRMATION)
                     sendToServer(CommsOutgoingPacket(ally, OtherMessage.GoDefend(obj), vesselData))
                     if (!manuallyReturnFromCommands && !isSingleAlly) {
-                        focusedAlly.value = null
+                        backPreview?.handleOnBackPressed()
                     }
                 }
             }
