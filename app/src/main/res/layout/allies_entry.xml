@@ -63,9 +63,9 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/paddingSmall"
         android:textSize="@dimen/baseTextSize"
-        app:layout_constraintEnd_toStartOf="@id/allyCommandButton"
+        app:layout_constraintEnd_toStartOf="@id/allyDescriptionBarrier"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/allyCommandButton"
+        app:layout_constraintRight_toLeftOf="@id/allyDescriptionBarrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/allyHailButton" />
     <Button
@@ -84,6 +84,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/allyRecapButton" />
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/allyDescriptionBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="allyCommandButton,allyRecapButton" />
     <View
         android:id="@+id/bottomDivider"
         android:layout_width="match_parent"
