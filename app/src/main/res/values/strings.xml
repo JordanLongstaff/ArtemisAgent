@@ -201,7 +201,7 @@
             include turning to a specific direction, attacking the nearest targest, and moving to
             defend or rendezvous with another station or ally ship. You can also return to the list
             of ally ships by pressing the Cancel button. Sending a command will return you to the
-            list automatically, unless the "Manually return from commands" setting is turned on.
+            list automatically, unless the "Manually return from commands" setting is turned on.\n
         </item>
     </string-array>
     <string-array name="help_contents_basics">
