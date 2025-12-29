@@ -72,9 +72,9 @@
         app:autoSizeTextType="uniform"
         app:autoSizeStepGranularity="2sp"
         app:layout_constraintBottom_toTopOf="@id/allyCommandButton"
-        app:layout_constraintEnd_toEndOf="@id/allyCommandButton"
+        app:layout_constraintEnd_toEndOf="@id/rightDivider"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@id/allyCommandButton"
+        app:layout_constraintRight_toRightOf="@id/rightDivider"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/allyRangeLabel" />
     <Button
