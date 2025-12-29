@@ -29,6 +29,8 @@
         <item name="android:navigationBarColor">?attr/colorPrimaryDark</item>
         <item name="seekBarStyle">@style/Widget.ArtemisAgent.SeekBar</item>
         <item name="android:seekBarStyle">@style/Widget.ArtemisAgent.SeekBar</item>
+        <item name="progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
     </style>
 
     <style name="Theme.ArtemisAgent.Red">
@@ -39,6 +41,8 @@
         <item name="android:windowBackground">@color/backgroundRed</item>
         <item name="android:textColorPrimary">@color/textRed</item>
         <item name="colorButtonNormal">@color/colorPrimaryRed</item>
+        <item name="progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
     </style>
 
     <style name="Theme.ArtemisAgent.Green">
@@ -49,6 +53,8 @@
         <item name="android:windowBackground">@color/backgroundGreen</item>
         <item name="android:textColorPrimary">@color/textGreen</item>
         <item name="colorButtonNormal">@color/colorPrimaryGreen</item>
+        <item name="progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
     </style>
 
     <style name="Theme.ArtemisAgent.Yellow">
@@ -59,6 +65,8 @@
         <item name="android:windowBackground">@color/backgroundYellow</item>
         <item name="android:textColorPrimary">@color/textYellow</item>
         <item name="colorButtonNormal">@color/colorPrimaryYellow</item>
+        <item name="progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
     </style>
 
     <style name="Theme.ArtemisAgent.Blue">
@@ -69,6 +77,8 @@
         <item name="android:windowBackground">@color/backgroundBlue</item>
         <item name="android:textColorPrimary">@color/textBlue</item>
         <item name="colorButtonNormal">@color/colorPrimaryBlue</item>
+        <item name="progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
     </style>
 
     <style name="Theme.ArtemisAgent.Purple">
@@ -79,6 +89,8 @@
         <item name="android:windowBackground">@color/backgroundPurple</item>
         <item name="android:textColorPrimary">@color/textPurple</item>
         <item name="colorButtonNormal">@color/colorPrimaryPurple</item>
+        <item name="progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
     </style>
 
     <style name="Theme.ArtemisAgent.Orange">
@@ -89,6 +101,8 @@
         <item name="android:windowBackground">@color/backgroundOrange</item>
         <item name="android:textColorPrimary">@color/textOrange</item>
         <item name="colorButtonNormal">@color/colorPrimaryOrange</item>
+        <item name="progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ArtemisAgent.ProgressBar</item>
     </style>
 
     <style name="ThemeOverlay.ArtemisAgent.AlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
@@ -159,6 +173,10 @@
         <item name="android:background">@drawable/button_drawable</item>
         <item name="android:textCursorDrawable">@drawable/text_cursor</item>
         <item name="android:textColorHint">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="Widget.ArtemisAgent.ProgressBar" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/progress_anim</item>
     </style>
 
     <style name="Widget.ArtemisAgent.SeekBar" parent="Widget.AppCompat.SeekBar">
