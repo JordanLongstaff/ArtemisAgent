@@ -191,7 +191,7 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
     ) {
         commandInfoBinder.bind(ally, viewModel)
         root.setBackgroundColor(ally.getBackgroundColor(root.context))
-        backPreview.isEnabled = true
+        backPreview.isEnabled = !viewModel.isSingleAlly
 
         var targetsAdapter = destinationAdapter
         if (targetsAdapter == null) {
