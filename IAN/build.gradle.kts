@@ -6,7 +6,6 @@ plugins {
     id("ian-library")
     alias(libs.plugins.ksp)
     alias(libs.plugins.javaagent)
-    alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
 }
 
