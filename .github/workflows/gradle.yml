@@ -61,7 +61,7 @@ jobs:
       - name: Build with Gradle Wrapper
         uses: burrunan/gradle-cache-action@663fbad34e03c8f12b27f4999ac46e3d90f87eca # v3.0.1
         with:
-          arguments: build
+          arguments: build koverXmlReport
 
       - name: Upload Unit Test Results
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -79,6 +79,14 @@ jobs:
           name: Konsist Test Results
           path: |
             ${{ github.workspace }}/**/konsist/build/test-results/**/*.xml
+
+      - name: Upload Code Coverage Reports
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: always()
+        with:
+          name: Code Coverage Reports
+          path: |
+            ${{ github.workspace }}/**/build/reports/kover/report.xml
 
   dependency-review:
     name: Dependency review
@@ -142,3 +150,74 @@ jobs:
         with:
           check_name: Konsist Test Results
           files: konsist/**/*.xml
+
+  coverage:
+    name: Report code coverage
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+    strategy:
+      matrix:
+        module:
+          - app
+          - IAN
+          - IAN/enums
+          - IAN/grid
+          - IAN/listener
+          - IAN/packets
+          - IAN/udp
+          - IAN/util
+          - IAN/vesseldata
+          - IAN/world
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Download Code Coverage Reports
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: Code Coverage Reports
+          path: coverage
+
+      - name: Code Coverage (${{ matrix.module }})
+        uses: mi-kas/kover-report@5f58465b6f395c8fa3adc2665e27250bad87de50 # v1.9
+        with:
+          title: Code Coverage (${{ matrix.module }})
+          path: coverage/${{ matrix.module }}/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
+          min-coverage-overall: ${{ matrix.module == 'app' && 0 || 99 }}
+
+  total-coverage:
+    name: Report code coverage (total)
+    needs: coverage
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Download Code Coverage Reports
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: Code Coverage Reports
+          path: coverage
+
+      - name: Total Code Coverage
+        uses: mi-kas/kover-report@5f58465b6f395c8fa3adc2665e27250bad87de50 # v1.9
+        with:
+          title: Total Code Coverage
+          path: |
+            coverage/app/build/reports/kover/report.xml
+            coverage/IAN/build/reports/kover/report.xml
+            coverage/IAN/enums/build/reports/kover/report.xml
+            coverage/IAN/grid/build/reports/kover/report.xml
+            coverage/IAN/listener/build/reports/kover/report.xml
+            coverage/IAN/packets/build/reports/kover/report.xml
+            coverage/IAN/udp/build/reports/kover/report.xml
+            coverage/IAN/util/build/reports/kover/report.xml
+            coverage/IAN/vesseldata/build/reports/kover/report.xml
+            coverage/IAN/world/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
+          min-coverage-overall: 90
