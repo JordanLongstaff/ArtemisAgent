@@ -29,7 +29,7 @@ sealed interface StatusInfo {
 
     data class Energy(@all:VisibleForTesting val energy: Float) : StatusInfo {
         override fun getString(context: Context): String =
-            context.getString(R.string.energy_reserves, energy)
+            context.getString(R.string.energy_reserves, energy * ENERGY_PERCENT_SCALE)
 
         override fun itemEquals(other: StatusInfo): Boolean = other is Energy
     }
@@ -39,7 +39,7 @@ sealed interface StatusInfo {
         @all:VisibleForTesting val shield: Shields,
     ) : StatusInfo {
         override fun getString(context: Context): String =
-            getShieldText(context, position.stringId, shield)
+            getShieldText(context, position.stringId, shield, true)
 
         override fun itemEquals(other: StatusInfo): Boolean =
             other is Shield && position == other.position
@@ -79,5 +79,9 @@ sealed interface StatusInfo {
 
         override fun itemEquals(other: StatusInfo): Boolean =
             other is DamageReport && systemLabel == other.systemLabel
+    }
+
+    private companion object {
+        const val ENERGY_PERCENT_SCALE = 0.1f
     }
 }

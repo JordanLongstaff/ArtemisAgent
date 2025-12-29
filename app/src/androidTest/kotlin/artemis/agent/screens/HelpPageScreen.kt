@@ -42,7 +42,7 @@ object HelpPageScreen : KScreen<HelpPageScreen>() {
             R.string.help_topics_getting_started to 8,
             R.string.help_topics_basics to 3,
             R.string.help_topics_stations to 12,
-            R.string.help_topics_allies to 5,
+            R.string.help_topics_allies to 6,
             R.string.help_topics_missions to 14,
             R.string.help_topics_routing to 6,
             R.string.help_topics_enemies to 12,

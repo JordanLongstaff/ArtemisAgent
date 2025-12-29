@@ -96,7 +96,7 @@ sealed class StatusInfoTestCategory<SI : StatusInfo, TC : StatusInfoTestCase<SI,
                 val item = items[index]
                 items.forEachIndexed { index2, other ->
                     if (index == index2) return@forEachIndexed
-                    it("${other.ordnanceType}") {
+                    it(other.ordnanceType.name) {
                         item.statusInfoNotEqualsGen(other).checkAll { (a, b) ->
                             a.itemEquals(b).shouldBeFalse()
                         }

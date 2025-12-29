@@ -274,7 +274,7 @@ class StationEntryFragment : Fragment(R.layout.station_entry) {
 
         stationMissionsLabel.text = entry.getMissionsText(context)
         stationShieldLabel.text =
-            getShieldText(context, R.string.station_shield, entry.obj.shieldsFront)
+            getShieldText(context, R.string.station_shield, entry.obj.shieldsFront, true)
         stationStatusLabel.text = entry.statusString?.let(context::getString).orEmpty()
         stationSpeedLabel.text = entry.getSpeedText(context)
 

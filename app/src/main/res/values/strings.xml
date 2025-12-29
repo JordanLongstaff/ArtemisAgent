@@ -155,7 +155,7 @@
     <string name="enemy_status_easily_offended">Easily offended</string>
     <string name="enemy_status_no_intel">No intel; second scan required</string>
     <string name="enemy_status_normal">Normal</string>
-    <string name="energy_reserves">Energy: %1$.0f</string>
+    <string name="energy_reserves">Energy: %1$.1f%%</string>
     <string name="exit_message">You will be disconnected from the server. Confirm exit?</string>
     <string name="failed_to_connect">Failed to connect</string>
     <string name="fighters">Fighters</string>
@@ -201,7 +201,7 @@
             include turning to a specific direction, attacking the nearest targest, and moving to
             defend or rendezvous with another station or ally ship. You can also return to the list
             of ally ships by pressing the Cancel button. Sending a command will return you to the
-            list automatically, unless the "Manually return from commands" setting is turned on.
+            list automatically, unless the "Manually return from commands" setting is turned on.\n
         </item>
     </string-array>
     <string-array name="help_contents_basics">
