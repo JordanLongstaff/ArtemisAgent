@@ -356,9 +356,21 @@ class AlliesFragment : Fragment(R.layout.allies_fragment) {
                         height / spanDimension
                     } else {
                         val crossDimension =
-                            List(childCount) { getChildAt(it)?.measuredWidth }
-                                .filterNotNull()
-                                .maxOrNull() ?: spanDimension
+                            recycler?.let { rec ->
+                                List(state?.itemCount ?: 0) { index ->
+                                        val view = rec.getViewForPosition(index)
+                                        view.measure(
+                                            View.MeasureSpec.makeMeasureSpec(
+                                                width,
+                                                View.MeasureSpec.AT_MOST,
+                                            ),
+                                            View.MeasureSpec.UNSPECIFIED,
+                                        )
+                                        view.measuredWidth
+                                    }
+                                    .filter { it > 0 }
+                                    .maxOrNull()
+                            } ?: spanDimension
                         width / crossDimension
                     }
                 )
