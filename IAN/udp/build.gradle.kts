@@ -4,6 +4,7 @@ import artemis.agent.gradle.dependsOnKonsist
 
 plugins {
     id("ian-library")
+    alias(libs.plugins.kover)
     id("info.solidsoft.pitest")
 }
 
