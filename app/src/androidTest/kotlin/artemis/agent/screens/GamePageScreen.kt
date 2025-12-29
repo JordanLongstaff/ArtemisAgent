@@ -10,4 +10,5 @@ object GamePageScreen : KScreen<GamePageScreen>() {
     override val viewClass: Class<*> = GameFragment::class.java
 
     val shipNumberLabel = KTextView { withId(R.id.shipNumberLabel) }
+    val gamePageSelectorButton = KTextView { withId(R.id.gamePageSelectorButton) }
 }

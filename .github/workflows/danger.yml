@@ -21,7 +21,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Generate secret files
       if: github.event_name == 'pull_request'
@@ -40,13 +40,13 @@ jobs:
         -r sarif:${{ github.workspace }}/detekt.sarif.json
 
     - name: Upload Detekt SARIF report
-      uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v4.31.2
+      uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
       with:
         sarif_file: ${{ github.workspace }}/detekt.sarif.json
         checkout_path: ${{ github.workspace }}
 
     - name: Setup Ruby
-      uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # v1.267.0
+      uses: ruby/setup-ruby@ae195bbe749a7cef685ac729197124a48305c1cb # v1.276.0
       with:
         bundler-cache: true
 
@@ -58,14 +58,14 @@ jobs:
         "
 
     - name: Upload Rubocop SARIF report
-      uses: github/codeql-action/upload-sarif@0499de31b99561a6d14a36a5f662c2a54f91beee # v4.31.2
+      uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
       with:
         sarif_file: ${{ github.workspace }}/rubocop.sarif
         checkout_path: ${{ github.workspace }}
 
     - name: Run Danger
       if: github.event_name == 'pull_request'
-      uses: MeilCli/danger-action@583cfde64ce7ee80e3da485565614d2df9ab03cd # v6.0.40
+      uses: MeilCli/danger-action@22054113d79d0fe9b318e4a2b3dab7ad1ff68c30 # v6.0.43
       with:
         plugins_file: "Gemfile"
         danger_file: "Dangerfile"

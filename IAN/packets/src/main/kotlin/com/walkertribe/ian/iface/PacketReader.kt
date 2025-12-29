@@ -115,21 +115,18 @@ class PacketReader(
                 }
                 ?.build(this)
                 ?.takeIf { packet ->
-                    when (packet) {
-                        is VersionPacket -> {
-                            version = packet.version
-                            true
+                    if (packet is ObjectUpdatePacket) {
+                        packet.objectClasses.forEach {
+                            result.addListeners(listenerRegistry.listeningFor(it))
                         }
-
-                        is ObjectUpdatePacket -> {
-                            packet.objectClasses.forEach {
-                                result.addListeners(listenerRegistry.listeningFor(it))
-                            }
-                            result.isInteresting
-                        }
-
-                        else -> true
+                        return@takeIf result.isInteresting
                     }
+
+                    if (packet is VersionPacket) {
+                        version = packet.version
+                    }
+
+                    true
                 }
                 ?.let { packet -> ParseResult.Success(packet, result) } ?: ParseResult.Skip
         } catch (ex: PacketException) {
@@ -236,6 +233,11 @@ class PacketReader(
     /** Reads a UTF-16LE String from the current packet's payload. */
     fun readString(): String =
         payload.readByteArray(payload.readIntLe() * 2).toString(UTF16_LE).substringBefore(Char(0))
+
+    /** Skips over a UTF-16LE String in the current packet's payload. */
+    fun skipString() {
+        payload.discard(payload.readIntLe() * 2L)
+    }
 
     /** Reads an ASCII String from the current packet's payload. */
     fun readUsAsciiString(): String = payload.readByteArray(payload.readIntLe()).toString(ASCII)

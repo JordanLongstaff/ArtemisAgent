@@ -10,11 +10,8 @@
   "ignoreDeps": ["com.android.tools.build:gradle"],
   "packageRules": [
     {
-      "groupName": "kotlin and ksp",
-      "matchPackageNames": [
-        "/^org\\.jetbrains\\.kotlin[.:]/",
-        "/^com\\.google\\.devtools\\.ksp/"
-      ]
+      "groupName": "Kotlin",
+      "matchPackageNames": ["/^org\\.jetbrains\\.kotlin[.:]/"]
     },
     {
       "groupName": "firebase",

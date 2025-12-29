@@ -42,7 +42,6 @@ import artemis.agent.setup.SetupFragment
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.VersionString
 import artemis.agent.util.collectLatestWhileStarted
-import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
@@ -56,6 +55,7 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
+import com.google.firebase.perf.performance
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.jakewharton.processphoenix.ProcessPhoenix
@@ -66,7 +66,6 @@ import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.isActive
@@ -934,19 +933,28 @@ class MainActivity : AppCompatActivity() {
         viewModel.viewModelScope.launch(
             CoroutineExceptionHandler { _, _ -> checkType.createAlert(this@MainActivity)?.show() }
         ) {
-            val results =
-                awaitAll(
-                    Firebase.remoteConfig
-                        .fetchAndActivate()
-                        .continueWith { fetchArtemisLatestVersion() }
-                        .asDeferred(),
-                    updateManager.appUpdateInfo.asDeferred(),
-                )
+            val updateFetchTrace = Firebase.performance.newTrace("update_check")
+            updateFetchTrace.putAttribute("check_type", checkType.name)
+            updateFetchTrace.start()
 
-            val maxVersion = results[0] as Version
+            val maxVersionFetch =
+                Firebase.remoteConfig
+                    .fetchAndActivate()
+                    .continueWith { fetchArtemisLatestVersion() }
+                    .asDeferred()
+            val updateInfoFetch = updateManager.appUpdateInfo.asDeferred()
+
+            val maxVersion = maxVersionFetch.await()
+            val updateInfo = updateInfoFetch.await()
+
+            updateFetchTrace.incrementMetric(
+                "update_${updateInfo?.let { "" } ?: "not_"}available",
+                1,
+            )
+
+            updateFetchTrace.stop()
+
             viewModel.maxVersion = maxVersion
-
-            val updateInfo = results[1] as? AppUpdateInfo
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
 
             val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)!!

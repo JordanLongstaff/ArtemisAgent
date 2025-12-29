@@ -59,8 +59,10 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    lint.sarifReport = true
-    lintOptions.lintConfig = file("lint.xml")
+    lint {
+        lintConfig = file("lint.xml")
+        sarifReport = true
+    }
 
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
@@ -104,7 +106,7 @@ android {
     packaging.jniLibs.excludes.add("lib/*/libdatastore_shared_counter.so")
 
     applicationVariants.all {
-        val variant = name.substring(0, 1).uppercase() + name.substring(1)
+        val variant = name[0].uppercase() + name.substring(1)
         tasks.named("assemble$variant").dependsOn(":app:konsist:test${variant}UnitTest")
     }
 
@@ -126,6 +128,7 @@ dependencies {
     implementation(fileTree(baseDir = "libs") { include("*.jar") })
     implementation(projects.ian)
     implementation(projects.ian.enums)
+    implementation(projects.ian.grid)
     implementation(projects.ian.listener)
     implementation(projects.ian.packets)
     implementation(projects.ian.udp)
@@ -140,8 +143,10 @@ dependencies {
     debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
     testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
 

@@ -216,7 +216,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     )
                 },
                 HelpTopic(R.string.help_topics_basics, R.array.help_contents_basics) {
-                    addImages(1 to R.drawable.game_header_preview)
+                    addImages(1 to R.drawable.status_preview)
                 },
                 HelpTopic(R.string.help_topics_stations, R.array.help_contents_stations) {
                     addImages(1 to R.drawable.station_entry_preview)
@@ -225,6 +225,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
                     addImages(
                         INDEX_PREVIEW_ALLY to R.drawable.ally_entry_preview,
                         INDEX_PREVIEW_RECAP to R.drawable.ally_recap_preview,
+                        INDEX_PREVIEW_COMMANDS to R.drawable.ally_commands_preview,
                     )
                 },
                 HelpTopic(R.string.help_topics_missions, R.array.help_contents_missions) {
@@ -269,6 +270,7 @@ class HelpFragment : Fragment(R.layout.help_fragment) {
 
         private const val INDEX_PREVIEW_ALLY = 1
         private const val INDEX_PREVIEW_RECAP = 3
+        private const val INDEX_PREVIEW_COMMANDS = 5
 
         private const val INDEX_PREVIEW_COMMS_MESSAGE = 1
         private const val INDEX_PREVIEW_MISSION = 7
