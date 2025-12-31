@@ -33,6 +33,10 @@ jobs:
           name: Java CI with Gradle
         - file: instrumented-tests.yml
           name: Android Instrumented Tests
+        - file: dependency-analysis.yml
+          name: Dependency Analysis
+        - file: android-lint.yml
+          name: Android Lint
     permissions: {}
     steps:
       - name: Get SHA of latest run
