@@ -2,6 +2,7 @@ package com.walkertribe.ian.grid
 
 import com.walkertribe.ian.enums.ShipSystem
 import com.walkertribe.ian.util.PathResolver
+import kotlinx.io.IOException
 import okio.Path.Companion.toPath
 
 class Grid internal constructor(nodes: List<Node>) {
@@ -12,11 +13,15 @@ class Grid internal constructor(nodes: List<Node>) {
         pathResolver: PathResolver,
         path: String,
     ) : this(
-        pathResolver(path.toPath()) {
-            Coordinate.ALL.mapNotNull { coord ->
-                skip(SKIP_BEFORE)
-                ShipSystem[readIntLe()]?.let { Node(coord, it) }.also { skip(SKIP_AFTER) }
+        try {
+            pathResolver(path.toPath()) {
+                Coordinate.ALL.mapNotNull { coord ->
+                    skip(SKIP_BEFORE)
+                    ShipSystem[readIntLe()]?.let { Node(coord, it) }.also { skip(SKIP_AFTER) }
+                }
             }
+        } catch (_: IOException) {
+            emptyList()
         }
     )
 

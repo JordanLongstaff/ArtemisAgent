@@ -10,6 +10,7 @@ import io.kotest.matchers.doubles.shouldBeZero
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.floats.shouldBeWithinPercentageOf
 import io.kotest.matchers.floats.shouldBeZero
+import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -42,24 +43,32 @@ class GridTest :
                     grid.nodeSystemMap shouldHaveSize countSystems
                 }
 
-                it("From path") {
+                describe("From path") {
                     val systems = arbitraryShipSystemsList()
                     val tmpDir = tempdir()
                     val tmpDirPath = tmpDir.toOkioPath()
-                    val sntFileName = "test.snt"
-                    val sntFile = File(tmpDir, sntFileName)
 
-                    sntFile.outputStream().use { output ->
-                        systems.forEach { system ->
-                            repeat(12) { output.write(0) }
-                            val value = system?.value ?: -2
-                            repeat(Int.SIZE_BYTES) { i -> output.write(value.shr(i * 8)) }
-                            repeat(16) { output.write(0) }
+                    it("Can read nodes") {
+                        val sntFileName = "test.snt"
+                        val sntFile = File(tmpDir, sntFileName)
+
+                        sntFile.outputStream().use { output ->
+                            systems.forEach { system ->
+                                repeat(12) { output.write(0) }
+                                val value = system?.value ?: -2
+                                repeat(Int.SIZE_BYTES) { i -> output.write(value.shr(i * 8)) }
+                                repeat(16) { output.write(0) }
+                            }
                         }
+
+                        val grid = Grid(FilePathResolver(tmpDirPath), sntFileName)
+                        grid.nodeMap shouldHaveSize systems.filterNotNull().size
                     }
 
-                    val grid = Grid(FilePathResolver(tmpDirPath), sntFileName)
-                    grid.nodeMap shouldHaveSize systems.filterNotNull().size
+                    it("Empty if file not found") {
+                        val grid = Grid(FilePathResolver(tmpDirPath), "empty.snt")
+                        grid.nodeMap.shouldBeEmpty()
+                    }
                 }
             }
 
