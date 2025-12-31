@@ -136,6 +136,13 @@ class VesselDataTest :
                 }
 
                 describe("Error") {
+                    it("File not found") {
+                        datFile.delete()
+
+                        VesselData.load(FilePathResolver(tmpDirPath))
+                            .shouldBeInstanceOf<VesselData.Error>()
+                    }
+
                     describe("Parsing") {
                         datFile.writeText("<vessel_data><hullRace></hullRace></vessel_data>")
 

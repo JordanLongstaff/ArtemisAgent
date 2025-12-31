@@ -3,6 +3,7 @@ package com.walkertribe.ian.vesseldata
 import com.walkertribe.ian.grid.Grid
 import com.walkertribe.ian.util.PathResolver
 import korlibs.io.serialization.xml.Xml
+import kotlinx.io.IOException
 
 /**
  * Contains all the information extracted from the vesselData.xml file.
@@ -75,12 +76,14 @@ sealed interface VesselData {
 
     companion object {
         fun load(pathResolver: PathResolver): VesselData =
-            pathResolver(PathResolver.DAT / "vesselData.xml") {
-                try {
+            try {
+                pathResolver(PathResolver.DAT / "vesselData.xml") {
                     Loaded(Xml(readUtf8()), pathResolver)
-                } catch (ex: IllegalArgumentException) {
-                    Error(ex.message)
                 }
+            } catch (ex: IllegalArgumentException) {
+                Error(ex.message)
+            } catch (ex: IOException) {
+                Error(ex.message)
             }
     }
 }
