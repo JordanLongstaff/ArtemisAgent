@@ -1,6 +1,7 @@
 package artemis.agent.setup.settings
 
 import androidx.activity.viewModels
+import androidx.annotation.StringRes
 import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -10,14 +11,22 @@ import artemis.agent.R
 import artemis.agent.isCheckedIf
 import artemis.agent.isDisplayedWithText
 import artemis.agent.isRemoved
+import artemis.agent.scenario.ConnectScenario
 import artemis.agent.scenario.SettingsMenuScenario
 import artemis.agent.scenario.SettingsSubmenuOpenScenario
+import artemis.agent.screens.ConnectPageScreen
+import artemis.agent.screens.MainScreen
 import artemis.agent.screens.MainScreen.mainScreenTest
 import artemis.agent.screens.SettingsPageScreen
+import artemis.agent.screens.SetupPageScreen
+import artemis.agent.setup.ConnectFragmentTest
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
+import io.github.kakaocup.kakao.dialog.KAlertDialog
+import io.github.kakaocup.kakao.text.KButton
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,6 +44,20 @@ class ClientSettingsFragmentTest : TestCase() {
     @Test
     fun clientSettingsBackButtonTest() {
         testWithSettings(false) { SettingsPageScreen.backFromSubmenu() }
+    }
+
+    @Test
+    fun vesselDataWarningTest() {
+        testVesselDataWarningDialog(shouldChange = false, connectedString = R.string.connected) {
+            negativeButton
+        }
+    }
+
+    @Test
+    fun vesselDataDisconnectTest() {
+        testVesselDataWarningDialog(shouldChange = true, connectedString = R.string.not_connected) {
+            positiveButton
+        }
     }
 
     private fun testWithSettings(shouldTestSettings: Boolean, closeSubmenu: () -> Unit) {
@@ -90,6 +113,62 @@ class ClientSettingsFragmentTest : TestCase() {
                     step("Close submenu") {
                         closeSubmenu()
                         testScreenClosed()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun testVesselDataWarningDialog(
+        shouldChange: Boolean,
+        @StringRes connectedString: Int,
+        button: KAlertDialog.() -> KButton,
+    ) {
+        run {
+            mainScreenTest(shouldChange) {
+                val vesselDataCount = AtomicInteger()
+
+                step("Fetch settings") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        val viewModel = activity.viewModels<AgentViewModel>().value
+                        val count = viewModel.vesselDataManager.count
+
+                        Assume.assumeTrue("No alternate vessel data options", count > 1)
+                        vesselDataCount.lazySet(count)
+                    }
+                }
+
+                for (index in 1 until vesselDataCount.get()) {
+                    if (shouldChange || index == 1) {
+                        scenario(
+                            ConnectScenario(
+                                ConnectFragmentTest.FAKE_SERVER_IP,
+                                activityScenarioRule.scenario,
+                            )
+                        )
+                    }
+
+                    scenario(SettingsMenuScenario)
+                    scenario(SettingsSubmenuOpenScenario.Client)
+
+                    step("Select option #${index + 1}") { vesselDataButtons[index].first.click() }
+
+                    MainScreen {
+                        step("Warning dialog should be displayed") { assertVesselDataWarningOpen() }
+
+                        step("Dismiss warning dialog") { alertDialog.button().click() }
+                    }
+
+                    step("Check vessel data setting") {
+                        val expectedIndex = if (shouldChange) index else 0
+                        vesselDataButtons.forEachIndexed { i, (button) ->
+                            button.isCheckedIf(i == expectedIndex)
+                        }
+                    }
+
+                    step("Check connection status") {
+                        SetupPageScreen.connectPageButton.click()
+                        ConnectPageScreen.connectLabel.isDisplayedWithText(connectedString)
                     }
                 }
             }
