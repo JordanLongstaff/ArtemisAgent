@@ -3,7 +3,7 @@ package com.walkertribe.ian.vesseldata
 import com.walkertribe.ian.grid.Grid
 import com.walkertribe.ian.util.PathResolver
 import korlibs.io.serialization.xml.Xml
-import kotlinx.io.IOException
+import okio.IOException
 
 /**
  * Contains all the information extracted from the vesselData.xml file.

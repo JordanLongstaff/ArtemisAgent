@@ -2,7 +2,7 @@ package com.walkertribe.ian.grid
 
 import com.walkertribe.ian.enums.ShipSystem
 import com.walkertribe.ian.util.PathResolver
-import kotlinx.io.IOException
+import okio.IOException
 import okio.Path.Companion.toPath
 
 class Grid internal constructor(nodes: List<Node>) {
