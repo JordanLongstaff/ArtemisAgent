@@ -146,8 +146,6 @@ class ClientSettingsFragmentTest : TestCase() {
                                 activityScenarioRule.scenario,
                             )
                         )
-
-                        step("Ships page opened") { SetupPageScreen.shipsPageButton.isChecked() }
                     }
 
                     scenario(SettingsMenuScenario)

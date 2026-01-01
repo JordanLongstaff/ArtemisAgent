@@ -33,13 +33,11 @@ class StatusFragmentTest : TestCase() {
                     ConnectScenario(
                         ConnectFragmentTest.FAKE_SERVER_IP,
                         activityScenarioRule.scenario,
-                    )
+                    ) {
+                        SetupPageScreen.shipsPageButton.isChecked()
+                        ShipsPageScreen.shipsList.isDisplayedWithSize(Artemis.SHIP_COUNT)
+                    }
                 )
-
-                step("Ships page opened") {
-                    SetupPageScreen.shipsPageButton.isChecked()
-                    ShipsPageScreen.shipsList.isDisplayedWithSize(Artemis.SHIP_COUNT)
-                }
 
                 step("Select ship") {
                     ShipsPageScreen.shipsList.childAt<ShipsPageScreen.ShipItem>(0) { click() }
