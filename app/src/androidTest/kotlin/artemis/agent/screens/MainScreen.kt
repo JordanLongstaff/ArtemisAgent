@@ -88,4 +88,26 @@ object MainScreen : KScreen<MainScreen>() {
             neutralButton.isRemoved()
         }
     }
+
+    fun assertVesselDataWarningOpen() {
+        alertDialog {
+            isCompletelyDisplayed()
+            title.isDisplayedWithText(R.string.vessel_data)
+            message.isDisplayedWithText(R.string.xml_location_warning)
+            positiveButton.isDisplayedWithText(R.string.yes)
+            negativeButton.isDisplayedWithText(R.string.no)
+            neutralButton.isRemoved()
+        }
+    }
+
+    fun assertExitWarningOpen() {
+        alertDialog {
+            isCompletelyDisplayed()
+            title.isRemoved()
+            message.isDisplayedWithText(R.string.exit_message)
+            positiveButton.isDisplayedWithText(R.string.yes)
+            negativeButton.isDisplayedWithText(R.string.no)
+            neutralButton.isRemoved()
+        }
+    }
 }

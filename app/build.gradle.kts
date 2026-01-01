@@ -31,7 +31,7 @@ val keystoreProperties =
 
 val changelog =
     rootProject.file("changelog/whatsnew-en-US").readLines().joinToString(" \\u0020\\n") {
-        it.replaceFirst('*', '\u2022')
+        it.replaceFirst('*', '\u2022').replace("'", "\\'").replace("\"", "\\\"")
     }
 
 val versionProperties =
