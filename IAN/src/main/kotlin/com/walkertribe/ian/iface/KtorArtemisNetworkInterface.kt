@@ -162,7 +162,7 @@ class KtorArtemisNetworkInterface(override val maxVersion: Version?) :
 
         parseResultDispatchJob = launch {
             while (isRunning) {
-                parseResultsChannel.receive().fireListeners()
+                parseResultsChannel.tryReceive().onSuccess { it.fireListeners() }
             }
         }
     }
