@@ -61,6 +61,8 @@ class MainActivityTest : TestCase() {
                     )
                 )
 
+                step("Ships page opened") { SetupPageScreen.shipsPageButton.isChecked() }
+
                 step("Press back") { pressBack() }
 
                 step("Exit message should be displayed") { assertExitWarningOpen() }
