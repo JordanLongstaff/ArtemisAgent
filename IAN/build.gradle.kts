@@ -9,7 +9,7 @@ plugins {
     id("info.solidsoft.pitest")
 }
 
-configureTests()
+configureTests(maxMemoryGb = 8)
 
 pitest.configure(rootPackage = "com.walkertribe.ian", threads = 2)
 
@@ -43,7 +43,6 @@ dependencies {
     api(libs.kotlin.stdlib)
 
     ksp(projects.ian.processor)
-    ksp(libs.ksp.koin)
 
     implementation(libs.bundles.ian)
 
@@ -52,8 +51,14 @@ dependencies {
     testImplementation(testFixtures(projects.ian.listener))
     testImplementation(testFixtures(projects.ian.packets))
     testImplementation(testFixtures(projects.ian.util))
+
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
     pitest(libs.bundles.arcmutate)
+
+    pitest(testFixtures(projects.ian.listener))
+    pitest(testFixtures(projects.ian.packets))
+    pitest(testFixtures(projects.ian.util))
 }

@@ -1,0 +1,8 @@
+Layout/IndentationWidth:
+  Width: 4
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma

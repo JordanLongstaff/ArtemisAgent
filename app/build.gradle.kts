@@ -30,10 +30,12 @@ val keystoreProperties =
     Properties().apply { load(FileInputStream(rootProject.file("keystore.properties"))) }
 
 val changelog =
-    rootProject
-        .file("fastlane/metadata/android/en-US/changelogs/default.txt")
-        .readLines()
-        .joinToString(" \\u0020\\n") { it.replaceFirst('*', '\u2022') }
+    rootProject.file("changelog/whatsnew-en-US").readLines().joinToString(" \\u0020\\n") {
+        it.replaceFirst('*', '\u2022').replace("'", "\\'").replace("\"", "\\\"")
+    }
+
+val versionProperties =
+    Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
 
 android {
     namespace = appId
@@ -43,8 +45,8 @@ android {
         applicationId = appId
         minSdk = minimumSdkVersion
         targetSdk = sdkVersion
-        versionCode = 39
-        versionName = "1.4.1"
+        versionCode = versionProperties.getProperty("versionCode").toInt()
+        versionName = versionProperties.getProperty("versionName")
         multiDexEnabled = true
 
         testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
@@ -55,6 +57,11 @@ android {
         sourceCompatibility = javaVersion
         targetCompatibility = javaVersion
         isCoreLibraryDesugaringEnabled = true
+    }
+
+    lint {
+        lintConfig = file("lint.xml")
+        sarifReport = true
     }
 
     tasks.withType<KotlinCompile>().configureEach {
@@ -96,8 +103,10 @@ android {
         }
     }
 
+    packaging.jniLibs.excludes.add("lib/*/libdatastore_shared_counter.so")
+
     applicationVariants.all {
-        val variant = name.substring(0, 1).uppercase() + name.substring(1)
+        val variant = name[0].uppercase() + name.substring(1)
         tasks.named("assemble$variant").dependsOn(":app:konsist:test${variant}UnitTest")
     }
 
@@ -119,6 +128,7 @@ dependencies {
     implementation(fileTree(baseDir = "libs") { include("*.jar") })
     implementation(projects.ian)
     implementation(projects.ian.enums)
+    implementation(projects.ian.grid)
     implementation(projects.ian.listener)
     implementation(projects.ian.packets)
     implementation(projects.ian.udp)
@@ -133,8 +143,10 @@ dependencies {
     debugRuntimeOnly(libs.bundles.app.debug.runtime)
 
     testImplementation(testFixtures(projects.ian.packets))
+    testImplementation(testFixtures(projects.ian.util))
     testImplementation(testFixtures(projects.ian.vesseldata))
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.app.test)
     testRuntimeOnly(libs.bundles.app.test.runtime)
 
@@ -162,6 +174,8 @@ dependencies {
     }
 
     coreLibraryDesugaring(libs.desugaring)
+
+    lintChecks(libs.lint.security)
 }
 
 detekt {

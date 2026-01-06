@@ -1,9 +1,7 @@
 package artemis.agent.setup.settings
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.ToggleButton
@@ -265,12 +263,7 @@ class RoutingSettingsFragment : Fragment(R.layout.settings_routing) {
     }
 
     private fun hideKeyboard() {
-        with(
-            binding.root.context.getSystemService(Context.INPUT_METHOD_SERVICE)
-                as InputMethodManager
-        ) {
-            hideSoftInputFromWindow(binding.root.windowToken, 0)
-        }
+        viewModel.hideKeyboard(binding.root)
     }
 
     private fun clearFocus() {

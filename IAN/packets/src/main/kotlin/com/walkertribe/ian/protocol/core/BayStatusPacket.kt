@@ -12,26 +12,25 @@ import com.walkertribe.ian.util.Version
  */
 @PacketType(type = CorePacketType.CARRIER_RECORD)
 class BayStatusPacket(reader: PacketReader) : Packet.Server(reader) {
-    val fighterCount: Int
+    val fighterCount: Int =
+        reader.run {
+            var count = 0
+            while (true) {
+                val id = readInt()
+                if (id == 0) {
+                    break
+                }
+                count++
 
-    init {
-        var count = 0
-        while (true) {
-            val id = reader.readInt()
-            if (id == 0) {
-                break
+                if (version >= BAY_NUMBER_VERSION) {
+                    skip(Int.SIZE_BYTES)
+                }
+                skipString()
+                skipString()
+                skip(Int.SIZE_BYTES)
             }
-            count++
-
-            if (reader.version >= BAY_NUMBER_VERSION) {
-                reader.readInt()
-            }
-            reader.readString()
-            reader.readString()
-            reader.readInt()
+            count
         }
-        fighterCount = count
-    }
 
     private companion object {
         private val BAY_NUMBER_VERSION = Version(2, 6, 0)

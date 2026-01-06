@@ -51,8 +51,6 @@ class ShipsFragmentTest : TestCase() {
                     )
                 )
 
-                step("Ships page opened") { SetupPageScreen.shipsPageButton.isChecked() }
-
                 ShipsPageScreen {
                     step("Ships list populated") {
                         noShipsLabel.isRemoved()

@@ -34,7 +34,10 @@ object MainScreen : KScreen<MainScreen>() {
     ) {
         this@MainScreen {
             step("Accept permissions") { acceptPermissions(device) }
-            step("Dismiss changelog") { pressBack() }
+            step("Dismiss changelog") {
+                alertDialog.isCompletelyDisplayed()
+                pressBack()
+            }
             test()
             if (backButtonShouldCloseApp)
                 step("Back button should close the app") { assertCloseOnBackButton() }
@@ -82,6 +85,28 @@ object MainScreen : KScreen<MainScreen>() {
             message.isCompletelyDisplayed()
             positiveButton.isRemoved()
             negativeButton.isRemoved()
+            neutralButton.isRemoved()
+        }
+    }
+
+    fun assertVesselDataWarningOpen() {
+        alertDialog {
+            isCompletelyDisplayed()
+            title.isDisplayedWithText(R.string.vessel_data)
+            message.isDisplayedWithText(R.string.xml_location_warning)
+            positiveButton.isDisplayedWithText(R.string.yes)
+            negativeButton.isDisplayedWithText(R.string.no)
+            neutralButton.isRemoved()
+        }
+    }
+
+    fun assertExitWarningOpen() {
+        alertDialog {
+            isCompletelyDisplayed()
+            title.isRemoved()
+            message.isDisplayedWithText(R.string.exit_message)
+            positiveButton.isDisplayedWithText(R.string.yes)
+            negativeButton.isDisplayedWithText(R.string.no)
             neutralButton.isRemoved()
         }
     }

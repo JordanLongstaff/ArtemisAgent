@@ -4,9 +4,6 @@ on:
   push:
     branches: [ "main" ]
 
-concurrency:
-  group: ${{ github.workflow }}
-
 jobs:
   pitest:
     runs-on: ubuntu-latest
@@ -15,6 +12,7 @@ jobs:
         path:
           - 'IAN'
           - 'IAN/enums'
+          - 'IAN/grid'
           - 'IAN/listener'
           - 'IAN/packets'
           - 'IAN/udp'
@@ -25,12 +23,17 @@ jobs:
       contents: read
       checks: write
       pull-requests: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.path }}
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 2
 
       - name: Restore Pitest history file
-        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ${{ github.workspace }}/${{ matrix.path }}/build/pitHistory.txt
           key: pitest-history:${{ matrix.path }}
@@ -40,7 +43,7 @@ jobs:
           echo ${{ secrets.KEYSTORE_PROPERTIES }} | base64 -d > ${{ github.workspace }}/keystore.properties
 
       - name: Set up JDK 21
-        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
         with:
           java-version-file: .tool-versions
           distribution: 'temurin'
@@ -48,7 +51,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
 
       - name: Determine Gradle module
         id: get-module
@@ -61,7 +64,14 @@ jobs:
       - name: Run Pitest
         run: ./gradlew :${{ steps.get-module.outputs.value }}:pitest
 
+      - name: Check for any mutations
+        id: mutations-check
+        uses: thebinaryfelix/check-file-existence-action@b448944daf6428c03faa9b1974bcceb03408270d # 1.0.1
+        with:
+          files: ${{ github.workspace }}/${{ matrix.path }}/build/reports/pitest/mutations.xml
+
       - name: Upload Pitest report
+        if: steps.mutations-check.outputs.exists == 'true'
         uses: Bonajo/pitest-report-action@67a9095d90ae1cc396bbab3211258f46cf0a7f13 # v1.0.0
         with:
           name: Pitest Report (${{ matrix.path }})
@@ -69,7 +79,7 @@ jobs:
           annotation-types: ALL
 
       - name: Cache Pitest history file
-        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ${{ github.workspace }}/${{ matrix.path }}/build/pitHistory.txt
           key: pitest-history:${{ matrix.path }}-${{ hashFiles('**/build/pitHistory.txt') }}

@@ -27,6 +27,7 @@ include(
     ":IAN:annotations:konsist",
     ":IAN:enums",
     ":IAN:enums:konsist",
+    ":IAN:grid",
     ":IAN:listener",
     ":IAN:listener:konsist",
     ":IAN:packets",

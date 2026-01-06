@@ -8,13 +8,19 @@ import artemis.agent.MainActivity
 import artemis.agent.R
 import artemis.agent.isDisplayedWithText
 import artemis.agent.screens.ConnectPageScreen
+import artemis.agent.screens.SetupPageScreen
 import com.kaspersky.kaspresso.testcases.api.scenario.Scenario
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
+import com.kaspersky.kaspresso.testcases.models.info.StepInfo
 import io.github.kakaocup.kakao.screen.Screen
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.seconds
 
-class ConnectScenario(ip: String, activityScenario: ActivityScenario<MainActivity>) : Scenario() {
+class ConnectScenario(
+    ip: String,
+    activityScenario: ActivityScenario<MainActivity>,
+    check: (TestContext<*>.(StepInfo) -> Unit)? = { SetupPageScreen.shipsPageButton.isChecked() },
+) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
         ConnectPageScreen {
             val connectTimeout = AtomicInteger()
@@ -41,6 +47,10 @@ class ConnectScenario(ip: String, activityScenario: ActivityScenario<MainActivit
                 step("Wait for timeout") {
                     Screen.idle(connectTimeout.get().seconds.inWholeMilliseconds)
                 }
+            }
+
+            if (check != null) {
+                step("Ships page opened") { check(it) }
             }
         }
     }

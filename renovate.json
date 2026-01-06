@@ -6,26 +6,51 @@
   "autoApprove": true,
   "automerge": true,
   "branchConcurrentLimit": 10,
-  "prConcurrentLimit": 3,
+  "prConcurrentLimit": 2,
   "ignoreDeps": ["com.android.tools.build:gradle"],
   "packageRules": [
     {
-      "groupName": "kotlin and ksp",
-      "matchPackageNames": [
-        "/^org\\.jetbrains\\.kotlin[.:]/",
-        "/^com\\.google\\.devtools\\.ksp/"
-      ]
+      "groupName": "Kotlin",
+      "matchPackageNames": ["/^org\\.jetbrains\\.kotlin[.:]/"]
     },
     {
       "groupName": "firebase",
       "matchPackageNames": ["/^com\\.google\\.firebase/"],
-      "changelogUrl": "https://firebase.google.com/support/release-notes/android"
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android#{{#if (containsString depName 'crashlytics')}}crashlytics_gradle_plugin{{/if}}{{#if (containsString depName 'perf')}}performance_gradle_plugin{{/if}}{{#if (containsString depName 'bom')}}bom{{/if}}_v{{{replace '\\.' '-' newVersion}}}"
+    },
+    {
+      "groupName": "Google Services plugin",
+      "matchPackageNames": ["/google-services/"],
+      "sourceUrl": "https://github.com/google/play-services-plugins",
+      "changelogUrl": "https://firebase.google.com/support/release-notes/android#google-services_plugin_v{{{replace '\\.' '-' newVersion}}}"
+    },
+    {
+      "groupName": "koin.annotations",
+      "matchPackageNames": ["/koin-annotations/", "/koin-ksp-compiler/"],
+      "sourceUrl": "https://github.com/InsertKoinIO/koin-annotations",
+      "changelogUrl": "https://github.com/InsertKoinIO/koin-annotations/releases"
     },
     {
       "groupName": "ktfmt",
       "matchDepNames": ["com.ncorti.ktfmt.gradle"],
       "sourceUrl": "https://github.com/cortinico/ktfmt-gradle",
       "changelogUrl": "https://github.com/cortinico/ktfmt-gradle/releases"
+    },
+    {
+      "groupName": "typesafe conventions plugin",
+      "matchDepNames": ["dev.panuszewski.typesafe-conventions"],
+      "sourceUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin",
+      "changelogUrl": "https://github.com/radoslaw-panuszewski/typesafe-conventions-gradle-plugin/releases"
+    },
+    {
+      "groupName": "Arcmutate plugins",
+      "matchDepNames": ["/^com\\.arcmutate/"],
+      "changelogUrl": "https://docs.arcmutate.com/docs/releases/{{#if (containsString depName 'kotlin')}}kotlin{{else if (containsString depName 'git')}}git{{else}}base{{/if}}-plugin.html"
+    },
+    {
+      "groupName": "ruby",
+      "matchSourceUrls": ["https://github.com/ruby/ruby", "https://github.com/ruby/setup-ruby"],
+      "commitMessageExtra": "to {{upgrades.0.newVersion}}"
     }
   ],
   "customManagers": [

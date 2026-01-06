@@ -10,7 +10,9 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.view.KeyEvent
 import android.view.View
+import android.view.ViewConfiguration
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
@@ -29,6 +31,7 @@ import androidx.core.view.children
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.databinding.ActivityMainBinding
@@ -39,7 +42,6 @@ import artemis.agent.setup.SetupFragment
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.VersionString
 import artemis.agent.util.collectLatestWhileStarted
-import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
@@ -53,6 +55,7 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
+import com.google.firebase.perf.performance
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.jakewharton.processphoenix.ProcessPhoenix
@@ -62,8 +65,10 @@ import com.walkertribe.ian.util.Version
 import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.asDeferred
 
@@ -90,6 +95,16 @@ class MainActivity : AppCompatActivity() {
         }
 
     private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+
+    private val isPreBaklava: Boolean by lazy {
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA
+    }
+    private val isLongBackPressOverridden: Boolean by lazy {
+        Build.VERSION.SDK_INT in Build.VERSION_CODES.N..Build.VERSION_CODES.N_MR1 ||
+            Build.MANUFACTURER.equals(HUAWEI, ignoreCase = true)
+    }
+
+    private var longBackPress: Job? = null
 
     private val reviewManager: ReviewManager by lazy { ReviewManagerFactory.create(this) }
     private var shouldAskForReview: Boolean = false
@@ -678,6 +693,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isPreBaklava && !isLongBackPressOverridden && keyCode == KeyEvent.KEYCODE_BACK) {
+            viewModel.backPreview?.onBackStarted()
+        }
+
+        return super.onKeyLongPress(keyCode, event)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isPreBaklava && isLongBackPressOverridden && keyCode == KeyEvent.KEYCODE_BACK) {
+            viewModel.backPreview?.also { backPreview ->
+                longBackPress =
+                    lifecycleScope.launch {
+                        delay(ViewConfiguration.getLongPressTimeout().toLong())
+                        if (isActive) backPreview.onBackStarted()
+                    }
+            }
+        }
+
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isPreBaklava && isLongBackPressOverridden && keyCode == KeyEvent.KEYCODE_BACK) {
+            val backPressJob = longBackPress
+            if (backPressJob == null || backPressJob.isCompleted) {
+                viewModel.backPreview?.handleOnBackCancelled()
+            } else {
+                backPressJob.cancel()
+            }
+        }
+
+        return super.onKeyUp(keyCode, event)
+    }
+
     private fun setupWindowInsets() {
         enableEdgeToEdge()
 
@@ -881,21 +931,30 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkForUpdates(checkType: UpdateCheck) {
         viewModel.viewModelScope.launch(
-            CoroutineExceptionHandler { _, _ -> checkType.showAlert(this@MainActivity) }
+            CoroutineExceptionHandler { _, _ -> checkType.createAlert(this@MainActivity)?.show() }
         ) {
-            val results =
-                awaitAll(
-                    Firebase.remoteConfig
-                        .fetchAndActivate()
-                        .continueWith { fetchArtemisLatestVersion() }
-                        .asDeferred(),
-                    updateManager.appUpdateInfo.asDeferred(),
-                )
+            val updateFetchTrace = Firebase.performance.newTrace("update_check")
+            updateFetchTrace.putAttribute("check_type", checkType.name)
+            updateFetchTrace.start()
 
-            val maxVersion = results[0] as Version
+            val maxVersionFetch =
+                Firebase.remoteConfig
+                    .fetchAndActivate()
+                    .continueWith { fetchArtemisLatestVersion() }
+                    .asDeferred()
+            val updateInfoFetch = updateManager.appUpdateInfo.asDeferred()
+
+            val maxVersion = maxVersionFetch.await()
+            val updateInfo = updateInfoFetch.await()
+
+            updateFetchTrace.incrementMetric(
+                "update_${updateInfo?.let { "" } ?: "not_"}available",
+                1,
+            )
+
+            updateFetchTrace.stop()
+
             viewModel.maxVersion = maxVersion
-
-            val updateInfo = results[1] as? AppUpdateInfo
             val latestVersionCode = updateInfo?.availableVersionCode() ?: 0
 
             val updateAlert = UpdateAlert.check(maxVersion, latestVersionCode)!!
@@ -1019,6 +1078,8 @@ class MainActivity : AppCompatActivity() {
 
         const val THEME_RES_FILE_NAME = "theme_res.dat"
         const val MAX_VERSION_FILE_NAME = "max_version.dat"
+
+        const val HUAWEI = "huawei"
 
         const val PENDING_INTENT_FLAGS =
             PendingIntent.FLAG_UPDATE_CURRENT.or(PendingIntent.FLAG_IMMUTABLE)

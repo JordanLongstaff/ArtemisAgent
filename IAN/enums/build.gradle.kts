@@ -18,9 +18,12 @@ dependencies {
     api(projects.ian.util)
     api(libs.kotlin.stdlib)
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(testFixtures(projects.ian.util))
     testImplementation(libs.bundles.ian.enums.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
 
     pitest(libs.bundles.arcmutate)
+
+    pitest(testFixtures(projects.ian.util))
 }

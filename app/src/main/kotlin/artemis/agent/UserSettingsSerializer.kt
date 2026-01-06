@@ -2,6 +2,7 @@ package artemis.agent
 
 import android.content.Context
 import androidx.datastore.core.CorruptionException
+import androidx.datastore.core.DataMigration
 import androidx.datastore.core.Serializer
 import androidx.datastore.dataStore
 import com.google.protobuf.InvalidProtocolBufferException
@@ -26,6 +27,8 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
     const val DEFAULT_SURRENDER_RANGE = 5000f
 
     override val defaultValue: UserSettingsOuterClass.UserSettings = userSettings {
+        version = Migration.LIST.maxOf { it.version }
+
         vesselDataLocation =
             UserSettingsOuterClass.UserSettings.VesselDataLocation.VESSEL_DATA_LOCATION_DEFAULT
         serverPort = DEFAULT_SERVER_PORT
@@ -58,6 +61,7 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
 
         allyCommandManualReturn = false
         showDestroyedAllies = true
+        allyRecapsEnabled = true
 
         enemiesEnabled = true
 
@@ -112,7 +116,12 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         hapticsEnabled = true
     }
 
-    val Context.userSettings by dataStore(fileName = USER_SETTINGS_FILE_NAME, serializer = this)
+    val Context.userSettings by
+        dataStore(
+            fileName = USER_SETTINGS_FILE_NAME,
+            serializer = this,
+            produceMigrations = { Migration.LIST },
+        )
 
     override suspend fun readFrom(input: InputStream): UserSettingsOuterClass.UserSettings {
         try {
@@ -124,5 +133,27 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
 
     override suspend fun writeTo(t: UserSettingsOuterClass.UserSettings, output: OutputStream) {
         t.writeTo(output)
+    }
+
+    class Migration(val version: Int, private val migrateFn: UserSettingsKt.Dsl.() -> Unit) :
+        DataMigration<UserSettingsOuterClass.UserSettings> {
+        override suspend fun shouldMigrate(currentData: UserSettingsOuterClass.UserSettings) =
+            currentData.version < version
+
+        override suspend fun migrate(
+            currentData: UserSettingsOuterClass.UserSettings
+        ): UserSettingsOuterClass.UserSettings =
+            currentData.copy {
+                this.version = this@Migration.version
+                this.migrateFn()
+            }
+
+        override suspend fun cleanUp() {
+            // Nothing to clean up
+        }
+
+        companion object {
+            val LIST = listOf(Migration(1) { allyRecapsEnabled = true })
+        }
     }
 }

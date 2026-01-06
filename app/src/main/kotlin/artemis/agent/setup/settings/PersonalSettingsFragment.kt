@@ -104,7 +104,7 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
 
         binding.soundMuteButton.setOnClickListener { viewModel.activateHaptic() }
 
-        binding.soundMuteButton.setOnCheckedChangeListener { view, isChecked ->
+        binding.soundMuteButton.setOnCheckedChangeListener { _, isChecked ->
             viewModel.viewModelScope.launch {
                 context.userSettings.updateData { it.copy { soundMuted = isChecked } }
                 updateSoundVolumeLabel(volume)
@@ -143,8 +143,14 @@ class PersonalSettingsFragment : Fragment(R.layout.settings_personal) {
     }
 
     private fun updateSoundVolumeLabel(progress: Int) {
-        binding.soundVolumeLabel.text =
-            if (binding.soundMuteButton.isChecked) "0" else progress.formatString()
+        with(binding) {
+            if (soundMuteButton.isChecked) {
+                soundVolumeLabel.visibility = View.GONE
+            } else {
+                soundVolumeLabel.visibility = View.VISIBLE
+                soundVolumeLabel.text = progress.formatString()
+            }
+        }
     }
 
     private fun updateMuteButtonEnabled(volume: Int) {

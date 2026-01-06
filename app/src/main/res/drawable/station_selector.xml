@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <stroke android:width="@dimen/paddingSmall" android:color="@color/button_stroke" />
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <stroke
+        android:width="@dimen/paddingSmall"
+        android:color="@color/button_stroke" />
     <solid android:color="@color/selector_background" />
-    <padding android:left="@dimen/buttonPaddingHorizontal"
-        android:top="@dimen/buttonPaddingVertical"
+    <padding
+        android:bottom="@dimen/buttonPaddingVertical"
+        android:left="@dimen/buttonPaddingHorizontal"
         android:right="@dimen/buttonPaddingHorizontal"
-        android:bottom="@dimen/buttonPaddingVertical" />
+        android:top="@dimen/buttonPaddingVertical" />
 </shape>

@@ -17,9 +17,12 @@ dependencies {
 
     implementation(libs.bundles.ian.util)
 
+    testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.util.test)
-    testFixturesImplementation(libs.bundles.ian.util.test.fixtures)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
+
+    testFixturesImplementation(platform(libs.kotest.bom))
+    testFixturesImplementation(libs.bundles.ian.util.test.fixtures)
 
     pitest(libs.bundles.arcmutate)
 }

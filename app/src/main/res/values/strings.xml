@@ -144,6 +144,7 @@
     <string name="docked">Docked</string>
     <string name="docking">Docking</string>
     <string name="enable_haptics">Enable haptics</string>
+    <string name="enable_recaps">Enable hail response recaps</string>
     <string name="enemy">Enemy</string>
     <string name="enemy_perfidy_notification">
         This enemy has committed perfidy. Eliminate on sight.
@@ -154,6 +155,7 @@
     <string name="enemy_status_easily_offended">Easily offended</string>
     <string name="enemy_status_no_intel">No intel; second scan required</string>
     <string name="enemy_status_normal">Normal</string>
+    <string name="energy_reserves">Energy: %1$.1f%%</string>
     <string name="exit_message">You will be disconnected from the server. Confirm exit?</string>
     <string name="failed_to_connect">Failed to connect</string>
     <string name="fighters">Fighters</string>
@@ -191,15 +193,15 @@
             \nLike stations, ally ships communicate their statuses to Artemis Agent through Comms
             messages. The app automatically sends a status requests to all ally ships when the
             simulation starts, or if the app connects to a simulation in progress. You can also
-            manually request status by pressing the Hail button, or display the latest hail response
-            received in full by pressing the Recap button.\n
+            manually request status by pressing the Hail button, or, if recaps are enabled, display
+            the latest hail response received in full by pressing the Recap button.\n
         </item>
         <item>
             \nYou can also send commands to an ally ship by pressing the Command button. Commands
             include turning to a specific direction, attacking the nearest targest, and moving to
             defend or rendezvous with another station or ally ship. You can also return to the list
             of ally ships by pressing the Cancel button. Sending a command will return you to the
-            list automatically, unless the "Manually return from commands" setting is turned on.
+            list automatically, unless the "Manually return from commands" setting is turned on.\n
         </item>
     </string-array>
     <string-array name="help_contents_basics">
@@ -207,20 +209,16 @@
             After you have selected your ship, you will be moved to the Game page. This page shows
             all of the in-game information relevant to the app. Most of it is split among multiple
             subpages, and you can choose which page is shown using the page selector located below
-            the ship\'s name.\n
+            the ship\'s name. The Status page, for example, lists information about the current
+            status of the player ship, including energy reserves, shield strengths, ordnance stocks,
+            single-seat craft, and a damage report.\n
         </item>
         <item>
-            \nAside from this information, there are three important controls on this page. The
-            first is the Inventory button, which opens a dialog showing the ship\'s current ordnance
-            stocks and single-seat craft inventory. The second is the Alert button, which toggles
-            the ship\'s \"red alert\" status. The third is the Agent button.\n
-        </item>
-        <item>
-            In order to use the Agent button, the player ship must acquire secret code cases, which
-            can be used to force an enemy ship to surrender. You can activate one of those secret
-            code cases by pressing the Agent button, and it will remain active for five minutes, or
-            until it is used to make an enemy ship surrender. Only one secret code case may be
-            active at a time.
+            \nThe Alert button toggles the ship\'s \"red alert\" status. In order to use the Agent
+            button, the player ship must acquire secret code cases, which can be used to force an
+            enemy ship to surrender. You can activate one of those secret code cases by pressing the
+            Agent button, and it will remain active for five minutes, or until it is used to make an
+            enemy ship surrender. Only one secret code case may be active at a time.
         </item>
     </string-array>
     <string-array name="help_contents_biomechs">
@@ -321,12 +319,14 @@
         </item>
         <item>
             \nIf the Artemis server has a mod, you will need to provide a vessel data XML file that
-            matches that of the server. By default, Artemis Agent provides a vessel data file for
-            the stock version of Artemis. If you need to use a different set of vessel data, you
-            can specify the file\'s location in the Settings page. The location that you set will
-            point to either the app\'s internal assets, your device\'s internal storage, or, if
-            applicable, external storage, such as an SD card. Keep in mind that changing this value
-            while the app is connected to a server will automatically terminate the connection.
+            matches that of the server. You should also provide the internals data for each vessel,
+            which is contained in an SNT file specified by the \"internal_data\" attribute in the
+            XML. By default, Artemis Agent provides vessel data and internals data files for the
+            stock version of Artemis. If you need to use a different set of files, you can specify
+            the location in the Settings page. The location that you set will point to either the
+            app\'s internal assets, your device\'s internal storage, or, if applicable, external
+            storage, such as an SD card. Keep in mind that changing this value while the app is
+            connected to a server will automatically terminate the connection.
         </item>
     </string-array>
     <string-array name="help_contents_missions">
@@ -546,7 +546,6 @@
     <string name="help_topics_stations">Stations</string>
     <string name="included_incentives">Included incentives</string>
     <string name="infinity">\u221E</string>
-    <string name="inventory">Inv</string>
     <string name="io_parse_error">I/O parse error</string>
     <string name="io_write_error">I/O write error</string>
     <string name="kilometres">km</string>
@@ -564,6 +563,7 @@
     <string name="mission_will_be_removed">Will be removed in %1$ds</string>
     <string name="more_commands">More commands:</string>
     <string name="mute">Mute</string>
+    <string name="network_not_found">Network not found</string>
     <string-array name="network_type_entries">
         <item>Wi-Fi</item>
         <item>Mobile</item>
@@ -590,11 +590,25 @@
     <string name="no_ship_selected">Select a ship.</string>
     <string name="no_stations">No stations.</string>
     <string name="no_updates">No updates found.</string>
+    <string name="node_count">%1$s: %2$d/%3$d nodes</string>
+    <string name="node_damage">Damages:</string>
+    <string-array name="node_names">
+        <item>Hallway</item>
+        <item>Beams</item>
+        <item>Torpedoes</item>
+        <item>Sensors</item>
+        <item>Maneuvering</item>
+        <item>Impulse</item>
+        <item>Warp Jump drive</item>
+        <item>Front shields</item>
+        <item>Rear shields</item>
+    </string-array>
     <string name="none">None</string>
     <string name="not_connected">Not connected</string>
     <string name="off">Off</string>
     <string name="on">On</string>
     <string name="ordnance_stock">%1$s: %2$d/%3$d</string>
+    <string name="percentage_paren">(%1$.1f%%)</string>
     <string name="play">Play</string>
     <string name="proceed_to_your_destination">Proceed</string>
     <string name="range">RANGE %1$.0f</string>
@@ -631,7 +645,6 @@
         <item>Shield Boost</item>
     </string-array>
     <string name="right">Right</string>
-    <string name="route_for_supplies">Route for supplies</string>
     <string name="route_incentive_missions">Missions</string>
     <string name="route_incentive_needs_damcon">Needs DamCon</string>
     <string name="route_incentive_needs_energy">Needs energy</string>
@@ -657,6 +670,8 @@
     <string name="settings_menu_routing">Routing settings</string>
     <string name="settings_menu_personal">Personal settings</string>
     <string name="setup">Setup</string>
+    <string name="shields_active">Shields (active):</string>
+    <string name="shields_inactive">Shields (inactive):</string>
     <string name="ship_number">Ship %1$d</string>
     <string name="ships">Ships</string>
     <string name="show_destroyed_allies">Show destroyed allies</string>

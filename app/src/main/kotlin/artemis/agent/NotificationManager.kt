@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.annotation.StringRes
+import androidx.annotation.VisibleForTesting
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationChannelGroupCompat
 import androidx.core.app.NotificationCompat
@@ -12,16 +13,24 @@ import androidx.core.content.ContextCompat
 import com.walkertribe.ian.enums.OrdnanceType
 
 class NotificationManager(context: Context) {
-    private val attackedStations = mutableMapOf<String, Int>()
-    private val biomechs = mutableMapOf<String, Int>()
-    private val enemies = mutableMapOf<String, Int>()
-    private var destroyedStations = 0
-    private var newMissionMessages = 0
-    private var progressMessages = 0
-    private var completionMessages = 0
-    private val production = mutableMapOf<String, Int>()
+    @VisibleForTesting val attackedStations = mutableMapOf<String, Int>()
 
-    private val manager =
+    @VisibleForTesting val biomechs = mutableMapOf<String, Int>()
+
+    @VisibleForTesting val enemies = mutableMapOf<String, Int>()
+
+    @VisibleForTesting var destroyedStations = 0
+
+    @VisibleForTesting var newMissionMessages = 0
+
+    @VisibleForTesting var progressMessages = 0
+
+    @VisibleForTesting var completionMessages = 0
+
+    @VisibleForTesting val production = mutableMapOf<String, Int>()
+
+    @VisibleForTesting
+    val manager =
         NotificationManagerCompat.from(context).apply {
             val groupSetups =
                 listOf(
@@ -159,26 +168,38 @@ class NotificationManager(context: Context) {
 
         val index =
             when (channel) {
+                NotificationChannelTag.GAME_INFO,
+                NotificationChannelTag.GAME_OVER,
+                NotificationChannelTag.CONNECTION,
+                NotificationChannelTag.BORDER_WAR,
+                NotificationChannelTag.DEEP_STRIKE -> 0
+
                 NotificationChannelTag.ATTACK -> {
                     attackedStations.getOrPut(title) { attackedStations.size }
                 }
+
                 NotificationChannelTag.REANIMATE -> {
                     biomechs.getOrPut(title) { biomechs.size }
                 }
+
                 NotificationChannelTag.PERFIDY -> {
                     enemies.getOrPut(title) { enemies.size }
                 }
+
                 NotificationChannelTag.DESTROYED -> destroyedStations++
+
                 NotificationChannelTag.NEW_MISSION -> newMissionMessages++
+
                 NotificationChannelTag.MISSION_PROGRESS -> progressMessages++
+
                 NotificationChannelTag.MISSION_COMPLETED -> completionMessages++
+
                 NotificationChannelTag.PRODUCTION -> {
                     val stationIndex = production.getOrPut(title) { production.size }
                     val ordnanceName = message.substring(ORDNANCE_NAME_INDEX, message.indexOf('.'))
                     val ordnanceType = OrdnanceType.entries.find { it.hasLabel(ordnanceName) }
                     stationIndex * ORDNANCE_SIZE + (ordnanceType?.ordinal ?: 0)
                 }
-                else -> 0
             }
 
         manager.notify(channel.tag, index, builder.build())

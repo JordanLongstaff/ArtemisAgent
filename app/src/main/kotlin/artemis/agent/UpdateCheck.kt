@@ -9,7 +9,7 @@ enum class UpdateCheck {
     STARTUP {
         private val appVersionFile = "app_version.dat"
 
-        override fun showAlert(context: Context) {
+        override fun createAlert(context: Context): AlertDialog.Builder? {
             val currentAppVersion = BuildConfig.VERSION_NAME
             val previousAppVersion =
                 try {
@@ -18,7 +18,7 @@ enum class UpdateCheck {
                     ""
                 }
 
-            if (currentAppVersion != previousAppVersion) {
+            return if (currentAppVersion != previousAppVersion) {
                 context.openFileOutput(appVersionFile, Context.MODE_PRIVATE).use {
                     it.write(currentAppVersion.encodeToByteArray())
                 }
@@ -30,24 +30,22 @@ enum class UpdateCheck {
                     .setTitle(R.string.app_version)
                     .setMessage(changelog)
                     .setCancelable(true)
-                    .show()
+            } else {
+                null
             }
         }
     },
     MANUAL {
-        override fun showAlert(context: Context) {
+        override fun createAlert(context: Context): AlertDialog.Builder? =
             AlertDialog.Builder(context)
                 .setTitle(R.string.app_version)
                 .setMessage(R.string.no_updates)
                 .setCancelable(true)
-                .show()
-        }
     },
     GAME_END {
-        override fun showAlert(context: Context) {
-            // Do nothing
-        }
+        // No dialog to show on game end
+        override fun createAlert(context: Context): AlertDialog.Builder? = null
     };
 
-    abstract fun showAlert(context: Context)
+    abstract fun createAlert(context: Context): AlertDialog.Builder?
 }

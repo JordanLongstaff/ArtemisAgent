@@ -11,6 +11,7 @@ object TestPacketTypes {
     const val OBJECT_DELETE = 0xcc5a3e30.toInt()
     const val OBJECT_TEXT = 0xee665279.toInt()
     const val PLAIN_TEXT_GREETING = 0x6d04b3da
+    const val SHIP_SYSTEM_SYNC = 0x077e9f3c
     const val SIMPLE_EVENT = 0xf754c8fe.toInt()
     const val START_GAME = 0x3de66711
 

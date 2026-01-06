@@ -1,6 +1,6 @@
 pluginManagement { repositories { gradlePluginPortal() } }
 
-plugins { id("dev.panuszewski.typesafe-conventions") version "0.7.4" }
+plugins { id("dev.panuszewski.typesafe-conventions") version "0.10.0" }
 
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {

@@ -2,6 +2,7 @@ package com.walkertribe.ian.iface
 
 import com.walkertribe.ian.enums.ObjectType
 import com.walkertribe.ian.enums.Origin
+import com.walkertribe.ian.protocol.IAN
 import com.walkertribe.ian.protocol.Packet
 import com.walkertribe.ian.protocol.PacketException
 import com.walkertribe.ian.protocol.Protocol
@@ -34,8 +35,7 @@ import kotlinx.io.readShortLe
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.dsl.koinApplication
-import org.koin.ksp.generated.defaultModule
+import org.koin.ksp.generated.koinApplication
 
 /**
  * Facilitates reading packets from an [ByteReadChannel]. This object may be reused to read as many
@@ -48,7 +48,7 @@ class PacketReader(
     private val channel: ByteReadChannel,
     private val listenerRegistry: ListenerRegistry,
 ) : KoinComponent {
-    private val koinApp = koinApplication { defaultModule() }
+    private val koinApp = IAN.koinApplication()
 
     private val protocol: Protocol by inject()
 
@@ -115,21 +115,18 @@ class PacketReader(
                 }
                 ?.build(this)
                 ?.takeIf { packet ->
-                    when (packet) {
-                        is VersionPacket -> {
-                            version = packet.version
-                            true
+                    if (packet is ObjectUpdatePacket) {
+                        packet.objectClasses.forEach {
+                            result.addListeners(listenerRegistry.listeningFor(it))
                         }
-
-                        is ObjectUpdatePacket -> {
-                            packet.objectClasses.forEach {
-                                result.addListeners(listenerRegistry.listeningFor(it))
-                            }
-                            result.isInteresting
-                        }
-
-                        else -> true
+                        return@takeIf result.isInteresting
                     }
+
+                    if (packet is VersionPacket) {
+                        version = packet.version
+                    }
+
+                    true
                 }
                 ?.let { packet -> ParseResult.Success(packet, result) } ?: ParseResult.Skip
         } catch (ex: PacketException) {
@@ -236,6 +233,11 @@ class PacketReader(
     /** Reads a UTF-16LE String from the current packet's payload. */
     fun readString(): String =
         payload.readByteArray(payload.readIntLe() * 2).toString(UTF16_LE).substringBefore(Char(0))
+
+    /** Skips over a UTF-16LE String in the current packet's payload. */
+    fun skipString() {
+        payload.discard(payload.readIntLe() * 2L)
+    }
 
     /** Reads an ASCII String from the current packet's payload. */
     fun readUsAsciiString(): String = payload.readByteArray(payload.readIntLe()).toString(ASCII)

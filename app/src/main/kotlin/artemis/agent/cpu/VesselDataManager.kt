@@ -44,12 +44,15 @@ class VesselDataManager(context: Context) {
     var vesselData: VesselData = defaultVesselData
         private set
 
-    private val allVesselData by lazy {
-        listOf(defaultVesselData, internalStorageVesselData, externalStorageVesselData)
-    }
-
     fun checkContext(index: Int, ifError: (String) -> Unit) {
-        val vesselDataAtIndex = allVesselData[index]
+        val vesselDataAtIndex =
+            when (index) {
+                0 -> defaultVesselData
+                1 -> internalStorageVesselData
+                2 -> externalStorageVesselData
+                else -> require(false) { "Invalid index: $index" }
+            }
+
         if (vesselDataAtIndex is VesselData.Error) {
             ifError(vesselDataAtIndex.message.toString())
         }

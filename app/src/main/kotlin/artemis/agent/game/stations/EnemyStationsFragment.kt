@@ -17,6 +17,7 @@ import artemis.agent.databinding.fragmentViewBinding
 import artemis.agent.game.ObjectEntry.Station
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
+import artemis.agent.util.getShieldText
 import com.walkertribe.ian.enums.BaseMessage
 import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 
@@ -80,11 +81,7 @@ class EnemyStationsFragment : Fragment(R.layout.enemy_stations_fragment) {
             }
 
             entryBinding.enemyShieldLabel.text =
-                context.getString(
-                    R.string.station_shield,
-                    station.shieldsFront.strength.value.coerceAtLeast(0f),
-                    station.shieldsFront.maxStrength.value,
-                )
+                getShieldText(context, R.string.station_shield, station.shieldsFront, false)
             entryBinding.enemyHeadingLabel.text =
                 context.getString(R.string.direction, entry.heading)
             entryBinding.enemyRangeLabel.text = context.getString(R.string.range, entry.range)

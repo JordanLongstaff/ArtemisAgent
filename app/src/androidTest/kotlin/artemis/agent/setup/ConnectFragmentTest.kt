@@ -117,7 +117,9 @@ class ConnectFragmentTest : TestCase() {
     fun connectionSuccessTest() {
         run {
             mainScreenTest(false) {
-                scenario(ConnectScenario(FAKE_SERVER_IP, activityScenarioRule.scenario))
+                scenario(
+                    ConnectScenario(FAKE_SERVER_IP, activityScenarioRule.scenario, check = null)
+                )
 
                 step("Advance to Ships page") {
                     SetupPageScreen {
@@ -152,7 +154,7 @@ class ConnectFragmentTest : TestCase() {
     fun connectionFailedTest() {
         run {
             mainScreenTest {
-                scenario(ConnectScenario("127.0.0.1", activityScenarioRule.scenario))
+                scenario(ConnectScenario("127.0.0.1", activityScenarioRule.scenario, check = null))
 
                 ConnectPageScreen {
                     step("Failure state") {
