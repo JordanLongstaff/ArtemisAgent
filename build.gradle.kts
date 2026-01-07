@@ -16,6 +16,9 @@ buildscript {
             classpath(libs.jdom2) {
                 because("Version 2.0.6.1 patches a high-level security vulnerability")
             }
+            classpath(libs.jose4j) {
+                because("Version 0.9.6 patches a high-level security vulnerability")
+            }
             classpath(libs.netty.codec) {
                 because("Version 4.1.125.Final patches a moderate security vulnerability")
             }

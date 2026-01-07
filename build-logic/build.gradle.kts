@@ -43,5 +43,8 @@ dependencies {
         runtimeOnly(libs.jdom2) {
             because("Version 2.0.6.1 patches a high-level security vulnerability")
         }
+        runtimeOnly(libs.jose4j) {
+            because("Version 0.9.6 patches a high-level security vulnerability")
+        }
     }
 }
