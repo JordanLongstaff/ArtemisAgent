@@ -25,9 +25,9 @@ object ConnectPageScreen : KScreen<ConnectPageScreen>() {
     val noServersLabel = KTextView { withId(R.id.noServersLabel) }
     val serverList = KRecyclerView({ withId(R.id.serverList) }, { itemType(::GenericItem) })
 
-    private val addressLabel = KTextView { withId(R.id.addressLabel) }
-    private val networkTypeLabel = KTextView { withId(R.id.networkTypeLabel) }
-    private val networkInfoDivider = KView { withId(R.id.networkInfoDivider) }
+    val addressLabel = KTextView { withId(R.id.addressLabel) }
+    val networkTypeLabel = KTextView { withId(R.id.networkTypeLabel) }
+    val networkInfoDivider = KView { withId(R.id.networkInfoDivider) }
 
     val infoViews by lazy { listOf(addressLabel, networkTypeLabel, networkInfoDivider) }
 }
