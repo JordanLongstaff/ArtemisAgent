@@ -51,6 +51,10 @@
       "groupName": "ruby",
       "matchSourceUrls": ["https://github.com/ruby/ruby", "https://github.com/ruby/setup-ruby"],
       "commitMessageExtra": "to {{upgrades.0.newVersion}}"
+    },
+    {
+      "matchManagers": ["bundler"],
+      "rangeStrategy": "update-lockfile"
     }
   ],
   "customManagers": [
