@@ -70,6 +70,7 @@
     <string name="avoidance_typhon">Typhons</string>
     <string name="avoidances">Avoidances</string>
     <string name="back">Back</string>
+    <string name="back_button_cancels">Back button cancels commands</string>
     <string name="biomech_rage">Status: %1$s</string>
     <string name="biomech_cannot_freeze">Freeze limit reached; cannot freeze again</string>
     <string name="biomech_frozen">Frozen - reanimation estimated in %1$s</string>

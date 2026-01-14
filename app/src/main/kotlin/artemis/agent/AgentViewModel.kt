@@ -79,9 +79,6 @@ import com.walkertribe.ian.world.ArtemisShielded
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListMap
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -262,6 +259,9 @@ class AgentViewModel(application: Application) :
         private set
 
     var recapsEnabled: Boolean = true
+        private set
+
+    var allyBackEnabled: Boolean = true
         private set
 
     // Single-ally UI data
@@ -1137,6 +1137,7 @@ class AgentViewModel(application: Application) :
         showAllySelector = settings.showDestroyedAllies
         manuallyReturnFromCommands = settings.allyCommandManualReturn
         recapsEnabled = settings.allyRecapsEnabled
+        allyBackEnabled = settings.allyBackEnabled
 
         biomechManager.updateFromSettings(settings)
 
@@ -1196,6 +1197,7 @@ class AgentViewModel(application: Application) :
             showDestroyedAllies = showAllySelector
             allyCommandManualReturn = manuallyReturnFromCommands
             allyRecapsEnabled = recapsEnabled
+            allyBackEnabled = this@AgentViewModel.allyBackEnabled
 
             biomechManager.revertSettings(this)
 

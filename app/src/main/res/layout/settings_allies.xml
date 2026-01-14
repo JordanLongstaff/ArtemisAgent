@@ -162,4 +162,33 @@
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintTop_toBottomOf="@id/manuallyReturnButton" />
+    <TextView
+        android:id="@+id/backButtonCancelTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/back_button_cancels"
+        android:textSize="@dimen/mediumTextSize"
+        app:autoSizeTextType="uniform"
+        app:autoSizeStepGranularity="2sp"
+        app:layout_constraintBottom_toBottomOf="@id/backButtonCancelButton"
+        app:layout_constraintEnd_toStartOf="@id/backButtonCancelButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/backButtonCancelButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/backButtonCancelButton" />
+    <ToggleButton
+        android:id="@+id/backButtonCancelButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textOff="@string/off"
+        android:textOn="@string/on"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/manuallyReturnDivider" />
+    <View
+        android:id="@+id/backButtonCancelDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/backButtonCancelButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

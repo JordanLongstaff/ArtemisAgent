@@ -38,6 +38,7 @@ class AllySettingsFragment : Fragment(R.layout.settings_allies) {
                 binding.showDestroyedAlliesButton to UserSettingsKt.Dsl::showDestroyedAllies,
                 binding.manuallyReturnButton to UserSettingsKt.Dsl::allyCommandManualReturn,
                 binding.enableRecapsButton to UserSettingsKt.Dsl::allyRecapsEnabled,
+                binding.backButtonCancelButton to UserSettingsKt.Dsl::allyBackEnabled,
             )
 
         viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {

@@ -68,6 +68,7 @@ class AllySettingsFragmentTest : TestCase() {
                 val showingDestroyed = AtomicBoolean()
                 val manuallyReturning = AtomicBoolean()
                 val recapsEnabled = AtomicBoolean()
+                val backEnabled = AtomicBoolean()
 
                 val sortByClassFirst = AtomicBoolean()
                 val sortByEnergy = AtomicBoolean()
@@ -90,15 +91,11 @@ class AllySettingsFragmentTest : TestCase() {
                         showingDestroyed.lazySet(viewModel.showAllySelector)
                         manuallyReturning.lazySet(viewModel.manuallyReturnFromCommands)
                         recapsEnabled.lazySet(viewModel.recapsEnabled)
+                        backEnabled.lazySet(viewModel.allyBackEnabled)
                     }
                 }
 
                 scenario(SettingsMenuScenario)
-
-                val enabled = alliesEnabled.get()
-                val showDestroyed = showingDestroyed.get()
-                val manualReturn = manuallyReturning.get()
-                val recaps = recapsEnabled.get()
 
                 val sortMethods =
                     SortMethods(
@@ -109,13 +106,19 @@ class AllySettingsFragmentTest : TestCase() {
                         name = sortByName.get(),
                     )
 
+                val toggles =
+                    Toggles(
+                        showingDestroyed = showingDestroyed.get(),
+                        manuallyReturning = manuallyReturning.get(),
+                        recapsEnabled = recapsEnabled.get(),
+                        backEnabled = backEnabled.get(),
+                    )
+
                 test(
                     Data(
-                        enabled = enabled,
-                        showingDestroyed = showDestroyed,
-                        manuallyReturning = manualReturn,
+                        enabled = alliesEnabled.get(),
                         sortMethods = sortMethods,
-                        recapsEnabled = recaps,
+                        toggles = toggles,
                     )
                 )
             }
@@ -124,10 +127,8 @@ class AllySettingsFragmentTest : TestCase() {
 
     private data class Data(
         val enabled: Boolean,
-        val showingDestroyed: Boolean,
-        val manuallyReturning: Boolean,
         val sortMethods: SortMethods,
-        val recapsEnabled: Boolean,
+        val toggles: Toggles,
     )
 
     private data class SortMethods(
@@ -141,6 +142,19 @@ class AllySettingsFragmentTest : TestCase() {
 
         val isDefault: Boolean
             get() = array.none { it }
+
+        fun toArray(): BooleanArray = array
+    }
+
+    private data class Toggles(
+        val showingDestroyed: Boolean,
+        val manuallyReturning: Boolean,
+        val recapsEnabled: Boolean,
+        val backEnabled: Boolean,
+    ) {
+        private val array by lazy {
+            booleanArrayOf(showingDestroyed, recapsEnabled, manuallyReturning, backEnabled)
+        }
 
         fun toArray(): BooleanArray = array
     }
@@ -159,9 +173,7 @@ class AllySettingsFragmentTest : TestCase() {
             testAlliesSubMenuOpen(
                 sortMethods = data.sortMethods,
                 shouldTestSortMethods = testSortMethods,
-                showingDestroyed = data.showingDestroyed,
-                manuallyReturning = data.manuallyReturning,
-                recapsEnabled = data.recapsEnabled,
+                toggles = data.toggles,
             )
 
             step("Close submenu") {
@@ -177,15 +189,13 @@ class AllySettingsFragmentTest : TestCase() {
         fun TestContext<Unit>.testAlliesSubMenuOpen(
             sortMethods: SortMethods,
             shouldTestSortMethods: Boolean,
-            showingDestroyed: Boolean,
-            manuallyReturning: Boolean,
-            recapsEnabled: Boolean,
+            toggles: Toggles,
         ) {
             testAllySubMenuSortMethods(sortMethods, shouldTestSortMethods)
 
             step("Test single toggle settings") {
                 SettingsPageScreen.Allies.singleToggleSettings
-                    .zip(listOf(showingDestroyed, recapsEnabled, manuallyReturning))
+                    .zip(toggles.toArray().asIterable())
                     .forEach { (setting, isChecked) -> setting.testSingleToggle(isChecked) }
             }
         }

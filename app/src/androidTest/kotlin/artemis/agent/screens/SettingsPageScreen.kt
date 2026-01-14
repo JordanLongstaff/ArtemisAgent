@@ -249,6 +249,10 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val manuallyReturnButton = KCheckBox { withId(R.id.manuallyReturnButton) }
         val manuallyReturnDivider = KView { withId(R.id.manuallyReturnDivider) }
 
+        val backButtonCancelTitle = KTextView { withId(R.id.backButtonCancelTitle) }
+        val backButtonCancelButton = KCheckBox { withId(R.id.backButtonCancelButton) }
+        val backButtonCancelDivider = KView { withId(R.id.backButtonCancelDivider) }
+
         val sortMethodSettings by lazy {
             listOf(
                 GroupedToggleButtonSetting(sortClassButton1, R.string.sort_by_class),
@@ -278,6 +282,12 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
                     label = manuallyReturnTitle,
                     text = R.string.manually_return_from_commands,
                     button = manuallyReturnButton,
+                ),
+                SingleToggleButtonSetting(
+                    divider = backButtonCancelDivider,
+                    label = backButtonCancelTitle,
+                    text = R.string.back_button_cancels,
+                    button = backButtonCancelButton,
                 ),
             )
         }

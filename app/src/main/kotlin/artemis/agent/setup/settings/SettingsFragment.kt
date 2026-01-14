@@ -91,6 +91,7 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
                     allyCommandManualReturn = false
                     showDestroyedAllies = true
                     allyRecapsEnabled = true
+                    allyBackEnabled = true
                 }
         },
         ENEMIES(

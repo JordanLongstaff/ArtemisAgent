@@ -62,6 +62,7 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         allyCommandManualReturn = false
         showDestroyedAllies = true
         allyRecapsEnabled = true
+        allyBackEnabled = true
 
         enemiesEnabled = true
 
@@ -135,8 +136,10 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         t.writeTo(output)
     }
 
-    class Migration(val version: Int, private val migrateFn: UserSettingsKt.Dsl.() -> Unit) :
+    class Migration(private val migrateFn: UserSettingsKt.Dsl.() -> Unit) :
         DataMigration<UserSettingsOuterClass.UserSettings> {
+        val version = ++versionCount
+
         override suspend fun shouldMigrate(currentData: UserSettingsOuterClass.UserSettings) =
             currentData.version < version
 
@@ -153,7 +156,10 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         }
 
         companion object {
-            val LIST = listOf(Migration(1) { allyRecapsEnabled = true })
+            var versionCount = 0
+
+            val LIST =
+                listOf(Migration { allyRecapsEnabled = true }, Migration { allyBackEnabled = true })
         }
     }
 }
