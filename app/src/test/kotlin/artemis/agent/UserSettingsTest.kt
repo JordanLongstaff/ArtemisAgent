@@ -12,10 +12,12 @@ import io.kotest.matchers.file.shouldNotBeEmpty
 class UserSettingsTest :
     DescribeSpec({
         describe("UserSettings") {
+            val expectedLatestVersion = 2
+
             describe("Defaults") {
                 val settings = UserSettingsSerializer.defaultValue
 
-                it("Latest version") { settings.version shouldBeEqual 1 }
+                it("Latest version") { settings.version shouldBeEqual expectedLatestVersion }
 
                 it("Vessel data location") {
                     settings.vesselDataLocation shouldBeEqual
@@ -202,6 +204,13 @@ class UserSettingsTest :
 
                     it("Should not migrate") {
                         skippedMigration.shouldMigrate(settings).shouldBeFalse()
+                    }
+                }
+
+                describe("Static helper function") {
+                    it("Should contain next version") {
+                        UserSettingsSerializer.Migration.migration {}.version shouldBeEqual
+                            expectedLatestVersion + 1
                     }
                 }
             }

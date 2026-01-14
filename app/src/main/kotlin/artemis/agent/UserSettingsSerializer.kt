@@ -1,6 +1,7 @@
 package artemis.agent
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataMigration
 import androidx.datastore.core.Serializer
@@ -136,10 +137,8 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         t.writeTo(output)
     }
 
-    class Migration(private val migrateFn: UserSettingsKt.Dsl.() -> Unit) :
+    class Migration(val version: Int, private val migrateFn: UserSettingsKt.Dsl.() -> Unit) :
         DataMigration<UserSettingsOuterClass.UserSettings> {
-        val version = ++versionCount
-
         override suspend fun shouldMigrate(currentData: UserSettingsOuterClass.UserSettings) =
             currentData.version < version
 
@@ -156,10 +155,14 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
         }
 
         companion object {
-            var versionCount = 0
+            private var versionCount = 0
 
             val LIST =
-                listOf(Migration { allyRecapsEnabled = true }, Migration { allyBackEnabled = true })
+                listOf(migration { allyRecapsEnabled = true }, migration { allyBackEnabled = true })
+
+            @VisibleForTesting
+            fun migration(migrateFn: UserSettingsKt.Dsl.() -> Unit) =
+                Migration(++versionCount, migrateFn)
         }
     }
 }
