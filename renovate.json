@@ -5,6 +5,7 @@
   ],
   "autoApprove": true,
   "automerge": true,
+  "platformAutomerge": true,
   "branchConcurrentLimit": 10,
   "prConcurrentLimit": 2,
   "ignoreDeps": ["com.android.tools.build:gradle"],
