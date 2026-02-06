@@ -60,7 +60,7 @@ okio = "3.16.4"
 perf-plugin = "2.0.2"
 play-services-tasks = "18.4.1"
 process-phoenix = "3.0.0"
-protobuf = "4.33.4"
+protobuf = "4.33.5"
 protobuf-plugin = "0.9.6"
 task-tree = "4.0.1"
 
