@@ -36,11 +36,8 @@ jobs:
         bundle config set frozen false
         bundle update
 
-    - name: Commit
-      uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
       with:
-        commit_message: Update Gemfile.lock
-        commit_options: "--no-verify"
-        commit_user_name: ${{ github.triggering_actor }}
-        commit_user_email: ${{ github.triggering_actor }}@users.noreply.github.com
-        add_options: "-u"
+        add-paths: Gemfile.lock
+        commit-message: "Update Gemfile.lock"
