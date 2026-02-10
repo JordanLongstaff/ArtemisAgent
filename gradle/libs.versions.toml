@@ -183,6 +183,7 @@ kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-core = { module = "io.mockk:mockk-core", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
 
 arcmutate-base = { module = "com.arcmutate:base", version.ref = "arcmutate-base" }
@@ -267,6 +268,7 @@ app-test = [
     "kotest-property",
     "kotest-property-arbs-jvm",
     "mockk",
+    "mockk-core",
     "mockk-dsl",
     "kotlinx-io",
     "kotlinx-serialization-core",
@@ -305,6 +307,7 @@ ian-test = [
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
+    "mockk-core",
     "mockk-dsl",
     "ktor-utils",
 ]
@@ -334,6 +337,7 @@ ian-listener-test = [
     "kotest-assertions-core",
     "kotest-framework-engine",
     "mockk",
+    "mockk-core",
     "mockk-dsl",
 ]
 
@@ -354,6 +358,7 @@ ian-packets-test = [
     "kotest-property",
     "koin-test",
     "mockk",
+    "mockk-core",
     "mockk-dsl",
 ]
 ian-packets-test-fixtures = [
@@ -434,6 +439,7 @@ ian-world-test = [
     "kotest-framework-engine",
     "kotest-property",
     "mockk",
+    "mockk-core",
     "mockk-dsl",
 ]
 ian-world-test-fixtures = [
