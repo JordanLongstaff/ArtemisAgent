@@ -6,10 +6,8 @@ on:
     paths:
       - .tool-versions
       - Gemfile
-  pull_request:
-    paths:
-      - .tool-versions
-      - Gemfile
+  schedule:
+    - cron: '20 19 * * 0'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
