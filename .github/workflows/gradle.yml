@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload Unit Test Results
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: always()
+        if: always() && github.event_name != 'merge_group'
         with:
           name: Unit Test Results
           path: |
@@ -76,7 +76,7 @@ jobs:
 
       - name: Upload Konsist Test Results
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: always()
+        if: always() && github.event_name != 'merge_group'
         with:
           name: Konsist Test Results
           path: |
@@ -84,7 +84,7 @@ jobs:
 
       - name: Upload Code Coverage Reports
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: always()
+        if: always() && github.event_name != 'merge_group'
         with:
           name: Code Coverage Reports
           path: |
@@ -123,7 +123,7 @@ jobs:
     name: Publish test results
     needs: build
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && github.event_name != 'merge_group'
     permissions:
       checks: write
       pull-requests: write
@@ -157,7 +157,7 @@ jobs:
     name: Report code coverage
     needs: build
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && github.event_name != 'merge_group'
     strategy:
       matrix:
         module:
@@ -194,7 +194,7 @@ jobs:
     name: Report code coverage (total)
     needs: coverage
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && github.event_name != 'merge_group'
     permissions:
       checks: write
       pull-requests: write
