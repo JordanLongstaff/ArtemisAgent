@@ -69,7 +69,7 @@ class ShipTest :
             describe("Cannot construct with accent colour out of range") {
                 withData(
                     nameFn = { it.first },
-                    "Too low" to Arb.negativeFloat(),
+                    "Too low" to Arb.negativeFloat(includeNaNs = false),
                     "Too high" to Arb.numericFloat(min = 1.001f),
                 ) { (_, arbAccentColor) ->
                     checkAll(
