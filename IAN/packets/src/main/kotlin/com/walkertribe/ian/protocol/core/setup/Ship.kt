@@ -41,9 +41,7 @@ internal constructor(
     }
 
     init {
-        accentColor.also {
-            require(it.isNaN() || it in 0f..1f) { "Accent color must be in range [0.0,1.0]" }
-        }
+        accentColor.also { require(it.isNaN() || it in 0f..1f) { INVALID_ACCENT_COLOR_ERROR } }
     }
 
     /**
@@ -74,6 +72,8 @@ internal constructor(
         private const val ACCENT_EPSILON = 0.00000001f
         private const val HASH_FACTOR = 31
         private const val INITIAL_HASH = 3
+
+        internal const val INVALID_ACCENT_COLOR_ERROR = "Accent color must be in range [0.0,1.0]"
 
         /** Reads a Ship from this PacketReader. */
         fun PacketReader.readShip(): Ship {
