@@ -8,7 +8,6 @@ import io.kotest.matchers.floats.shouldBeBetween
 import io.kotest.matchers.floats.shouldBeNaN
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.flatMap
-import io.kotest.property.arbitrary.float
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.numericFloat
 import io.kotest.property.checkAll
@@ -50,7 +49,7 @@ class ShieldsTest :
 
                 Arb.numericFloat(min = 1f)
                     .flatMap { maxStrength ->
-                        Arb.float(min = 0f, max = maxStrength * 0.98f).map { strength ->
+                        Arb.numericFloat(min = 0f, max = maxStrength * 0.98f).map { strength ->
                             strength to maxStrength
                         }
                     }
