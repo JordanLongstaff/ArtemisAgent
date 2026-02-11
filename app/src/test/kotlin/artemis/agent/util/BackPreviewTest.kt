@@ -10,6 +10,7 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.float
 import io.kotest.property.arbitrary.numericFloat
 import io.kotest.property.arbitrary.of
+import io.kotest.property.arbitrary.positiveFloat
 import io.kotest.property.checkAll
 
 class BackPreviewTest :
@@ -75,8 +76,8 @@ class BackPreviewTest :
             describe("On back progressed") {
                 withData(
                     nameFn = { "${it.first} preview" },
-                    Triple("Activate", Arb.numericFloat(0.01f, 1.0f), true),
-                    Triple("Revert", Arb.of(0.0f), false),
+                    Triple("Activate", Arb.positiveFloat(), true),
+                    Triple("Revert", Arb.numericFloat(max = 0.0f), false),
                 ) { (_, progressArb, shouldPreview) ->
                     checkAll(Arb.float(), Arb.float(), progressArb, swipeEdgeArb) {
                         touchX,
