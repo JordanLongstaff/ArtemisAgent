@@ -80,6 +80,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
+        tools: linked
         queries: security-extended
 
     # If the analyze step fails for one of the languages you are analyzing with
