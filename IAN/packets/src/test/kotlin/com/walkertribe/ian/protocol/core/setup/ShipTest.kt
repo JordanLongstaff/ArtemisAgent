@@ -9,6 +9,7 @@ import com.walkertribe.ian.world.EPSILON
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
+import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.floats.shouldBeNaN
 import io.kotest.matchers.floats.shouldBeWithinPercentageOf
 import io.kotest.matchers.floats.shouldNotBeNaN
@@ -69,7 +70,7 @@ class ShipTest :
             describe("Cannot construct with accent colour out of range") {
                 withData(
                     nameFn = { it.first },
-                    "Too low" to Arb.negativeFloat(),
+                    "Too low" to Arb.negativeFloat(includeNaNs = false),
                     "Too high" to Arb.numericFloat(min = 1.001f),
                 ) { (_, arbAccentColor) ->
                     checkAll(
@@ -79,8 +80,10 @@ class ShipTest :
                         genD = Arb.enum<DriveType>(),
                     ) { name, shipType, accentColor, drive ->
                         shouldThrow<IllegalArgumentException> {
-                            Ship(name, shipType, drive, accentColor)
-                        }
+                                Ship(name, shipType, drive, accentColor)
+                            }
+                            .message
+                            .shouldNotBeNull() shouldBeEqual Ship.INVALID_ACCENT_COLOR_ERROR
                     }
                 }
             }
