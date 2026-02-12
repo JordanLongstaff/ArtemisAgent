@@ -52,7 +52,7 @@ jobs:
         checkout_path: ${{ github.workspace }}
 
     - name: Setup Ruby
-      uses: ruby/setup-ruby@708024e6c902387ab41de36e1669e43b5ee7085e # v1.283.0
+      uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd # v1.288.0
       with:
         bundler-cache: true
 
