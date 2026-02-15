@@ -6,6 +6,7 @@ plugins {
     id("ian-library")
     id("fixtures")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.javaagent)
     id("info.solidsoft.pitest")
 }
 
@@ -20,6 +21,8 @@ pitest {
     configure(rootPackage = "com.walkertribe.ian.protocol", threads = 8)
     jvmArgs = listOf("-Xmx8g", "-Xms1g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseParallelGC")
 }
+
+kover.currentProject.instrumentation.includedClasses.add("com.walkertribe.ian.protocol.*")
 
 dependsOnKonsist()
 
@@ -65,6 +68,7 @@ dependencies {
     testImplementation(platform(libs.kotest.bom))
     testImplementation(libs.bundles.ian.packets.test)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
+    testJavaagent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
 
