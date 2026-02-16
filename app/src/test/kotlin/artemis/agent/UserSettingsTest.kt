@@ -12,7 +12,7 @@ import io.kotest.matchers.file.shouldNotBeEmpty
 class UserSettingsTest :
     DescribeSpec({
         describe("UserSettings") {
-            val expectedLatestVersion = 2
+            val expectedLatestVersion = 3
 
             describe("Defaults") {
                 val settings = UserSettingsSerializer.defaultValue
@@ -107,6 +107,11 @@ class UserSettingsTest :
                     describe("Max surrender range") {
                         it("Enabled") { settings.surrenderRangeEnabled.shouldBeTrue() }
                         it("Value") { settings.surrenderRange shouldBeEqual 5000f }
+                    }
+
+                    describe("Surrender bursts") {
+                        it("Count") { settings.surrenderBurstCount shouldBeEqual 1 }
+                        it("Interval") { settings.surrenderBurstInterval shouldBeEqual 500 }
                     }
 
                     it("Show enemy intel") { settings.showEnemyIntel.shouldBeTrue() }
@@ -276,6 +281,9 @@ class UserSettingsTest :
                     settings.surrenderRange shouldBeEqual defaultSettings.surrenderRange
                     settings.surrenderRangeEnabled shouldBeEqual
                         defaultSettings.surrenderRangeEnabled
+                    settings.surrenderBurstCount shouldBeEqual defaultSettings.surrenderBurstCount
+                    settings.surrenderBurstInterval shouldBeEqual
+                        defaultSettings.surrenderBurstInterval
                     settings.showEnemyIntel shouldBeEqual defaultSettings.showEnemyIntel
                     settings.showTauntStatuses shouldBeEqual defaultSettings.showTauntStatuses
                     settings.disableIneffectiveTaunts shouldBeEqual

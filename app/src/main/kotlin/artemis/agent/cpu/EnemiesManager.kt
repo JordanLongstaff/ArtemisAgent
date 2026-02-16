@@ -1,5 +1,7 @@
 package artemis.agent.cpu
 
+import androidx.lifecycle.viewModelScope
+import artemis.agent.AgentViewModel
 import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsOuterClass.UserSettings
 import artemis.agent.game.enemies.EnemyCaptainStatus
@@ -7,14 +9,19 @@ import artemis.agent.game.enemies.EnemyEntry
 import artemis.agent.game.enemies.EnemySortCategory
 import artemis.agent.game.enemies.EnemySorter
 import artemis.agent.game.enemies.TauntStatus
+import artemis.agent.util.SoundEffect
+import com.walkertribe.ian.enums.EnemyMessage
 import com.walkertribe.ian.enums.IntelType
 import com.walkertribe.ian.iface.Listener
+import com.walkertribe.ian.protocol.core.comm.CommsOutgoingPacket
 import com.walkertribe.ian.protocol.core.world.IntelPacket
 import com.walkertribe.ian.vesseldata.Taunt
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 class EnemiesManager {
     var enabled: Boolean = true
@@ -48,6 +55,9 @@ class EnemiesManager {
     val nameIndex = ConcurrentHashMap<String, Int>()
     val allEnemies = ConcurrentHashMap<Int, EnemyEntry>()
 
+    var surrenderBurstCount: Int = DEFAULT_SURRENDER_BURST_COUNT
+    var surrenderBurstInterval: Int = DEFAULT_SURRENDER_BURST_INTERVAL
+
     var showTauntStatuses = true
     var showIntel = true
     var disableIneffectiveTaunts = true
@@ -67,6 +77,31 @@ class EnemiesManager {
     }
 
     fun getEnemyByName(name: String): EnemyEntry? = nameIndex[name]?.let(allEnemies::get)
+
+    fun isEnemyInRange(enemy: EnemyEntry): Boolean =
+        maxSurrenderDistance?.let { enemy.range < it } != false
+
+    fun sendSurrenderBurst(enemy: EnemyEntry, viewModel: AgentViewModel) {
+        with(viewModel) {
+            activateHaptic()
+            playSound(SoundEffect.BEEP_2)
+            viewModelScope.launch {
+                val surrenderPacket =
+                    CommsOutgoingPacket(enemy.enemy, EnemyMessage.WILL_YOU_SURRENDER, vesselData)
+                for (i in surrenderBurstCount - 1 downTo 0) {
+                    if (enemy.enemy.isSurrendered.value.booleanValue || !isEnemyInRange(enemy)) {
+                        enemy.pendingSurrenders = 0
+                        break
+                    }
+                    sendToServer(surrenderPacket)
+                    enemy.pendingSurrenders = i
+                    if (i > 0) {
+                        delay(surrenderBurstInterval.toLong())
+                    }
+                }
+            }
+        }
+    }
 
     @Listener
     fun onIntel(packet: IntelPacket) {
@@ -125,6 +160,8 @@ class EnemiesManager {
         showTauntStatuses = settings.showTauntStatuses
         showIntel = settings.showEnemyIntel
         disableIneffectiveTaunts = settings.disableIneffectiveTaunts
+        surrenderBurstCount = settings.surrenderBurstCount
+        surrenderBurstInterval = settings.surrenderBurstInterval
     }
 
     fun revertSettings(settings: UserSettingsKt.Dsl) {
@@ -139,9 +176,13 @@ class EnemiesManager {
         settings.showTauntStatuses = showTauntStatuses
         settings.showEnemyIntel = showIntel
         settings.disableIneffectiveTaunts = disableIneffectiveTaunts
+        settings.surrenderBurstCount = surrenderBurstCount
+        settings.surrenderBurstInterval = surrenderBurstInterval
     }
 
     private companion object {
+        const val DEFAULT_SURRENDER_BURST_COUNT = 1
+        const val DEFAULT_SURRENDER_BURST_INTERVAL = 500
         const val DEFAULT_SURRENDER_DISTANCE = 5000f
         const val INTEL_PREFIX_LENGTH = 19
         const val CAPTAIN_STATUS_PREFIX = ", and is "

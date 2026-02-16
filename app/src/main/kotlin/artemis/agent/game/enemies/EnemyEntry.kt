@@ -23,6 +23,7 @@ class EnemyEntry(
     var lastTaunt: EnemyMessage? = null
 
     var intel: String? = null
+    var pendingSurrenders: Int = 0
 
     var captainStatus: EnemyCaptainStatus = EnemyCaptainStatus.NO_INTEL
 

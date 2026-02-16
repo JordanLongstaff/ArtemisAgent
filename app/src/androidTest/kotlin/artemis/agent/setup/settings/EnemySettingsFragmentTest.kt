@@ -1,5 +1,6 @@
 package artemis.agent.setup.settings
 
+import android.os.Build
 import androidx.activity.viewModels
 import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -22,6 +23,8 @@ import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.TestContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.roundToInt
+import kotlin.random.Random
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,61 +69,11 @@ class EnemySettingsFragmentTest : TestCase() {
     private fun testWithSettings(test: TestContext<Unit>.(Data) -> Unit) {
         run {
             mainScreenTest {
-                val enemiesEnabled = AtomicBoolean()
-                val maxSurrenderRange = AtomicInteger(-1)
-                val showIntel = AtomicBoolean()
-                val showTauntStatuses = AtomicBoolean()
-                val disableIneffectiveTaunts = AtomicBoolean()
+                lateinit var data: Data
 
-                val sortBySurrendered = AtomicBoolean()
-                val sortByFaction = AtomicBoolean()
-                val sortByFactionReversed = AtomicBoolean()
-                val sortByName = AtomicBoolean()
-                val sortByDistance = AtomicBoolean()
-
-                step("Fetch settings") {
-                    activityScenarioRule.scenario.onActivity { activity ->
-                        val viewModel = activity.viewModels<AgentViewModel>().value
-                        val enemiesManager = viewModel.enemiesManager
-                        val enemySorter = enemiesManager.sorter
-
-                        enemiesEnabled.lazySet(enemiesManager.enabled)
-                        enemiesManager.maxSurrenderDistance?.also {
-                            maxSurrenderRange.lazySet(it.toRawBits())
-                        }
-                        showIntel.lazySet(enemiesManager.showIntel)
-                        showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
-                        disableIneffectiveTaunts.lazySet(enemiesManager.disableIneffectiveTaunts)
-
-                        sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
-                        sortByFaction.lazySet(enemySorter.sortByFaction)
-                        sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
-                        sortByName.lazySet(enemySorter.sortByName)
-                        sortByDistance.lazySet(enemySorter.sortByDistance)
-                    }
-                }
+                step("Fetch settings") { data = getData() }
 
                 scenario(SettingsMenuScenario)
-
-                val sortMethods =
-                    SortMethods(
-                        surrender = sortBySurrendered.get(),
-                        faction = sortByFaction.get(),
-                        factionReversed = sortByFactionReversed.get(),
-                        name = sortByName.get(),
-                        distance = sortByDistance.get(),
-                    )
-
-                val data =
-                    Data(
-                        enabled = enemiesEnabled.get(),
-                        surrenderRange =
-                            Float.fromBits(maxSurrenderRange.get()).takeIf { it >= 0f },
-                        showIntel = showIntel.get(),
-                        showTauntStatuses = showTauntStatuses.get(),
-                        disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
-                        sortMethods = sortMethods,
-                    )
                 test(data)
             }
         }
@@ -129,6 +82,8 @@ class EnemySettingsFragmentTest : TestCase() {
     private data class Data(
         val enabled: Boolean,
         val surrenderRange: Float?,
+        val surrenderBurstCount: Int,
+        val surrenderBurstInterval: Int,
         val showIntel: Boolean,
         val showTauntStatuses: Boolean,
         val disableIneffectiveTaunts: Boolean,
@@ -156,8 +111,67 @@ class EnemySettingsFragmentTest : TestCase() {
         fun toArray(): BooleanArray = array
     }
 
+    private fun getData(): Data {
+        val enemiesEnabled = AtomicBoolean()
+        val maxSurrenderRange = AtomicInteger(-1)
+        val showIntel = AtomicBoolean()
+        val showTauntStatuses = AtomicBoolean()
+        val disableIneffectiveTaunts = AtomicBoolean()
+        val surrenderBurstCount = AtomicInteger()
+        val surrenderBurstInterval = AtomicInteger()
+
+        val sortBySurrendered = AtomicBoolean()
+        val sortByFaction = AtomicBoolean()
+        val sortByFactionReversed = AtomicBoolean()
+        val sortByName = AtomicBoolean()
+        val sortByDistance = AtomicBoolean()
+
+        activityScenarioRule.scenario.onActivity { activity ->
+            val viewModel = activity.viewModels<AgentViewModel>().value
+            val enemiesManager = viewModel.enemiesManager
+            val enemySorter = enemiesManager.sorter
+
+            enemiesEnabled.lazySet(enemiesManager.enabled)
+            enemiesManager.maxSurrenderDistance?.also { maxSurrenderRange.lazySet(it.toRawBits()) }
+            showIntel.lazySet(enemiesManager.showIntel)
+            showTauntStatuses.lazySet(enemiesManager.showTauntStatuses)
+            disableIneffectiveTaunts.lazySet(enemiesManager.disableIneffectiveTaunts)
+            surrenderBurstCount.lazySet(enemiesManager.surrenderBurstCount)
+            surrenderBurstInterval.lazySet(enemiesManager.surrenderBurstInterval)
+
+            sortBySurrendered.lazySet(enemySorter.sortBySurrendered)
+            sortByFaction.lazySet(enemySorter.sortByFaction)
+            sortByFactionReversed.lazySet(enemySorter.sortByFactionReversed)
+            sortByName.lazySet(enemySorter.sortByName)
+            sortByDistance.lazySet(enemySorter.sortByDistance)
+        }
+
+        return Data(
+            enabled = enemiesEnabled.get(),
+            surrenderRange = Float.fromBits(maxSurrenderRange.get()).takeIf { it >= 0f },
+            surrenderBurstCount = surrenderBurstCount.get(),
+            surrenderBurstInterval = surrenderBurstInterval.get(),
+            showIntel = showIntel.get(),
+            showTauntStatuses = showTauntStatuses.get(),
+            disableIneffectiveTaunts = disableIneffectiveTaunts.get(),
+            sortMethods =
+                SortMethods(
+                    surrender = sortBySurrendered.get(),
+                    faction = sortByFaction.get(),
+                    factionReversed = sortByFactionReversed.get(),
+                    name = sortByName.get(),
+                    distance = sortByDistance.get(),
+                ),
+        )
+    }
+
     private companion object {
         const val ENTRY_INDEX = 4
+        const val BURST_COUNT_MAX = 20
+        const val INTERVAL_TEST_COUNT = 20
+        const val MIN_INTERVAL = 200
+        const val MAX_INTERVAL = 1000
+        const val BASE_MAX_PROGRESS = 100f
 
         fun TestContext<Unit>.testData(
             data: Data,
@@ -182,6 +196,11 @@ class EnemySettingsFragmentTest : TestCase() {
         fun TestContext<Unit>.testEnemySubMenuOpen(data: Data, shouldTestSettings: Boolean) {
             testEnemySubMenuSortMethods(data.sortMethods, shouldTestSettings)
             testEnemySubMenuSurrenderRange(data.surrenderRange, shouldTestSettings)
+            testEnemySubMenuSurrenderBurstSettings(
+                data.surrenderBurstCount,
+                data.surrenderBurstInterval,
+                shouldTestSettings,
+            )
 
             SettingsPageScreen.Enemies.singleToggleSettings.forEachIndexed { index, setting ->
                 setting.testSingleToggle(data.singleToggles[index])
@@ -354,6 +373,64 @@ class EnemySettingsFragmentTest : TestCase() {
             }
         }
 
+        fun TestContext<Unit>.testEnemySubMenuSurrenderBurstSettings(
+            surrenderBurstCount: Int,
+            surrenderBurstInterval: Int,
+            shouldTestSettings: Boolean,
+        ) {
+            SettingsPageScreen.Enemies {
+                step("Check surrender burst count") {
+                    surrenderBurstCountTitle.isDisplayedWithText(R.string.surrender_burst_count)
+                    surrenderBurstCountLabel.isDisplayedWithText(surrenderBurstCount.toString())
+                    surrenderBurstCountBar {
+                        isCompletelyDisplayed()
+                        hasProgress(getExpectedProgress(surrenderBurstCount, 1, BURST_COUNT_MAX))
+                    }
+                }
+
+                step("Check surrender burst interval") {
+                    surrenderBurstIntervalTitle.isDisplayedWithText(
+                        R.string.surrender_burst_interval
+                    )
+                    surrenderBurstIntervalLabel.isDisplayedWithText(
+                        surrenderBurstInterval.toString()
+                    )
+                    surrenderBurstIntervalMs.isDisplayedWithText(R.string.milliseconds)
+                    surrenderBurstIntervalBar {
+                        isCompletelyDisplayed()
+                        hasProgress(
+                            getExpectedProgress(surrenderBurstInterval, MIN_INTERVAL, MAX_INTERVAL)
+                        )
+                    }
+                }
+
+                if (shouldTestSettings) {
+                    step("Test changing surrender burst count") {
+                        val countTests = (1..BURST_COUNT_MAX).shuffled() + surrenderBurstCount
+                        countTests.forEach { count ->
+                            surrenderBurstCountBar.setProgress(
+                                getExpectedProgress(count, 1, BURST_COUNT_MAX)
+                            )
+                            surrenderBurstCountLabel.isDisplayedWithText(count.toString())
+                        }
+                    }
+
+                    step("Test changing surrender burst interval") {
+                        val intervalTests =
+                            List(INTERVAL_TEST_COUNT) {
+                                Random.nextInt(MIN_INTERVAL, MAX_INTERVAL + 1)
+                            } + surrenderBurstInterval
+                        intervalTests.forEach { interval ->
+                            surrenderBurstIntervalBar.setProgress(
+                                getExpectedProgress(interval, MIN_INTERVAL, MAX_INTERVAL)
+                            )
+                            surrenderBurstIntervalLabel.isDisplayedWithText(interval.toString())
+                        }
+                    }
+                }
+            }
+        }
+
         fun TestContext<Unit>.testScreenClosed(isToggleOn: Boolean) {
             SettingsPageScreen.Enemies {
                 sortTitle.doesNotExist()
@@ -366,10 +443,26 @@ class EnemySettingsFragmentTest : TestCase() {
                 surrenderRangeEnableButton.doesNotExist()
                 surrenderRangeInfinity.doesNotExist()
                 surrenderRangeDivider.doesNotExist()
+                surrenderBurstCountTitle.doesNotExist()
+                surrenderBurstCountLabel.doesNotExist()
+                surrenderBurstCountBar.doesNotExist()
+                surrenderBurstCountDivider.doesNotExist()
+                surrenderBurstIntervalTitle.doesNotExist()
+                surrenderBurstIntervalLabel.doesNotExist()
+                surrenderBurstIntervalMs.doesNotExist()
+                surrenderBurstIntervalBar.doesNotExist()
+                surrenderBurstIntervalDivider.doesNotExist()
                 singleToggleSettings.forEach { it.testNotExist() }
             }
 
             flakySafely { SettingsPageScreen.Menu.testToggleState(ENTRY_INDEX, isToggleOn) }
         }
+
+        fun getExpectedProgress(progress: Int, min: Int, max: Int): Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                progress
+            } else {
+                ((progress - min) * BASE_MAX_PROGRESS / (max - min)).roundToInt()
+            }
     }
 }

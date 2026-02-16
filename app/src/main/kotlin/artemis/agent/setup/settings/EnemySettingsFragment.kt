@@ -1,8 +1,9 @@
 package artemis.agent.setup.settings
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.ToggleButton
+import android.widget.SeekBar
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -10,13 +11,14 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
-import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsEnemiesBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
@@ -28,39 +30,15 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val enemySortMethodButtons =
-            mapOf(
-                binding.enemySortingSurrenderButton to UserSettingsKt.Dsl::enemySortSurrendered,
-                binding.enemySortingRaceButton to UserSettingsKt.Dsl::enemySortFaction,
-                binding.enemySortingNameButton to UserSettingsKt.Dsl::enemySortName,
-                binding.enemySortingRangeButton to UserSettingsKt.Dsl::enemySortDistance,
-            )
-
-        val enemyToggleButtons =
-            mapOf(
-                binding.showIntelButton to UserSettingsKt.Dsl::showEnemyIntel,
-                binding.showTauntStatusButton to UserSettingsKt.Dsl::showTauntStatuses,
-                binding.disableIneffectiveButton to UserSettingsKt.Dsl::disableIneffectiveTaunts,
-            )
-
-        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
-            it.copy {
-                enemySortMethodButtons.entries.forEach { (button, setting) ->
-                    button.isChecked = setting.get(this)
-                }
-
-                enemyToggleButtons.entries.forEach { (button, setting) ->
-                    button.isChecked = setting.get(this)
-                }
+        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) { settings ->
+            EnemySettingsToggle.entries.forEach { toggle ->
+                toggle.getButton(binding).isChecked = toggle.isChecked(settings)
             }
 
             binding.enemySortingDefaultButton.isChecked =
-                enemySortMethodButtons.keys.none(ToggleButton::isChecked)
-            binding.reverseRaceSortButton.isChecked = it.enemySortFactionReversed
+                EnemySettingsToggle.sortEntries.none { it.isChecked(settings) }
 
-            val surrenderRangeEnabled = it.surrenderRangeEnabled
-            binding.surrenderRangeEnableButton.isChecked = surrenderRangeEnabled
-            if (surrenderRangeEnabled) {
+            if (settings.surrenderRangeEnabled) {
                 binding.surrenderRangeKm.visibility = View.VISIBLE
                 binding.surrenderRangeField.visibility = View.VISIBLE
                 binding.surrenderRangeInfinity.visibility = View.GONE
@@ -70,20 +48,33 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
                 binding.surrenderRangeInfinity.visibility = View.VISIBLE
             }
 
-            val reverseRaceSortVisibility = if (it.enemySortFaction) View.VISIBLE else View.GONE
+            binding.surrenderBurstCountBar.progress =
+                getProgress(
+                    value = settings.surrenderBurstCount,
+                    min = MIN_BURST_COUNT,
+                    max = MAX_BURST_COUNT,
+                )
+            binding.surrenderBurstIntervalBar.progress =
+                getProgress(
+                    value = settings.surrenderBurstInterval,
+                    min = MIN_BURST_INTERVAL,
+                    max = MAX_BURST_INTERVAL,
+                )
+
+            val reverseRaceSortVisibility =
+                if (settings.enemySortFaction) View.VISIBLE else View.GONE
             binding.reverseRaceSortButton.visibility = reverseRaceSortVisibility
             binding.reverseRaceSortTitle.visibility = reverseRaceSortVisibility
 
             playSoundsOnTextChange = false
-            binding.surrenderRangeField.setText(it.surrenderRange.formatString())
+            binding.surrenderRangeField.setText(settings.surrenderRange.formatString())
             playSoundsOnTextChange = true
         }
 
-        prepareDefaultSortMethodButton(enemySortMethodButtons)
-        prepareEnemySortMethodButtons(enemySortMethodButtons)
-        prepareReverseRaceSortButton()
+        prepareDefaultSortMethodButton()
+        bindToggleSettingButtons()
         bindSurrenderRangeField()
-        bindToggleSettingButtons(enemyToggleButtons)
+        bindProgressBars()
     }
 
     override fun onPause() {
@@ -91,7 +82,7 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         super.onPause()
     }
 
-    private fun prepareDefaultSortMethodButton(enemySortMethodButtons: ToggleButtonMap) {
+    private fun prepareDefaultSortMethodButton() {
         binding.enemySortingDefaultButton.setOnClickListener {
             viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
@@ -100,76 +91,12 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         binding.enemySortingDefaultButton.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked) return@setOnCheckedChangeListener
             viewModel.viewModelScope.launch {
-                binding.root.context.userSettings.updateData {
-                    it.copy {
-                        enemySortMethodButtons.values.forEach { setting ->
-                            setting.set(this, false)
+                binding.root.context.userSettings.updateData { settings ->
+                    settings.copy {
+                        EnemySettingsToggle.sortEntries.forEach { toggle ->
+                            toggle.onCheckedChanged(this, false)
                         }
                     }
-                }
-            }
-        }
-    }
-
-    private fun prepareEnemySortMethodButtons(enemySortMethodButtons: ToggleButtonMap) {
-        val context = binding.root.context
-
-        enemySortMethodButtons.keys.forEach { button ->
-            button.setOnClickListener {
-                viewModel.activateHaptic()
-                viewModel.playSound(SoundEffect.BEEP_2)
-            }
-        }
-
-        binding.enemySortingSurrenderButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.enemySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData { it.copy { enemySortSurrendered = isChecked } }
-            }
-        }
-
-        binding.enemySortingRaceButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.enemySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData { it.copy { enemySortFaction = isChecked } }
-            }
-        }
-
-        binding.enemySortingNameButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.enemySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        enemySortName = isChecked
-                        if (isChecked && enemySortDistance) enemySortDistance = false
-                    }
-                }
-            }
-        }
-
-        binding.enemySortingRangeButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.enemySortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        enemySortDistance = isChecked
-                        if (isChecked && enemySortName) enemySortName = false
-                    }
-                }
-            }
-        }
-    }
-
-    private fun prepareReverseRaceSortButton() {
-        binding.reverseRaceSortButton.setOnClickListener {
-            viewModel.activateHaptic()
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.reverseRaceSortButton.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.viewModelScope.launch {
-                binding.root.context.userSettings.updateData {
-                    it.copy { enemySortFactionReversed = isChecked }
                 }
             }
         }
@@ -217,19 +144,115 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         }
     }
 
-    private fun bindToggleSettingButtons(enemyToggleButtons: ToggleButtonMap) {
-        enemyToggleButtons.entries.forEach { (button, setting) ->
+    private fun bindToggleSettingButtons() {
+        EnemySettingsToggle.entries.forEach { toggle ->
+            val button = toggle.getButton(binding)
+
             button.setOnClickListener {
                 viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
             }
 
             button.setOnCheckedChangeListener { _, isChecked ->
+                if (toggle.isSort) {
+                    binding.enemySortingDefaultOffButton.isChecked = isChecked
+                }
                 viewModel.viewModelScope.launch {
                     binding.root.context.userSettings.updateData {
-                        it.copy { setting.set(this, isChecked) }
+                        it.copy { toggle.onCheckedChanged(this, isChecked) }
                     }
                 }
+            }
+        }
+    }
+
+    private fun bindProgressBars() {
+        val context = binding.root.context
+
+        binding.surrenderBurstCountLabel.text =
+            viewModel.enemiesManager.surrenderBurstCount.formatString()
+        binding.surrenderBurstIntervalLabel.text =
+            viewModel.enemiesManager.surrenderBurstInterval.formatString()
+
+        binding.surrenderBurstCountBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean,
+                ) {
+                    if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
+                    val surrenderBurstCount =
+                        getProgressBarValue(
+                            progress = progress,
+                            min = MIN_BURST_COUNT,
+                            max = MAX_BURST_COUNT,
+                        )
+                    viewModel.enemiesManager.surrenderBurstCount = surrenderBurstCount
+                    binding.surrenderBurstCountLabel.text = surrenderBurstCount.formatString()
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    viewModel.activateHaptic(HapticEffect.TICK)
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                    viewModel.viewModelScope.launch {
+                        context.userSettings.updateData {
+                            it.copy {
+                                surrenderBurstCount = viewModel.enemiesManager.surrenderBurstCount
+                            }
+                        }
+                    }
+                }
+            }
+        )
+
+        binding.surrenderBurstIntervalBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean,
+                ) {
+                    if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
+                    val surrenderBurstInterval =
+                        getProgressBarValue(
+                            progress = progress,
+                            min = MIN_BURST_INTERVAL,
+                            max = MAX_BURST_INTERVAL,
+                        )
+                    viewModel.enemiesManager.surrenderBurstInterval = surrenderBurstInterval
+                    binding.surrenderBurstIntervalLabel.text = surrenderBurstInterval.formatString()
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    viewModel.activateHaptic(HapticEffect.TICK)
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                    viewModel.viewModelScope.launch {
+                        context.userSettings.updateData {
+                            it.copy {
+                                surrenderBurstInterval =
+                                    viewModel.enemiesManager.surrenderBurstInterval
+                            }
+                        }
+                    }
+                }
+            }
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            with(binding) {
+                surrenderBurstCountBar.max = MAX_BURST_COUNT
+                surrenderBurstCountBar.min = MIN_BURST_COUNT
+                surrenderBurstIntervalBar.max = MAX_BURST_INTERVAL
+                surrenderBurstIntervalBar.min = MIN_BURST_INTERVAL
             }
         }
     }
@@ -237,5 +260,29 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
     private fun clearFocus() {
         viewModel.hideKeyboard(binding.root)
         binding.surrenderRangeField.clearFocus()
+    }
+
+    private fun getProgress(value: Int, min: Int, max: Int): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            value
+        } else {
+            ((value - min) * MAX_PROGRESS / (max - min)).roundToInt()
+        }
+
+    private fun getProgressBarValue(progress: Int, min: Int, max: Int): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            progress.coerceIn(min, max)
+        } else {
+            min + (progress * (max - min) / MAX_PROGRESS).roundToInt()
+        }
+
+    private companion object {
+        const val MAX_PROGRESS = 100f
+
+        const val MIN_BURST_COUNT = 1
+        const val MAX_BURST_COUNT = 20
+
+        const val MIN_BURST_INTERVAL = 200
+        const val MAX_BURST_INTERVAL = 1000
     }
 }

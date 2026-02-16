@@ -154,20 +154,17 @@ class EnemiesFragment : Fragment(R.layout.enemies_fragment) {
                 if (enemy.isSurrendered.value.booleanValue) {
                     View.GONE
                 } else {
+                    val pendingSurrenders = entry.pendingSurrenders
                     enemyBinding.enemySurrenderButton.isEnabled =
-                        enemiesManager.maxSurrenderDistance?.let { entry.range < it } != false
+                        enemiesManager.isEnemyInRange(entry) && pendingSurrenders == 0
                     enemyBinding.enemySurrenderButton.setOnClickListener {
-                        with(viewModel) {
-                            activateHaptic()
-                            playSound(SoundEffect.BEEP_2)
-                            sendToServer(
-                                CommsOutgoingPacket(
-                                    enemy,
-                                    EnemyMessage.WILL_YOU_SURRENDER,
-                                    vesselData,
-                                )
-                            )
-                        }
+                        enemiesManager.sendSurrenderBurst(entry, viewModel)
+                    }
+
+                    if (pendingSurrenders > 0) {
+                        enemyBinding.enemySurrenderButton.text = pendingSurrenders.toString()
+                    } else {
+                        enemyBinding.enemySurrenderButton.setText(R.string.surrender)
                     }
 
                     val enemyToTaunt =

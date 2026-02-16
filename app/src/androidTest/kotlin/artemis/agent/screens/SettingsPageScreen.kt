@@ -315,6 +315,17 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val surrenderRangeInfinity = KTextView { withId(R.id.surrenderRangeInfinity) }
         val surrenderRangeDivider = KView { withId(R.id.surrenderRangeDivider) }
 
+        val surrenderBurstCountTitle = KTextView { withId(R.id.surrenderBurstCountTitle) }
+        val surrenderBurstCountLabel = KTextView { withId(R.id.surrenderBurstCountLabel) }
+        val surrenderBurstCountBar = KSeekBar { withId(R.id.surrenderBurstCountBar) }
+        val surrenderBurstCountDivider = KView { withId(R.id.surrenderBurstCountDivider) }
+
+        val surrenderBurstIntervalTitle = KTextView { withId(R.id.surrenderBurstIntervalTitle) }
+        val surrenderBurstIntervalLabel = KTextView { withId(R.id.surrenderBurstIntervalLabel) }
+        val surrenderBurstIntervalMs = KTextView { withId(R.id.surrenderBurstIntervalMilliseconds) }
+        val surrenderBurstIntervalBar = KSeekBar { withId(R.id.surrenderBurstIntervalBar) }
+        val surrenderBurstIntervalDivider = KView { withId(R.id.surrenderBurstIntervalDivider) }
+
         val showIntelTitle = KTextView { withId(R.id.showIntelTitle) }
         val showIntelButton = KCheckBox { withId(R.id.showIntelButton) }
         val showIntelDivider = KView { withId(R.id.showIntelDivider) }

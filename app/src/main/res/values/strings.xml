@@ -252,7 +252,8 @@
             \nIf an enemy has been sufficiently damaged, they may surrender. To do that, you must
             send a message asking for a surrender by pressing the Surrender button. Surrender
             messages are only effective within a certain range; you can configure the app to disable
-            the Surrender button against an enemy that is too far away in the Settings page.
+            the Surrender button against an enemy that is too far away in the Settings page. You can
+            also configure the Surrender button to send multiple messages in \"bursts.\"
         </item>
         <item>
             \nTaunts are used to provoke an enemy to attack the player ship, thus luring it away
@@ -700,6 +701,8 @@
     <string name="subtract_ten_seconds">Subtract ten seconds</string>
     <string name="supplies">Supplies</string>
     <string name="surrender">Surrender</string>
+    <string name="surrender_burst_count">Surrender burst count</string>
+    <string name="surrender_burst_interval">Surrender burst interval</string>
     <string name="surrender_range">Surrender range</string>
     <string name="surrendered">Surrendered</string>
     <string name="surrendered_duplicitous">Surrendered; duplicitous</string>

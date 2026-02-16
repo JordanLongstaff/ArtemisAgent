@@ -109,6 +109,8 @@ class SettingsFragment : Fragment(R.layout.settings_fragment) {
 
                     surrenderRange = UserSettingsSerializer.DEFAULT_SURRENDER_RANGE
                     surrenderRangeEnabled = true
+                    surrenderBurstCount = UserSettingsSerializer.DEFAULT_SURRENDER_BURST_COUNT
+                    surrenderBurstInterval = UserSettingsSerializer.DEFAULT_SURRENDER_BURST_INTERVAL
 
                     showEnemyIntel = true
                     showTauntStatuses = true

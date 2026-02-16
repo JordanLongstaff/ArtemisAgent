@@ -26,6 +26,8 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
     const val DEFAULT_SOUND_VOLUME = 50
     const val DEFAULT_UPDATE_INTERVAL = 50
     const val DEFAULT_SURRENDER_RANGE = 5000f
+    const val DEFAULT_SURRENDER_BURST_COUNT = 1
+    const val DEFAULT_SURRENDER_BURST_INTERVAL = 500
 
     override val defaultValue: UserSettingsOuterClass.UserSettings = userSettings {
         version = Migration.LIST.maxOf { it.version }
@@ -75,6 +77,8 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
 
         surrenderRange = DEFAULT_SURRENDER_RANGE
         surrenderRangeEnabled = true
+        surrenderBurstCount = DEFAULT_SURRENDER_BURST_COUNT
+        surrenderBurstInterval = DEFAULT_SURRENDER_BURST_INTERVAL
 
         showEnemyIntel = true
         showTauntStatuses = true
@@ -158,7 +162,14 @@ object UserSettingsSerializer : Serializer<UserSettingsOuterClass.UserSettings> 
             private var versionCount = 0
 
             val LIST =
-                listOf(migration { allyRecapsEnabled = true }, migration { allyBackEnabled = true })
+                listOf(
+                    migration { allyRecapsEnabled = true },
+                    migration { allyBackEnabled = true },
+                    migration {
+                        surrenderBurstCount = 1
+                        surrenderBurstInterval = 500
+                    },
+                )
 
             @VisibleForTesting
             fun migration(migrateFn: UserSettingsKt.Dsl.() -> Unit) =
