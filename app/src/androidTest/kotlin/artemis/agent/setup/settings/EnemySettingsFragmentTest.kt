@@ -172,6 +172,7 @@ class EnemySettingsFragmentTest : TestCase() {
         const val MIN_INTERVAL = 200
         const val MAX_INTERVAL = 1000
         const val BASE_MAX_PROGRESS = 100f
+        const val INTERVAL_PROGRESS_SCALE = 8
 
         fun TestContext<Unit>.testData(
             data: Data,
@@ -393,7 +394,7 @@ class EnemySettingsFragmentTest : TestCase() {
                         R.string.surrender_burst_interval
                     )
                     surrenderBurstIntervalLabel.isDisplayedWithText(
-                        surrenderBurstInterval.toString()
+                        getExpectedIntervalLabel(surrenderBurstInterval)
                     )
                     surrenderBurstIntervalMs.isDisplayedWithText(R.string.milliseconds)
                     surrenderBurstIntervalBar {
@@ -424,7 +425,9 @@ class EnemySettingsFragmentTest : TestCase() {
                             surrenderBurstIntervalBar.setProgress(
                                 getExpectedProgress(interval, MIN_INTERVAL, MAX_INTERVAL)
                             )
-                            surrenderBurstIntervalLabel.isDisplayedWithText(interval.toString())
+                            surrenderBurstIntervalLabel.isDisplayedWithText(
+                                getExpectedIntervalLabel(interval)
+                            )
                         }
                     }
                 }
@@ -464,5 +467,14 @@ class EnemySettingsFragmentTest : TestCase() {
             } else {
                 ((progress - min) * BASE_MAX_PROGRESS / (max - min)).roundToInt()
             }
+
+        fun getExpectedIntervalLabel(progress: Int): String =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    progress
+                } else {
+                    getExpectedProgress(progress, MIN_INTERVAL, MAX_INTERVAL) *
+                        INTERVAL_PROGRESS_SCALE + MIN_INTERVAL
+                }
+                .toString()
     }
 }
