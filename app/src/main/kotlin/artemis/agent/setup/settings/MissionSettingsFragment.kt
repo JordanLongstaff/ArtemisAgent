@@ -2,13 +2,11 @@ package artemis.agent.setup.settings
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ToggleButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsMissionsBinding
@@ -26,8 +24,8 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
             viewModel.viewModelScope.launch {
-                binding.root.context.userSettings.updateData {
-                    it.copy { completedMissionDismissalSeconds = seconds }
+                binding.root.context.userSettings.updateData { settings ->
+                    settings.copy { completedMissionDismissalSeconds = seconds }
                 }
             }
         }
@@ -36,37 +34,28 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val displayRewardButtons =
-            mapOf(
-                binding.rewardsBatteryButton to UserSettingsKt.Dsl::displayRewardBattery,
-                binding.rewardsCoolantButton to UserSettingsKt.Dsl::displayRewardCoolant,
-                binding.rewardsNukeButton to UserSettingsKt.Dsl::displayRewardNukes,
-                binding.rewardsProductionButton to UserSettingsKt.Dsl::displayRewardProduction,
-                binding.rewardsShieldButton to UserSettingsKt.Dsl::displayRewardShield,
-            )
+        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) { settings ->
+            DisplayRewardSetting.entries.forEach { display ->
+                display.getButton(binding).isChecked = display.isChecked(settings)
+            }
 
-        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
-            it.copy {
-                displayRewardButtons.entries.forEach { (button, setting) ->
-                    button.isChecked = setting.get(this)
+            val displayCount = DisplayRewardSetting.entries.count { it.isChecked(settings) }
+            binding.rewardsAllButton.isEnabled = displayCount < DisplayRewardSetting.entries.size
+            binding.rewardsNoneButton.isEnabled = displayCount > 0
+
+            val enabled = settings.completedMissionDismissalEnabled
+            binding.autoDismissalButton.isChecked = enabled
+
+            val timeVisibility =
+                if (enabled) {
+                    autoDismissalBinder.timeInSeconds = settings.completedMissionDismissalSeconds
+                    View.VISIBLE
+                } else {
+                    View.INVISIBLE
                 }
-            }
 
-            binding.rewardsAllButton.isEnabled =
-                !displayRewardButtons.keys.all(ToggleButton::isChecked)
-            binding.rewardsNoneButton.isEnabled =
-                displayRewardButtons.keys.any(ToggleButton::isChecked)
-
-            if (it.completedMissionDismissalEnabled) {
-                binding.autoDismissalButton.isChecked = true
-                binding.autoDismissalSecondsLabel.visibility = View.VISIBLE
-                binding.autoDismissalTimeInput.root.visibility = View.VISIBLE
-                autoDismissalBinder.timeInSeconds = it.completedMissionDismissalSeconds
-            } else {
-                binding.autoDismissalButton.isChecked = false
-                binding.autoDismissalSecondsLabel.visibility = View.INVISIBLE
-                binding.autoDismissalTimeInput.root.visibility = View.INVISIBLE
-            }
+            binding.autoDismissalSecondsLabel.visibility = timeVisibility
+            binding.autoDismissalTimeInput.root.visibility = timeVisibility
         }
 
         binding.autoDismissalButton.setOnClickListener {
@@ -82,37 +71,49 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             }
         }
 
-        prepareRewardSettingButtons(displayRewardButtons)
+        prepareAutoDismissalToggleButton()
+        prepareRewardSettingButtons()
     }
 
-    private fun prepareRewardSettingButtons(displayRewardButtons: ToggleButtonMap) {
+    private fun prepareAutoDismissalToggleButton() {
+        val autoDismissalButton = binding.autoDismissalButton
+
+        autoDismissalButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+        }
+
+        autoDismissalButton.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.viewModelScope.launch {
+                autoDismissalButton.context.userSettings.updateData { settings ->
+                    settings.copy { completedMissionDismissalEnabled = isChecked }
+                }
+            }
+        }
+    }
+
+    private fun prepareRewardSettingButtons() {
         val context = binding.root.context
-
-        binding.rewardsAllButton.setOnClickListener {
-            viewModel.activateHaptic()
-            viewModel.playSound(SoundEffect.BEEP_2)
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        displayRewardButtons.values.forEach { setting -> setting.set(this, true) }
+        listOf(binding.rewardsAllButton to true, binding.rewardsNoneButton to false).forEach {
+            (button, isOn) ->
+            button.setOnClickListener {
+                viewModel.activateHaptic()
+                viewModel.playSound(SoundEffect.BEEP_2)
+                viewModel.viewModelScope.launch {
+                    context.userSettings.updateData { settings ->
+                        settings.copy {
+                            DisplayRewardSetting.entries.forEach { setting ->
+                                setting.onCheckedChanged(this, isOn)
+                            }
+                        }
                     }
                 }
             }
         }
 
-        binding.rewardsNoneButton.setOnClickListener {
-            viewModel.activateHaptic()
-            viewModel.playSound(SoundEffect.BEEP_2)
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        displayRewardButtons.values.forEach { setting -> setting.set(this, false) }
-                    }
-                }
-            }
-        }
+        DisplayRewardSetting.entries.forEach { display ->
+            val button = display.getButton(binding)
 
-        displayRewardButtons.entries.forEach { (button, setting) ->
             button.setOnClickListener {
                 viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
@@ -120,7 +121,9 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
 
             button.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.viewModelScope.launch {
-                    context.userSettings.updateData { it.copy { setting.set(this, isChecked) } }
+                    context.userSettings.updateData { settings ->
+                        settings.copy { display.onCheckedChanged(this, isChecked) }
+                    }
                 }
             }
         }

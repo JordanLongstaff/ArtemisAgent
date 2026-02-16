@@ -2,13 +2,11 @@ package artemis.agent.setup.settings
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ToggleButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.R
-import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsBiomechsBinding
@@ -36,29 +34,19 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val biomechSortMethodButtons =
-            mapOf(
-                binding.biomechSortingClassButton1 to UserSettingsKt.Dsl::biomechSortClassFirst,
-                binding.biomechSortingStatusButton to UserSettingsKt.Dsl::biomechSortStatus,
-                binding.biomechSortingClassButton2 to UserSettingsKt.Dsl::biomechSortClassSecond,
-                binding.biomechSortingNameButton to UserSettingsKt.Dsl::biomechSortName,
-            )
-
-        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) {
-            it.copy {
-                biomechSortMethodButtons.entries.forEach { (button, setting) ->
-                    button.isChecked = setting.get(this)
-                }
+        viewLifecycleOwner.collectLatestWhileStarted(view.context.userSettings.data) { settings ->
+            BiomechSortToggle.entries.forEach { toggle ->
+                toggle.getButton(binding).isChecked = toggle.isChecked(settings)
             }
 
             binding.biomechSortingDefaultButton.isChecked =
-                biomechSortMethodButtons.keys.none(ToggleButton::isChecked)
+                BiomechSortToggle.entries.none { it.isChecked(settings) }
 
-            freezeDurationBinder.timeInSeconds = it.freezeDurationSeconds
+            freezeDurationBinder.timeInSeconds = settings.freezeDurationSeconds
         }
 
-        prepareSortMethodButtons(biomechSortMethodButtons)
-        prepareDefaultSortMethodButton(biomechSortMethodButtons)
+        prepareSortMethodButtons()
+        prepareDefaultSortMethodButton()
     }
 
     override fun onDestroyView() {
@@ -66,56 +54,28 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
         freezeDurationBinder.destroy()
     }
 
-    private fun prepareSortMethodButtons(biomechSortMethodButtons: ToggleButtonMap) {
+    private fun prepareSortMethodButtons() {
         val context = binding.root.context
 
-        biomechSortMethodButtons.keys.forEach { button ->
+        BiomechSortToggle.entries.forEach { toggle ->
+            val button = toggle.getButton(binding)
             button.setOnClickListener {
                 viewModel.activateHaptic()
                 viewModel.playSound(SoundEffect.BEEP_2)
             }
-        }
 
-        binding.biomechSortingClassButton1.setOnCheckedChangeListener { _, isChecked ->
-            binding.biomechSortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        biomechSortClassFirst = isChecked
-                        if (isChecked) biomechSortClassSecond = false
+            button.setOnCheckedChangeListener { _, isChecked ->
+                binding.biomechSortingDefaultOffButton.isChecked = isChecked
+                viewModel.viewModelScope.launch {
+                    context.userSettings.updateData { settings ->
+                        settings.copy { toggle.onCheckedChanged(this, isChecked) }
                     }
                 }
-            }
-        }
-
-        binding.biomechSortingStatusButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.biomechSortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData { it.copy { biomechSortStatus = isChecked } }
-            }
-        }
-
-        binding.biomechSortingClassButton2.setOnCheckedChangeListener { _, isChecked ->
-            binding.biomechSortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData {
-                    it.copy {
-                        biomechSortClassSecond = isChecked
-                        if (isChecked) biomechSortClassFirst = false
-                    }
-                }
-            }
-        }
-
-        binding.biomechSortingNameButton.setOnCheckedChangeListener { _, isChecked ->
-            binding.biomechSortingDefaultOffButton.isChecked = isChecked
-            viewModel.viewModelScope.launch {
-                context.userSettings.updateData { it.copy { biomechSortName = isChecked } }
             }
         }
     }
 
-    private fun prepareDefaultSortMethodButton(biomechSortMethodButtons: ToggleButtonMap) {
+    private fun prepareDefaultSortMethodButton() {
         binding.biomechSortingDefaultButton.setOnClickListener {
             viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
@@ -124,10 +84,10 @@ class BiomechSettingsFragment : Fragment(R.layout.settings_biomechs) {
         binding.biomechSortingDefaultButton.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 viewModel.viewModelScope.launch {
-                    binding.root.context.userSettings.updateData {
-                        it.copy {
-                            biomechSortMethodButtons.values.forEach { setting ->
-                                setting.set(this, false)
+                    binding.root.context.userSettings.updateData { settings ->
+                        settings.copy {
+                            BiomechSortToggle.entries.forEach { sort ->
+                                sort.onCheckedChanged(this, false)
                             }
                         }
                     }
