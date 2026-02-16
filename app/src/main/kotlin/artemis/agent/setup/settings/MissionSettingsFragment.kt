@@ -58,19 +58,6 @@ class MissionSettingsFragment : Fragment(R.layout.settings_missions) {
             binding.autoDismissalTimeInput.root.visibility = timeVisibility
         }
 
-        binding.autoDismissalButton.setOnClickListener {
-            viewModel.activateHaptic()
-            viewModel.playSound(SoundEffect.BEEP_2)
-        }
-
-        binding.autoDismissalButton.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
-                    it.copy { completedMissionDismissalEnabled = isChecked }
-                }
-            }
-        }
-
         prepareAutoDismissalToggleButton()
         prepareRewardSettingButtons()
     }
