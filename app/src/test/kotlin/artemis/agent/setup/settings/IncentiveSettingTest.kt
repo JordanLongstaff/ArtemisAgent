@@ -2,6 +2,7 @@ package artemis.agent.setup.settings
 
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.ToggleButton
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -47,12 +48,12 @@ class IncentiveSettingTest :
             mockkViewBinding<ToggleButton>(R.id.blackHolesButton)
             mockkViewBinding<ToggleButton>(R.id.minesButton)
             mockkViewBinding<ToggleButton>(R.id.typhonsButton)
-            mockkViewBinding<ToggleButton>(R.id.blackHolesClearanceField)
-            mockkViewBinding<ToggleButton>(R.id.minesClearanceField)
-            mockkViewBinding<ToggleButton>(R.id.typhonsClearanceField)
-            mockkViewBinding<ToggleButton>(R.id.blackHolesClearanceKm)
-            mockkViewBinding<ToggleButton>(R.id.minesClearanceKm)
-            mockkViewBinding<ToggleButton>(R.id.typhonsClearanceKm)
+            mockkViewBinding<EditText>(R.id.blackHolesClearanceField)
+            mockkViewBinding<EditText>(R.id.minesClearanceField)
+            mockkViewBinding<EditText>(R.id.typhonsClearanceField)
+            mockkViewBinding<TextView>(R.id.blackHolesClearanceKm)
+            mockkViewBinding<TextView>(R.id.minesClearanceKm)
+            mockkViewBinding<TextView>(R.id.typhonsClearanceKm)
             mockkViewBinding<TextView>(R.id.blackHolesTitle)
             mockkViewBinding<TextView>(R.id.minesTitle)
             mockkViewBinding<TextView>(R.id.typhonsTitle)
