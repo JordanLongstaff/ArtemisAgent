@@ -1,5 +1,6 @@
 package artemis.agent.setup.settings
 
+import android.os.Build
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.test.ext.junit.rules.activityScenarioRule
@@ -26,6 +27,8 @@ import io.github.kakaocup.kakao.dialog.KAlertDialog
 import io.github.kakaocup.kakao.text.KButton
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.roundToInt
+import kotlin.random.Random
 import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
@@ -100,16 +103,11 @@ class ClientSettingsFragmentTest : TestCase() {
                         serverPortTitle.isDisplayedWithText(R.string.server_port)
                         serverPortField.isDisplayedWithText(expectedPort.get().toString())
                     }
+                }
 
-                    step("Test update interval setting") {
-                        updateIntervalDivider.scrollTo()
-                        updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
-                        updateIntervalField.isDisplayedWithText(
-                            expectedUpdateInterval.get().toString()
-                        )
-                        updateIntervalMilliseconds.isDisplayedWithText(R.string.milliseconds)
-                    }
+                testUpdateIntervalSetting(expectedUpdateInterval.get(), shouldTestSettings)
 
+                SettingsPageScreen.Client {
                     step("Close submenu") {
                         closeSubmenu()
                         testScreenClosed()
@@ -176,6 +174,10 @@ class ClientSettingsFragmentTest : TestCase() {
     }
 
     private companion object {
+        const val INTERVAL_TEST_COUNT = 20
+        const val BASE_MAX_PROGRESS = 100f
+        const val MAX_INTERVAL = 500
+
         val vesselDataButtons by lazy {
             listOf(
                 SettingsPageScreen.Client.vesselDataDefaultButton to R.string.default_setting,
@@ -259,6 +261,36 @@ class ClientSettingsFragmentTest : TestCase() {
             }
         }
 
+        fun TestContext<*>.testUpdateIntervalSetting(expectedInterval: Int, shouldTest: Boolean) {
+            SettingsPageScreen.Client {
+                step("Test update interval setting") {
+                    updateIntervalDivider.scrollTo()
+                    updateIntervalTitle.isDisplayedWithText(R.string.update_interval)
+                    updateIntervalMilliseconds.isDisplayedWithText(R.string.milliseconds)
+                    updateIntervalDisclaimer.isDisplayedWithText(
+                        R.string.update_interval_disclaimer
+                    )
+                    updateIntervalBar {
+                        isCompletelyDisplayed()
+                        hasProgress(getProgressScale(expectedInterval))
+                    }
+                }
+
+                if (!shouldTest) return@Client
+
+                step("Test changing update interval") {
+                    val intervalTests =
+                        List(INTERVAL_TEST_COUNT) { Random.nextInt(MAX_INTERVAL + 1) } +
+                            expectedInterval
+
+                    intervalTests.forEach { interval ->
+                        updateIntervalBar.setProgress(getProgressScale(interval))
+                        updateIntervalLabel.isDisplayedWithText(interval.toString())
+                    }
+                }
+            }
+        }
+
         fun SettingsPageScreen.Client.testScreenClosed() {
             vesselDataTitle.doesNotExist()
             vesselDataButtons.forEach { (button) -> button.doesNotExist() }
@@ -273,9 +305,18 @@ class ClientSettingsFragmentTest : TestCase() {
             addressLimitField.doesNotExist()
             addressLimitDivider.doesNotExist()
             updateIntervalTitle.doesNotExist()
-            updateIntervalField.doesNotExist()
+            updateIntervalLabel.doesNotExist()
             updateIntervalMilliseconds.doesNotExist()
+            updateIntervalBar.doesNotExist()
+            updateIntervalDisclaimer.doesNotExist()
             updateIntervalDivider.doesNotExist()
         }
+
+        fun getProgressScale(progress: Int): Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                progress
+            } else {
+                (progress * BASE_MAX_PROGRESS / MAX_INTERVAL).roundToInt()
+            }
     }
 }

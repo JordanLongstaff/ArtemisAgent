@@ -734,6 +734,9 @@
     </string>
     <string name="update_failed_title">Update Error</string>
     <string name="update_interval">Update interval</string>
+    <string name="update_interval_disclaimer">
+        Note that the updates themselves may take longer than the value of this setting.
+    </string>
     <string name="update_later">Later</string>
     <string name="update_now">Now</string>
     <string name="update_ready_message">

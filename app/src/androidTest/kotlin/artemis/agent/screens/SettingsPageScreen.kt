@@ -146,8 +146,10 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val addressLimitDivider = KView { withId(R.id.addressLimitDivider) }
 
         val updateIntervalTitle = KTextView { withId(R.id.updateIntervalTitle) }
-        val updateIntervalField = KEditText { withId(R.id.updateIntervalField) }
+        val updateIntervalLabel = KTextView { withId(R.id.updateIntervalLabel) }
         val updateIntervalMilliseconds = KTextView { withId(R.id.updateIntervalMilliseconds) }
+        val updateIntervalBar = KSeekBar { withId(R.id.updateIntervalBar) }
+        val updateIntervalDisclaimer = KTextView { withId(R.id.updateIntervalDisclaimer) }
         val updateIntervalDivider = KView { withId(R.id.updateIntervalDivider) }
 
         val showNetworkInfoToggleSetting by lazy {

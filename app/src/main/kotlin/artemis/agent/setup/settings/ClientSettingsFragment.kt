@@ -1,8 +1,10 @@
 package artemis.agent.setup.settings
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.RadioButton
+import android.widget.SeekBar
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -14,8 +16,10 @@ import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsClientBinding
 import artemis.agent.databinding.fragmentViewBinding
+import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 class ClientSettingsFragment : Fragment(R.layout.settings_client) {
@@ -52,35 +56,18 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
                 binding.addressLimitInfinity.visibility = View.VISIBLE
             }
 
+            binding.updateIntervalBar.progress = getProgress(value = it.updateInterval)
+
             playSoundsOnTextChange = false
             binding.serverPortField.setText(it.serverPort.formatString())
             binding.addressLimitField.setText(it.recentAddressLimit.formatString())
-            binding.updateIntervalField.setText(it.updateInterval.formatString())
             playSoundsOnTextChange = true
         }
 
         prepareServerPortSettingField()
         prepareShowNetworkInfoSettingToggle()
         prepareAddressLimitSettingField()
-
-        binding.updateIntervalField.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                viewModel.activateHaptic()
-                viewModel.playSound(SoundEffect.BEEP_2)
-                return@setOnFocusChangeListener
-            }
-
-            val text = binding.updateIntervalField.text?.toString()
-            viewModel.viewModelScope.launch {
-                view.context.userSettings.updateData {
-                    it.copy {
-                        updateInterval =
-                            if (text.isNullOrBlank()) 0
-                            else text.toInt().coerceIn(0, MAX_UPDATE_INTERVAL)
-                    }
-                }
-            }
-        }
+        prepareUpdateIntervalSettingComponents()
     }
 
     override fun onPause() {
@@ -204,13 +191,67 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         }
     }
 
+    private fun prepareUpdateIntervalSettingComponents() {
+        val context = binding.root.context
+
+        binding.updateIntervalLabel.text = viewModel.updateObjectsInterval.formatString()
+
+        binding.updateIntervalBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean,
+                ) {
+                    if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
+                    val updateInterval = getProgressBarValue(progress)
+                    viewModel.updateObjectsInterval = updateInterval
+                    binding.updateIntervalLabel.text = updateInterval.formatString()
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    viewModel.activateHaptic(HapticEffect.TICK)
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    viewModel.playSound(SoundEffect.BEEP_2)
+                    viewModel.viewModelScope.launch {
+                        context.userSettings.updateData {
+                            it.copy { updateInterval = viewModel.updateObjectsInterval }
+                        }
+                    }
+                }
+            }
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            binding.updateIntervalBar.max = MAX_UPDATE_INTERVAL
+        }
+    }
+
     private fun clearFocus() {
         viewModel.hideKeyboard(binding.root)
         binding.serverPortField.clearFocus()
         binding.addressLimitField.clearFocus()
     }
 
+    private fun getProgress(value: Int): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            value
+        } else {
+            (value * MAX_PROGRESS / MAX_UPDATE_INTERVAL).roundToInt()
+        }
+
+    private fun getProgressBarValue(progress: Int): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            progress.coerceIn(0, MAX_UPDATE_INTERVAL)
+        } else {
+            (progress * MAX_UPDATE_INTERVAL / MAX_PROGRESS).roundToInt()
+        }
+
     private companion object {
+        const val MAX_PROGRESS = 100f
         const val MAX_UPDATE_INTERVAL = 500
     }
 }

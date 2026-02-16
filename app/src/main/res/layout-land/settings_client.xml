@@ -170,41 +170,51 @@
         android:id="@+id/updateIntervalTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:labelFor="@id/updateIntervalField"
         android:text="@string/update_interval"
         android:textSize="@dimen/mediumTextSize"
-        app:layout_constraintBottom_toBottomOf="@id/updateIntervalField"
-        app:layout_constraintEnd_toStartOf="@id/updateIntervalField"
+        app:layout_constraintEnd_toStartOf="@id/updateIntervalLabel"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/updateIntervalField"
+        app:layout_constraintRight_toLeftOf="@id/updateIntervalLabel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/updateIntervalField" />
-    <EditText
-        android:id="@+id/updateIntervalField"
+        app:layout_constraintTop_toBottomOf="@id/addressLimitDivider" />
+    <TextView
+        android:id="@+id/updateIntervalLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="3"
+        android:layout_marginEnd="@dimen/paddingSmall"
         android:gravity="center_vertical|end"
-        android:importantForAutofill="no"
-        android:inputType="number"
-        android:maxLength="3"
+        android:minEms="2"
+        android:textSize="@dimen/mediumTextSize"
+        app:layout_constraintBottom_toBottomOf="@id/updateIntervalTitle"
         app:layout_constraintEnd_toStartOf="@id/updateIntervalMilliseconds"
         app:layout_constraintRight_toLeftOf="@id/updateIntervalMilliseconds"
-        app:layout_constraintTop_toBottomOf="@id/addressLimitDivider" />
+        app:layout_constraintTop_toTopOf="@id/updateIntervalTitle" />
     <TextView
         android:id="@+id/updateIntervalMilliseconds"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
         android:text="@string/milliseconds"
         android:textSize="@dimen/baseTextSize"
-        app:layout_constraintBottom_toBottomOf="@id/updateIntervalField"
+        app:layout_constraintBottom_toBottomOf="@id/updateIntervalLabel"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/updateIntervalField" />
+        app:layout_constraintRight_toRightOf="parent" />
+    <SeekBar
+        android:id="@+id/updateIntervalBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/updateIntervalTitle" />
+    <TextView
+        android:id="@+id/updateIntervalDisclaimer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/update_interval_disclaimer"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/updateIntervalBar" />
     <View
         android:id="@+id/updateIntervalDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toBottomOf="@id/updateIntervalField" />
+        app:layout_constraintTop_toBottomOf="@id/updateIntervalDisclaimer" />
 </androidx.constraintlayout.widget.ConstraintLayout>
