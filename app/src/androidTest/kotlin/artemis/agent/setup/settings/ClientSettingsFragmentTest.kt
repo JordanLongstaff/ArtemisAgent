@@ -177,6 +177,7 @@ class ClientSettingsFragmentTest : TestCase() {
         const val INTERVAL_TEST_COUNT = 20
         const val BASE_MAX_PROGRESS = 100f
         const val MAX_INTERVAL = 500
+        const val PROGRESS_SCALE = 5
 
         val vesselDataButtons by lazy {
             listOf(
@@ -280,8 +281,13 @@ class ClientSettingsFragmentTest : TestCase() {
 
                 step("Test changing update interval") {
                     val intervalTests =
-                        List(INTERVAL_TEST_COUNT) { Random.nextInt(MAX_INTERVAL + 1) } +
-                            expectedInterval
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            List(INTERVAL_TEST_COUNT) { Random.nextInt(MAX_INTERVAL + 1) }
+                        } else {
+                            List(INTERVAL_TEST_COUNT) {
+                                Random.nextInt(MAX_INTERVAL / PROGRESS_SCALE + 1) * PROGRESS_SCALE
+                            }
+                        } + expectedInterval
 
                     intervalTests.forEach { interval ->
                         updateIntervalBar.setProgress(getProgressScale(interval))
