@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.SeekBar
+import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -11,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
+import artemis.agent.UserSettingsKt
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsEnemiesBinding
@@ -19,6 +21,8 @@ import artemis.agent.util.HapticEffect
 import artemis.agent.util.SoundEffect
 import artemis.agent.util.collectLatestWhileStarted
 import kotlin.math.roundToInt
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KMutableProperty1
 import kotlinx.coroutines.launch
 
 class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
@@ -49,13 +53,13 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
             }
 
             binding.surrenderBurstCountBar.progress =
-                getProgress(
+                getSeekBarProgress(
                     value = settings.surrenderBurstCount,
                     min = MIN_BURST_COUNT,
                     max = MAX_BURST_COUNT,
                 )
             binding.surrenderBurstIntervalBar.progress =
-                getProgress(
+                getSeekBarProgress(
                     value = settings.surrenderBurstInterval,
                     min = MIN_BURST_INTERVAL,
                     max = MAX_BURST_INTERVAL,
@@ -74,7 +78,21 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         prepareDefaultSortMethodButton()
         bindToggleSettingButtons()
         bindSurrenderRangeField()
-        bindProgressBars()
+
+        bindSeekBarSetting(
+            settingSeekBar = binding.surrenderBurstCountBar,
+            label = binding.surrenderBurstCountLabel,
+            valueProperty = viewModel.enemiesManager::surrenderBurstCount,
+            settingProperty = UserSettingsKt.Dsl::surrenderBurstCount,
+            range = MIN_BURST_COUNT to MAX_BURST_COUNT,
+        )
+        bindSeekBarSetting(
+            settingSeekBar = binding.surrenderBurstIntervalBar,
+            label = binding.surrenderBurstIntervalLabel,
+            valueProperty = viewModel.enemiesManager::surrenderBurstInterval,
+            settingProperty = UserSettingsKt.Dsl::surrenderBurstInterval,
+            range = MIN_BURST_INTERVAL to MAX_BURST_INTERVAL,
+        )
     }
 
     override fun onPause() {
@@ -166,15 +184,18 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         }
     }
 
-    private fun bindProgressBars() {
-        val context = binding.root.context
+    private fun bindSeekBarSetting(
+        settingSeekBar: SeekBar,
+        label: TextView,
+        valueProperty: KMutableProperty0<Int>,
+        settingProperty: KMutableProperty1<UserSettingsKt.Dsl, Int>,
+        range: Pair<Int, Int>,
+    ) {
+        label.text = valueProperty.get().formatString()
+        val min = minOf(range.first, range.second)
+        val max = maxOf(range.first, range.second)
 
-        binding.surrenderBurstCountLabel.text =
-            viewModel.enemiesManager.surrenderBurstCount.formatString()
-        binding.surrenderBurstIntervalLabel.text =
-            viewModel.enemiesManager.surrenderBurstInterval.formatString()
-
-        binding.surrenderBurstCountBar.setOnSeekBarChangeListener(
+        settingSeekBar.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
@@ -182,17 +203,13 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
                     fromUser: Boolean,
                 ) {
                     if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
-                    val surrenderBurstCount =
-                        getProgressBarValue(
-                            progress = progress,
-                            min = MIN_BURST_COUNT,
-                            max = MAX_BURST_COUNT,
-                        )
-                    viewModel.enemiesManager.surrenderBurstCount = surrenderBurstCount
-                    binding.surrenderBurstCountLabel.text = surrenderBurstCount.formatString()
+                    val value = getSeekBarValue(progress, min, max)
+                    valueProperty.set(value)
+                    label.text = value.formatString()
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    clearFocus()
                     viewModel.activateHaptic(HapticEffect.TICK)
                     viewModel.playSound(SoundEffect.BEEP_2)
                 }
@@ -200,47 +217,8 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {
                     viewModel.playSound(SoundEffect.BEEP_2)
                     viewModel.viewModelScope.launch {
-                        context.userSettings.updateData {
-                            it.copy {
-                                surrenderBurstCount = viewModel.enemiesManager.surrenderBurstCount
-                            }
-                        }
-                    }
-                }
-            }
-        )
-
-        binding.surrenderBurstIntervalBar.setOnSeekBarChangeListener(
-            object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(
-                    seekBar: SeekBar?,
-                    progress: Int,
-                    fromUser: Boolean,
-                ) {
-                    if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
-                    val surrenderBurstInterval =
-                        getProgressBarValue(
-                            progress = progress,
-                            min = MIN_BURST_INTERVAL,
-                            max = MAX_BURST_INTERVAL,
-                        )
-                    viewModel.enemiesManager.surrenderBurstInterval = surrenderBurstInterval
-                    binding.surrenderBurstIntervalLabel.text = surrenderBurstInterval.formatString()
-                }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                    viewModel.activateHaptic(HapticEffect.TICK)
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                    viewModel.playSound(SoundEffect.BEEP_2)
-                    viewModel.viewModelScope.launch {
-                        context.userSettings.updateData {
-                            it.copy {
-                                surrenderBurstInterval =
-                                    viewModel.enemiesManager.surrenderBurstInterval
-                            }
+                        settingSeekBar.context.userSettings.updateData {
+                            it.copy { settingProperty.set(this, valueProperty.get()) }
                         }
                     }
                 }
@@ -248,12 +226,8 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            with(binding) {
-                surrenderBurstCountBar.max = MAX_BURST_COUNT
-                surrenderBurstCountBar.min = MIN_BURST_COUNT
-                surrenderBurstIntervalBar.max = MAX_BURST_INTERVAL
-                surrenderBurstIntervalBar.min = MIN_BURST_INTERVAL
-            }
+            settingSeekBar.max = max
+            settingSeekBar.min = min
         }
     }
 
@@ -262,14 +236,14 @@ class EnemySettingsFragment : Fragment(R.layout.settings_enemies) {
         binding.surrenderRangeField.clearFocus()
     }
 
-    private fun getProgress(value: Int, min: Int, max: Int): Int =
+    private fun getSeekBarProgress(value: Int, min: Int, max: Int): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             value
         } else {
             ((value - min) * MAX_PROGRESS / (max - min)).roundToInt()
         }
 
-    private fun getProgressBarValue(progress: Int, min: Int, max: Int): Int =
+    private fun getSeekBarValue(progress: Int, min: Int, max: Int): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             progress.coerceIn(min, max)
         } else {

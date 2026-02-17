@@ -57,7 +57,7 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
                 binding.addressLimitInfinity.visibility = View.VISIBLE
             }
 
-            binding.updateIntervalBar.progress = getProgress(value = it.updateInterval)
+            binding.updateIntervalBar.progress = getSeekBarProgress(value = it.updateInterval)
 
             playSoundsOnTextChange = false
             binding.serverPortField.setText(it.serverPort.formatString())
@@ -141,6 +141,9 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         binding.serverPortResetButton.setOnClickListener {
             viewModel.activateHaptic()
             viewModel.playSound(SoundEffect.BEEP_2)
+            binding.serverPortField.setText(
+                UserSettingsSerializer.DEFAULT_SERVER_PORT.formatString()
+            )
             viewModel.viewModelScope.launch {
                 binding.root.context.userSettings.updateData {
                     it.copy { serverPort = UserSettingsSerializer.DEFAULT_SERVER_PORT }
@@ -219,12 +222,13 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
                     fromUser: Boolean,
                 ) {
                     if (fromUser) viewModel.activateHaptic(HapticEffect.TICK)
-                    val updateInterval = getProgressBarValue(progress)
+                    val updateInterval = getSeekBarValue(progress)
                     viewModel.updateObjectsInterval = updateInterval
                     binding.updateIntervalLabel.text = updateInterval.formatString()
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    clearFocus()
                     viewModel.activateHaptic(HapticEffect.TICK)
                     viewModel.playSound(SoundEffect.BEEP_2)
                 }
@@ -251,14 +255,14 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
         binding.addressLimitField.clearFocus()
     }
 
-    private fun getProgress(value: Int): Int =
+    private fun getSeekBarProgress(value: Int): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             value
         } else {
             (value * MAX_PROGRESS / MAX_UPDATE_INTERVAL).roundToInt()
         }
 
-    private fun getProgressBarValue(progress: Int): Int =
+    private fun getSeekBarValue(progress: Int): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             progress.coerceIn(0, MAX_UPDATE_INTERVAL)
         } else {
