@@ -626,6 +626,7 @@
     <string name="recap">Recap</string>
     <string name="refreeze">Re-freeze</string>
     <string name="rendezvous_with">Rendezvous with:</string>
+    <string name="reset">Reset</string>
     <string name="restore_default_settings">Restore defaults</string>
     <string name="reverse_sorting_by_race">Reverse sorting by race</string>
     <string name="review_error">Review Error</string>
@@ -662,6 +663,7 @@
     <string name="send">Send</string>
     <string name="server_memory_limit">Server memory limit</string>
     <string name="server_port">Server port</string>
+    <string name="server_port_info">Enter a value between 0 and 65535. Default: 2010</string>
     <string name="settings">Settings</string>
     <string name="settings_menu_client">Client settings</string>
     <string name="settings_menu_connection">Connection settings</string>
@@ -735,7 +737,7 @@
     <string name="update_failed_title">Update Error</string>
     <string name="update_interval">Update interval</string>
     <string name="update_interval_disclaimer">
-        Note that the updates themselves may take longer than the value of this setting.
+        Note: the updates themselves may take longer than the value of this setting.
     </string>
     <string name="update_later">Later</string>
     <string name="update_now">Now</string>
@@ -751,6 +753,9 @@
     <string name="vessel_data">Vessel data</string>
     <string name="vessel_data_external">External</string>
     <string name="vessel_data_internal">Internal</string>
+    <string name="vessel_data_setting_disclaimer">
+        Note: changing this setting while connected to a server will terminate the connection.
+    </string>
     <string name="vessel_data_xml_location">Vessel data XML location</string>
     <string name="waiting_for_game">Waiting for game to start…</string>
     <string name="xml_error">XML Error</string>

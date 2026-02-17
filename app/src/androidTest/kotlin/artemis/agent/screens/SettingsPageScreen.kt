@@ -126,6 +126,7 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         override val viewClass: Class<*> = ClientSettingsFragment::class.java
 
         val vesselDataTitle = KTextView { withId(R.id.vesselDataTitle) }
+        val vesselDataDisclaimer = KTextView { withId(R.id.vesselDataDisclaimer) }
         val vesselDataDivider = KView { withId(R.id.vesselDataDivider) }
         val vesselDataDefaultButton = KCheckBox { withId(R.id.vesselDataDefault) }
         val vesselDataInternalButton = KCheckBox { withId(R.id.vesselDataInternalStorage) }
@@ -136,7 +137,9 @@ object SettingsPageScreen : KScreen<SettingsPageScreen>() {
         val showNetworkInfoDivider = KView { withId(R.id.showNetworkInfoDivider) }
 
         val serverPortTitle = KTextView { withId(R.id.serverPortTitle) }
-        val serverPortField = KTextView { withId(R.id.serverPortField) }
+        val serverPortField = KEditText { withId(R.id.serverPortField) }
+        val serverPortResetButton = KButton { withId(R.id.serverPortResetButton) }
+        val serverPortInfo = KTextView { withId(R.id.serverPortInfo) }
         val serverPortDivider = KView { withId(R.id.serverPortDivider) }
 
         val addressLimitTitle = KTextView { withId(R.id.addressLimitTitle) }

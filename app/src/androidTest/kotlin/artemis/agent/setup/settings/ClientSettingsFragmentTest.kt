@@ -92,17 +92,12 @@ class ClientSettingsFragmentTest : TestCase() {
                     shouldTest = shouldTestSettings,
                 )
                 testAddressFieldSetting(shouldTestSettings)
+                testServerPortSetting(expectedPort.get(), shouldTestSettings)
 
-                SettingsPageScreen.Client {
-                    step("Test showing info setting") {
-                        showNetworkInfoToggleSetting.testSingleToggle(showingInfo.get())
-                    }
-
-                    step("Test server port setting") {
-                        serverPortDivider.scrollTo()
-                        serverPortTitle.isDisplayedWithText(R.string.server_port)
-                        serverPortField.isDisplayedWithText(expectedPort.get().toString())
-                    }
+                step("Test showing info setting") {
+                    SettingsPageScreen.Client.showNetworkInfoToggleSetting.testSingleToggle(
+                        showingInfo.get()
+                    )
                 }
 
                 testUpdateIntervalSetting(expectedUpdateInterval.get(), shouldTestSettings)
@@ -149,6 +144,12 @@ class ClientSettingsFragmentTest : TestCase() {
                     scenario(SettingsMenuScenario)
                     scenario(SettingsSubmenuOpenScenario.Client)
 
+                    step("Disclaimer should be showing") {
+                        SettingsPageScreen.Client.vesselDataDisclaimer.isDisplayedWithText(
+                            R.string.vessel_data_setting_disclaimer
+                        )
+                    }
+
                     step("Select option #${index + 1}") { vesselDataButtons[index].first.click() }
 
                     MainScreen {
@@ -174,6 +175,7 @@ class ClientSettingsFragmentTest : TestCase() {
     }
 
     private companion object {
+        const val PORT_TEST_COUNT = 5
         const val INTERVAL_TEST_COUNT = 20
         const val BASE_MAX_PROGRESS = 100f
         const val MAX_INTERVAL = 500
@@ -207,6 +209,8 @@ class ClientSettingsFragmentTest : TestCase() {
                         }
                     }
 
+                    step("Disclaimer not displayed") { vesselDataDisclaimer.isRemoved() }
+
                     if (shouldTest) {
                         step("Select different options") {
                             vesselDataButtons.take(count).forEachIndexed { i, (button) ->
@@ -218,6 +222,33 @@ class ClientSettingsFragmentTest : TestCase() {
                         }
 
                         step("Revert setting") { vesselDataButtons[index].first.click() }
+                    }
+                }
+            }
+        }
+
+        fun TestContext<*>.testServerPortSetting(expectedPort: Int, shouldTestReset: Boolean) {
+            val expectedPortText = expectedPort.toString()
+
+            SettingsPageScreen.Client {
+                step("Test server port setting") {
+                    serverPortDivider.scrollTo()
+                    serverPortTitle.isDisplayedWithText(R.string.server_port)
+                    serverPortField.isDisplayedWithText(expectedPortText)
+                    serverPortInfo.isDisplayedWithText(R.string.server_port_info)
+                    serverPortResetButton.isDisplayedWithText(R.string.reset)
+                }
+
+                if (!shouldTestReset) return@Client
+
+                step("Test resetting port") {
+                    repeat(PORT_TEST_COUNT) {
+                        serverPortField.replaceText(
+                            Random.nextInt(UShort.MAX_VALUE.toInt()).toString()
+                        )
+                        serverPortResetButton.click()
+                        serverPortField.isDisplayedWithText("2010")
+                        serverPortField.replaceText(expectedPortText)
                     }
                 }
             }
@@ -300,9 +331,12 @@ class ClientSettingsFragmentTest : TestCase() {
         fun SettingsPageScreen.Client.testScreenClosed() {
             vesselDataTitle.doesNotExist()
             vesselDataButtons.forEach { (button) -> button.doesNotExist() }
+            vesselDataDisclaimer.doesNotExist()
             vesselDataDivider.doesNotExist()
             serverPortTitle.doesNotExist()
             serverPortField.doesNotExist()
+            serverPortResetButton.doesNotExist()
+            serverPortInfo.doesNotExist()
             serverPortDivider.doesNotExist()
             showNetworkInfoToggleSetting.testNotExist()
             addressLimitTitle.doesNotExist()

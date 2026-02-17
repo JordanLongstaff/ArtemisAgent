@@ -38,12 +38,19 @@
             android:layout_weight="1"
             android:text="@string/vessel_data_external" />
     </RadioGroup>
+    <TextView
+        android:id="@+id/vesselDataDisclaimer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/vessel_data_setting_disclaimer"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/vesselDataOptions" />
     <View
         android:id="@+id/vesselDataDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toBottomOf="@id/vesselDataOptions" />
+        app:layout_constraintTop_toBottomOf="@id/vesselDataDisclaimer" />
     <TextView
         android:id="@+id/serverPortTitle"
         android:layout_width="0dp"
@@ -57,6 +64,14 @@
         app:layout_constraintRight_toLeftOf="@id/serverPortField"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/serverPortField" />
+    <Button
+        android:id="@+id/serverPortResetButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/reset"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vesselDataDivider" />
     <EditText
         android:id="@+id/serverPortField"
         android:layout_width="wrap_content"
@@ -66,15 +81,23 @@
         android:importantForAutofill="no"
         android:inputType="number"
         android:maxLength="5"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/vesselDataDivider" />
+        app:layout_constraintBottom_toBottomOf="@id/serverPortResetButton"
+        app:layout_constraintEnd_toStartOf="@id/serverPortResetButton"
+        app:layout_constraintRight_toLeftOf="@id/serverPortResetButton"
+        app:layout_constraintTop_toTopOf="@id/serverPortResetButton" />
+    <TextView
+        android:id="@+id/serverPortInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/server_port_info"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/serverPortField" />
     <View
         android:id="@+id/serverPortDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toBottomOf="@id/serverPortField" />
+        app:layout_constraintTop_toBottomOf="@id/serverPortInfo" />
     <TextView
         android:id="@+id/showNetworkInfoTitle"
         android:layout_width="0dp"

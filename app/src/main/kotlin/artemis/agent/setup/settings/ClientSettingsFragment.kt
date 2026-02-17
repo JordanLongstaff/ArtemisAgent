@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import artemis.agent.AgentViewModel
 import artemis.agent.AgentViewModel.Companion.formatString
 import artemis.agent.R
+import artemis.agent.UserSettingsSerializer
 import artemis.agent.UserSettingsSerializer.userSettings
 import artemis.agent.copy
 import artemis.agent.databinding.SettingsClientBinding
@@ -62,6 +63,10 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
             binding.serverPortField.setText(it.serverPort.formatString())
             binding.addressLimitField.setText(it.recentAddressLimit.formatString())
             playSoundsOnTextChange = true
+        }
+
+        if (viewModel.isIdle) {
+            binding.vesselDataDisclaimer.visibility = View.GONE
         }
 
         prepareServerPortSettingField()
@@ -129,6 +134,16 @@ class ClientSettingsFragment : Fragment(R.layout.settings_client) {
                     } else {
                         it.copy { serverPort = text.toInt() }
                     }
+                }
+            }
+        }
+
+        binding.serverPortResetButton.setOnClickListener {
+            viewModel.activateHaptic()
+            viewModel.playSound(SoundEffect.BEEP_2)
+            viewModel.viewModelScope.launch {
+                binding.root.context.userSettings.updateData {
+                    it.copy { serverPort = UserSettingsSerializer.DEFAULT_SERVER_PORT }
                 }
             }
         }
