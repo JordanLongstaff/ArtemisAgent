@@ -22,6 +22,7 @@ includeBuild("build-logic")
 include(
     ":app",
     ":app:konsist",
+    ":gradle",
     ":IAN",
     ":IAN:annotations",
     ":IAN:annotations:konsist",
