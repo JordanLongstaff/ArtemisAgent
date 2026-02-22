@@ -41,3 +41,4 @@ jobs:
       with:
         add-paths: Gemfile.lock
         commit-message: "Update Gemfile.lock"
+        title: "Update Gemfile.lock"
