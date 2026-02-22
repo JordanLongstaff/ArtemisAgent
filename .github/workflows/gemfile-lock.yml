@@ -19,6 +19,7 @@ jobs:
     name: Update
     runs-on: macos-latest
     permissions:
+      contents: write
       pull-requests: write
 
     steps:
