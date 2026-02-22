@@ -19,6 +19,7 @@ app-update = "2.1.0"
 arcmutate-base = "1.7.0"
 arcmutate-git = "2.3.2"
 arcmutate-kotlin = "1.5.0"
+byte-buddy-agent = "1.17.7"
 crashlytics-plugin = "3.0.6"
 dependency-analysis = "3.5.1"
 desugar = "2.1.5"
@@ -30,6 +31,7 @@ google-services = "4.4.4"
 gradle = "8.13.2"
 gradle-pitest = "1.19.0-rc.3"
 hamcrest = "3.0"
+javaagent = "1.2.6"
 jspecify = "1.0.0"
 junit4 = "4.13.2"
 kakao = "3.7.0"
@@ -185,6 +187,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-core = { module = "io.mockk:mockk-core", version.ref = "mockk" }
 mockk-dsl = { module = "io.mockk:mockk-dsl", version.ref = "mockk" }
+
+byte-buddy-agent = { module = "net.bytebuddy:byte-buddy-agent", version.ref = "byte-buddy-agent" }
 
 arcmutate-base = { module = "com.arcmutate:base", version.ref = "arcmutate-base" }
 arcmutate-git = { module = "com.arcmutate:pitest-git-plugin", version.ref = "arcmutate-git" }
@@ -489,6 +493,7 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "perf-plugin" }
 git-hooks = { id = "com.github.jakemarsden.git-hooks", version.ref = "git-hooks" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+javaagent = { id = "io.github.neboskreb.javaagent", version.ref = "javaagent" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -5,6 +5,7 @@ import artemis.agent.gradle.dependsOnKonsist
 plugins {
     id("ian-library")
     id("fixtures")
+    alias(libs.plugins.javaagent)
     id("info.solidsoft.pitest")
 }
 
@@ -24,6 +25,7 @@ dependencies {
     testImplementation(libs.bundles.ian.listener.test)
     testFixturesImplementation(libs.kotlin.reflect)
     testRuntimeOnly(libs.bundles.ian.test.runtime)
+    testJavaagent(libs.byte.buddy.agent)
 
     pitest(libs.bundles.arcmutate)
 }
