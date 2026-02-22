@@ -22,6 +22,8 @@ class ConnectScenario(
     check: (TestContext<*>.(StepInfo) -> Unit)? = { SetupPageScreen.shipsPageButton.isChecked() },
 ) : Scenario() {
     override val steps: TestContext<Unit>.() -> Unit = {
+        step("Enable network connections") { device.network.enable() }
+
         ConnectPageScreen {
             val connectTimeout = AtomicInteger()
             step("Fetch connect timeout") {

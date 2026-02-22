@@ -41,6 +41,8 @@ class ConnectFragmentTest : TestCase() {
     fun scanTest() {
         run {
             mainScreenTest {
+                step("Enable network connections") { device.network.enable() }
+
                 val scanTimeout = AtomicInteger()
                 step("Fetch scan timeout") {
                     activityScenarioRule.scenario.onActivity { activity ->
@@ -170,6 +172,8 @@ class ConnectFragmentTest : TestCase() {
     fun showNetworkInfoTest() {
         run {
             mainScreenTest {
+                step("Enable network connections") { device.network.enable() }
+
                 val showingInfo = AtomicBoolean()
                 step("Fetch showing network info setting") {
                     activityScenarioRule.scenario.onActivity { activity ->
@@ -186,8 +190,44 @@ class ConnectFragmentTest : TestCase() {
                     booleanArrayOf(settingValue, !settingValue, settingValue).forEachIndexed {
                         index,
                         showing ->
-                        testShowingInfo(showing, index != 0, hasNetwork)
+                        if (index != 0) toggleShowingInfo()
+                        testShowingInfo(showing, hasNetwork)
                     }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun noNetworkTest() {
+        run {
+            mainScreenTest {
+                step("Disable network connections") { device.network.disable() }
+
+                val showingInfo = AtomicBoolean()
+                step("Fetch showing network info setting") {
+                    activityScenarioRule.scenario.onActivity { activity ->
+                        showingInfo.lazySet(
+                            activity.viewModels<AgentViewModel>().value.showingNetworkInfo
+                        )
+                    }
+                }
+                val settingValue = showingInfo.get()
+
+                if (!settingValue) {
+                    toggleShowingInfo()
+                }
+
+                ConnectPageScreen {
+                    step("Check \"Network not found\" text") {
+                        networkTypeLabel.isDisplayedWithText(R.string.network_not_found)
+                    }
+
+                    step("Check for no address") { addressLabel.isNotDisplayed() }
+                }
+
+                if (!settingValue) {
+                    toggleShowingInfo()
                 }
             }
         }
@@ -200,22 +240,18 @@ class ConnectFragmentTest : TestCase() {
 
         private val isEmulator by lazy { Build.DEVICE in EMULATOR_DEVICES }
 
-        private fun TestContext<Unit>.testShowingInfo(
-            isShowing: Boolean,
-            isToggling: Boolean,
-            hasNetwork: Boolean,
-        ) {
-            if (isToggling) {
-                scenario(SettingsMenuScenario)
-                scenario(SettingsSubmenuOpenScenario.Client)
+        private fun TestContext<Unit>.toggleShowingInfo() {
+            scenario(SettingsMenuScenario)
+            scenario(SettingsSubmenuOpenScenario.Client)
 
-                step("Toggle network info setting") {
-                    SettingsPageScreen.Client.showNetworkInfoButton.click()
-                }
-
-                step("Return to Connect page") { SetupPageScreen.connectPageButton.click() }
+            step("Toggle network info setting") {
+                SettingsPageScreen.Client.showNetworkInfoButton.click()
             }
 
+            step("Return to Connect page") { SetupPageScreen.connectPageButton.click() }
+        }
+
+        private fun TestContext<Unit>.testShowingInfo(isShowing: Boolean, hasNetwork: Boolean) {
             step("Network info views should ${if (isShowing) "" else "not "}be displayed") {
                 ConnectPageScreen.infoViews.forEachIndexed { index, view ->
                     if (isShowing && (index > 0 || hasNetwork)) {
